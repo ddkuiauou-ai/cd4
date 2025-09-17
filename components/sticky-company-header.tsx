@@ -122,7 +122,7 @@ export function StickyCompanyHeader({
   const logoSize = isPinned ? 40 : 56;
 
   return (
-    <div className="relative">
+    <>
       <div ref={sentinelRef} aria-hidden className="h-px w-full opacity-0" />
       <div
         className={cn(
@@ -160,7 +160,7 @@ export function StickyCompanyHeader({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
