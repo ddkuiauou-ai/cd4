@@ -18,7 +18,7 @@ function RankHeader({
   name?: string; // Optional name prop
 }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* 순위 카드 */}
       <Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
         <CardContent className="p-4">
@@ -38,7 +38,7 @@ function RankHeader({
 
       {/* 시가총액 카드 */}
       {marketcap != null && (
-        <Card className="col-span-2 lg:col-span-1 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow">
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-600 dark:bg-red-600 text-white">
