@@ -476,70 +476,71 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           )}
         </div>
 
-      {/* 사이드바 네비게이션 (데스크톱) */}
-      <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
-          {/* 페이지 네비게이션 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <PageNavigation
-              sections={[
-                {
-                  id: "company-overview",
-                  label: "기업 개요",
-                  icon: <Building2 className="h-3 w-3" />,
-                },
-                {
-                  id: "chart-analysis",
-                  label: "차트 분석",
-                  icon: <BarChart3 className="h-3 w-3" />,
-                },
-                {
-                  id: "securities-summary",
-                  label: "종목 비교",
-                  icon: <ArrowLeftRight className="h-3 w-3" />,
-                },
-                {
-                  id: "indicators",
-                  label: "핵심 지표",
-                  icon: <TrendingUp className="h-3 w-3" />,
-                },
-                {
-                  id: "annual-data",
-                  label: "연도별 데이터",
-                  icon: <FileText className="h-3 w-3" />,
-                },
-              ]}
-            />
+        {/* 사이드바 네비게이션 (데스크톱) */}
+        <div className="hidden xl:block">
+          <div className="sticky top-20 space-y-6">
+            {/* 페이지 네비게이션 */}
+            <div className="rounded-xl border bg-background p-4">
+              <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
+              <PageNavigation
+                sections={[
+                  {
+                    id: "company-overview",
+                    label: "기업 개요",
+                    icon: <Building2 className="h-3 w-3" />,
+                  },
+                  {
+                    id: "chart-analysis",
+                    label: "차트 분석",
+                    icon: <BarChart3 className="h-3 w-3" />,
+                  },
+                  {
+                    id: "securities-summary",
+                    label: "종목 비교",
+                    icon: <ArrowLeftRight className="h-3 w-3" />,
+                  },
+                  {
+                    id: "indicators",
+                    label: "핵심 지표",
+                    icon: <TrendingUp className="h-3 w-3" />,
+                  },
+                  {
+                    id: "annual-data",
+                    label: "연도별 데이터",
+                    icon: <FileText className="h-3 w-3" />,
+                  },
+                ]}
+              />
+            </div>
+
+            {/* 핵심 지표 카드 */}
+            {companyMarketcapData && (
+              <KeyMetricsSidebar
+                companyMarketcapData={companyMarketcapData}
+                companySecs={companySecs}
+                security={security}
+                marketCapRanking={marketCapRanking}
+              />
+            )}
+
+            {/* 종목별 시가총액 */}
+            {companySecs && companySecs.length > 0 && (
+              <InteractiveSecuritiesSection
+                companyMarketcapData={companyMarketcapData}
+                companySecs={companySecs}
+                currentTicker={currentTicker}
+                market={market}
+                layout="sidebar"
+                maxItems={4}
+                showSummaryCard={true}
+                compactMode={false}
+                baseUrl="company"
+                currentMetric="marketcap"
+              />
+            )}
           </div>
-
-          {/* 핵심 지표 카드 */}
-          {companyMarketcapData && (
-            <KeyMetricsSidebar
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              security={security}
-              marketCapRanking={marketCapRanking}
-            />
-          )}
-
-          {/* 종목별 시가총액 */}
-          {companySecs && companySecs.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              currentTicker={currentTicker}
-              market={market}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard={true}
-              compactMode={false}
-              baseUrl="company"
-              currentMetric="marketcap"
-            />
-          )}
         </div>
-      </div>
+      </div >
     </main>
   );
 }
