@@ -378,7 +378,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 추이와 종목별 구성 현황</p>
                 </div>
               </header>
-
               <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
                 <div className="h-full space-y-4">
                   <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
@@ -433,7 +432,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">동일 기업 내 각 종목 간 비교 분석</p>
                 </div>
               </header>
-
               <div className="space-y-6">
                 <InteractiveSecuritiesSection
                   companyMarketcapData={companyMarketcapData}
