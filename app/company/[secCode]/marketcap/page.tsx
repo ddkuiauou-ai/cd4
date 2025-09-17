@@ -21,6 +21,7 @@ import CompanyLogo from "@/components/CompanyLogo";
 import { InteractiveChartSection } from "@/components/interactive-chart-section";
 import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
+import { PageNavigation } from "@/components/page-navigation";
 
 /**
  * Generate static params for all company marketcap pages (SSG)
@@ -495,43 +496,35 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           {/* 페이지 네비게이션 */}
           <div className="rounded-xl border bg-background p-4">
             <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <nav className="space-y-2">
-              <a
-                href="#company-overview"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <Building2 className="h-3 w-3" />
-                기업 개요
-              </a>
-              <a
-                href="#chart-analysis"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <BarChart3 className="h-3 w-3" />
-                차트 분석
-              </a>
-              <a
-                href="#securities-summary"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <ArrowLeftRight className="h-3 w-3" />
-                종목 비교
-              </a>
-              <a
-                href="#indicators"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <TrendingUp className="h-3 w-3" />
-                핵심 지표
-              </a>
-              <a
-                href="#annual-data"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <FileText className="h-3 w-3" />
-                연도별 데이터
-              </a>
-            </nav>
+            <PageNavigation
+              sections={[
+                {
+                  id: "company-overview",
+                  label: "기업 개요",
+                  icon: <Building2 className="h-3 w-3" />,
+                },
+                {
+                  id: "chart-analysis",
+                  label: "차트 분석",
+                  icon: <BarChart3 className="h-3 w-3" />,
+                },
+                {
+                  id: "securities-summary",
+                  label: "종목 비교",
+                  icon: <ArrowLeftRight className="h-3 w-3" />,
+                },
+                {
+                  id: "indicators",
+                  label: "핵심 지표",
+                  icon: <TrendingUp className="h-3 w-3" />,
+                },
+                {
+                  id: "annual-data",
+                  label: "연도별 데이터",
+                  icon: <FileText className="h-3 w-3" />,
+                },
+              ]}
+            />
           </div>
 
           {/* 핵심 지표 카드 */}
