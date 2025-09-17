@@ -277,7 +277,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
           </div>
         </div>
-
         {companyMarketcapData && companyMarketcapData.aggregatedHistory && companyMarketcapData.securities ? (
           <div className="space-y-16">
             {/* 기업 개요 섹션 */}
@@ -479,6 +478,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                 currentMarket={market}
               />
             </div>
+
           </div>
         ) : (
           <div className="space-y-12">
@@ -490,7 +490,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-
               {/* 메시지 */}
               <div className="max-w-md space-y-3">
                 <h3 className="text-xl font-semibold text-foreground">기업 시가총액 데이터 없음</h3>
