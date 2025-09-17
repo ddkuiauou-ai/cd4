@@ -1,0 +1,93 @@
+/*
+█████████████████████████████████████████████████████████████████████████████████████████████████████
+██ DEV-LABELS: Development Visual Labels CSS                                                        ██
+██                                                                                                 ██
+██ 목적: 개발 환경에서만 data-label 속성을 화면에 시각적으로 표시                                   ██
+██ 특징: CSS only 솔루션, hover시 표시, 프로덕션에서는 완전히 숨김                                  ██
+██ 사용법: body에 "dev-labels" 클래스 추가 시 모든 data-label 표시                                 ██
+█████████████████████████████████████████████████████████████████████████████████████████████████████
+*/
+
+/* 개발 환경 라벨 표시 스타일 */
+.dev-labels [data-label]:hover::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  font-size: 10px;
+  font-family: "Courier New", monospace;
+  padding: 2px 6px;
+  border-radius: 0 0 4px 0;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 항상 표시되는 주요 라벨들 (P5-3 메인 섹션들) */
+.dev-labels
+  [data-label^="P5-3-"]:not([data-label*="-SKELETON-"]):not(
+    [data-label*="-LOADING-"]
+  ):not([data-label*="-ERROR-"])::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 9px;
+  font-family: "Courier New", monospace;
+  padding: 1px 4px;
+  border-radius: 0 0 3px 0;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 메인 컨테이너들은 더 큰 라벨 */
+.dev-labels [data-label="P5-3-MAIN"]::before,
+.dev-labels [data-label="P5-3-SKELETON"]::before,
+.dev-labels [data-label="P5-3-GROUP"]::before,
+.dev-labels [data-label="P5-3-CONTENT"]::before,
+.dev-labels [data-label="P5-3-3-CARDS-GRID"]::before,
+.dev-labels [data-label="P5-3-4-SUMMARY-CONTAINER"]::before {
+  font-size: 11px;
+  padding: 2px 6px;
+  font-weight: bold;
+  background: rgba(220, 38, 38, 0.9); /* red-600 */
+}
+
+/* 카드 컨테이너들 */
+.dev-labels [data-label^="P5-3-3-CARD-CONTAINER-"]::before {
+  background: rgba(37, 99, 235, 0.9); /* blue-600 */
+}
+
+/* 요약 관련 */
+.dev-labels [data-label^="P5-3-4-SUMMARY-"]::before {
+  background: rgba(34, 197, 94, 0.9); /* green-600 */
+}
+
+/* SVG 연결선 */
+.dev-labels [data-label^="P5-3-2-CONNECTION-"]::before {
+  background: rgba(168, 85, 247, 0.9); /* purple-600 */
+}
+
+/* 스켈레톤 요소들 */
+.dev-labels [data-label^="P5-3-SKELETON-"]::before {
+  background: rgba(107, 114, 128, 0.9); /* gray-500 */
+}
+
+/* 로딩/에러 상태 */
+.dev-labels [data-label*="-LOADING-"]::before,
+.dev-labels [data-label*="-ERROR-"]::before {
+  background: rgba(245, 101, 101, 0.9); /* red-400 */
+}
+
+/* 프로덕션에서는 완전히 숨김 */
+body:not(.dev-labels) [data-label]::before {
+  display: none !important;
+}

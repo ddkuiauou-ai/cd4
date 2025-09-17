@@ -1,0 +1,2167 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "9f745d9b-3005-42b2-ab2e-c391b1167669",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "bppedd": {
+      "name": "bppedd",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "security_id": {
+          "name": "security_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "kor_name": {
+          "name": "kor_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bps": {
+          "name": "bps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "per": {
+          "name": "per",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pbr": {
+          "name": "pbr",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eps": {
+          "name": "eps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "div": {
+          "name": "div",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dps": {
+          "name": "dps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month": {
+          "name": "month",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "bppedd_security_id_idx": {
+          "name": "bppedd_security_id_idx",
+          "columns": [
+            "security_id"
+          ],
+          "isUnique": false
+        },
+        "bppedd_date_idx": {
+          "name": "bppedd_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "bppedd_ticker_idx": {
+          "name": "bppedd_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "bppedd_year_month_idx": {
+          "name": "bppedd_year_month_idx",
+          "columns": [
+            "year",
+            "month"
+          ],
+          "isUnique": false
+        },
+        "bppedd_created_at_idx": {
+          "name": "bppedd_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "idx_bppedd_sec_date": {
+          "name": "idx_bppedd_sec_date",
+          "columns": [
+            "security_id",
+            "date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "bppedd_security_id_security_security_id_fk": {
+          "name": "bppedd_security_id_security_security_id_fk",
+          "tableFrom": "bppedd",
+          "tableTo": "security",
+          "columnsFrom": [
+            "security_id"
+          ],
+          "columnsTo": [
+            "security_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "company": {
+      "name": "company",
+      "columns": {
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kor_name": {
+          "name": "kor_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "kor_address": {
+          "name": "kor_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tel": {
+          "name": "tel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fax": {
+          "name": "fax",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "homepage": {
+          "name": "homepage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "employees": {
+          "name": "employees",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "industry": {
+          "name": "industry",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "established_date": {
+          "name": "established_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "marketcap": {
+          "name": "marketcap",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_rank": {
+          "name": "marketcap_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_prior_rank": {
+          "name": "marketcap_prior_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_date": {
+          "name": "marketcap_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "company_name_idx": {
+          "name": "company_name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "company_kor_name_idx": {
+          "name": "company_kor_name_idx",
+          "columns": [
+            "kor_name"
+          ],
+          "isUnique": false
+        },
+        "company_country_idx": {
+          "name": "company_country_idx",
+          "columns": [
+            "country"
+          ],
+          "isUnique": false
+        },
+        "company_type_idx": {
+          "name": "company_type_idx",
+          "columns": [
+            "type"
+          ],
+          "isUnique": false
+        },
+        "company_created_at_idx": {
+          "name": "company_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "display_name": {
+      "name": "display_name",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company_name": {
+          "name": "company_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "display_name_company_id_idx": {
+          "name": "display_name_company_id_idx",
+          "columns": [
+            "company_id"
+          ],
+          "isUnique": false
+        },
+        "display_name_value_idx": {
+          "name": "display_name_value_idx",
+          "columns": [
+            "value"
+          ],
+          "isUnique": false
+        },
+        "display_name_created_at_idx": {
+          "name": "display_name_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "display_name_company_id_company_company_id_fk": {
+          "name": "display_name_company_id_company_company_id_fk",
+          "tableFrom": "display_name",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "company_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "marketcap": {
+      "name": "marketcap",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "security_id": {
+          "name": "security_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "kor_name": {
+          "name": "kor_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "marketcap": {
+          "name": "marketcap",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "volume": {
+          "name": "volume",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transaction": {
+          "name": "transaction",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "shares": {
+          "name": "shares",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month": {
+          "name": "month",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "marketcap_security_id_idx": {
+          "name": "marketcap_security_id_idx",
+          "columns": [
+            "security_id"
+          ],
+          "isUnique": false
+        },
+        "marketcap_date_idx": {
+          "name": "marketcap_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "marketcap_ticker_idx": {
+          "name": "marketcap_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "marketcap_year_month_idx": {
+          "name": "marketcap_year_month_idx",
+          "columns": [
+            "year",
+            "month"
+          ],
+          "isUnique": false
+        },
+        "marketcap_created_at_idx": {
+          "name": "marketcap_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "idx_marketcaps_sec_date": {
+          "name": "idx_marketcaps_sec_date",
+          "columns": [
+            "security_id",
+            "date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "marketcap_security_id_security_security_id_fk": {
+          "name": "marketcap_security_id_security_security_id_fk",
+          "tableFrom": "marketcap",
+          "tableTo": "security",
+          "columnsFrom": [
+            "security_id"
+          ],
+          "columnsTo": [
+            "security_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "pension": {
+      "name": "pension",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "data_created_ym": {
+          "name": "data_created_ym",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "company_name": {
+          "name": "company_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "business_reg_num": {
+          "name": "business_reg_num",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "join_status": {
+          "name": "join_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "zip_code": {
+          "name": "zip_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "lot_number_address": {
+          "name": "lot_number_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "road_name_address": {
+          "name": "road_name_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "legal_dong_addr_code": {
+          "name": "legal_dong_addr_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "admin_dong_addr_code": {
+          "name": "admin_dong_addr_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "addr_sido_code": {
+          "name": "addr_sido_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "addr_sigungu_code": {
+          "name": "addr_sigungu_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "addr_emdong_code": {
+          "name": "addr_emdong_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "workplace_type": {
+          "name": "workplace_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "industry_code": {
+          "name": "industry_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "industry_name": {
+          "name": "industry_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "applied_at": {
+          "name": "applied_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "re_registered_at": {
+          "name": "re_registered_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "withdrawn_at": {
+          "name": "withdrawn_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "subscriber_count": {
+          "name": "subscriber_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "monthly_notice_amount": {
+          "name": "monthly_notice_amount",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "new_subscribers": {
+          "name": "new_subscribers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "lost_subscribers": {
+          "name": "lost_subscribers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "avg_fee": {
+          "name": "avg_fee",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "pension_company_id_idx": {
+          "name": "pension_company_id_idx",
+          "columns": [
+            "company_id"
+          ],
+          "isUnique": false
+        },
+        "pension_date_idx": {
+          "name": "pension_date_idx",
+          "columns": [
+            "data_created_ym"
+          ],
+          "isUnique": false
+        },
+        "pension_company_name_idx": {
+          "name": "pension_company_name_idx",
+          "columns": [
+            "company_name"
+          ],
+          "isUnique": false
+        },
+        "pension_created_at_idx": {
+          "name": "pension_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "pension_industry_code_idx": {
+          "name": "pension_industry_code_idx",
+          "columns": [
+            "industry_code"
+          ],
+          "isUnique": false
+        },
+        "pension_zip_code_idx": {
+          "name": "pension_zip_code_idx",
+          "columns": [
+            "zip_code"
+          ],
+          "isUnique": false
+        },
+        "pension_join_status_idx": {
+          "name": "pension_join_status_idx",
+          "columns": [
+            "join_status"
+          ],
+          "isUnique": false
+        },
+        "pension_withdrawn_at_idx": {
+          "name": "pension_withdrawn_at_idx",
+          "columns": [
+            "withdrawn_at"
+          ],
+          "isUnique": false
+        },
+        "pension_subscriber_count_idx": {
+          "name": "pension_subscriber_count_idx",
+          "columns": [
+            "subscriber_count"
+          ],
+          "isUnique": false
+        },
+        "pension_company_date_idx": {
+          "name": "pension_company_date_idx",
+          "columns": [
+            "company_id",
+            "data_created_ym"
+          ],
+          "isUnique": false
+        },
+        "pension_region_industry_idx": {
+          "name": "pension_region_industry_idx",
+          "columns": [
+            "addr_sido_code",
+            "addr_sigungu_code",
+            "industry_code"
+          ],
+          "isUnique": false
+        },
+        "pension_status_withdrawal_idx": {
+          "name": "pension_status_withdrawal_idx",
+          "columns": [
+            "join_status",
+            "withdrawn_at"
+          ],
+          "isUnique": false
+        },
+        "pension_unique_business_month": {
+          "name": "pension_unique_business_month",
+          "columns": [
+            "data_created_ym",
+            "company_name",
+            "business_reg_num"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "pension_company_id_company_company_id_fk": {
+          "name": "pension_company_id_company_company_id_fk",
+          "tableFrom": "pension",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "company_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "price": {
+      "name": "price",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "security_id": {
+          "name": "security_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "kor_name": {
+          "name": "kor_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "open": {
+          "name": "open",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "high": {
+          "name": "high",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "low": {
+          "name": "low",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "close": {
+          "name": "close",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "volume": {
+          "name": "volume",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fvolume": {
+          "name": "fvolume",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "transaction": {
+          "name": "transaction",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rate": {
+          "name": "rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month": {
+          "name": "month",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "price_security_id_idx": {
+          "name": "price_security_id_idx",
+          "columns": [
+            "security_id"
+          ],
+          "isUnique": false
+        },
+        "price_date_idx": {
+          "name": "price_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "price_ticker_idx": {
+          "name": "price_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "price_year_month_idx": {
+          "name": "price_year_month_idx",
+          "columns": [
+            "year",
+            "month"
+          ],
+          "isUnique": false
+        },
+        "price_created_at_idx": {
+          "name": "price_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "idx_price_sec_date": {
+          "name": "idx_price_sec_date",
+          "columns": [
+            "security_id",
+            "date"
+          ],
+          "isUnique": false
+        },
+        "idx_price_exchange_date": {
+          "name": "idx_price_exchange_date",
+          "columns": [
+            "exchange",
+            "date"
+          ],
+          "isUnique": false
+        },
+        "idx_price_ticker_exchange": {
+          "name": "idx_price_ticker_exchange",
+          "columns": [
+            "ticker",
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "idx_price_security_id_exchange": {
+          "name": "idx_price_security_id_exchange",
+          "columns": [
+            "security_id",
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "idx_price_exch_date_ticker_for_sync": {
+          "name": "idx_price_exch_date_ticker_for_sync",
+          "columns": [
+            "exchange",
+            "date",
+            "ticker"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "price_security_id_security_security_id_fk": {
+          "name": "price_security_id_security_security_id_fk",
+          "tableFrom": "price",
+          "tableTo": "security",
+          "columnsFrom": [
+            "security_id"
+          ],
+          "columnsTo": [
+            "security_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "search_name": {
+      "name": "search_name",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company_name": {
+          "name": "company_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "search_name_company_id_idx": {
+          "name": "search_name_company_id_idx",
+          "columns": [
+            "company_id"
+          ],
+          "isUnique": false
+        },
+        "search_name_value_idx": {
+          "name": "search_name_value_idx",
+          "columns": [
+            "value"
+          ],
+          "isUnique": false
+        },
+        "search_name_created_at_idx": {
+          "name": "search_name_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "search_name_company_id_company_company_id_fk": {
+          "name": "search_name_company_id_company_company_id_fk",
+          "tableFrom": "search_name",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "company_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "security": {
+      "name": "security",
+      "columns": {
+        "security_id": {
+          "name": "security_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kor_name": {
+          "name": "kor_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "listing_date": {
+          "name": "listing_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "delisting_date": {
+          "name": "delisting_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "price": {
+          "name": "price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "price_date": {
+          "name": "price_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "shares": {
+          "name": "shares",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "shares_date": {
+          "name": "shares_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap": {
+          "name": "marketcap",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_rank": {
+          "name": "marketcap_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_prior_rank": {
+          "name": "marketcap_prior_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "marketcap_date": {
+          "name": "marketcap_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "bps": {
+          "name": "bps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "bps_date": {
+          "name": "bps_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "per": {
+          "name": "per",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "per_date": {
+          "name": "per_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "pbr": {
+          "name": "pbr",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "pbr_date": {
+          "name": "pbr_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "eps": {
+          "name": "eps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "eps_date": {
+          "name": "eps_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "div": {
+          "name": "div",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "div_date": {
+          "name": "div_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dps": {
+          "name": "dps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dps_date": {
+          "name": "dps_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "security_company_id_idx": {
+          "name": "security_company_id_idx",
+          "columns": [
+            "company_id"
+          ],
+          "isUnique": false
+        },
+        "security_ticker_idx": {
+          "name": "security_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "security_name_idx": {
+          "name": "security_name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "security_exchange_idx": {
+          "name": "security_exchange_idx",
+          "columns": [
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "security_created_at_idx": {
+          "name": "security_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "idx_security_exchange_id": {
+          "name": "idx_security_exchange_id",
+          "columns": [
+            "exchange",
+            "security_id"
+          ],
+          "isUnique": false,
+          "where": "\"security\".\"delisting_date\" IS NULL"
+        },
+        "idx_security_ticker_exchange": {
+          "name": "idx_security_ticker_exchange",
+          "columns": [
+            "ticker",
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "idx_security_exchange_delisting": {
+          "name": "idx_security_exchange_delisting",
+          "columns": [
+            "exchange",
+            "delisting_date"
+          ],
+          "isUnique": false
+        },
+        "idx_security_delisting_date": {
+          "name": "idx_security_delisting_date",
+          "columns": [
+            "delisting_date"
+          ],
+          "isUnique": false
+        },
+        "idx_security_type": {
+          "name": "idx_security_type",
+          "columns": [
+            "type"
+          ],
+          "isUnique": false
+        },
+        "idx_security_exchange_marketcap_date": {
+          "name": "idx_security_exchange_marketcap_date",
+          "columns": [
+            "exchange",
+            "marketcap_date"
+          ],
+          "isUnique": false
+        },
+        "idx_security_company_id_exchange": {
+          "name": "idx_security_company_id_exchange",
+          "columns": [
+            "company_id",
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "idx_security_delisting_marketcap_desc": {
+          "name": "idx_security_delisting_marketcap_desc",
+          "columns": [
+            "delisting_date",
+            "marketcap"
+          ],
+          "isUnique": false
+        },
+        "idx_security_marketcap_rank": {
+          "name": "idx_security_marketcap_rank",
+          "columns": [
+            "marketcap_rank"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "security_company_id_company_company_id_fk": {
+          "name": "security_company_id_company_company_id_fk",
+          "tableFrom": "security",
+          "tableTo": "company",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "company_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "stockcodename": {
+      "name": "stockcodename",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "stockcodename_ticker_idx": {
+          "name": "stockcodename_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "stockcodename_name_idx": {
+          "name": "stockcodename_name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "stockcodename_exchange_idx": {
+          "name": "stockcodename_exchange_idx",
+          "columns": [
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "stockcodename_date_exchange_idx": {
+          "name": "stockcodename_date_exchange_idx",
+          "columns": [
+            "date",
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "stockcodename_date_idx": {
+          "name": "stockcodename_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "stockcodename_date_ticker_exchange_pk": {
+          "columns": [
+            "date",
+            "ticker",
+            "exchange"
+          ],
+          "name": "stockcodename_date_ticker_exchange_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tmp_bppedds": {
+      "name": "tmp_bppedds",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bps": {
+          "name": "bps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "per": {
+          "name": "per",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pbr": {
+          "name": "pbr",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eps": {
+          "name": "eps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "div": {
+          "name": "div",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dps": {
+          "name": "dps",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "tmp_bppedds_ticker_idx": {
+          "name": "tmp_bppedds_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "tmp_bppedds_date_idx": {
+          "name": "tmp_bppedds_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "tmp_bppedds_exchange_idx": {
+          "name": "tmp_bppedds_exchange_idx",
+          "columns": [
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "tmp_bppedds_date_exchange_idx": {
+          "name": "tmp_bppedds_date_exchange_idx",
+          "columns": [
+            "date",
+            "exchange"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "tmp_bppedds_date_ticker_exchange_pk": {
+          "columns": [
+            "date",
+            "ticker",
+            "exchange"
+          ],
+          "name": "tmp_bppedds_date_ticker_exchange_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tmp_marketcaps": {
+      "name": "tmp_marketcaps",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "close": {
+          "name": "close",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "marketcap": {
+          "name": "marketcap",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "volume": {
+          "name": "volume",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transaction": {
+          "name": "transaction",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "shares": {
+          "name": "shares",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "tmp_marketcaps_ticker_idx": {
+          "name": "tmp_marketcaps_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "tmp_marketcaps_date_idx": {
+          "name": "tmp_marketcaps_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "tmp_marketcaps_exchange_idx": {
+          "name": "tmp_marketcaps_exchange_idx",
+          "columns": [
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "tmp_marketcaps_date_exchange_idx": {
+          "name": "tmp_marketcaps_date_exchange_idx",
+          "columns": [
+            "date",
+            "exchange"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "tmp_marketcaps_date_ticker_exchange_pk": {
+          "columns": [
+            "date",
+            "ticker",
+            "exchange"
+          ],
+          "name": "tmp_marketcaps_date_ticker_exchange_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tmp_prices": {
+      "name": "tmp_prices",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ticker": {
+          "name": "ticker",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "open": {
+          "name": "open",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "high": {
+          "name": "high",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "low": {
+          "name": "low",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "close": {
+          "name": "close",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "volume": {
+          "name": "volume",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transaction": {
+          "name": "transaction",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rate": {
+          "name": "rate",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange": {
+          "name": "exchange",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIME)"
+        }
+      },
+      "indexes": {
+        "tmp_prices_ticker_idx": {
+          "name": "tmp_prices_ticker_idx",
+          "columns": [
+            "ticker"
+          ],
+          "isUnique": false
+        },
+        "tmp_prices_date_idx": {
+          "name": "tmp_prices_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "tmp_prices_exchange_idx": {
+          "name": "tmp_prices_exchange_idx",
+          "columns": [
+            "exchange"
+          ],
+          "isUnique": false
+        },
+        "tmp_prices_date_exchange_idx": {
+          "name": "tmp_prices_date_exchange_idx",
+          "columns": [
+            "date",
+            "exchange"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "tmp_prices_date_ticker_exchange_pk": {
+          "columns": [
+            "date",
+            "ticker",
+            "exchange"
+          ],
+          "name": "tmp_prices_date_ticker_exchange_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

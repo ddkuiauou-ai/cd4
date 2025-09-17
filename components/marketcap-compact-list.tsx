@@ -1,0 +1,136 @@
+"use client";
+
+import Link from "next/link";
+import CompanyLogo from "@/components/CompanyLogo";
+import Exchange from "@/components/exchange";
+import Rate from "@/components/rate";
+import { formatNumberWithSeparateUnit } from "@/lib/utils";
+import SpikeChart from "@/components/spike-chart";
+import RankChange from "@/components/rank-change";
+
+type Security = {
+  exchange?: string | null;
+  ticker?: string | null;
+  prices?: { open?: number | null; high?: number | null; low?: number | null; close?: number | null; rate?: number | null; date?: string | Date }[];
+};
+
+type Item = {
+  securityId?: string;
+  companyId?: string | number;
+  name?: string | null;
+  korName?: string | null;
+  logo?: string | null;
+  marketcapRank?: number | null;
+  marketcapPriorRank?: number | null;
+  marketcap?: number | null;
+  securities?: Security[];
+  // normalized shape support
+  prices?: { close?: number; rate?: number; open?: number; date?: string }[];
+  exchange?: string;
+  ticker?: string;
+};
+
+interface Props {
+  items: Item[];
+  limit?: number;
+  className?: string;
+}
+
+/**
+ * Compact, edge-to-edge list optimized for MD/SM.
+ * - SM: edge-to-edge via negative horizontal margins
+ * - Minimal color usage; primary only for subtle rate emphasis
+ * - No nested cards; single-level list items with dividers
+ */
+export default function MarketcapCompactList({ items, limit, className }: Props) {
+  const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
+
+  return (
+    <div className={className}>
+      {/* Edge-to-edge on mobile */}
+      <ul className="-mx-4 sm:-mx-6 lg:mx-0 divide-y divide-border border-y border-border text-[13px] sm:text-sm">
+        {list.map((it) => {
+          const companyName = it.korName || it.name || "";
+          const logoUrl = (it as any).company?.logo ?? it.logo ?? null;
+          const rank = it.marketcapRank ?? (it as any).company?.marketcapRank ?? null;
+          const ex = it.exchange || it.securities?.[0]?.exchange || "";
+          const tk = it.ticker || it.securities?.[0]?.ticker || "";
+          const prices = it.prices || it.securities?.[0]?.prices || [];
+          const last = prices.length > 0 ? prices[prices.length - 1] : undefined;
+          const close = last?.close ?? null;
+          const rate = (last as any)?.rate ?? null;
+          const marketcap = it.marketcap ?? null;
+
+          return (
+            <li key={it.securityId ?? it.companyId ?? `${ex}.${tk}`} className="px-4 sm:px-6 py-3">
+              <div className="flex w-full items-center justify-between gap-x-3">
+                {/* Item 1: Rank */}
+                <div className="w-12 text-center font-semibold text-sm text-muted-foreground tabular-nums shrink-0">
+                  <div>{rank != null ? `${rank}위` : "—"}</div>
+                  <RankChange currentRank={it.marketcapRank} priorRank={it.marketcapPriorRank} />
+                </div>
+
+                {/* Item 2: Company Info - flex-1 REMOVED */}
+                <Link
+                  href={ex && tk ? `/company/${ex}.${tk}/marketcap` : "#"}
+                  className="flex items-center gap-3 group min-w-0"
+                >
+                  <div className="shrink-0">
+                    <CompanyLogo companyName={companyName} logoUrl={logoUrl || undefined} size={32} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                      {companyName}
+                    </div>
+                    <div className="flex text-xs text-muted-foreground items-center gap-2">
+                      <Exchange exchange={ex as string} />
+                      <span className="font-mono">{tk}</span>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Item 3: Market Cap */}
+                <div className="text-right font-semibold tabular-nums shrink-0">
+                  {marketcap != null ? (() => { const f = formatNumberWithSeparateUnit(marketcap); return <>{f.number}<span className="text-[11px] text-muted-foreground font-normal ml-0.5">{f.unit}</span></>; })() : "—"}
+                </div>
+
+                {/* Item 4: Close Price */}
+                <div className="hidden sm:block text-right text-muted-foreground tabular-nums shrink-0">
+                  {close != null ? `${close.toLocaleString()}` : "—"}
+                </div>
+
+                {/* Item 5: Rate */}
+                <div className="hidden md:block text-right shrink-0">
+                  {rate != null ? <Rate rate={rate as number} size="sm" /> : null}
+                </div>
+
+                {/* Item 6: Sparkline */}
+                {prices && prices.length > 1 ? (
+                  <div className="relative shrink-0">
+                    <div className="absolute top-[-12px] left-1/2 -translate-x-1/2 hidden sm:block md:hidden">
+                      {rate != null ? <Rate rate={rate as number} size="xs" /> : null}
+                    </div>
+                    <div className="absolute top-[-12px] left-0 sm:hidden">
+                      {rate != null ? <Rate rate={rate as number} size="xs" /> : null}
+                    </div>
+                    <div className="sm:hidden">
+                      <SpikeChart prices={prices.slice(-30) as any} rate={rate as number | undefined} width={100} height={40} />
+                    </div>
+                    <div className="hidden sm:block">
+                      <SpikeChart prices={prices.slice(-30) as any} rate={rate as number | undefined} width={150} height={40} />
+                    </div>
+                    <div className="absolute bottom-[-12px] right-0 sm:hidden text-xs font-semibold">
+                      {close != null ? `${close.toLocaleString()}원` : ""}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-[150px] shrink-0" />
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

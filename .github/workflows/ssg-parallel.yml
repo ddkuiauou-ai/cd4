@@ -1,0 +1,102 @@
+# CD3 Project - TRUE Parallel SSG Build with GitHub Actions Matrix
+name: SSG Build (Parallel)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Strategy: Build chunks in parallel using matrix
+  build-chunks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chunk: [0, 1, 2, 3] # 4 parallel jobs
+
+    env:
+      BUILD_CHUNK_INDEX: ${{ matrix.chunk }}
+      BUILD_CHUNK_TOTAL: 4
+      BUILD_CHUNK_SIZE: 500
+      NODE_ENV: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup database environment
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+
+      - name: Build chunk ${{ matrix.chunk }}
+        run: |
+          echo "Building chunk ${{ matrix.chunk }}/4..."
+          pnpm build:ssg
+
+      - name: Upload chunk artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-chunk-${{ matrix.chunk }}
+          path: out/
+          retention-days: 1
+
+  # Merge all chunks into final build
+  merge-and-deploy:
+    needs: build-chunks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all chunk artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: chunks/
+
+      - name: Merge chunks
+        run: |
+          mkdir -p out
+          for chunk in chunks/build-chunk-*; do
+            echo "Merging $chunk..."
+            cp -r "$chunk"/* out/ 2>/dev/null || true
+          done
+
+      - name: Setup Node.js (for sitemap generation)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate final sitemap
+        run: node scripts/generate-sitemap.js
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: cd3-project
+          directory: out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload final build
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-ssg-build
+          path: out/
+          retention-days: 30

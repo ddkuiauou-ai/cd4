@@ -1,0 +1,18 @@
+{
+  "regions": ["icn1"],
+  "buildCommand": "pnpm run build:ssg",
+  "outputDirectory": "out",
+  "trailingSlash": true,
+  "cleanUrls": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400"
+        }
+      ]
+    }
+  ]
+}

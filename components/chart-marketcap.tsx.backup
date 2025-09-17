@@ -1,0 +1,3 @@
+# This is a backup of the original chart-marketcap.tsx before replacement
+# The file was too complex and causing ResponsiveContainer width(0) height(0) errors
+# It has been replaced with a simplified version

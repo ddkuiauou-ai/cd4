@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# 주요 페이지
+Allow: /dashboard
+Allow: /marketcaps
+Allow: /per
+Allow: /pbr
+Allow: /eps
+Allow: /bps
+Allow: /div
+Allow: /dps
+Allow: /security/*
+Allow: /company/*
+
+# Sitemap 위치 (동적 생성)
+Sitemap: https://cd3.kr/sitemap.xml
+
+# 크롤링 지연 (초)
+Crawl-delay: 1
