@@ -23,15 +23,14 @@ import { StickyCompanyHeader } from "@/components/sticky-company-header";
 type RgbTuple = [number, number, number];
 
 const GRADIENT_STOPS = [
-  { offset: 0, alpha: 0.18 },
-  { offset: 120, alpha: 0.1 },
-  { offset: 280, alpha: 0.05 },
-
+  { offset: 0, alpha: 0.09 },
+  { offset: 120, alpha: 0.05 },
+  { offset: 280, alpha: 0.025 },
   { offset: 520, alpha: 0 },
 ] as const;
 
 const createSectionGradient = ([r, g, b]: RgbTuple): CSSProperties => ({
-  backgroundColor: `rgba(${r}, ${g}, ${b}, 0.04)`,
+  backgroundColor: `rgba(${r}, ${g}, ${b}, 0.02)`,
   backgroundImage: `linear-gradient(180deg, ${GRADIENT_STOPS.map(
     stop => `rgba(${r}, ${g}, ${b}, ${stop.alpha}) ${stop.offset}px`
   ).join(", ")})`,
