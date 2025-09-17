@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
+import type { CSSProperties } from "react";
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { TrendingUp } from "lucide-react";
 import { formatNumberWithSeparateUnit, formatChangeRate, formatDifference } from "@/lib/utils";
@@ -16,7 +17,19 @@ interface KeyMetricsSectionProps {
         rankChange: number;
         value: number | null;
     } | null;
+    activeMetric: {
+        id: string;
+        label: string;
+        description?: string;
+    };
+    backgroundStyle?: CSSProperties;
 }
+
+const DEFAULT_BACKGROUND: CSSProperties = {
+    backgroundColor: "rgba(249, 115, 22, 0.08)",
+    backgroundImage:
+        "linear-gradient(180deg, rgba(249,115,22,0.26) 0px, rgba(249,115,22,0.16) 160px, rgba(249,115,22,0.06) 360px, rgba(249,115,22,0) 520px)",
+};
 
 export function KeyMetricsSection({
     companyMarketcapData,
@@ -24,6 +37,8 @@ export function KeyMetricsSection({
     security,
     periodAnalysis,
     marketCapRanking,
+    activeMetric,
+    backgroundStyle,
 }: KeyMetricsSectionProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -530,21 +545,38 @@ export function KeyMetricsSection({
     if (!periodAnalysis) return null;
 
     return (
-        <div id="indicators" className="py-8 -mx-4 px-4 bg-orange-50/20 dark:bg-orange-950/20 rounded-xl border-t border-orange-100 dark:border-orange-800/30">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50">
-                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        <section
+            id="indicators"
+            className="relative space-y-8 overflow-hidden rounded-3xl border border-orange-200/70 px-6 py-8 shadow-sm dark:border-orange-900/40 dark:bg-orange-950/20"
+            style={backgroundStyle ?? DEFAULT_BACKGROUND}
+        >
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-orange-700/80">
+                <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-orange-700 shadow-sm">
+                    탭 연동
+                </span>
+                <span className="text-sm font-semibold text-orange-800/90">
+                    {activeMetric.label} 기준 핵심 지표
+                </span>
+                {activeMetric.description && (
+                    <span className="text-[11px] font-medium text-orange-700/70">
+                        {activeMetric.description}
+                    </span>
+                )}
+            </div>
+            <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/40">
+                    <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">핵심 지표</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">핵심 지표</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
                         {selectedSecurityType === "시가총액 구성"
-                            ? "시가총액 주요 지표와 변화율 현황"
-                            : `${selectedSecurityType} 주요 지표와 변화율 현황`
+                            ? `${activeMetric.label} 주요 지표와 변화율 현황`
+                            : `${selectedSecurityType} · ${activeMetric.label} 지표 변화`
                         }
                     </p>
                 </div>
-            </div>
+            </header>
 
             <div
                 ref={scrollContainerRef}
@@ -881,6 +913,6 @@ export function KeyMetricsSection({
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }
