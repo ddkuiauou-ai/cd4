@@ -157,7 +157,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       computedStyle.getPropertyValue("--border"),
       "rgba(148, 163, 184, 0.4)"
     );
-
+        
     const chart = createChart(containerRef.current, {
       layout: {
         textColor: foreground,
