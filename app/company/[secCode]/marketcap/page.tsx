@@ -15,6 +15,7 @@ import { CompanyMarketcapPager } from "@/components/pager-company-marketcap";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import { InteractiveChartSection } from "@/components/interactive-chart-section";
+import { CandlestickChart } from "@/components/chart-candlestick";
 import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
 import { PageNavigation } from "@/components/page-navigation";
@@ -101,6 +102,67 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
   // Get market cap ranking for the security
   const marketCapRanking = await getSecurityMarketCapRanking(security.securityId);
+
+  const rawPrices = Array.isArray(security.prices) ? security.prices : [];
+  const parsedPricePoints = rawPrices
+    .map((price: any) => {
+      const sourceDate = price?.date;
+      const date = sourceDate instanceof Date ? sourceDate : new Date(sourceDate ?? "");
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return null;
+      }
+
+      const closeValue = typeof price?.close === "number" ? price.close : undefined;
+      const openValue = typeof price?.open === "number" ? price.open : undefined;
+      const highValue = typeof price?.high === "number" ? price.high : undefined;
+      const lowValue = typeof price?.low === "number" ? price.low : undefined;
+
+      const resolvedClose = closeValue ?? openValue ?? null;
+      const resolvedOpen = openValue ?? closeValue ?? null;
+
+      if (resolvedClose === null || resolvedOpen === null) {
+        return null;
+      }
+
+      const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
+      const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
+
+      return {
+        date,
+        time: date.toISOString().split("T")[0],
+        open: Number(resolvedOpen),
+        high: Number(resolvedHigh),
+        low: Number(resolvedLow),
+        close: Number(resolvedClose),
+      };
+    })
+    .filter((point): point is {
+      date: Date;
+      time: string;
+      open: number;
+      high: number;
+      low: number;
+      close: number;
+    } => !!point && Number.isFinite(point.open) && Number.isFinite(point.high) && Number.isFinite(point.low) && Number.isFinite(point.close));
+
+  const sortedPricePoints = parsedPricePoints.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  let candlestickSeriesData = sortedPricePoints.filter((point) => point.date >= oneMonthAgo);
+
+  if (!candlestickSeriesData.length) {
+    candlestickSeriesData = sortedPricePoints.slice(-30);
+  }
+
+  const candlestickData = candlestickSeriesData.map(({ time, open, high, low, close }) => ({
+    time,
+    open,
+    high,
+    low,
+    close,
+  }));
 
   // 🔥 기간별 시가총액 분석 계산 함수
   function calculatePeriodAnalysis() {
@@ -316,7 +378,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 추이와 종목별 구성 현황</p>
                 </div>
               </header>
-
               <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
                 <div className="h-full space-y-4">
                   <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
@@ -326,6 +387,23 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                       type="summary"
                       selectedType={selectedType}
                     />
+                  </div>
+
+                  <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm">
+                    <div className="flex items-start justify-between gap-2 px-5 pt-5">
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 한 달 캔들 차트</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가 흐름
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        1M
+                      </span>
+                    </div>
+                    <div className="px-3 pb-5 pt-3">
+                      <CandlestickChart data={candlestickData} />
+                    </div>
                   </div>
                 </div>
 
@@ -354,7 +432,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">동일 기업 내 각 종목 간 비교 분석</p>
                 </div>
               </header>
-
               <div className="space-y-6">
                 <InteractiveSecuritiesSection
                   companyMarketcapData={companyMarketcapData}
