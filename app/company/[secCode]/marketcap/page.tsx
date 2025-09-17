@@ -26,6 +26,7 @@ const GRADIENT_STOPS = [
   { offset: 0, alpha: 0.18 },
   { offset: 120, alpha: 0.1 },
   { offset: 280, alpha: 0.05 },
+
   { offset: 520, alpha: 0 },
 ] as const;
 
