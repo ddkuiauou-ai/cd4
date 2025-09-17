@@ -133,7 +133,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!containerRef.current) {
+    const container = containerRef.current;
+
+    if (!container) {
       return;
     }
 
@@ -143,64 +145,131 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       return;
     }
 
-    if (chartRef.current) {
-      chartRef.current.remove();
-      chartRef.current = null;
-    }
+    let resizeObserver: ResizeObserver | null = null;
+    let disposed = false;
 
-    const computedStyle = getComputedStyle(document.documentElement);
-    const foreground = normalizeColor(
-      computedStyle.getPropertyValue("--foreground"),
-      "#111827"
-    );
-    const borderColor = normalizeColor(
-      computedStyle.getPropertyValue("--border"),
-      "rgba(148, 163, 184, 0.4)"
-    );
-        
-    const chart = createChart(containerRef.current, {
-      layout: {
-        textColor: foreground,
-        background: { type: ColorType.Solid, color: "transparent" },
-      },
-      grid: {
-        horzLines: { color: "rgba(148, 163, 184, 0.16)" },
-        vertLines: { color: "rgba(148, 163, 184, 0.16)" },
-      },
-      rightPriceScale: { borderColor },
-      timeScale: { borderColor, timeVisible: true, secondsVisible: false },
-      crosshair: { mode: CrosshairMode.Normal },
-      autoSize: true,
-    });
+    const setupChart = async () => {
+      if (!containerRef.current) {
+        return;
+      }
 
-    const series = chart.addCandlestickSeries({
-      upColor: "#D60000",
-      downColor: "#0051C7",
-      borderUpColor: "#B80000",
-      borderDownColor: "#003C9D",
-      wickUpColor: "#D60000",
-      wickDownColor: "#0051C7",
-    });
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
 
-    series.setData(formattedData);
-    chart.timeScale().fitContent();
+      const computedStyle = getComputedStyle(document.documentElement);
+      const foreground = normalizeColor(
+        computedStyle.getPropertyValue("--foreground"),
+        "#111827"
+      );
+      const borderColor = normalizeColor(
+        computedStyle.getPropertyValue("--border"),
+        "rgba(148, 163, 184, 0.4)"
+      );
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      chart.applyOptions({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
+      const chart = createChart(containerRef.current, {
+        layout: {
+          textColor: foreground,
+          background: { type: ColorType.Solid, color: "transparent" },
+        },
+        grid: {
+          horzLines: { color: "rgba(148, 163, 184, 0.16)" },
+          vertLines: { color: "rgba(148, 163, 184, 0.16)" },
+        },
+        rightPriceScale: { borderColor },
+        timeScale: { borderColor, timeVisible: true, secondsVisible: false },
+        crosshair: { mode: CrosshairMode.Normal },
+        autoSize: true,
       });
-    });
 
-    resizeObserver.observe(containerRef.current);
+      const seriesOptions = {
+        upColor: "#D60000",
+        downColor: "#0051C7",
+        borderUpColor: "#B80000",
+        borderDownColor: "#003C9D",
+        wickUpColor: "#D60000",
+        wickDownColor: "#0051C7",
+      } as const;
 
-    chartRef.current = chart;
+      let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
+
+      if (typeof chart.addCandlestickSeries === "function") {
+        series = chart.addCandlestickSeries(seriesOptions);
+      } else {
+        const chartWithSeries = chart as unknown as {
+          addSeries?: (
+            ctor: unknown,
+            options: typeof seriesOptions
+          ) => ReturnType<IChartApi["addCandlestickSeries"]>;
+        };
+
+        if (typeof chartWithSeries.addSeries === "function") {
+          try {
+            const mod = await import("lightweight-charts");
+            const CandlestickCtor = (mod as { CandlestickSeries?: unknown })
+              .CandlestickSeries;
+
+            if (CandlestickCtor) {
+              series = chartWithSeries.addSeries(
+                CandlestickCtor,
+                seriesOptions
+              ) as ReturnType<IChartApi["addCandlestickSeries"]>;
+            }
+          } catch (error) {
+            console.error(
+              "Failed to dynamically load candlestick series constructor:",
+              error
+            );
+          }
+        }
+      }
+
+      if (disposed) {
+        chart.remove();
+        return;
+      }
+
+      if (!series) {
+        console.error(
+          "Unable to create candlestick series with the current lightweight-charts build."
+        );
+        chart.remove();
+        return;
+      }
+
+      series.setData(formattedData);
+      chart.timeScale().fitContent();
+
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || disposed) {
+          return;
+        }
+
+        chart.applyOptions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      });
+
+      if (!containerRef.current || disposed) {
+        resizeObserver.disconnect();
+        chart.remove();
+        return;
+      }
+
+      resizeObserver.observe(containerRef.current);
+      chartRef.current = chart;
+    };
+
+    void setupChart();
 
     return () => {
-      resizeObserver.disconnect();
-      chart.remove();
+      disposed = true;
+      resizeObserver?.disconnect();
+      chartRef.current?.remove();
+
       chartRef.current = null;
     };
   }, [formattedData]);
