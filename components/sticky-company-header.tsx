@@ -12,8 +12,8 @@ interface StickyCompanyHeaderProps {
   logoUrl?: string | null;
   /**
    * Pixel offset from the top of the viewport that the header should respect
-   * when it becomes sticky. Keep this in sync with the `top-*` utility used in
-   * the component styles.
+   * when it becomes sticky. This value acts as a fallback if the global site
+   * header cannot be measured on the client.
    */
   stickyOffset?: number;
 }
@@ -27,7 +27,6 @@ export function StickyCompanyHeader({
   stickyOffset = DEFAULT_STICKY_OFFSET,
 }: StickyCompanyHeaderProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const headerOffsetRef = useRef<number>(0);
   const [isPinned, setIsPinned] = useState(false);
   const [effectiveOffset, setEffectiveOffset] = useState(stickyOffset);
 
@@ -66,31 +65,49 @@ export function StickyCompanyHeader({
   }, [stickyOffset]);
 
   useEffect(() => {
-    const measureOffset = () => {
-      const sentinel = sentinelRef.current;
-      if (!sentinel) {
-        headerOffsetRef.current = 0;
-        return;
-      }
+    const sentinel = sentinelRef.current;
 
-      headerOffsetRef.current = sentinel.getBoundingClientRect().top + window.scrollY;
+    if (typeof window === "undefined" || !sentinel) {
+      return;
+    }
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          const shouldPin = !entry.isIntersecting;
+          setIsPinned(prev => (prev === shouldPin ? prev : shouldPin));
+        },
+        {
+          rootMargin: `-${effectiveOffset}px 0px 0px 0px`,
+          threshold: [0, 1],
+        }
+      );
+
+      observer.observe(sentinel);
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+
+    let sentinelTop = 0;
+
+    const measure = () => {
+      const rect = sentinel.getBoundingClientRect();
+      sentinelTop = rect.top + window.scrollY;
     };
 
     const updatePinnedState = () => {
-      if (!headerOffsetRef.current && headerOffsetRef.current !== 0) {
-        return;
-      }
-
-      const shouldPin = window.scrollY + effectiveOffset >= headerOffsetRef.current;
+      const shouldPin = window.scrollY + effectiveOffset >= sentinelTop;
       setIsPinned(prev => (prev === shouldPin ? prev : shouldPin));
     };
 
     const handleResize = () => {
-      measureOffset();
+      measure();
       updatePinnedState();
     };
 
-    measureOffset();
+    measure();
     updatePinnedState();
 
     window.addEventListener("scroll", updatePinnedState, { passive: true });
@@ -106,7 +123,7 @@ export function StickyCompanyHeader({
 
   return (
     <div className="relative">
-      <div ref={sentinelRef} aria-hidden className="h-0" />
+      <div ref={sentinelRef} aria-hidden className="h-px w-full opacity-0" />
       <div
         className={cn(
           "sticky z-40 transition-all duration-200",
