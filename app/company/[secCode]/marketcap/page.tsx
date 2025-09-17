@@ -305,13 +305,16 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
               <CompanyFinancialTabs secCode={secCode} />
 
-              <KeyMetricsSection
-                companyMarketcapData={companyMarketcapData}
-                companySecs={companySecs}
-                security={security}
-                periodAnalysis={periodAnalysis}
-                marketCapRanking={marketCapRanking}
-              />
+              <div className="xl:hidden">
+                <KeyMetricsSection
+                  companyMarketcapData={companyMarketcapData}
+                  companySecs={companySecs}
+                  security={security}
+                  periodAnalysis={periodAnalysis}
+                  marketCapRanking={marketCapRanking}
+                  sectionId="indicators-mobile"
+                />
+              </div>
 
               {/* 연도별 데이터 섹션 */}
               <div id="annual-data" className="border-t border-red-100 dark:border-red-800/50 pt-8 pb-8 bg-red-50/20 dark:bg-red-900/20 rounded-xl -mx-4 px-4">
@@ -515,12 +518,14 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
             {/* 핵심 지표 카드 */}
             {companyMarketcapData && (
-              <KeyMetricsSidebar
-                companyMarketcapData={companyMarketcapData}
-                companySecs={companySecs}
-                security={security}
-                marketCapRanking={marketCapRanking}
-              />
+              <div id="indicators" className="scroll-mt-24">
+                <KeyMetricsSidebar
+                  companyMarketcapData={companyMarketcapData}
+                  companySecs={companySecs}
+                  security={security}
+                  marketCapRanking={marketCapRanking}
+                />
+              </div>
             )}
 
             {/* 종목별 시가총액 */}
@@ -540,7 +545,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             )}
           </div>
         </div>
-      </div >
+      </div>
     </main>
   );
 }

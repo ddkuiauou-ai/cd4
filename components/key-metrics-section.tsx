@@ -16,6 +16,7 @@ interface KeyMetricsSectionProps {
         rankChange: number;
         value: number | null;
     } | null;
+    sectionId?: string;
 }
 
 export function KeyMetricsSection({
@@ -24,6 +25,7 @@ export function KeyMetricsSection({
     security,
     periodAnalysis,
     marketCapRanking,
+    sectionId = "indicators",
 }: KeyMetricsSectionProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -530,7 +532,10 @@ export function KeyMetricsSection({
     if (!periodAnalysis) return null;
 
     return (
-        <div id="indicators" className="py-8 -mx-4 px-4 bg-orange-50/20 dark:bg-orange-950/20 rounded-xl border-t border-orange-100 dark:border-orange-800/30">
+        <div
+            id={sectionId}
+            className="py-8 -mx-4 px-4 bg-orange-50/20 dark:bg-orange-950/20 rounded-xl border-t border-orange-100 dark:border-orange-800/30"
+        >
             <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50">
                     <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
