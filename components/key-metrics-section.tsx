@@ -530,21 +530,24 @@ export function KeyMetricsSection({
     if (!periodAnalysis) return null;
 
     return (
-        <div id="indicators" className="py-8 -mx-4 px-4 bg-orange-50/20 dark:bg-orange-950/20 rounded-xl border-t border-orange-100 dark:border-orange-800/30">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50">
-                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        <section
+            id="indicators"
+            className="space-y-8 rounded-3xl border border-orange-200/70 bg-orange-50/60 px-6 py-8 shadow-sm dark:border-orange-900/40 dark:bg-orange-950/20"
+        >
+            <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/40">
+                    <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">핵심 지표</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">핵심 지표</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
                         {selectedSecurityType === "시가총액 구성"
                             ? "시가총액 주요 지표와 변화율 현황"
                             : `${selectedSecurityType} 주요 지표와 변화율 현황`
                         }
                     </p>
                 </div>
-            </div>
+            </header>
 
             <div
                 ref={scrollContainerRef}
@@ -881,6 +884,6 @@ export function KeyMetricsSection({
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }
