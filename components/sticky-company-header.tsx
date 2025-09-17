@@ -12,8 +12,8 @@ interface StickyCompanyHeaderProps {
   logoUrl?: string | null;
   /**
    * Pixel offset from the top of the viewport that the header should respect
-   * when it becomes sticky. This value acts as a fallback if the global site
-   * header cannot be measured on the client.
+   * when it becomes sticky. Keep this in sync with the `top-*` utility used in
+   * the component styles.
    */
   stickyOffset?: number;
 }
