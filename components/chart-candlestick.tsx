@@ -269,6 +269,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       disposed = true;
       resizeObserver?.disconnect();
       chartRef.current?.remove();
+
       chartRef.current = null;
     };
   }, [formattedData]);
