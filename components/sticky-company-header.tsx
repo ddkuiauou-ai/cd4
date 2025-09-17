@@ -29,6 +29,41 @@ export function StickyCompanyHeader({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const headerOffsetRef = useRef<number>(0);
   const [isPinned, setIsPinned] = useState(false);
+  const [effectiveOffset, setEffectiveOffset] = useState(stickyOffset);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const siteHeader = document.querySelector<HTMLElement>("[data-site-header]");
+
+    if (!siteHeader) {
+      setEffectiveOffset(prev => (prev === stickyOffset ? prev : stickyOffset));
+      return;
+    }
+
+    const computeOffset = () => {
+      const headerHeight = siteHeader.getBoundingClientRect().height;
+      const gap = 16; // space between the global site header and the sticky bar
+      const nextOffset = Math.round(headerHeight + gap);
+
+      setEffectiveOffset(prev => (prev === nextOffset ? prev : nextOffset));
+    };
+
+    computeOffset();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(computeOffset);
+    resizeObserver.observe(siteHeader);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [stickyOffset]);
 
   useEffect(() => {
     const measureOffset = () => {
@@ -46,7 +81,7 @@ export function StickyCompanyHeader({
         return;
       }
 
-      const shouldPin = window.scrollY + stickyOffset >= headerOffsetRef.current;
+      const shouldPin = window.scrollY + effectiveOffset >= headerOffsetRef.current;
       setIsPinned(prev => (prev === shouldPin ? prev : shouldPin));
     };
 
@@ -65,7 +100,7 @@ export function StickyCompanyHeader({
       window.removeEventListener("scroll", updatePinnedState);
       window.removeEventListener("resize", handleResize);
     };
-  }, [stickyOffset]);
+  }, [effectiveOffset]);
 
   const logoSize = isPinned ? 40 : 56;
 
@@ -74,11 +109,12 @@ export function StickyCompanyHeader({
       <div ref={sentinelRef} aria-hidden className="h-0" />
       <div
         className={cn(
-          "sticky top-20 z-30 transition-all duration-200",
+          "sticky z-40 transition-all duration-200",
           isPinned
             ? "border-b border-border/60 bg-background/95 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/75"
             : "py-6 sm:py-8"
         )}
+        style={{ top: `${effectiveOffset}px` }}
       >
         <div
           className={cn(
