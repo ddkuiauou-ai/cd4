@@ -11,7 +11,7 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items, latestDate } = await getSecurityRanksPage("marketcap", 1, 'asc');
-    const topSecurityNames = items.slice(0, 3).map(s => s.korName || s.name).join(', ');
+    const topSecurityNames = items.slice(0, 3).map((s: any) => s.korName || s.name).join(', ');
 
     const title = `종목별 시가총액 순위 - ${siteConfig.name}`;
     const description = `${siteConfig.name}에서 제공하는 종목별 시가총액 순위. ${latestDate} 기준, ${topSecurityNames} 등 국내 상장 종목의 순위를 확인하세요.`;
@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         marketcapRank: security.currentRank,
         marketcapPriorRank: security.priorRank,
-        marketcap: security.marketcap,
+        marketcap: security.value,
         // Nest security data to match the expected structure of ServerTable and MarketcapCompactList
         securities: [
             {
@@ -84,14 +84,14 @@ async function MarketcapRankPage() {
         );
     }
 
-    const csvData = items.map(s => {
+    const csvData = items.map((s: any) => {
         const latestPrice = s.prices?.length > 0 ? s.prices[s.prices.length - 1] : null;
         return {
             '순위': s.currentRank,
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '시가총액': s.marketcap,
+            '시가총액': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

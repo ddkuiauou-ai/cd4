@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import CompanyLogo from "@/components/CompanyLogo";
 import Exchange from "@/components/exchange";
 import Rate from "@/components/rate";
@@ -43,6 +44,8 @@ interface Props {
  * - No nested cards; single-level list items with dividers
  */
 export default function MarketcapCompactList({ items, limit, className }: Props) {
+  const pathname = usePathname();
+  const linkType = pathname.includes('/marketcaps') ? 'company' : 'security';
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (
@@ -72,7 +75,7 @@ export default function MarketcapCompactList({ items, limit, className }: Props)
 
                 {/* Item 2: Company Info - flex-1 REMOVED */}
                 <Link
-                  href={ex && tk ? `/company/${ex}.${tk}/marketcap` : "#"}
+                  href={ex && tk ? `/${linkType}/${ex}.${tk}/marketcap` : "#"}
                   className="flex items-center gap-3 group min-w-0"
                 >
                   <div className="shrink-0">

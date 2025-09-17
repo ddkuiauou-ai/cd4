@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Exchange from "@/components/exchange";
 import RankChange from "@/components/rank-change";
@@ -31,6 +34,9 @@ export function ServerTable({
     headerActions,
     metric = 'marketcap'
 }: ServerTableProps) {
+    const pathname = usePathname();
+    const linkType = pathname.includes('/marketcaps') ? 'company' : 'security';
+
     return (
         <div className="border rounded-lg overflow-hidden bg-card mx-auto max-w-none">
             {/* Table Header Info */}
@@ -47,7 +53,7 @@ export function ServerTable({
                             <p className="text-xs text-muted-foreground">최신 업데이트</p>
                             <p className="text-sm font-medium">{updatedDate}</p>
                         </div>
-                        {headerActions}
+                        {React.Children.toArray(headerActions)}
                     </div>
                 </div>
             </div>
@@ -127,7 +133,7 @@ export function ServerTable({
 
                                     {/* Company Info Column */}
                                     <td className="px-6 py-6">
-                                        <Link href={`/security/${security.exchange}.${security.ticker}/${metric}`}
+                                        <Link href={`/${linkType}/${security.exchange}.${security.ticker}/${metric}`}
                                             className="group block hover:bg-muted/30 rounded-lg p-3 -m-3 transition-colors">
                                             <div className="flex items-center space-x-4">
                                                 <div className="flex-shrink-0">

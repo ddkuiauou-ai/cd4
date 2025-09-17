@@ -131,16 +131,7 @@ export const getSecurityRanksPage = unstable_cache(
         prices: pricesBySec[item.securityId] || [],
       }));
 
-      const items = itemsWithPrices.map(item => {
-        const { value, ...rest } = item;
-        const metricKey = metricType;
-        return {
-          ...rest,
-          [metricKey]: value
-        };
-      });
-
-      return { items, latestDate: latestRankDate };
+      return { items: itemsWithPrices, latestDate: latestRankDate };
     } catch (e) {
       console.error(`[getSecurityRanksPage] ERROR for ${metricType}:`, e);
       return { items: [], latestDate: null };

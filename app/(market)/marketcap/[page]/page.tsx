@@ -80,7 +80,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         marketcapRank: security.currentRank,
         marketcapPriorRank: security.priorRank,
-        marketcap: security.marketcap,
+        marketcap: security.value,
         // Nest security data to match the expected structure of ServerTable and MarketcapCompactList
         securities: [
             {
@@ -114,7 +114,7 @@ async function MarketcapRankPage({ params }: MarketcapRankPageProps) {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '시가총액': s.marketcap,
+            '시가총액': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,
