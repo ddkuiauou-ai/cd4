@@ -26,9 +26,9 @@ interface KeyMetricsSectionProps {
 }
 
 const DEFAULT_BACKGROUND: CSSProperties = {
-    backgroundColor: "rgba(249, 115, 22, 0.08)",
+    backgroundColor: "rgba(249, 115, 22, 0.04)",
     backgroundImage:
-        "linear-gradient(180deg, rgba(249,115,22,0.36) 0px, rgba(249,115,22,0.2) 120px, rgba(249,115,22,0.1) 280px, rgba(249,115,22,0) 520px)",
+        "linear-gradient(180deg, rgba(249,115,22,0.18) 0px, rgba(249,115,22,0.1) 120px, rgba(249,115,22,0.05) 280px, rgba(249,115,22,0) 520px)",
 };
 
 export function KeyMetricsSection({
