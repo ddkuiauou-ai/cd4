@@ -35,7 +35,7 @@ export function ServerTable({
     metric = 'marketcap'
 }: ServerTableProps) {
     const pathname = usePathname();
-    const linkType = pathname.includes('/marketcaps') ? 'company' : 'security';
+    const linkType = pathname.startsWith('/security') ? 'security' : 'company';
 
     return (
         <div className="border rounded-lg overflow-hidden bg-card mx-auto max-w-none">

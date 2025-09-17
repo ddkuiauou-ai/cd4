@@ -45,7 +45,7 @@ interface Props {
  */
 export default function MarketcapCompactList({ items, limit, className }: Props) {
   const pathname = usePathname();
-  const linkType = pathname.includes('/marketcaps') ? 'company' : 'security';
+  const linkType = pathname.startsWith('/security') ? 'security' : 'company';
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (
