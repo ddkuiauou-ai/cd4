@@ -503,7 +503,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
                 </div>
               </header>
-
               <div className="space-y-8">
                 <div>
                   {companyMarketcapData && companyMarketcapData.aggregatedHistory && companyMarketcapData.securities ? (
