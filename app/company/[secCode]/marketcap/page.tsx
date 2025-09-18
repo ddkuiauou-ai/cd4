@@ -348,8 +348,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <div className="px-3 pb-5 pt-3">
                     <CandlestickChart data={candlestickData} />
                   </div>
-                </div>
-              </div>
 
               <div className="space-y-4">
                 <CardCompanyMarketcap
@@ -460,6 +458,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   />
                 </div>
               </div>
+            </section>
 
               <div className="space-y-6">
                 <p className="sr-only">연말 기준 시가총액 추이를 통해 기업의 성장 패턴을 분석합니다</p>
