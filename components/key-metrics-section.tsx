@@ -1,9 +1,11 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import type { CSSProperties } from "react";
+import { useMemo } from "react";
 import { TrendingUp } from "lucide-react";
-import { formatNumberWithSeparateUnit, formatChangeRate, formatDifference } from "@/lib/utils";
+import { formatNumberWithSeparateUnit, formatChangeRate } from "@/lib/utils";
+import { Marquee } from "@/registry/magicui/marquee";
 
 interface KeyMetricsSectionProps {
     companyMarketcapData: any;
@@ -16,7 +18,19 @@ interface KeyMetricsSectionProps {
         rankChange: number;
         value: number | null;
     } | null;
+    activeMetric: {
+        id: string;
+        label: string;
+        description?: string;
+    };
+    backgroundStyle?: CSSProperties;
 }
+
+const DEFAULT_BACKGROUND: CSSProperties = {
+    backgroundColor: "rgba(249, 115, 22, 0.02)",
+    backgroundImage:
+        "linear-gradient(180deg, rgba(249,115,22,0.09) 0px, rgba(249,115,22,0.05) 120px, rgba(249,115,22,0.025) 280px, rgba(249,115,22,0) 520px)",
+};
 
 export function KeyMetricsSection({
     companyMarketcapData,
@@ -24,213 +38,11 @@ export function KeyMetricsSection({
     security,
     periodAnalysis,
     marketCapRanking,
+    activeMetric,
+    backgroundStyle,
 }: KeyMetricsSectionProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-
-    // 스크롤 컨테이너 ref
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    // 자동 스크롤 상태 (사용자 상호작용 후 3초 뒤 재시작)
-    const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
-    const autoScrollAnimationRef = useRef<number | null>(null);
-    const lastScrollTimeRef = useRef<number>(0);
-    const restartTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-    // 드래그 상태
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 });
-
-    // 개선된 무한 스크롤을 위한 카드 복제
-    useEffect(() => {
-        if (!scrollContainerRef.current) return;
-
-        const container = scrollContainerRef.current;
-        const cardContainer = container.querySelector('.flex') as HTMLElement;
-
-        if (!cardContainer) return;
-
-        // 이미 복제된 카드가 있는지 확인
-        if (cardContainer.dataset.cloned === 'true') return;
-
-        // 원본 카드들 복제 (끝이 보이지 않도록 2세트 복제)
-        const originalCards = Array.from(cardContainer.children);
-
-        // 첫 번째 복제본 추가
-        originalCards.forEach(card => {
-            const clonedCard = card.cloneNode(true) as HTMLElement;
-            cardContainer.appendChild(clonedCard);
-        });
-
-        // 두 번째 복제본도 추가 (더 부드러운 무한 스크롤을 위해)
-        originalCards.forEach(card => {
-            const clonedCard = card.cloneNode(true) as HTMLElement;
-            cardContainer.appendChild(clonedCard);
-        });
-
-        // 복제 완료 마크
-        cardContainer.dataset.cloned = 'true';
-
-        // 초기 스크롤 위치를 두 번째 세트 시작점으로 설정 (더 자연스러운 순환을 위해)
-        const singleSetWidth = cardContainer.scrollWidth / 3; // 이제 3세트가 있으므로
-        container.scrollLeft = singleSetWidth;
-    }, []);
-
-    // 부드러운 무한 스크롤 함수 (3세트 구조에 최적화)
-    const smoothAutoScroll = useCallback(() => {
-        if (!scrollContainerRef.current || !isAutoScrollEnabled) return;
-
-        const container = scrollContainerRef.current;
-        const now = Date.now();
-
-        // 30ms마다 1px씩 스크롤 (약 33fps로 더 부드럽게)
-        if (now - lastScrollTimeRef.current >= 30) {
-            const cardContainer = container.querySelector('.flex') as HTMLElement;
-
-            if (cardContainer && cardContainer.dataset.cloned === 'true') {
-                // 각 세트의 너비 (전체 너비의 1/3)
-                const singleSetWidth = cardContainer.scrollWidth / 3;
-                const currentScrollLeft = container.scrollLeft;
-
-                // 마지막 세트에 도달하면 두 번째 세트로 리셋 (무한 루프)
-                if (currentScrollLeft >= singleSetWidth * 2.8) { // 약간의 여유
-                    container.style.scrollBehavior = 'auto';
-                    container.scrollLeft = singleSetWidth + (currentScrollLeft - singleSetWidth * 2);
-                    requestAnimationFrame(() => {
-                        container.style.scrollBehavior = 'smooth';
-                    });
-                }
-                // 첫 번째 세트의 시작 부분에 도달하면 두 번째 세트로 이동
-                else if (currentScrollLeft <= singleSetWidth * 0.2) {
-                    container.style.scrollBehavior = 'auto';
-                    container.scrollLeft = singleSetWidth + currentScrollLeft;
-                    requestAnimationFrame(() => {
-                        container.style.scrollBehavior = 'smooth';
-                    });
-                } else {
-                    // 1px씩 부드럽게 스크롤
-                    container.scrollLeft += 1;
-                }
-            } else {
-                // 복제가 아직 안되었으면 기존 방식
-                container.scrollLeft += 1;
-            }
-
-            lastScrollTimeRef.current = now;
-        }
-
-        autoScrollAnimationRef.current = requestAnimationFrame(smoothAutoScroll);
-    }, [isAutoScrollEnabled]);
-
-    // 자동 스크롤 시작/정지
-    useEffect(() => {
-        if (isAutoScrollEnabled) {
-            lastScrollTimeRef.current = Date.now();
-            autoScrollAnimationRef.current = requestAnimationFrame(smoothAutoScroll);
-        } else if (autoScrollAnimationRef.current) {
-            cancelAnimationFrame(autoScrollAnimationRef.current);
-            autoScrollAnimationRef.current = null;
-        }
-
-        return () => {
-            if (autoScrollAnimationRef.current) {
-                cancelAnimationFrame(autoScrollAnimationRef.current);
-            }
-        };
-    }, [isAutoScrollEnabled, smoothAutoScroll]);
-
-    // 마우스 상호작용 시 자동 스크롤 일시정지 (3초 후 재시작) - 개선된 버전
-    const pauseAutoScroll = useCallback(() => {
-        // 기존 타이머가 있으면 취소
-        if (restartTimerRef.current) {
-            clearTimeout(restartTimerRef.current);
-        }
-
-        // 자동 스크롤 일시정지
-        setIsAutoScrollEnabled(false);
-
-        // 3초 후 자동 스크롤 재시작
-        restartTimerRef.current = setTimeout(() => {
-            // 자동 스크롤 재시작 시 현재 위치 확인 및 조정 (3세트 구조)
-            if (scrollContainerRef.current) {
-                const container = scrollContainerRef.current;
-                const cardContainer = container.querySelector('.flex') as HTMLElement;
-
-                if (cardContainer && cardContainer.dataset.cloned === 'true') {
-                    const singleSetWidth = cardContainer.scrollWidth / 3;
-                    const currentScrollLeft = container.scrollLeft;
-
-                    // 현재 위치가 첫 번째 세트나 마지막 세트에 있다면 두 번째 세트로 조정
-                    if (currentScrollLeft < singleSetWidth * 0.3 || currentScrollLeft > singleSetWidth * 2.7) {
-                        container.style.scrollBehavior = 'auto';
-                        // 현재 위치를 두 번째 세트의 해당 위치로 매핑
-                        const relativePosition = currentScrollLeft % singleSetWidth;
-                        container.scrollLeft = singleSetWidth + relativePosition;
-
-                        requestAnimationFrame(() => {
-                            container.style.scrollBehavior = 'smooth';
-                            setIsAutoScrollEnabled(true);
-                        });
-                    } else {
-                        // 이미 두 번째 세트에 있으면 바로 재시작
-                        setIsAutoScrollEnabled(true);
-                    }
-                } else {
-                    setIsAutoScrollEnabled(true);
-                }
-            } else {
-                setIsAutoScrollEnabled(true);
-            }
-        }, 3000);
-    }, []);
-
-    // 컴포넌트 언마운트 시 타이머 정리
-    useEffect(() => {
-        return () => {
-            if (restartTimerRef.current) {
-                clearTimeout(restartTimerRef.current);
-            }
-        };
-    }, []);
-
-    // 마우스 드래그 이벤트 핸들러들
-    const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (!scrollContainerRef.current) return;
-
-        // 마우스 클릭/드래그 시작 시 자동 스크롤 일시정지
-        pauseAutoScroll();
-
-        setIsDragging(true);
-        setDragStart({
-            x: e.pageX,
-            scrollLeft: scrollContainerRef.current.scrollLeft
-        });
-
-        // 드래그 중 텍스트 선택 방지
-        e.preventDefault();
-    }, [pauseAutoScroll]);
-
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        if (!isDragging || !scrollContainerRef.current) return;
-
-        e.preventDefault();
-        const x = e.pageX;
-        const walk = (x - dragStart.x) * 2; // 드래그 감도 조절
-        scrollContainerRef.current.scrollLeft = dragStart.scrollLeft - walk;
-    }, [isDragging, dragStart]);
-
-    const handleMouseUp = useCallback(() => {
-        setIsDragging(false);
-    }, []);
-
-    const handleMouseLeave = useCallback(() => {
-        setIsDragging(false);
-    }, []);
-
-    // 터치 이벤트도 자동 스크롤 일시정지
-    const handleTouchStart = useCallback(() => {
-        pauseAutoScroll();
-    }, [pauseAutoScroll]);
 
     // 현재 선택된 종목 타입 실시간 감지
     const selectedSecurityType = useMemo(() => {
@@ -530,37 +342,45 @@ export function KeyMetricsSection({
     if (!periodAnalysis) return null;
 
     return (
-        <div id="indicators" className="py-8 -mx-4 px-4 bg-orange-50/20 dark:bg-orange-950/20 rounded-xl border-t border-orange-100 dark:border-orange-800/30">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50">
-                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        <section
+            id="indicators"
+            className="relative space-y-8 overflow-hidden rounded-3xl border border-orange-200/70 px-6 py-8 shadow-sm dark:border-orange-900/40 dark:bg-orange-950/20"
+            style={backgroundStyle ?? DEFAULT_BACKGROUND}
+        >
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-orange-700/80">
+                <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-orange-700 shadow-sm">
+                    탭 연동
+                </span>
+                <span className="text-sm font-semibold text-orange-800/90">
+                    {activeMetric.label} 기준 핵심 지표
+                </span>
+                {activeMetric.description && (
+                    <span className="text-[11px] font-medium text-orange-700/70">
+                        {activeMetric.description}
+                    </span>
+                )}
+            </div>
+            <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/40">
+                    <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
-                <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">핵심 지표</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">핵심 지표</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
                         {selectedSecurityType === "시가총액 구성"
-                            ? "시가총액 주요 지표와 변화율 현황"
-                            : `${selectedSecurityType} 주요 지표와 변화율 현황`
+                            ? `${activeMetric.label} 주요 지표와 변화율 현황`
+                            : `${selectedSecurityType} · ${activeMetric.label} 지표 변화`
                         }
                     </p>
                 </div>
-            </div>
+            </header>
 
-            <div
-                ref={scrollContainerRef}
-                className={`overflow-x-auto scroll-smooth hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-                style={{
-                    WebkitOverflowScrolling: 'touch',
-                    userSelect: 'none' // 드래그 중 텍스트 선택 방지
-                }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseLeave}
-                onTouchStart={handleTouchStart}
+            <Marquee
+                pauseOnHover
+                className="[--duration:36s]"
+                contentClassName="flex gap-1 pb-2"
+                contentStyle={{ minWidth: "fit-content" }}
             >
-                {/* 무한 스크롤을 위한 카드 세트 - 원본 */}
-                <div className="flex gap-1 pb-2" style={{ minWidth: 'fit-content' }}>
                     {/* 시총 랭킹 */}
                     <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
@@ -879,8 +699,7 @@ export function KeyMetricsSection({
                         </div>
                         <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 보통주 비중</div>
                     </div>
-                </div>
-            </div>
-        </div>
+            </Marquee>
+        </section>
     );
 }
