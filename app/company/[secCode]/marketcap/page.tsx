@@ -348,6 +348,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   <div className="px-3 pb-5 pt-3">
                     <CandlestickChart data={candlestickData} />
                   </div>
+                </div>
+              </div>
 
               <div className="space-y-4">
                 <CardCompanyMarketcap
@@ -463,6 +465,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               <div className="space-y-6">
                 <p className="sr-only">연말 기준 시가총액 추이를 통해 기업의 성장 패턴을 분석합니다</p>
 
+              <div className="space-y-6">
+                <p className="sr-only">연말 기준 시가총액 추이를 통해 기업의 성장 패턴을 분석합니다</p>
                 <ListMarketcap
                   data={companyMarketcapData.aggregatedHistory.map(item => ({
                     date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date),
@@ -479,9 +483,10 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               currentMarket={market}
             />
           </div>
-        </div>
-      );
-    };
+      </div>
+    );
+  };
+
 
   const renderEmptyState = () => (
     <div className="space-y-12">
@@ -566,9 +571,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
           </section>
         )}
-    </div>
-  );
-
+      </div>
+      );
   return (
     <main className="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
       <div className="mx-auto w-full min-w-0">
