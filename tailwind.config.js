@@ -8,6 +8,7 @@ export default {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./content/**/*.{md,mdx}",
+    "./registry/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {
