@@ -700,6 +700,7 @@ export function KeyMetricsSection({
                         <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 보통주 비중</div>
                     </div>
             </Marquee>
+
         </section>
     );
 }
