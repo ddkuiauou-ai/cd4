@@ -20,14 +20,14 @@ import { relations, sql } from "drizzle-orm";
 // Enums
 // =========================================================
 
-export const metricTypeEnum = pgEnum('metric_type', [
-  'marketcap',
-  'bps',
-  'per',
-  'pbr',
-  'eps',
-  'div',
-  'dps'
+export const metricTypeEnum = pgEnum("metric_type", [
+  "marketcap",
+  "bps",
+  "per",
+  "pbr",
+  "eps",
+  "div",
+  "dps",
 ]);
 
 export type MetricType = (typeof metricTypeEnum.enumValues)[number];
@@ -78,10 +78,11 @@ export const pension = pgTable(
   {
     id: serial("id").primaryKey(),
     dataCreatedYm: timestamp("data_created_ym", { mode: "date" }).notNull(), // 자료생성년월
-    companyId: varchar("company_id", { length: 20 })
-      .references(() => company.companyId),
+    companyId: varchar("company_id", { length: 20 }).references(
+      () => company.companyId
+    ),
     companyName: varchar("company_name", { length: 100 }).notNull(), // 실제 최대: 93자 → 100자로 여유
-    businessRegNum: varchar("business_reg_num", { length: 10 }), // 실제 최대: 6자 → 10자로 여유 
+    businessRegNum: varchar("business_reg_num", { length: 10 }), // 실제 최대: 6자 → 10자로 여유
     joinStatus: varchar("join_status", { length: 5 }), // 실제 최대: 1자 → 5자로 여유
     zipCode: varchar("zip_code", { length: 10 }), // 실제 최대: 7자 → 10자로 여유
     lotNumberAddress: varchar("lot_number_address", { length: 50 }), // 실제 최대: 22자 → 50자로 여유
@@ -111,10 +112,8 @@ export const pension = pgTable(
     // index("pension_opt_company_name_idx").on(table.companyName),
     // index("pension_opt_industry_code_idx").on(table.industryCode),
     // index("pension_opt_zip_code_idx").on(table.zipCode),
-
     // 🔥 핵심 복합 인덱스만 유지
     // index("pension_opt_region_industry_idx").on(table.addrSidoCode, table.addrSigunguCode, table.industryCode),
-
     // 🔥 중복 방지를 위한 유니크 인덱스
     // uniqueIndex("pension_opt_unique_business_month").on(
     //   table.dataCreatedYm,
@@ -221,7 +220,7 @@ export const price = pgTable(
   "price",
   {
     id: serial("id").primaryKey(),
-    securityId: text("security_id").notNull().references(() => security.securityId),
+    securityId: text("security_id").references(() => security.securityId),
     date: timestamp("date", { mode: "date" }).notNull(),
     ticker: text("ticker").notNull(),
     name: text("name"),
@@ -257,7 +256,7 @@ export const marketcap = pgTable(
   "marketcap",
   {
     id: serial("id").primaryKey(),
-    securityId: text("security_id").notNull().references(() => security.securityId),
+    securityId: text("security_id").references(() => security.securityId),
     date: timestamp("date", { mode: "date" }).notNull(),
     ticker: text("ticker").notNull(),
     name: text("name"),
@@ -287,7 +286,7 @@ export const bppedd = pgTable(
   "bppedd",
   {
     id: serial("id").primaryKey(),
-    securityId: text("security_id").notNull().references(() => security.securityId),
+    securityId: text("security_id").references(() => security.securityId),
     date: timestamp("date", { mode: "date" }).notNull(),
     ticker: text("ticker").notNull(),
     name: text("name"),
@@ -410,7 +409,9 @@ export const tmp_prices = pgTable(
 export const securityRank = pgTable(
   "security_rank",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedByDefaultAsIdentity(),
+    id: bigint("id", { mode: "number" })
+      .primaryKey()
+      .generatedByDefaultAsIdentity(),
     securityId: text("security_id")
       .notNull()
       .references(() => security.securityId),
