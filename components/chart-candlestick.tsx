@@ -266,7 +266,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         if (normalizedVolume === null) {
           return null;
         }
-
         return {
           time: point.time as Time,
           value: normalizedVolume,
@@ -289,7 +288,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     container.replaceChildren();
-
+    container.replaceChildren();
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
       computedStyle.getPropertyValue("--foreground"),
