@@ -2,19 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
+  AreaData,
   BusinessDay,
   CandlestickData,
   IChartApi,
   IPaneApi,
   ISeriesApi,
-  LineData,
   Time,
 } from "lightweight-charts";
 import {
+  AreaSeries,
   CandlestickSeries,
   ColorType,
   CrosshairMode,
-  LineSeries,
   PriceScaleMode,
   createChart,
 } from "lightweight-charts";
@@ -154,10 +154,14 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
   return null;
 }
 
+const VOLUME_ACCENT_RGB = "38, 166, 154";
+
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
+
+const volumeAccent = (alpha: number) => `rgba(${VOLUME_ACCENT_RGB}, ${alpha})`;
 
 const koreanVolumeFormatter = new Intl.NumberFormat("ko-KR", {
   notation: "compact",
@@ -247,7 +251,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
-  const volumeSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
   const { candlesticks, volumes } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
@@ -277,9 +281,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         return {
           time: point.time as Time,
           value: normalizedVolume,
-        } satisfies LineData;
+        } satisfies AreaData;
       })
-      .filter((point): point is LineData => point !== null);
+      .filter((point): point is AreaData => point !== null);
 
     return {
       candlesticks: candlestickPoints,
@@ -360,8 +364,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         textColor: foreground,
         background: { type: ColorType.Solid, color: "transparent" },
         panes: {
-          separatorColor: "rgba(214, 0, 0, 0.35)",
-          separatorHoverColor: "rgba(214, 0, 0, 0.55)",
+          separatorColor: volumeAccent(0.35),
+          separatorHoverColor: volumeAccent(0.55),
           enableResize: false,
         },
       },
@@ -481,7 +485,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
 
       if (!volumeSeries) {
-        volumeSeries = volumePane.addSeries(LineSeries, {
+        volumeSeries = volumePane.addSeries(AreaSeries, {
           priceFormat: {
             type: "custom",
             minMove: 1,
@@ -492,7 +496,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           lastValueVisible: true,
           crosshairMarkerVisible: true,
           lineWidth: 2,
-          color: "rgba(214, 0, 0, 0.85)",
+          lineColor: volumeAccent(0.85),
+          topColor: volumeAccent(0.28),
+          bottomColor: volumeAccent(0.05),
+          baseLineColor: volumeAccent(0.16),
           priceScaleId: "volume",
           pointMarkersVisible: false,
         });
