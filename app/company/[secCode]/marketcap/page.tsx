@@ -126,6 +126,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
       const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
       const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
+      const volumeValue = typeof price?.volume === "number" ? price.volume : undefined;
 
       return {
         date,
@@ -134,6 +135,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         high: Number(resolvedHigh),
         low: Number(resolvedLow),
         close: Number(resolvedClose),
+        volume: Number.isFinite(volumeValue) ? Number(volumeValue) : null,
       };
     })
     .filter((point): point is {
@@ -143,7 +145,13 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       high: number;
       low: number;
       close: number;
-    } => !!point && Number.isFinite(point.open) && Number.isFinite(point.high) && Number.isFinite(point.low) && Number.isFinite(point.close));
+      volume: number | null;
+    } =>
+      !!point &&
+      Number.isFinite(point.open) &&
+      Number.isFinite(point.high) &&
+      Number.isFinite(point.low) &&
+      Number.isFinite(point.close));
 
   const sortedPricePoints = parsedPricePoints.sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -156,12 +164,13 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     candlestickSeriesData = sortedPricePoints.slice(-90);
   }
 
-  const candlestickData = candlestickSeriesData.map(({ time, open, high, low, close }) => ({
+  const candlestickData = candlestickSeriesData.map(({ time, open, high, low, close, volume }) => ({
     time,
     open,
     high,
     low,
     close,
+    volume: Number.isFinite(volume ?? undefined) ? Number(volume) : undefined,
   }));
 
   // 🔥 기간별 시가총액 분석 계산 함수
@@ -323,17 +332,29 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
           </header>
 
-          <div className="grid gap-8 lg:auto-rows-max lg:grid-cols-2 lg:items-start">
-            <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
-              <InteractiveChartSection
-                companyMarketcapData={companyMarketcapData}
-                companySecs={companySecs}
-                type="summary"
-                selectedType={selectedType}
-              />
+          <div className="grid gap-8 lg:auto-rows-max lg:grid-cols-2 lg:items-stretch">
+            <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm">
+              <div className="px-5 pt-5">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  {displayName} 시가총액 일간 추이
+                </h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  최근 6개월 간의 주간 시가총액 흐름과 종목별 비중 변화를 살펴보세요.
+                </p>
+              </div>
+              <div className="flex flex-1 flex-col px-3 pb-5 pt-3">
+                <div className="min-h-[260px] flex-1">
+                  <InteractiveChartSection
+                    companyMarketcapData={companyMarketcapData}
+                    companySecs={companySecs}
+                    type="summary"
+                    selectedType={selectedType}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
+            <div className="flex h-full">
               <CardCompanyMarketcap
                 data={companyMarketcapData}
                 market={market}
@@ -344,13 +365,13 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm lg:col-span-2">
               <div className="flex items-start justify-between gap-2 px-5 pt-5">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 분기 캔들 차트</h3>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 분기 가격 차트</h3>
                   <p className="text-xs text-muted-foreground">
-                    {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가 흐름
+                    {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름
                   </p>
                 </div>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  3M
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground">
+                  최근 3개월
                 </span>
               </div>
               <div className="px-3 pb-5 pt-3">

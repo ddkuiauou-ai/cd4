@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import type {
   BusinessDay,
   CandlestickData,
+  HistogramData,
   IChartApi,
   Time,
 } from "lightweight-charts";
@@ -15,6 +16,7 @@ interface CandlestickPoint {
   high: number;
   low: number;
   close: number;
+  volume?: number | null;
 }
 
 interface CandlestickChartProps {
@@ -112,84 +114,131 @@ function normalizeColor(color: string | null | undefined, fallback: string) {
   return trimmed;
 }
 
-const koreanDateFormatter = new Intl.DateTimeFormat("ko-KR", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
 
-function formatKoreanDate(time: Time): string {
+function coerceTimeToDate(time: Time): Date | null {
   if (typeof time === "number") {
     const dateFromUnix = new Date(time * 1000);
-    if (!Number.isNaN(dateFromUnix.getTime())) {
-      return koreanDateFormatter.format(dateFromUnix);
-    }
-  } else if (typeof time === "string") {
-    const [year, month, day] = time.split("-").map((part) => Number.parseInt(part, 10));
-    if (
-      Number.isInteger(year) &&
-      Number.isInteger(month) &&
-      Number.isInteger(day)
-    ) {
-      return koreanDateFormatter.format(new Date(year, month - 1, day));
+    return Number.isNaN(dateFromUnix.getTime()) ? null : dateFromUnix;
+  }
+
+  if (typeof time === "string") {
+    const hyphenParts = time.split("-").map((part) => Number.parseInt(part, 10));
+    if (hyphenParts.length === 3 && hyphenParts.every((value) => Number.isInteger(value))) {
+      const [year, month, day] = hyphenParts;
+      const candidate = new Date(year, month - 1, day);
+      return Number.isNaN(candidate.getTime()) ? null : candidate;
     }
 
     const dateFromString = new Date(time);
-    if (!Number.isNaN(dateFromString.getTime())) {
-      return koreanDateFormatter.format(dateFromString);
-    }
-  } else if (typeof time === "object" && time !== null) {
+    return Number.isNaN(dateFromString.getTime()) ? null : dateFromString;
+  }
+
+  if (typeof time === "object" && time !== null) {
     const businessDay = time as BusinessDay;
     if (
       Number.isInteger(businessDay.year) &&
       Number.isInteger(businessDay.month) &&
       Number.isInteger(businessDay.day)
     ) {
-      return koreanDateFormatter.format(
-        new Date(businessDay.year, businessDay.month - 1, businessDay.day)
+      const candidate = new Date(
+        businessDay.year,
+        businessDay.month - 1,
+        businessDay.day
       );
+      return Number.isNaN(candidate.getTime()) ? null : candidate;
     }
   }
 
-  if (typeof time === "string") {
-    return time;
+  return null;
+}
+
+function formatTooltipDate(time: Time): string {
+  const date = coerceTimeToDate(time);
+
+  if (!date) {
+    if (typeof time === "string") {
+      return time;
+    }
+    if (typeof time === "number") {
+      return String(time);
+    }
+    return "";
   }
 
-  if (typeof time === "number") {
-    return String(time);
+  const year = String(date.getFullYear()).slice(-2);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  return `${year}.${month}.${day}`;
+}
+
+function formatAxisDate(time: Time): string {
+  const date = coerceTimeToDate(time);
+
+  if (!date) {
+    if (typeof time === "string") {
+      return time;
+    }
+    if (typeof time === "number") {
+      return String(time);
+    }
+    return "";
   }
 
-  return "";
+  const year = String(date.getFullYear()).slice(-2);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const shouldShowYear = month === 1 && day <= 5;
+
+  return shouldShowYear ? `${year}/${month}/${day}` : `${month}/${day}`;
 }
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
-  const formattedData = useMemo<CandlestickData[]>(() => {
-    return data
-      .filter((point) =>
-        point.open !== null &&
-        point.high !== null &&
-        point.low !== null &&
-        point.close !== null &&
-        Number.isFinite(point.open) &&
-        Number.isFinite(point.high) &&
-        Number.isFinite(point.low) &&
-        Number.isFinite(point.close)
-      )
-      .map((point) => ({
-        time: point.time,
-        open: Number(point.open),
-        high: Number(point.high),
-        low: Number(point.low),
-        close: Number(point.close),
-      }));
+  const { candlesticks, volumes } = useMemo(() => {
+    const sanitized = data.filter((point) =>
+      point.open !== null &&
+      point.high !== null &&
+      point.low !== null &&
+      point.close !== null &&
+      Number.isFinite(point.open) &&
+      Number.isFinite(point.high) &&
+      Number.isFinite(point.low) &&
+      Number.isFinite(point.close)
+    );
+
+    const upVolumeColor = "rgba(214, 0, 0, 0.45)";
+    const downVolumeColor = "rgba(0, 81, 199, 0.45)";
+
+    const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
+      time: point.time,
+      open: Number(point.open),
+      high: Number(point.high),
+      low: Number(point.low),
+      close: Number(point.close),
+    }));
+
+    const volumePoints: HistogramData[] = sanitized.map((point) => {
+      const open = Number(point.open);
+      const close = Number(point.close);
+      const volumeValue = Number.isFinite(point.volume)
+        ? Number(point.volume)
+        : 0;
+
+      return {
+        time: point.time as Time,
+        value: volumeValue,
+        color: close >= open ? upVolumeColor : downVolumeColor,
+      };
+    });
+
+    return { candlesticks: candlestickPoints, volumes: volumePoints };
   }, [data]);
 
   useEffect(() => {
@@ -199,7 +248,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       return;
     }
 
-    if (!formattedData.length) {
+    if (!candlesticks.length) {
       chartRef.current?.remove();
       chartRef.current = null;
       return;
@@ -243,12 +292,12 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           borderColor,
           timeVisible: false,
           secondsVisible: false,
-          tickMarkFormatter: (time) => formatKoreanDate(time) || "",
+          tickMarkFormatter: (time) => formatAxisDate(time) || "",
         },
         localization: {
           locale: "ko-KR",
           priceFormatter: (price) => koreanPriceFormatter.format(price),
-          timeFormatter: (time) => formatKoreanDate(time) || "",
+          timeFormatter: (time) => formatTooltipDate(time) || "",
         },
         crosshair: { mode: CrosshairMode.Normal },
         autoSize: true,
@@ -264,6 +313,16 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       } as const;
 
       let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
+      let volumeSeries: ReturnType<IChartApi["addHistogramSeries"]> | null = null;
+
+      const removeAttribution = () => {
+        if (typeof document === "undefined") {
+          return;
+        }
+
+        const nodes = document.querySelectorAll("#tv-attr-logo");
+        nodes.forEach((node) => node.remove());
+      };
 
       const removeAttribution = () => {
         if (typeof document === "undefined") {
@@ -318,7 +377,34 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         return;
       }
 
-      series.setData(formattedData);
+      series.priceScale().applyOptions({
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.3,
+        },
+      });
+
+      if (typeof chart.addHistogramSeries === "function") {
+        volumeSeries = chart.addHistogramSeries({
+          color: "rgba(148, 163, 184, 0.4)",
+          priceFormat: { type: "volume" },
+          priceScaleId: "",
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
+      }
+
+      if (volumeSeries) {
+        volumeSeries.priceScale().applyOptions({
+          scaleMargins: {
+            top: 0.75,
+            bottom: 0,
+          },
+        });
+        volumeSeries.setData(volumes);
+      }
+
+      series.setData(candlesticks);
       chart.timeScale().fitContent();
 
       resizeObserver = new ResizeObserver((entries) => {
@@ -372,11 +458,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       chartRef.current?.remove();
       chartRef.current = null;
     };
-  }, [formattedData]);
+  }, [candlesticks, volumes]);
 
-  if (!formattedData.length) {
+  if (!candlesticks.length) {
     return (
-      <div className="flex h-[260px] w-full items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/60 text-sm text-muted-foreground">
+      <div className="flex h-[320px] w-full items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/60 text-sm text-muted-foreground sm:h-[340px] md:h-[380px] lg:h-[420px]">
         최근 한 달간의 캔들 데이터가 없습니다.
       </div>
     );
@@ -385,7 +471,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   return (
     <div
       ref={containerRef}
-      className="h-[260px] w-full sm:h-[280px] md:h-[320px] lg:h-[340px]"
+      className="h-[320px] w-full sm:h-[340px] md:h-[380px] lg:h-[420px]"
     />
   );
 }
