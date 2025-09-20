@@ -102,7 +102,6 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
     const maxValue = largestSeries.max;
     const comparisonValue = comparisonSeries.max;
 
-
     if (!Number.isFinite(maxValue) || maxValue <= 0) {
         return null;
     }
@@ -495,22 +494,22 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
 
     const seriesStats = useMemo(
         () => computeSeriesStats(sortedData as any, lineKeys),
-        [sortedData, lineKeys],
+        [sortedData, lineKeys]
     );
 
     const axisBreak = useMemo(
         () => createAxisBreakConfig(seriesStats),
-        [seriesStats],
+        [seriesStats]
     );
 
     const transformedData = useMemo(
         () => transformChartData(sortedData as any, lineKeys, axisBreak),
-        [sortedData, lineKeys, axisBreak],
+        [sortedData, lineKeys, axisBreak]
     );
 
     const yAxisDomain = useMemo(
         () => computeYAxisDomain(transformedData as any, lineKeys),
-        [transformedData, lineKeys],
+        [transformedData, lineKeys]
     );
 
     const minActualValue = useMemo(() => {
@@ -533,7 +532,7 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
 
     const yAxisTicks = useMemo(
         () => (axisBreak ? generateAxisBreakTicks(minActualValue, axisBreak) : undefined),
-        [axisBreak, minActualValue],
+        [axisBreak, minActualValue]
     );
 
     const formatTickValue = (value: number) => {
