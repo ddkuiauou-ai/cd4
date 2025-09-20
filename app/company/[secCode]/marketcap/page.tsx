@@ -323,8 +323,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
           </header>
 
-          <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
-            <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
+          <div className="grid gap-8 lg:auto-rows-max lg:grid-cols-2 lg:items-start">
+            <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
               <InteractiveChartSection
                 companyMarketcapData={companyMarketcapData}
                 companySecs={companySecs}
@@ -333,7 +333,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               />
             </div>
 
-            <div className="h-full">
+            <div>
               <CardCompanyMarketcap
                 data={companyMarketcapData}
                 market={market}
