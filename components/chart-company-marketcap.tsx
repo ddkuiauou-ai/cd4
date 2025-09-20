@@ -491,7 +491,6 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         const firstItem = sortedData[0] as Record<string, unknown>;
         return Object.keys(firstItem).filter((key) => key !== "date" && key !== "value");
     }, [sortedData]);
-
     const seriesStats = useMemo(
         () => computeSeriesStats(sortedData as any, lineKeys),
         [sortedData, lineKeys]
