@@ -114,6 +114,15 @@ function normalizeColor(color: string | null | undefined, fallback: string) {
   return trimmed;
 }
 
+function removeTradingViewAttribution() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const nodes = document.querySelectorAll("#tv-attr-logo");
+  nodes.forEach((node) => node.remove());
+}
+
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
@@ -315,24 +324,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
       let volumeSeries: ReturnType<IChartApi["addHistogramSeries"]> | null = null;
 
-      const removeAttribution = () => {
-        if (typeof document === "undefined") {
-          return;
-        }
-
-        const nodes = document.querySelectorAll("#tv-attr-logo");
-        nodes.forEach((node) => node.remove());
-      };
-
-      const removeAttribution = () => {
-        if (typeof document === "undefined") {
-          return;
-        }
-
-        const nodes = document.querySelectorAll("#tv-attr-logo");
-        nodes.forEach((node) => node.remove());
-      };
-
       if (typeof chart.addCandlestickSeries === "function") {
         series = chart.addCandlestickSeries(seriesOptions);
       } else {
@@ -428,10 +419,13 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       resizeObserver.observe(containerRef.current);
       chartRef.current = chart;
 
-      removeAttribution();
+      removeTradingViewAttribution();
 
       if (typeof MutationObserver !== "undefined") {
-        mutationObserver = new MutationObserver(() => removeAttribution());
+        mutationObserver = new MutationObserver(() =>
+          removeTradingViewAttribution()
+        );
+
 
         if (containerRef.current) {
           mutationObserver.observe(containerRef.current, {
