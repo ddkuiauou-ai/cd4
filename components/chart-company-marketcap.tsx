@@ -92,6 +92,19 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
         };
     };
 
+    const getActiveDotProps = (key: string, index: number) => {
+        const color = getLineColor(key, index);
+        const isHighlighted = shouldHighlightLine(key, selectedType);
+        const baseRadius = isMobile ? 4 : 5;
+
+        return {
+            r: isHighlighted ? baseRadius + 1 : baseRadius,
+            stroke: color,
+            strokeWidth: isHighlighted ? 2 : 1.5,
+            fill: '#ffffff',
+        };
+    };
+
     // 🔍 라인을 강조할지 결정하는 함수 (최적화)
     const shouldHighlightLine = (key: string, selectedType: string): boolean => {
         switch (selectedType) {
@@ -231,29 +244,34 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                         isAnimationActive={false}
                     />
                     <Legend
-                        content={<CustomLegend payload={keys.filter(key => key !== "date").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} />}
+                        content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
                         wrapperStyle={{
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
                             position: 'relative',
                             marginTop: '-6px', // -8px -> -6px로 약간 완화
                         }}
                     />
-                    {keys.map(
-                        (key, index) =>
-                            key !== "date" && (
-                                <Line
-                                    key={key}
-                                    type="monotone"
-                                    dataKey={key}
-                                    stroke={getLineColor(key, index)}
-                                    strokeWidth={getLineStyle(key).strokeWidth}
-                                    strokeOpacity={getLineStyle(key).strokeOpacity}
-                                    strokeDasharray={getStrokePattern(key)}
-                                    dot={false}
-                                    activeDot={{ r: 4, fill: getLineColor(key, index) }}
-                                />
-                            )
-                    )}
+                    {keys.map((key, index) => {
+                        if (key === "date" || key === "value") {
+                            return null;
+                        }
+
+                        const lineStyle = getLineStyle(key);
+
+                        return (
+                            <Line
+                                key={key}
+                                type="monotone"
+                                dataKey={key}
+                                stroke={getLineColor(key, index)}
+                                strokeWidth={lineStyle.strokeWidth}
+                                strokeOpacity={lineStyle.strokeOpacity}
+                                strokeDasharray={getStrokePattern(key)}
+                                dot={false}
+                                activeDot={getActiveDotProps(key, index)}
+                            />
+                        );
+                    })}
                 </LineChart>
             </ResponsiveContainer>
         </div>
@@ -311,6 +329,10 @@ function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomT
 
     // 🔄 중복 데이터 필터링 (payload 기반)
     const filteredEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
+        if (entry.dataKey === "value") {
+            return acc;
+        }
+
         const label = getSimplifiedLabel(entry.dataKey);
 
         // 이미 같은 라벨이 있다면 건너뛰기 (첫 번째 것만 유지)
@@ -356,9 +378,10 @@ interface CustomLegendProps {
         color: string;
         payload?: any;
     }>;
+    selectedType?: string;
 }
 
-function CustomLegend({ payload }: CustomLegendProps) {
+function CustomLegend({ payload, selectedType }: CustomLegendProps) {
     if (!payload || !payload.length) return null;
 
     // 📝 라벨 간소화 함수 (툴팁과 동일)
@@ -375,9 +398,25 @@ function CustomLegend({ payload }: CustomLegendProps) {
         return key;
     };
 
+    const isHighlightedLabel = (label: string) => {
+        if (!selectedType) {
+            return false;
+        }
+
+        if (selectedType === "시가총액 구성") {
+            return label === "전체 시총";
+        }
+
+        return label === selectedType;
+    };
+
     // 🔄 중복 제거
     const uniqueEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
         const simplifiedLabel = getSimplifiedLabel(entry.value);
+
+        if (entry.value === "value") {
+            return acc;
+        }
 
         // 이미 같은 라벨이 있다면 건너뛰기
         if (!acc.some(item => getSimplifiedLabel(item.value) === simplifiedLabel)) {
@@ -395,9 +434,19 @@ function CustomLegend({ payload }: CustomLegendProps) {
                         className="w-4 h-0.5 rounded"
                         style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {getSimplifiedLabel(entry.value)}
-                    </span>
+                    {(() => {
+                        const label = getSimplifiedLabel(entry.value);
+                        const isHighlighted = isHighlightedLabel(label);
+
+                        return (
+                            <span
+                                className={`text-xs ${isHighlighted ? 'font-semibold' : 'text-gray-600 dark:text-gray-400'}`}
+                                style={isHighlighted ? { color: entry.color } : undefined}
+                            >
+                                {label}
+                            </span>
+                        );
+                    })()}
                 </div>
             ))}
         </div>

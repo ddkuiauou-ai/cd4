@@ -116,6 +116,18 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
     };
   };
 
+  const getActiveDotProps = (key: string, index: number) => {
+    const color = getLineColor(key, index);
+    const isHighlighted = shouldHighlightLine(key, selectedType);
+
+    return {
+      r: isHighlighted ? 6 : 5,
+      stroke: color,
+      strokeWidth: isHighlighted ? 2 : 1.5,
+      fill: '#ffffff',
+    };
+  };
+
   // 🎯 라인 강조 여부 결정 함수
   const shouldHighlightLine = (key: string, selectedType: string) => {
     switch (selectedType) {
@@ -234,22 +246,27 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
               marginTop: '-6px', // -8px -> -6px로 약간 완화
             }}
           />
-          {keys.map(
-            (key, index) =>
-              key !== "date" && key !== "value" && ( // "value" 키 제외
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={getLineColor(key, index)}
-                  strokeWidth={getLineStyle(key).strokeWidth}
-                  strokeOpacity={getLineStyle(key).strokeOpacity}
-                  strokeDasharray={getStrokePattern(key)}
-                  dot={false}
-                  activeDot={{ r: 4, fill: getLineColor(key, index) }}
-                />
-              )
-          )}
+          {keys.map((key, index) => {
+            if (key === "date" || key === "value") {
+              return null;
+            }
+
+            const lineStyle = getLineStyle(key);
+
+            return (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={getLineColor(key, index)}
+                strokeWidth={lineStyle.strokeWidth}
+                strokeOpacity={lineStyle.strokeOpacity}
+                strokeDasharray={getStrokePattern(key)}
+                dot={false}
+                activeDot={getActiveDotProps(key, index)}
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -373,9 +390,25 @@ function CustomLegend({ payload, selectedType }: CustomLegendProps) {
             className="w-4 h-0.5 rounded"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-xs text-gray-600 dark:text-gray-400">
-            {getSimplifiedLabel(entry.value)}
-          </span>
+          {(() => {
+            const label = getSimplifiedLabel(entry.value);
+            const isHighlighted = (() => {
+              if (!selectedType) return false;
+              if (selectedType === "시가총액 구성") {
+                return label === "전체 시총";
+              }
+              return label === selectedType;
+            })();
+
+            return (
+              <span
+                className={`text-xs ${isHighlighted ? 'font-semibold' : 'text-gray-600 dark:text-gray-400'}`}
+                style={isHighlighted ? { color: entry.color } : undefined}
+              >
+                {label}
+              </span>
+            );
+          })()}
         </div>
       ))}
     </div>
