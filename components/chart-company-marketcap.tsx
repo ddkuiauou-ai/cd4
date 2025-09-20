@@ -102,6 +102,7 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
     const maxValue = largestSeries.max;
     const comparisonValue = comparisonSeries.max;
 
+
     if (!Number.isFinite(maxValue) || maxValue <= 0) {
         return null;
     }
@@ -524,6 +525,8 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         if (!minima.length) {
             return Number.NaN;
         }
+        return Math.min(...numericValues);
+    }, [numericValues]);
 
         return Math.min(0, ...minima);
     }, [seriesStats]);
