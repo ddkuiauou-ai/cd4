@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BusinessDay,
   CandlestickData,
@@ -235,6 +235,9 @@ function formatAxisDate(time: Time): string {
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const [volumeOverlayBounds, setVolumeOverlayBounds] = useState<
+    { top: number; height: number } | null
+  >(null);
 
   const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
     const sanitized = data.filter((point) =>
@@ -288,18 +291,64 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     const container = containerRef.current;
 
     if (!container) {
+      setVolumeOverlayBounds(null);
       return;
     }
 
     if (!candlesticks.length) {
       chartRef.current?.remove();
       chartRef.current = null;
+      setVolumeOverlayBounds(null);
       return;
     }
 
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
+    let animationFrameId: number | null = null;
     let disposed = false;
+
+    const updateVolumeOverlayBounds = () => {
+      if (disposed) {
+        return;
+      }
+
+      const containerElement = containerRef.current;
+
+      if (!containerElement || !hasVolumeData || volumes.length === 0) {
+        setVolumeOverlayBounds(null);
+        return;
+      }
+
+      const paneElements = containerElement.querySelectorAll<HTMLElement>(
+        ".tv-lightweight-charts__pane"
+      );
+
+      if (paneElements.length < 2) {
+        setVolumeOverlayBounds(null);
+        return;
+      }
+
+      const volumePane = paneElements[paneElements.length - 1];
+      const containerRect = containerElement.getBoundingClientRect();
+      const paneRect = volumePane.getBoundingClientRect();
+
+      const measuredTop = Math.max(0, paneRect.top - containerRect.top);
+      const measuredHeight = Math.max(0, paneRect.height);
+      const nextTop = Math.round(measuredTop);
+      const nextHeight = Math.round(measuredHeight);
+
+      setVolumeOverlayBounds((prev) => {
+        if (
+          prev &&
+          Math.abs(prev.top - nextTop) < 1 &&
+          Math.abs(prev.height - nextHeight) < 1
+        ) {
+          return prev;
+        }
+
+        return { top: nextTop, height: nextHeight };
+      });
+    };
 
     const setupChart = async () => {
       if (!containerRef.current) {
@@ -498,6 +547,12 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       series.setData(candlesticks);
       chart.timeScale().fitContent();
 
+      if (typeof window !== "undefined") {
+        animationFrameId = window.requestAnimationFrame(
+          updateVolumeOverlayBounds
+        );
+      }
+
       resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
         if (!entry || disposed) {
@@ -508,6 +563,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           width: entry.contentRect.width,
           height: entry.contentRect.height,
         });
+
+        updateVolumeOverlayBounds();
       });
 
       if (!containerRef.current || disposed) {
@@ -522,9 +579,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       removeTradingViewAttribution();
 
       if (typeof MutationObserver !== "undefined") {
-        mutationObserver = new MutationObserver(() =>
-          removeTradingViewAttribution()
-        );
+        mutationObserver = new MutationObserver(() => {
+          removeTradingViewAttribution();
+          updateVolumeOverlayBounds();
+        });
 
         if (containerRef.current) {
           mutationObserver.observe(containerRef.current, {
@@ -546,6 +604,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     return () => {
       disposed = true;
+      if (animationFrameId !== null && typeof window !== "undefined") {
+        window.cancelAnimationFrame(animationFrameId);
+      }
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
       chartRef.current?.remove();
@@ -563,6 +624,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
   const showVolumeOverlay = hasVolumeData && volumes.length > 0;
   const volumeOverlayPosition = `${VOLUME_SECTION_TOP * 100}%`;
+  const overlayAreaStyle = volumeOverlayBounds
+    ? {
+        top: `${volumeOverlayBounds.top}px`,
+        height: `${volumeOverlayBounds.height}px`,
+      }
+    : { top: volumeOverlayPosition, bottom: 0 };
+  const overlayDividerStyle = volumeOverlayBounds
+    ? { top: `${volumeOverlayBounds.top}px` }
+    : { top: volumeOverlayPosition };
 
   return (
     <div className="relative h-[320px] w-full overflow-hidden sm:h-[340px] md:h-[380px] lg:h-[420px]">
@@ -572,14 +642,14 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 z-0"
-            style={{ top: volumeOverlayPosition, bottom: 0 }}
+            style={overlayAreaStyle}
           >
             <div className="absolute inset-0 bg-slate-200/40 dark:bg-slate-900/25" />
           </div>
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-2 z-[2]"
-            style={{ top: volumeOverlayPosition }}
+            style={overlayDividerStyle}
           >
             <div className="h-px w-full bg-slate-300/80 dark:bg-slate-600/70" />
           </div>
