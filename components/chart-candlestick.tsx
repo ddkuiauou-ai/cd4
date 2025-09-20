@@ -11,6 +11,8 @@ import type {
 import { ColorType, CrosshairMode, createChart } from "lightweight-charts";
 
 const VOLUME_SCALE_ID = "volume";
+const PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME = 0.25;
+const VOLUME_SECTION_TOP = 1 - PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME;
 
 interface CandlestickPoint {
   time: string;
@@ -402,16 +404,18 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       const hasVolumeSeries = hasVolumeData && volumes.length > 0;
 
+      const priceScaleMargins = hasVolumeSeries
+        ? {
+            top: 0.1,
+            bottom: PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME,
+          }
+        : {
+            top: 0.1,
+            bottom: 0.1,
+          };
+
       series.priceScale().applyOptions({
-        scaleMargins: hasVolumeSeries
-          ? {
-              top: 0.1,
-              bottom: 0.25,
-            }
-          : {
-              top: 0.1,
-              bottom: 0.1,
-            },
+        scaleMargins: priceScaleMargins,
       });
 
       if (hasVolumeSeries) {
@@ -466,7 +470,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       if (volumeSeries) {
         const volumeScaleMargins = {
-          top: 0.75,
+          top: VOLUME_SECTION_TOP,
           bottom: 0,
         } as const;
 
@@ -484,7 +488,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         chart.priceScale("right").applyOptions({
           scaleMargins: {
             top: 0.05,
-            bottom: 0.25,
+            bottom: PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME,
           },
         });
 
@@ -557,10 +561,30 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     );
   }
 
+  const showVolumeOverlay = hasVolumeData && volumes.length > 0;
+  const volumeOverlayPosition = `${VOLUME_SECTION_TOP * 100}%`;
+
   return (
-    <div
-      ref={containerRef}
-      className="h-[320px] w-full sm:h-[340px] md:h-[380px] lg:h-[420px]"
-    />
+    <div className="relative h-[320px] w-full overflow-hidden sm:h-[340px] md:h-[380px] lg:h-[420px]">
+      <div ref={containerRef} className="absolute inset-0 z-[1]" />
+      {showVolumeOverlay && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 z-0"
+            style={{ top: volumeOverlayPosition, bottom: 0 }}
+          >
+            <div className="absolute inset-0 bg-slate-200/40 dark:bg-slate-900/25" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-2 z-[2]"
+            style={{ top: volumeOverlayPosition }}
+          >
+            <div className="h-px w-full bg-slate-300/80 dark:bg-slate-600/70" />
+          </div>
+        </>
+      )}
+    </div>
   );
 }
