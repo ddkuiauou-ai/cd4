@@ -8,8 +8,14 @@ import type {
   LineData,
   Time,
 } from "lightweight-charts";
-
-import { ColorType, CrosshairMode, PriceScaleMode, createChart } from "lightweight-charts";
+import {
+  CandlestickSeries,
+  ColorType,
+  CrosshairMode,
+  LineSeries,
+  PriceScaleMode,
+  createChart,
+} from "lightweight-charts";
 
 interface CandlestickPoint {
   time: string;
@@ -260,7 +266,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         if (normalizedVolume === null) {
           return null;
         }
-
         return {
           time: point.time as Time,
           value: normalizedVolume,
@@ -282,6 +287,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       return;
     }
 
+    container.replaceChildren();
     container.replaceChildren();
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
@@ -308,7 +314,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         vertLines: { color: "rgba(148, 163, 184, 0.16)" },
       },
       leftPriceScale: {
-
         visible: hasVolumeData,
         borderColor,
       },
@@ -331,7 +336,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       autoSize: true,
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: "#D60000",
       downColor: "#0051C7",
       borderUpColor: "#B80000",
@@ -365,7 +370,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       volumePane.setStretchFactor(0.32);
       volumePane.moveTo(1);
 
-      const volumeSeries = volumePane.addLineSeries({
+      const volumeSeries = volumePane.addSeries(LineSeries, {
         priceFormat: {
           type: "custom",
           minMove: 1,
