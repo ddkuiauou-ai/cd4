@@ -182,12 +182,20 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       Number.isFinite(point.low) &&
       Number.isFinite(point.close));
 
-  const sortedPricePoints = parsedPricePoints.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const sortedPricePoints = parsedPricePoints.sort(
+    (a, b) => a.date.getTime() - b.date.getTime()
+  );
 
-  const extendedPeriodStart = new Date();
-  extendedPeriodStart.setMonth(extendedPeriodStart.getMonth() - 3);
+  const latestPricePoint = sortedPricePoints.at(-1);
+  const periodReferenceDate = latestPricePoint
+    ? new Date(latestPricePoint.date.getTime())
+    : new Date();
+  const periodStartDate = new Date(periodReferenceDate.getTime());
+  periodStartDate.setMonth(periodStartDate.getMonth() - 3);
 
-  let candlestickSeriesData = sortedPricePoints.filter((point) => point.date >= extendedPeriodStart);
+  let candlestickSeriesData = sortedPricePoints.filter(
+    (point) => point.date >= periodStartDate && point.date <= periodReferenceDate
+  );
 
   if (!candlestickSeriesData.length) {
     candlestickSeriesData = sortedPricePoints.slice(-90);
