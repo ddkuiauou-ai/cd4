@@ -8,14 +8,8 @@ import type {
   LineData,
   Time,
 } from "lightweight-charts";
-import {
-  CandlestickSeries,
-  ColorType,
-  CrosshairMode,
-  LineSeries,
-  PriceScaleMode,
-  createChart,
-} from "lightweight-charts";
+
+import { ColorType, CrosshairMode, PriceScaleMode, createChart } from "lightweight-charts";
 
 interface CandlestickPoint {
   time: string;
@@ -24,13 +18,6 @@ interface CandlestickPoint {
   low: number;
   close: number;
   volume?: number | string | bigint | null;
-}
-
-interface ChartContext {
-  chart: IChartApi;
-  candlestickSeries: ReturnType<IChartApi["addCandlestickSeries"]>;
-  volumeSeries: ReturnType<IChartApi["addLineSeries"]> | null;
-  resizeObserver: ResizeObserver | null;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -245,9 +232,8 @@ interface CandlestickChartProps {
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const chartContextRef = useRef<ChartContext | null>(null);
 
-  const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
+  const { candlesticks, volumes } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -285,276 +271,18 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
-      hasVolumeData: volumePoints.length > 0,
     };
   }, [data]);
-
-  const disposeChart = () => {
-    const context = chartContextRef.current;
-
-    if (!context) {
-      return;
-    }
-
-    context.resizeObserver?.disconnect();
-
-    try {
-      context.chart.remove();
-    } catch (error) {
-      if (error instanceof Error && error.name === "NotFoundError") {
-        chartContextRef.current = null;
-        return;
-      }
-
-      console.error("Failed to dispose lightweight chart:", error);
-    }
-
-    chartContextRef.current = null;
-  };
+  const hasVolumeData = volumes.length > 0;
 
   useEffect(() => {
-    return () => {
-      disposeChart();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!candlesticks.length) {
-      disposeChart();
-    }
-
     const container = containerRef.current;
 
-    if (!container || !candlesticks.length) {
+    if (!container || candlesticks.length === 0) {
       return;
     }
 
-    const requiresVolumePane = hasVolumeData;
-
-    let context = chartContextRef.current;
-
-    if (context) {
-      const hasVolumeSeries = Boolean(context.volumeSeries);
-
-      if (hasVolumeSeries !== requiresVolumePane) {
-        disposeChart();
-        context = chartContextRef.current;
-      }
-    }
-
-    if (!context) {
-      const computedStyle = getComputedStyle(document.documentElement);
-      const foreground = normalizeColor(
-        computedStyle.getPropertyValue("--foreground"),
-        "#111827"
-      );
-      const borderColor = normalizeColor(
-        computedStyle.getPropertyValue("--border"),
-        "rgba(148, 163, 184, 0.4)"
-      );
-
-      const chart = createChart(container, {
-        layout: {
-          textColor: foreground,
-          background: { type: ColorType.Solid, color: "transparent" },
-          panes: {
-            separatorColor: "rgba(214, 0, 0, 0.35)",
-            separatorHoverColor: "rgba(214, 0, 0, 0.55)",
-            enableResize: false,
-          },
-        },
-        grid: {
-          horzLines: { color: "rgba(148, 163, 184, 0.16)" },
-          vertLines: { color: "rgba(148, 163, 184, 0.16)" },
-        },
-        rightPriceScale: { borderColor },
-        timeScale: {
-          borderColor,
-          timeVisible: false,
-          secondsVisible: false,
-          rightOffset: 0,
-          fixLeftEdge: true,
-          fixRightEdge: true,
-          tickMarkFormatter: (time) => formatAxisDate(time) || "",
-        },
-        localization: {
-          locale: "ko-KR",
-          priceFormatter: (price) => koreanPriceFormatter.format(price),
-          timeFormatter: (time) => formatTooltipDate(time) || "",
-        },
-        crosshair: { mode: CrosshairMode.Normal },
-        autoSize: true,
-      });
-
-      const panes = typeof chart.panes === "function" ? chart.panes() : [];
-      const pricePane = panes[0];
-
-      const candlestickOptions = {
-        upColor: "#D60000",
-        downColor: "#0051C7",
-        borderUpColor: "#B80000",
-        borderDownColor: "#003C9D",
-        wickUpColor: "#D60000",
-        wickDownColor: "#0051C7",
-        priceFormat: { type: "price", precision: 0, minMove: 1 },
-      } as const;
-
-      let candlestickSeries: ReturnType<IChartApi["addCandlestickSeries"]> | null =
-        null;
-
-      if (pricePane && typeof pricePane.addSeries === "function") {
-        try {
-          candlestickSeries = pricePane.addSeries(
-            CandlestickSeries,
-            candlestickOptions
-          ) as ReturnType<IChartApi["addCandlestickSeries"]>;
-        } catch (error) {
-          console.error(
-            "Failed to add candlestick series to price pane:",
-            error
-          );
-        }
-      }
-
-      if (!candlestickSeries) {
-        if (typeof chart.addCandlestickSeries === "function") {
-          candlestickSeries = chart.addCandlestickSeries(candlestickOptions);
-        } else {
-          const chartWithSeries = chart as unknown as {
-            addSeries?: (
-              ctor: unknown,
-              options: typeof candlestickOptions
-            ) => ReturnType<IChartApi["addCandlestickSeries"]>;
-          };
-
-          if (typeof chartWithSeries.addSeries === "function") {
-            try {
-              candlestickSeries = chartWithSeries.addSeries(
-                CandlestickSeries,
-                candlestickOptions
-              ) as ReturnType<IChartApi["addCandlestickSeries"]>;
-            } catch (error) {
-              console.error(
-                "Failed to dynamically add candlestick series:",
-                error
-              );
-            }
-          }
-        }
-      }
-
-      if (!candlestickSeries) {
-        console.error(
-          "Unable to create candlestick series with the current lightweight-charts build."
-        );
-        chart.remove();
-        return;
-      }
-
-      let volumeSeries: ReturnType<IChartApi["addLineSeries"]> | null = null;
-
-      if (requiresVolumePane) {
-        const lineOptions: Parameters<IChartApi["addLineSeries"]>[0] = {
-          priceFormat: {
-            type: "custom",
-            minMove: 1,
-            formatter: (value: number) =>
-              koreanVolumeFormatter.format(Math.max(value, 0)),
-          },
-          priceLineVisible: false,
-          lastValueVisible: true,
-          crosshairMarkerVisible: true,
-          lineWidth: 2,
-          color: "rgba(214, 0, 0, 0.85)",
-          priceScaleId: "volume",
-          pointMarkersVisible: false,
-        };
-
-        const canAddPane = typeof chart.addPane === "function";
-        if (canAddPane) {
-          try {
-            const pane = chart.addPane();
-            pane.setHeight(136);
-            pane.setStretchFactor(0.32);
-            pane.moveTo(1);
-
-            if (typeof pane.addSeries === "function") {
-              volumeSeries = pane.addSeries(
-                LineSeries,
-                lineOptions
-              ) as ReturnType<IChartApi["addLineSeries"]>;
-            }
-          } catch (error) {
-            console.error(
-              "Failed to add line series to dedicated volume pane:",
-              error
-            );
-          }
-        }
-
-        if (!volumeSeries) {
-          if (typeof chart.addLineSeries === "function") {
-            volumeSeries = chart.addLineSeries(lineOptions);
-          } else {
-            const chartWithSeries = chart as unknown as {
-              addSeries?: (
-                ctor: unknown,
-                options: Parameters<IChartApi["addLineSeries"]>[0]
-              ) => ReturnType<IChartApi["addLineSeries"]>;
-            };
-
-            if (typeof chartWithSeries.addSeries === "function") {
-              try {
-                volumeSeries = chartWithSeries.addSeries(
-                  LineSeries,
-                  lineOptions
-                ) as ReturnType<IChartApi["addLineSeries"]>;
-              } catch (error) {
-                console.error(
-                  "Failed to dynamically add line series:",
-                  error
-                );
-              }
-            }
-          }
-        }
-
-
-      }
-
-      const resizeObserver =
-        typeof ResizeObserver !== "undefined"
-          ? new ResizeObserver((entries) => {
-              const entry = entries[0];
-
-              if (!entry) {
-                return;
-              }
-
-              chart.applyOptions({
-                width: entry.contentRect.width,
-                height: entry.contentRect.height,
-              });
-            })
-          : null;
-
-      resizeObserver?.observe(container);
-
-
-      context = {
-        chart,
-        candlestickSeries,
-        volumeSeries,
-        resizeObserver,
-      } satisfies ChartContext;
-
-      chartContextRef.current = context;
-    }
-
-    if (!context) {
-      return;
-    }
-
+    container.replaceChildren();
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
       computedStyle.getPropertyValue("--foreground"),
@@ -565,7 +293,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       "rgba(148, 163, 184, 0.4)"
     );
 
-    context.chart.applyOptions({
+    const chart = createChart(container, {
       layout: {
         textColor: foreground,
         background: { type: ColorType.Solid, color: "transparent" },
@@ -580,7 +308,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         vertLines: { color: "rgba(148, 163, 184, 0.16)" },
       },
       leftPriceScale: {
-        visible: true,
+
+        visible: hasVolumeData,
         borderColor,
       },
       rightPriceScale: { borderColor },
@@ -599,34 +328,64 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         timeFormatter: (time) => formatTooltipDate(time) || "",
       },
       crosshair: { mode: CrosshairMode.Normal },
+      autoSize: true,
     });
 
-    context.candlestickSeries.applyOptions({
+    const candlestickSeries = chart.addCandlestickSeries({
+      upColor: "#D60000",
+      downColor: "#0051C7",
+      borderUpColor: "#B80000",
+      borderDownColor: "#003C9D",
+      wickUpColor: "#D60000",
+      wickDownColor: "#0051C7",
+      priceFormat: { type: "price", precision: 0, minMove: 1 },
       priceScaleId: "right",
     });
 
-    const candleScale = context.candlestickSeries.priceScale();
-    candleScale.applyOptions({
-      borderColor,
-      mode: PriceScaleMode.Normal,
-      autoScale: true,
-      scaleMargins: {
-        top: 0.1,
-        bottom: hasVolumeData ? 0.3 : 0.1,
-      },
-      position: "right",
-    });
+    candlestickSeries.setData(candlesticks);
 
-    context.candlestickSeries.setData(candlesticks);
+    candlestickSeries
+      .priceScale()
+      .applyOptions({
+        borderColor,
+        mode: PriceScaleMode.Normal,
+        autoScale: true,
+        scaleMargins: {
+          top: 0.1,
+          bottom: hasVolumeData ? 0.3 : 0.1,
+        },
+        position: "right",
+      });
 
-    if (context.volumeSeries) {
-      if (hasVolumeData && volumes.length > 0) {
-        context.volumeSeries.setData(volumes);
-        context.volumeSeries.applyOptions({
-          priceScaleId: "volume",
-        });
-        const volumeScale = context.volumeSeries.priceScale();
-        volumeScale.applyOptions({
+    let resizeObserver: ResizeObserver | undefined;
+
+    if (hasVolumeData) {
+      const volumePane = chart.addPane();
+      volumePane.setHeight(136);
+      volumePane.setStretchFactor(0.32);
+      volumePane.moveTo(1);
+
+      const volumeSeries = volumePane.addLineSeries({
+        priceFormat: {
+          type: "custom",
+          minMove: 1,
+          formatter: (value: number) =>
+            koreanVolumeFormatter.format(Math.max(value, 0)),
+        },
+        priceLineVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: true,
+        lineWidth: 2,
+        color: "rgba(214, 0, 0, 0.85)",
+        priceScaleId: "volume",
+        pointMarkersVisible: false,
+      });
+
+      volumeSeries.setData(volumes);
+
+      chart
+        .priceScale("volume", 1)
+        .applyOptions({
           borderColor,
           mode: PriceScaleMode.Normal,
           autoScale: true,
@@ -636,9 +395,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
             bottom: 0,
           },
         });
-      } else {
-        context.volumeSeries.setData([]);
-      }
     }
 
     const firstVisibleTime = candlesticks[0]?.time;
@@ -646,22 +402,45 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     if (firstVisibleTime && lastVisibleTime) {
       requestAnimationFrame(() => {
-        const activeContext = chartContextRef.current;
-
-        if (!activeContext || activeContext.chart !== context.chart) {
-          return;
-        }
-
-        activeContext.chart.timeScale().setVisibleRange({
+        chart.timeScale().setVisibleRange({
           from: firstVisibleTime as Time,
           to: lastVisibleTime as Time,
         });
       });
     } else {
-      context.chart.timeScale().fitContent();
+      chart.timeScale().fitContent();
+    }
+
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+
+        if (!entry) {
+          return;
+        }
+
+        chart.applyOptions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      });
+
+      resizeObserver.observe(container);
     }
 
     removeTradingViewAttribution();
+
+    return () => {
+      resizeObserver?.disconnect();
+
+      try {
+        chart.remove();
+      } catch (error) {
+        if (!(error instanceof Error && error.name === "NotFoundError")) {
+          console.error("Failed to dispose lightweight chart:", error);
+        }
+      }
+    };
   }, [candlesticks, hasVolumeData, volumes]);
 
 
