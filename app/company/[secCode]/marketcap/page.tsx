@@ -103,6 +103,36 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   // Get market cap ranking for the security
   const marketCapRanking = await getSecurityMarketCapRanking(security.securityId);
 
+  const coerceVolumeValue = (primary: unknown, secondary?: unknown) => {
+    const candidates = [primary, secondary];
+
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) {
+        continue;
+      }
+
+      if (typeof candidate === "number" && Number.isFinite(candidate)) {
+        return candidate;
+      }
+
+      if (typeof candidate === "bigint") {
+        const numeric = Number(candidate);
+        if (Number.isFinite(numeric)) {
+          return numeric;
+        }
+      }
+
+      if (typeof candidate === "string") {
+        const numeric = Number.parseFloat(candidate.replace(/,/g, ""));
+        if (Number.isFinite(numeric)) {
+          return numeric;
+        }
+      }
+    }
+
+    return null;
+  };
+
   const rawPrices = Array.isArray(security.prices) ? security.prices : [];
   const parsedPricePoints = rawPrices
     .map((price: any) => {
@@ -126,8 +156,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
       const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
       const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
-      const volumeValue = typeof price?.volume === "number" ? price.volume : undefined;
-
+      const volumeValue = coerceVolumeValue(price?.volume, price?.fvolume);
       return {
         date,
         time: date.toISOString().split("T")[0],

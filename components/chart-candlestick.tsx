@@ -426,7 +426,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           removeTradingViewAttribution()
         );
 
-
         if (containerRef.current) {
           mutationObserver.observe(containerRef.current, {
             childList: true,
