@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type {
   BusinessDay,
   CandlestickData,
@@ -8,11 +8,14 @@ import type {
   IChartApi,
   Time,
 } from "lightweight-charts";
-import { ColorType, CrosshairMode, createChart } from "lightweight-charts";
-
-const VOLUME_SCALE_ID = "volume";
-const PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME = 0.25;
-const VOLUME_SECTION_TOP = 1 - PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME;
+import {
+  AreaSeries,
+  CandlestickSeries,
+  ColorType,
+  CrosshairMode,
+  HistogramSeries,
+  createChart,
+} from "lightweight-charts";
 
 interface CandlestickPoint {
   time: string;
@@ -148,7 +151,7 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
 
   return null;
 }
-        
+
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
@@ -179,11 +182,7 @@ function coerceTimeToDate(time: Time): Date | null {
       Number.isInteger(businessDay.month) &&
       Number.isInteger(businessDay.day)
     ) {
-      const candidate = new Date(
-        businessDay.year,
-        businessDay.month - 1,
-        businessDay.day
-      );
+      const candidate = new Date(businessDay.year, businessDay.month - 1, businessDay.day);
       return Number.isNaN(candidate.getTime()) ? null : candidate;
     }
   }
@@ -204,11 +203,11 @@ function formatTooltipDate(time: Time): string {
     return "";
   }
 
-  const year = String(date.getFullYear()).slice(-2);
+  const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
 
-  return `${year}.${month}.${day}`;
+  return `${year}년 ${month}월 ${day}일`;
 }
 
 function formatAxisDate(time: Time): string {
@@ -224,22 +223,19 @@ function formatAxisDate(time: Time): string {
     return "";
   }
 
-  const year = String(date.getFullYear()).slice(-2);
+  const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
   const shouldShowYear = month === 1 && day <= 5;
 
-  return shouldShowYear ? `${year}/${month}/${day}` : `${month}/${day}`;
+  return shouldShowYear ? `${year}년 ${month}월 ${day}일` : `${month}월 ${day}일`;
 }
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const [volumeOverlayBounds, setVolumeOverlayBounds] = useState<
-    { top: number; height: number } | null
-  >(null);
 
-  const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
+  const { candlesticks, volumes, area, hasVolumeData } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -251,8 +247,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       Number.isFinite(point.close)
     );
 
-    const upVolumeColor = "rgba(214, 0, 0, 0.45)";
-    const downVolumeColor = "rgba(0, 81, 199, 0.45)";
+    const upVolumeColor = "rgba(214, 0, 0, 0.55)";
+    const downVolumeColor = "rgba(0, 81, 199, 0.55)";
 
     const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
       time: point.time,
@@ -280,9 +276,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       };
     });
 
+    const areaPoints = candlestickPoints.map((point) => ({
+      time: point.time as Time,
+      value: point.close,
+    }));
+
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
+      area: areaPoints,
       hasVolumeData: hasVolume,
     };
   }, [data]);
@@ -291,66 +293,19 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     const container = containerRef.current;
 
     if (!container) {
-      setVolumeOverlayBounds(null);
       return;
     }
 
     if (!candlesticks.length) {
       chartRef.current?.remove();
       chartRef.current = null;
-      setVolumeOverlayBounds(null);
       return;
     }
 
     let resizeObserver: ResizeObserver | null = null;
-    let mutationObserver: MutationObserver | null = null;
-    let animationFrameId: number | null = null;
     let disposed = false;
 
-    const updateVolumeOverlayBounds = () => {
-      if (disposed) {
-        return;
-      }
-
-      const containerElement = containerRef.current;
-
-      if (!containerElement || !hasVolumeData || volumes.length === 0) {
-        setVolumeOverlayBounds(null);
-        return;
-      }
-
-      const paneElements = containerElement.querySelectorAll<HTMLElement>(
-        ".tv-lightweight-charts__pane"
-      );
-
-      if (paneElements.length < 2) {
-        setVolumeOverlayBounds(null);
-        return;
-      }
-
-      const volumePane = paneElements[paneElements.length - 1];
-      const containerRect = containerElement.getBoundingClientRect();
-      const paneRect = volumePane.getBoundingClientRect();
-
-      const measuredTop = Math.max(0, paneRect.top - containerRect.top);
-      const measuredHeight = Math.max(0, paneRect.height);
-      const nextTop = Math.round(measuredTop);
-      const nextHeight = Math.round(measuredHeight);
-
-      setVolumeOverlayBounds((prev) => {
-        if (
-          prev &&
-          Math.abs(prev.top - nextTop) < 1 &&
-          Math.abs(prev.height - nextHeight) < 1
-        ) {
-          return prev;
-        }
-
-        return { top: nextTop, height: nextHeight };
-      });
-    };
-
-    const setupChart = async () => {
+    const setupChart = () => {
       if (!containerRef.current) {
         return;
       }
@@ -374,6 +329,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         layout: {
           textColor: foreground,
           background: { type: ColorType.Solid, color: "transparent" },
+          panes: {
+            separatorColor: "rgba(214, 0, 0, 0.35)",
+            separatorHoverColor: "rgba(214, 0, 0, 0.55)",
+            enableResize: false,
+          },
         },
         grid: {
           horzLines: { color: "rgba(148, 163, 184, 0.16)" },
@@ -395,55 +355,96 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         autoSize: true,
       });
 
-      const seriesOptions = {
+      const panes = typeof chart.panes === "function" ? chart.panes() : [];
+      const pricePane = panes[0];
+      const canAddPane = typeof chart.addPane === "function";
+      const volumePane = canAddPane ? chart.addPane() : null;
+
+      if (volumePane) {
+        volumePane.setHeight(136);
+        volumePane.setStretchFactor(0.32);
+        volumePane.moveTo(1);
+      }
+
+      const candlestickOptions = {
         upColor: "#D60000",
         downColor: "#0051C7",
         borderUpColor: "#B80000",
         borderDownColor: "#003C9D",
         wickUpColor: "#D60000",
         wickDownColor: "#0051C7",
+        priceFormat: { type: "price", precision: 0, minMove: 1 },
       } as const;
 
-      let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
+      const areaOptions = {
+        lineColor: "#D60000",
+        topColor: "rgba(214, 0, 0, 0.25)",
+        bottomColor: "rgba(214, 0, 0, 0.04)",
+        lineWidth: 2,
+        priceFormat: { type: "price", precision: 0, minMove: 1 },
+      } as const;
+
+      let areaSeriesInstance: ReturnType<IChartApi["addAreaSeries"]> | null = null;
+      let candlestickSeries: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
       let volumeSeries: ReturnType<IChartApi["addHistogramSeries"]> | null = null;
 
-      if (typeof chart.addCandlestickSeries === "function") {
-        series = chart.addCandlestickSeries(seriesOptions);
-      } else {
-        const chartWithSeries = chart as unknown as {
-          addSeries?: (
-            ctor: unknown,
-            options: typeof seriesOptions
-          ) => ReturnType<IChartApi["addCandlestickSeries"]>;
-        };
+      if (pricePane && typeof pricePane.addSeries === "function") {
+        try {
+          areaSeriesInstance = pricePane.addSeries(
+            AreaSeries,
+            areaOptions
+          ) as ReturnType<IChartApi["addAreaSeries"]>;
+        } catch (error) {
+          console.error("Failed to add area series to price pane:", error);
+        }
+      }
 
-        if (typeof chartWithSeries.addSeries === "function") {
-          try {
-            const mod = await import("lightweight-charts");
-            const CandlestickCtor = (mod as { CandlestickSeries?: unknown })
-              .CandlestickSeries;
+      if (!areaSeriesInstance && typeof chart.addAreaSeries === "function") {
+        areaSeriesInstance = chart.addAreaSeries(areaOptions);
+      }
 
-            if (CandlestickCtor) {
-              series = chartWithSeries.addSeries(
-                CandlestickCtor,
-                seriesOptions
+      if (pricePane && typeof pricePane.addSeries === "function") {
+        try {
+          candlestickSeries = pricePane.addSeries(
+            CandlestickSeries,
+            candlestickOptions
+          ) as ReturnType<IChartApi["addCandlestickSeries"]>;
+        } catch (error) {
+          console.error(
+            "Failed to add candlestick series to price pane:",
+            error
+          );
+        }
+      }
+
+      if (!candlestickSeries) {
+        if (typeof chart.addCandlestickSeries === "function") {
+          candlestickSeries = chart.addCandlestickSeries(candlestickOptions);
+        } else {
+          const chartWithSeries = chart as unknown as {
+            addSeries?: (
+              ctor: unknown,
+              options: typeof candlestickOptions
+            ) => ReturnType<IChartApi["addCandlestickSeries"]>;
+          };
+
+          if (typeof chartWithSeries.addSeries === "function") {
+            try {
+              candlestickSeries = chartWithSeries.addSeries(
+                CandlestickSeries,
+                candlestickOptions
               ) as ReturnType<IChartApi["addCandlestickSeries"]>;
+            } catch (error) {
+              console.error(
+                "Failed to dynamically add candlestick series:",
+                error
+              );
             }
-          } catch (error) {
-            console.error(
-              "Failed to dynamically load candlestick series constructor:",
-              error
-            );
           }
         }
       }
 
-      if (disposed) {
-        chart.remove();
-        return;
-      }
-
-      if (!series) {
+      if (!candlestickSeries) {
         console.error(
           "Unable to create candlestick series with the current lightweight-charts build."
         );
@@ -453,105 +454,91 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       const hasVolumeSeries = hasVolumeData && volumes.length > 0;
 
-      const priceScaleMargins = hasVolumeSeries
-        ? {
-            top: 0.1,
-            bottom: PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME,
-          }
-        : {
-            top: 0.1,
-            bottom: 0.1,
-          };
-
-      series.priceScale().applyOptions({
-        scaleMargins: priceScaleMargins,
+      candlestickSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.15, bottom: hasVolumeSeries ? 0.08 : 0.15 },
       });
 
+      if (areaSeriesInstance) {
+        areaSeriesInstance.priceScale().applyOptions({
+          scaleMargins: { top: 0.2, bottom: hasVolumeSeries ? 0.12 : 0.2 },
+        });
+      }
+
       if (hasVolumeSeries) {
-        if (typeof chart.addHistogramSeries === "function") {
-          volumeSeries = chart.addHistogramSeries({
-            color: "rgba(148, 163, 184, 0.4)",
-            priceFormat: { type: "volume" },
-            priceScaleId: VOLUME_SCALE_ID,
-            priceLineVisible: false,
-            lastValueVisible: false,
-            baseLineVisible: false,
-          });
-        } else {
-          const chartWithSeries = chart as unknown as {
-            addSeries?: (
-              ctor: unknown,
-              options: Parameters<IChartApi["addHistogramSeries"]>[0]
-            ) => ReturnType<IChartApi["addHistogramSeries"]>;
-          };
+        const histogramOptions: Parameters<IChartApi["addHistogramSeries"]>[0] = {
+          priceFormat: { type: "volume", precision: 0, minMove: 1 },
+          priceLineVisible: false,
+          lastValueVisible: false,
+          baseLineVisible: false,
+        };
 
-          if (typeof chartWithSeries.addSeries === "function") {
-            try {
-              const mod = await import("lightweight-charts");
-              const HistogramCtor = (mod as { HistogramSeries?: unknown })
-                .HistogramSeries;
+        if (volumePane && typeof volumePane.addSeries === "function") {
+          try {
+            volumeSeries = volumePane.addSeries(
+              HistogramSeries,
+              histogramOptions
+            ) as ReturnType<IChartApi["addHistogramSeries"]>;
+          } catch (error) {
+            console.error(
+              "Failed to add histogram series to volume pane:",
+              error
+            );
+          }
+        }
 
-              if (HistogramCtor) {
-                volumeSeries = chartWithSeries.addSeries(HistogramCtor, {
-                  color: "rgba(148, 163, 184, 0.4)",
-                  priceFormat: { type: "volume" },
-                  priceScaleId: VOLUME_SCALE_ID,
-                  priceLineVisible: false,
-                  lastValueVisible: false,
-                  baseLineVisible: false,
-                }) as ReturnType<IChartApi["addHistogramSeries"]>;
+        if (!volumeSeries) {
+          if (typeof chart.addHistogramSeries === "function") {
+            volumeSeries = chart.addHistogramSeries({
+              ...histogramOptions,
+              priceScaleId: "volume",
+            });
+          } else {
+            const chartWithSeries = chart as unknown as {
+              addSeries?: (
+                ctor: unknown,
+                options: Parameters<IChartApi["addHistogramSeries"]>[0]
+              ) => ReturnType<IChartApi["addHistogramSeries"]>;
+            };
+
+            if (typeof chartWithSeries.addSeries === "function") {
+              try {
+                volumeSeries = chartWithSeries.addSeries(
+                  HistogramSeries,
+                  {
+                    ...histogramOptions,
+                    priceScaleId: "volume",
+                  }
+                ) as ReturnType<IChartApi["addHistogramSeries"]>;
+              } catch (error) {
+                console.error(
+                  "Failed to dynamically add histogram series:",
+                  error
+                );
               }
-            } catch (error) {
-              console.error(
-                "Failed to dynamically load histogram series constructor:",
-                error
-              );
             }
           }
         }
+
+        if (volumeSeries) {
+          volumeSeries.priceScale().applyOptions({
+            scaleMargins: { top: 0.15, bottom: 0 },
+            autoScale: true,
+          });
+
+          volumeSeries.setData(volumes);
+        } else {
+          console.error(
+            "Unable to create volume histogram series with the current lightweight-charts build."
+          );
+        }
       }
 
-      if (hasVolumeSeries && !volumeSeries) {
-        console.error(
-          "Unable to create volume histogram series with the current lightweight-charts build."
-        );
+      if (areaSeriesInstance) {
+        areaSeriesInstance.setData(area);
       }
 
-      if (volumeSeries) {
-        const volumeScaleMargins = {
-          top: VOLUME_SECTION_TOP,
-          bottom: 0,
-        } as const;
-
-        volumeSeries.priceScale().applyOptions({
-          scaleMargins: volumeScaleMargins,
-        });
-
-        const volumeScale = chart.priceScale(VOLUME_SCALE_ID);
-        volumeScale.applyOptions({
-          scaleMargins: volumeScaleMargins,
-          autoScale: true,
-          visible: false,
-        });
-
-        chart.priceScale("right").applyOptions({
-          scaleMargins: {
-            top: 0.05,
-            bottom: PRICE_SCALE_BOTTOM_MARGIN_WITH_VOLUME,
-          },
-        });
-
-        volumeSeries.setData(volumes);
-      }
-
-      series.setData(candlesticks);
+      candlestickSeries.setData(candlesticks);
       chart.timeScale().fitContent();
-
-      if (typeof window !== "undefined") {
-        animationFrameId = window.requestAnimationFrame(
-          updateVolumeOverlayBounds
-        );
-      }
 
       resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
@@ -563,8 +550,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           width: entry.contentRect.width,
           height: entry.contentRect.height,
         });
-
-        updateVolumeOverlayBounds();
       });
 
       if (!containerRef.current || disposed) {
@@ -577,42 +562,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       chartRef.current = chart;
 
       removeTradingViewAttribution();
-
-      if (typeof MutationObserver !== "undefined") {
-        mutationObserver = new MutationObserver(() => {
-          removeTradingViewAttribution();
-          updateVolumeOverlayBounds();
-        });
-
-        if (containerRef.current) {
-          mutationObserver.observe(containerRef.current, {
-            childList: true,
-            subtree: true,
-          });
-        }
-
-        if (typeof document !== "undefined" && document.body) {
-          mutationObserver.observe(document.body, {
-            childList: true,
-            subtree: true,
-          });
-        }
-      }
     };
 
-    void setupChart();
+    setupChart();
 
     return () => {
       disposed = true;
-      if (animationFrameId !== null && typeof window !== "undefined") {
-        window.cancelAnimationFrame(animationFrameId);
-      }
       resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
       chartRef.current?.remove();
       chartRef.current = null;
     };
-  }, [candlesticks, hasVolumeData, volumes]);
+  }, [area, candlesticks, hasVolumeData, volumes]);
 
   if (!candlesticks.length) {
     return (
@@ -622,39 +582,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     );
   }
 
-  const showVolumeOverlay = hasVolumeData && volumes.length > 0;
-  const volumeOverlayPosition = `${VOLUME_SECTION_TOP * 100}%`;
-  const overlayAreaStyle = volumeOverlayBounds
-    ? {
-        top: `${volumeOverlayBounds.top}px`,
-        height: `${volumeOverlayBounds.height}px`,
-      }
-    : { top: volumeOverlayPosition, bottom: 0 };
-  const overlayDividerStyle = volumeOverlayBounds
-    ? { top: `${volumeOverlayBounds.top}px` }
-    : { top: volumeOverlayPosition };
-
   return (
-    <div className="relative h-[320px] w-full overflow-hidden sm:h-[340px] md:h-[380px] lg:h-[420px]">
-      <div ref={containerRef} className="absolute inset-0 z-[1]" />
-      {showVolumeOverlay && (
-        <>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 z-0"
-            style={overlayAreaStyle}
-          >
-            <div className="absolute inset-0 bg-slate-200/40 dark:bg-slate-900/25" />
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-2 z-[2]"
-            style={overlayDividerStyle}
-          >
-            <div className="h-px w-full bg-slate-300/80 dark:bg-slate-600/70" />
-          </div>
-        </>
-      )}
+    <div className="relative h-[320px] w-full overflow-hidden rounded-xl border border-border/60 bg-background/80 sm:h-[340px] md:h-[380px] lg:h-[420px]">
+      <div ref={containerRef} className="absolute inset-0" />
     </div>
   );
 }
