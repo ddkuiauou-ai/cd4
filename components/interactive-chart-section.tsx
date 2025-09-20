@@ -16,40 +16,50 @@ interface InteractiveChartSectionProps {
     selectedType?: string; // 🎯 차트 어노테이션을 위한 선택 타입
 }
 
-// 📅 주별 데이터 추출 함수 (개선된 버전) - 메모이제이션 최적화
-const getWeeklyData = (data: any[]) => {
-    if (!data.length) return [];
+// 📅 최근 3개월 일간 데이터 추출 함수
+const getRecentDailyData = (data: any[], months: number) => {
+    if (!Array.isArray(data) || data.length === 0) {
+        return [];
+    }
 
-    // 날짜별로 정렬 (오래된 것부터)
-    const sortedData = data.sort((a, b) => {
+    // 원본 배열 변경 없이 정렬
+    const sortedData = [...data].sort((a, b) => {
         const dateA = a.date instanceof Date ? a.date : new Date(a.date);
         const dateB = b.date instanceof Date ? b.date : new Date(b.date);
         return dateA.getTime() - dateB.getTime();
     });
 
-    const weeklyData: any[] = [];
-    let lastWeekStart = '';
+    const latestEntry = sortedData.at(-1);
+    if (!latestEntry) {
+        return [];
+    }
 
-    sortedData.forEach((item) => {
+    const latestDate = latestEntry.date instanceof Date
+        ? new Date(latestEntry.date)
+        : new Date(latestEntry.date);
+
+    if (Number.isNaN(latestDate.getTime())) {
+        return sortedData;
+    }
+
+    const startDate = new Date(latestDate);
+    startDate.setHours(0, 0, 0, 0);
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const filtered = sortedData.filter((item) => {
         const itemDate = item.date instanceof Date ? item.date : new Date(item.date);
-
-        // 월요일 기준으로 주차 계산
-        const currentDay = itemDate.getDay(); // 0=일요일, 1=월요일, ...
-        const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay; // 해당 주의 월요일까지 차이
-        const mondayOfWeek = new Date(itemDate);
-        mondayOfWeek.setDate(itemDate.getDate() + daysToMonday);
-
-        const weekStart = mondayOfWeek.toISOString().split('T')[0]; // YYYY-MM-DD 형식
-
-        // 새로운 주의 첫 번째 데이터만 추가 (주당 1개)
-        if (weekStart !== lastWeekStart) {
-            weeklyData.push(item);
-            lastWeekStart = weekStart;
+        if (!(itemDate instanceof Date) || Number.isNaN(itemDate.getTime())) {
+            return false;
         }
+        return itemDate >= startDate && itemDate <= latestDate;
     });
 
-    // 최근 6개월 내에서 최대 26주 정도의 데이터 (주당 1개)
-    return weeklyData.slice(-26);
+    if (filtered.length === 0) {
+        // 데이터가 부족한 경우 최근 90개 일간 데이터로 대체
+        return sortedData.slice(-90);
+    }
+
+    return filtered;
 };
 
 // 📊 차트 데이터 처리 함수 메모이제이션 최적화
@@ -59,17 +69,7 @@ const processChartData = (rawData: any[], type: "summary" | "detailed") => {
     let filteredHistory = rawData;
 
     if (type === "summary") {
-        // 1. 최근 6개월 데이터만 가져오기
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-        filteredHistory = rawData.filter(item => {
-            const itemDate = item.date instanceof Date ? item.date : new Date(item.date);
-            return itemDate >= sixMonthsAgo;
-        });
-
-        // 2. 주별 데이터로 샘플링
-        return getWeeklyData(filteredHistory);
+        return getRecentDailyData(rawData, 3);
     }
 
     return filteredHistory;

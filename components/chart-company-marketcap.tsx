@@ -92,6 +92,19 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
         };
     };
 
+    const getDotStyle = (key: string, index: number) => {
+        const color = getLineColor(key, index);
+        const isHighlighted = shouldHighlightLine(key, selectedType);
+        const baseRadius = isMobile ? 2 : 3;
+
+        return {
+            r: isHighlighted ? baseRadius + 1 : baseRadius,
+            stroke: color,
+            strokeWidth: isHighlighted ? 1.5 : 1,
+            fill: '#ffffff',
+        };
+    };
+
     // 🔍 라인을 강조할지 결정하는 함수 (최적화)
     const shouldHighlightLine = (key: string, selectedType: string): boolean => {
         switch (selectedType) {
@@ -231,7 +244,7 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                         isAnimationActive={false}
                     />
                     <Legend
-                        content={<CustomLegend payload={keys.filter(key => key !== "date").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} />}
+                        content={<CustomLegend payload={keys.filter(key => key !== "date").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
                         wrapperStyle={{
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
                             position: 'relative',
@@ -249,8 +262,8 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                                     strokeWidth={getLineStyle(key).strokeWidth}
                                     strokeOpacity={getLineStyle(key).strokeOpacity}
                                     strokeDasharray={getStrokePattern(key)}
-                                    dot={false}
-                                    activeDot={{ r: 4, fill: getLineColor(key, index) }}
+                                    dot={getDotStyle(key, index)}
+                                    activeDot={{ r: 5, strokeWidth: 1.5, stroke: getLineColor(key, index), fill: '#ffffff' }}
                                 />
                             )
                     )}
@@ -356,9 +369,10 @@ interface CustomLegendProps {
         color: string;
         payload?: any;
     }>;
+    selectedType?: string;
 }
 
-function CustomLegend({ payload }: CustomLegendProps) {
+function CustomLegend({ payload, selectedType }: CustomLegendProps) {
     if (!payload || !payload.length) return null;
 
     // 📝 라벨 간소화 함수 (툴팁과 동일)
@@ -373,6 +387,18 @@ function CustomLegend({ payload }: CustomLegendProps) {
             return "우선주";
         }
         return key;
+    };
+
+    const isHighlightedLabel = (label: string) => {
+        if (!selectedType) {
+            return false;
+        }
+
+        if (selectedType === "시가총액 구성") {
+            return label === "전체 시총";
+        }
+
+        return label === selectedType;
     };
 
     // 🔄 중복 제거
@@ -395,9 +421,19 @@ function CustomLegend({ payload }: CustomLegendProps) {
                         className="w-4 h-0.5 rounded"
                         style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {getSimplifiedLabel(entry.value)}
-                    </span>
+                    {(() => {
+                        const label = getSimplifiedLabel(entry.value);
+                        const isHighlighted = isHighlightedLabel(label);
+
+                        return (
+                            <span
+                                className={`text-xs ${isHighlighted ? 'font-semibold' : 'text-gray-600 dark:text-gray-400'}`}
+                                style={isHighlighted ? { color: entry.color } : undefined}
+                            >
+                                {label}
+                            </span>
+                        );
+                    })()}
                 </div>
             ))}
         </div>

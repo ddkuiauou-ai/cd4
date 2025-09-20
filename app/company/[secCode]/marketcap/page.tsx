@@ -376,7 +376,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                   {displayName} 시가총액 일간 추이
                 </h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  최근 6개월 간의 주간 시가총액 흐름과 종목별 비중 변화를 살펴보세요.
+                  최근 3개월 간의 일별 시가총액 흐름과 종목별 비중 변화를 살펴보세요.
                 </p>
               </div>
               <div className="flex flex-1 flex-col px-3 pb-5 pt-3">

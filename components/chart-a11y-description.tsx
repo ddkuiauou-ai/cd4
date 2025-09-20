@@ -33,7 +33,7 @@ export function ChartA11yDescription({ data, selectedType, type }: ChartA11yDesc
     const changePercent = earliestValue ? ((latestValue - earliestValue) / earliestValue * 100) : 0;
     const trend = changePercent > 0 ? "상승" : changePercent < 0 ? "하락" : "변동 없음";
 
-    const period = type === "summary" ? "최근 6개월간" : "전체 기간";
+    const period = type === "summary" ? "최근 3개월간" : "전체 기간";
 
     return (
         <div className="sr-only" aria-live="polite">
