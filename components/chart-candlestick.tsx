@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import type { CandlestickData, IChartApi } from "lightweight-charts";
+import type {
+  BusinessDay,
+  CandlestickData,
+  IChartApi,
+  Time,
+} from "lightweight-charts";
 import { ColorType, CrosshairMode, createChart } from "lightweight-charts";
 
 interface CandlestickPoint {
@@ -107,6 +112,61 @@ function normalizeColor(color: string | null | undefined, fallback: string) {
   return trimmed;
 }
 
+const koreanDateFormatter = new Intl.DateTimeFormat("ko-KR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
+});
+
+function formatKoreanDate(time: Time): string {
+  if (typeof time === "number") {
+    const dateFromUnix = new Date(time * 1000);
+    if (!Number.isNaN(dateFromUnix.getTime())) {
+      return koreanDateFormatter.format(dateFromUnix);
+    }
+  } else if (typeof time === "string") {
+    const [year, month, day] = time.split("-").map((part) => Number.parseInt(part, 10));
+    if (
+      Number.isInteger(year) &&
+      Number.isInteger(month) &&
+      Number.isInteger(day)
+    ) {
+      return koreanDateFormatter.format(new Date(year, month - 1, day));
+    }
+
+    const dateFromString = new Date(time);
+    if (!Number.isNaN(dateFromString.getTime())) {
+      return koreanDateFormatter.format(dateFromString);
+    }
+  } else if (typeof time === "object" && time !== null) {
+    const businessDay = time as BusinessDay;
+    if (
+      Number.isInteger(businessDay.year) &&
+      Number.isInteger(businessDay.month) &&
+      Number.isInteger(businessDay.day)
+    ) {
+      return koreanDateFormatter.format(
+        new Date(businessDay.year, businessDay.month - 1, businessDay.day)
+      );
+    }
+  }
+
+  if (typeof time === "string") {
+    return time;
+  }
+
+  if (typeof time === "number") {
+    return String(time);
+  }
+
+  return "";
+}
+
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -146,6 +206,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
     let disposed = false;
 
     const setupChart = async () => {
@@ -178,7 +239,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           vertLines: { color: "rgba(148, 163, 184, 0.16)" },
         },
         rightPriceScale: { borderColor },
-        timeScale: { borderColor, timeVisible: true, secondsVisible: false },
+        timeScale: {
+          borderColor,
+          timeVisible: false,
+          secondsVisible: false,
+          tickMarkFormatter: (time) => formatKoreanDate(time) || "",
+        },
+        localization: {
+          locale: "ko-KR",
+          priceFormatter: (price) => koreanPriceFormatter.format(price),
+          timeFormatter: (time) => formatKoreanDate(time) || "",
+        },
         crosshair: { mode: CrosshairMode.Normal },
         autoSize: true,
       });
@@ -193,6 +264,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       } as const;
 
       let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
+
+      const removeAttribution = () => {
+        if (typeof document === "undefined") {
+          return;
+        }
+
+        const nodes = document.querySelectorAll("#tv-attr-logo");
+        nodes.forEach((node) => node.remove());
+      };
 
       if (typeof chart.addCandlestickSeries === "function") {
         series = chart.addCandlestickSeries(seriesOptions);
@@ -261,6 +341,26 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       resizeObserver.observe(containerRef.current);
       chartRef.current = chart;
+
+      removeAttribution();
+
+      if (typeof MutationObserver !== "undefined") {
+        mutationObserver = new MutationObserver(() => removeAttribution());
+
+        if (containerRef.current) {
+          mutationObserver.observe(containerRef.current, {
+            childList: true,
+            subtree: true,
+          });
+        }
+
+        if (typeof document !== "undefined" && document.body) {
+          mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+          });
+        }
+      }
     };
 
     void setupChart();
@@ -268,6 +368,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     return () => {
       disposed = true;
       resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
       chartRef.current?.remove();
       chartRef.current = null;
     };
