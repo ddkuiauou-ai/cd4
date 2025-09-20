@@ -146,7 +146,7 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
 
   return null;
 }
-
+        
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,

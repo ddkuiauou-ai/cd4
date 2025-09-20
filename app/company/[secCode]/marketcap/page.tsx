@@ -157,7 +157,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
       const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
       const volumeValue = coerceVolumeValue(price?.volume, price?.fvolume);
-
       return {
         date,
         time: date.toISOString().split("T")[0],
