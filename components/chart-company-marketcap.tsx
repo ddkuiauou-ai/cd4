@@ -248,26 +248,26 @@ function computeYAxisDomain(
     }, []);
 
     if (!domainValues.length) {
-        return ['dataMin - 5%', 'dataMax + 5%'] as const;
+        return ['dataMin - 5%', 'dataMax + 5%'];
     }
 
     const minValue = Math.min(...domainValues);
     const maxValue = Math.max(...domainValues);
 
     if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
-        return ['dataMin - 5%', 'dataMax + 5%'] as const;
+        return ['dataMin - 5%', 'dataMax + 5%'];
     }
 
     if (maxValue === minValue) {
         const center = minValue;
         const padding = Math.max(Math.abs(center) * 0.1, 1_000_000);
-        return [center - padding, center + padding] as const;
+        return [center - padding, center + padding];
     }
 
     const range = maxValue - minValue;
     const padding = range * 0.08;
 
-    return [Math.max(0, minValue - padding), maxValue + padding] as const;
+    return [Math.max(0, minValue - padding), maxValue + padding];
 }
 
 function generateAxisBreakTicks(
@@ -491,7 +491,6 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         const firstItem = sortedData[0] as Record<string, unknown>;
         return Object.keys(firstItem).filter((key) => key !== "date" && key !== "value");
     }, [sortedData]);
-
     const seriesStats = useMemo(
         () => computeSeriesStats(sortedData as any, lineKeys),
         [sortedData, lineKeys]
@@ -512,23 +511,24 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         [transformedData, lineKeys]
     );
 
-    const minActualValue = useMemo(() => {
-        if (!seriesStats.length) {
-            return Number.NaN;
-        }
+    const minActualValue = useMemo(
+        () => {
+            if (!seriesStats.length) {
+                return Number.NaN;
+            }
 
-        const minima = seriesStats
-            .map((stat) => stat.min)
-            .filter((value) => typeof value === "number" && Number.isFinite(value));
+            const minima = seriesStats
+                .map((stat) => stat.min)
+                .filter((value) => typeof value === "number" && Number.isFinite(value));
 
-        if (!minima.length) {
-            return Number.NaN;
-        }
-        return Math.min(...numericValues);
-    }, [numericValues]);
+            if (!minima.length) {
+                return Number.NaN;
+            }
 
-        return Math.min(0, ...minima);
-    }, [seriesStats]);
+            return Math.min(0, ...minima);
+        },
+        [seriesStats]
+    );
 
     const yAxisTicks = useMemo(
         () => (axisBreak ? generateAxisBreakTicks(minActualValue, axisBreak) : undefined),
