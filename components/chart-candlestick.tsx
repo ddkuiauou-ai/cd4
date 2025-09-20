@@ -234,7 +234,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
-  const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
+  const { candlesticks, volumes, area, hasVolumeData } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -248,7 +248,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     const upVolumeColor = "rgba(38, 166, 154, 0.8)";
     const downVolumeColor = "rgba(239, 83, 80, 0.8)";
-
     const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
       time: point.time,
       open: Number(point.open),
@@ -275,9 +274,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       };
     });
 
+    const areaPoints = candlestickPoints.map((point) => ({
+      time: point.time as Time,
+      value: point.close,
+    }));
+
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
+      area: areaPoints,
       hasVolumeData: hasVolume,
     };
   }, [data]);
@@ -388,6 +393,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           );
         }
       }
+
 
       if (!candlestickSeries) {
         if (typeof chart.addCandlestickSeries === "function") {
@@ -514,6 +520,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         chart.timeScale().fitContent();
       }
 
+      candlestickSeries.setData(candlesticks);
+      chart.timeScale().fitContent();
+
       resizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
         if (!entry || disposed) {
@@ -546,7 +555,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       chartRef.current?.remove();
       chartRef.current = null;
     };
-  }, [candlesticks, hasVolumeData, volumes]);
+  }, [area, candlesticks, hasVolumeData, volumes]);
 
   if (!candlesticks.length) {
     return (
