@@ -154,10 +154,14 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
   return null;
 }
 
+const VOLUME_ACCENT_RGB = "38, 166, 154";
+
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
+
+const volumeAccent = (alpha: number) => `rgba(${VOLUME_ACCENT_RGB}, ${alpha})`;
 
 const koreanVolumeFormatter = new Intl.NumberFormat("ko-KR", {
   notation: "compact",
@@ -360,8 +364,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         textColor: foreground,
         background: { type: ColorType.Solid, color: "transparent" },
         panes: {
-          separatorColor: "rgba(214, 0, 0, 0.35)",
-          separatorHoverColor: "rgba(214, 0, 0, 0.55)",
+          separatorColor: volumeAccent(0.35),
+          separatorHoverColor: volumeAccent(0.55),
           enableResize: false,
         },
       },
@@ -492,7 +496,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           lastValueVisible: true,
           crosshairMarkerVisible: true,
           lineWidth: 2,
-          color: "rgba(214, 0, 0, 0.85)",
+          color: volumeAccent(0.85),
           priceScaleId: "volume",
           pointMarkersVisible: false,
         });
