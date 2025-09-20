@@ -81,7 +81,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             { label: '3년 평균', months: 36, desc: '최근 3년' },
             { label: '5년 평균', months: 60, desc: '최근 5년' },
             { label: '10년 평균', months: 120, desc: '최근 10년' },
-            { label: '20년 평균', months: 240, desc: '최근 20년' }
+            { label: '30년 평균', months: 360, desc: '최근 30년' }
         ];
 
         const analysis = periods.map(period => {
