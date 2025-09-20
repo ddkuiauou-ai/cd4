@@ -3,10 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import { formatNumber, formatDate } from "@/lib/utils";
-import Link from "next/link";
 import ChartPieMarketcap from "@/components/chart-pie-marketcap";
 import type { CompanyMarketcapAggregated } from "@/lib/data/company";
 
@@ -47,31 +44,26 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
         }));
 
     return (
-        <Card className="w-full h-fit">
-            {/* 헤더 섹션 - 273px 높이에 맞게 조정 */}
-            <CardHeader className="pb-2">
-                <div className="space-y-2">
-                    <CardTitle className="text-base font-semibold text-foreground leading-tight">
-                        {displayName} 시가총액
+        <Card className="flex h-full w-full flex-col">
+            <CardHeader className="space-y-2 px-5 pt-5 pb-3">
+                <div className="space-y-1">
+                    <CardTitle className="text-base font-semibold leading-tight text-foreground">
+                        {displayName} 시가총액 구성
                     </CardTitle>
-                    <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className="text-base px-3 py-1 font-bold">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <Badge variant="secondary" className="px-3 py-1 text-sm font-semibold">
                             {formatNumber(data.totalMarketcap)}원
                         </Badge>
-                        <p className="text-sm text-muted-foreground">
-                            {formatDate(data.totalMarketcapDate)}
-                        </p>
+                        <p>{formatDate(data.totalMarketcapDate)}</p>
                     </div>
                 </div>
             </CardHeader>
 
-            <CardContent className="px-4 pb-4 pt-0">
-                {/* 반응형 파이 차트 섹션 */}
-                <div className="space-y-4">
-                    {/* 파이 차트 - 조건부 렌더링으로 변경 */}
+            <CardContent className="flex flex-1 flex-col px-5 pb-5 pt-0">
+                <div className="flex-1 space-y-3">
                     <div className="w-full">
                         {screenSize === 'mobile' && (
-                            <div className="h-[220px] min-h-[220px]">
+                            <div className="h-[200px] min-h-[200px]">
                                 <ChartPieMarketcap
                                     data={chartData}
                                     centerText={{
@@ -84,7 +76,7 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
                         )}
 
                         {screenSize === 'tablet' && (
-                            <div className="h-[280px] min-h-[280px]">
+                            <div className="h-[240px] min-h-[240px]">
                                 <ChartPieMarketcap
                                     data={chartData}
                                     centerText={{
@@ -97,7 +89,7 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
                         )}
 
                         {screenSize === 'desktop' && (
-                            <div className="h-[350px] min-h-[350px]">
+                            <div className="h-[280px] min-h-[280px]">
                                 <ChartPieMarketcap
                                     data={chartData}
                                     centerText={{
@@ -110,7 +102,7 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
                         )}
 
                         {screenSize === 'desktop-sidebar' && (
-                            <div className="h-[282px] min-h-[282px]">
+                            <div className="h-[260px] min-h-[260px]">
                                 <ChartPieMarketcap
                                     data={chartData}
                                     centerText={{

@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import type { CandlestickData, IChartApi } from "lightweight-charts";
+import type {
+  BusinessDay,
+  CandlestickData,
+  HistogramData,
+  IChartApi,
+  Time,
+} from "lightweight-charts";
 import { ColorType, CrosshairMode, createChart } from "lightweight-charts";
+
+const VOLUME_SCALE_ID = "volume";
 
 interface CandlestickPoint {
   time: string;
@@ -10,6 +18,7 @@ interface CandlestickPoint {
   high: number;
   low: number;
   close: number;
+  volume?: number | string | bigint | null;
 }
 
 interface CandlestickChartProps {
@@ -107,29 +116,170 @@ function normalizeColor(color: string | null | undefined, fallback: string) {
   return trimmed;
 }
 
+function removeTradingViewAttribution() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const nodes = document.querySelectorAll("#tv-attr-logo");
+  nodes.forEach((node) => node.remove());
+}
+
+function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null {
+  if (volume === null || volume === undefined) {
+    return null;
+  }
+
+  if (typeof volume === "number" && Number.isFinite(volume)) {
+    return Math.max(volume, 0);
+  }
+
+  if (typeof volume === "bigint") {
+    const numeric = Number(volume);
+    return Number.isFinite(numeric) ? Math.max(numeric, 0) : null;
+  }
+
+  if (typeof volume === "string") {
+    const numeric = Number.parseFloat(volume.replace(/,/g, ""));
+    return Number.isFinite(numeric) ? Math.max(numeric, 0) : null;
+  }
+
+  return null;
+}
+
+const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
+});
+
+function coerceTimeToDate(time: Time): Date | null {
+  if (typeof time === "number") {
+    const dateFromUnix = new Date(time * 1000);
+    return Number.isNaN(dateFromUnix.getTime()) ? null : dateFromUnix;
+  }
+
+  if (typeof time === "string") {
+    const hyphenParts = time.split("-").map((part) => Number.parseInt(part, 10));
+    if (hyphenParts.length === 3 && hyphenParts.every((value) => Number.isInteger(value))) {
+      const [year, month, day] = hyphenParts;
+      const candidate = new Date(year, month - 1, day);
+      return Number.isNaN(candidate.getTime()) ? null : candidate;
+    }
+
+    const dateFromString = new Date(time);
+    return Number.isNaN(dateFromString.getTime()) ? null : dateFromString;
+  }
+
+  if (typeof time === "object" && time !== null) {
+    const businessDay = time as BusinessDay;
+    if (
+      Number.isInteger(businessDay.year) &&
+      Number.isInteger(businessDay.month) &&
+      Number.isInteger(businessDay.day)
+    ) {
+      const candidate = new Date(
+        businessDay.year,
+        businessDay.month - 1,
+        businessDay.day
+      );
+      return Number.isNaN(candidate.getTime()) ? null : candidate;
+    }
+  }
+
+  return null;
+}
+
+function formatTooltipDate(time: Time): string {
+  const date = coerceTimeToDate(time);
+
+  if (!date) {
+    if (typeof time === "string") {
+      return time;
+    }
+    if (typeof time === "number") {
+      return String(time);
+    }
+    return "";
+  }
+
+  const year = String(date.getFullYear()).slice(-2);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  return `${year}.${month}.${day}`;
+}
+
+function formatAxisDate(time: Time): string {
+  const date = coerceTimeToDate(time);
+
+  if (!date) {
+    if (typeof time === "string") {
+      return time;
+    }
+    if (typeof time === "number") {
+      return String(time);
+    }
+    return "";
+  }
+
+  const year = String(date.getFullYear()).slice(-2);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const shouldShowYear = month === 1 && day <= 5;
+
+  return shouldShowYear ? `${year}/${month}/${day}` : `${month}/${day}`;
+}
+
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
-  const formattedData = useMemo<CandlestickData[]>(() => {
-    return data
-      .filter((point) =>
-        point.open !== null &&
-        point.high !== null &&
-        point.low !== null &&
-        point.close !== null &&
-        Number.isFinite(point.open) &&
-        Number.isFinite(point.high) &&
-        Number.isFinite(point.low) &&
-        Number.isFinite(point.close)
-      )
-      .map((point) => ({
-        time: point.time,
-        open: Number(point.open),
-        high: Number(point.high),
-        low: Number(point.low),
-        close: Number(point.close),
-      }));
+  const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
+    const sanitized = data.filter((point) =>
+      point.open !== null &&
+      point.high !== null &&
+      point.low !== null &&
+      point.close !== null &&
+      Number.isFinite(point.open) &&
+      Number.isFinite(point.high) &&
+      Number.isFinite(point.low) &&
+      Number.isFinite(point.close)
+    );
+
+    const upVolumeColor = "rgba(214, 0, 0, 0.45)";
+    const downVolumeColor = "rgba(0, 81, 199, 0.45)";
+
+    const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
+      time: point.time,
+      open: Number(point.open),
+      high: Number(point.high),
+      low: Number(point.low),
+      close: Number(point.close),
+    }));
+
+    let hasVolume = false;
+
+    const volumePoints: HistogramData[] = sanitized.map((point) => {
+      const open = Number(point.open);
+      const close = Number(point.close);
+      const normalizedVolume = normalizeVolumeValue(point.volume) ?? 0;
+
+      if (!hasVolume && normalizedVolume > 0) {
+        hasVolume = true;
+      }
+
+      return {
+        time: point.time as Time,
+        value: normalizedVolume,
+        color: close >= open ? upVolumeColor : downVolumeColor,
+      };
+    });
+
+    return {
+      candlesticks: candlestickPoints,
+      volumes: volumePoints,
+      hasVolumeData: hasVolume,
+    };
   }, [data]);
 
   useEffect(() => {
@@ -139,13 +289,14 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       return;
     }
 
-    if (!formattedData.length) {
+    if (!candlesticks.length) {
       chartRef.current?.remove();
       chartRef.current = null;
       return;
     }
 
     let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
     let disposed = false;
 
     const setupChart = async () => {
@@ -178,7 +329,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           vertLines: { color: "rgba(148, 163, 184, 0.16)" },
         },
         rightPriceScale: { borderColor },
-        timeScale: { borderColor, timeVisible: true, secondsVisible: false },
+        timeScale: {
+          borderColor,
+          timeVisible: false,
+          secondsVisible: false,
+          tickMarkFormatter: (time) => formatAxisDate(time) || "",
+        },
+        localization: {
+          locale: "ko-KR",
+          priceFormatter: (price) => koreanPriceFormatter.format(price),
+          timeFormatter: (time) => formatTooltipDate(time) || "",
+        },
         crosshair: { mode: CrosshairMode.Normal },
         autoSize: true,
       });
@@ -193,6 +354,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       } as const;
 
       let series: ReturnType<IChartApi["addCandlestickSeries"]> | null = null;
+      let volumeSeries: ReturnType<IChartApi["addHistogramSeries"]> | null = null;
 
       if (typeof chart.addCandlestickSeries === "function") {
         series = chart.addCandlestickSeries(seriesOptions);
@@ -238,7 +400,98 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         return;
       }
 
-      series.setData(formattedData);
+      const hasVolumeSeries = hasVolumeData && volumes.length > 0;
+
+      series.priceScale().applyOptions({
+        scaleMargins: hasVolumeSeries
+          ? {
+              top: 0.1,
+              bottom: 0.25,
+            }
+          : {
+              top: 0.1,
+              bottom: 0.1,
+            },
+      });
+
+      if (hasVolumeSeries) {
+        if (typeof chart.addHistogramSeries === "function") {
+          volumeSeries = chart.addHistogramSeries({
+            color: "rgba(148, 163, 184, 0.4)",
+            priceFormat: { type: "volume" },
+            priceScaleId: VOLUME_SCALE_ID,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            baseLineVisible: false,
+          });
+        } else {
+          const chartWithSeries = chart as unknown as {
+            addSeries?: (
+              ctor: unknown,
+              options: Parameters<IChartApi["addHistogramSeries"]>[0]
+            ) => ReturnType<IChartApi["addHistogramSeries"]>;
+          };
+
+          if (typeof chartWithSeries.addSeries === "function") {
+            try {
+              const mod = await import("lightweight-charts");
+              const HistogramCtor = (mod as { HistogramSeries?: unknown })
+                .HistogramSeries;
+
+              if (HistogramCtor) {
+                volumeSeries = chartWithSeries.addSeries(HistogramCtor, {
+                  color: "rgba(148, 163, 184, 0.4)",
+                  priceFormat: { type: "volume" },
+                  priceScaleId: VOLUME_SCALE_ID,
+                  priceLineVisible: false,
+                  lastValueVisible: false,
+                  baseLineVisible: false,
+                }) as ReturnType<IChartApi["addHistogramSeries"]>;
+              }
+            } catch (error) {
+              console.error(
+                "Failed to dynamically load histogram series constructor:",
+                error
+              );
+            }
+          }
+        }
+      }
+
+      if (hasVolumeSeries && !volumeSeries) {
+        console.error(
+          "Unable to create volume histogram series with the current lightweight-charts build."
+        );
+      }
+
+      if (volumeSeries) {
+        const volumeScaleMargins = {
+          top: 0.75,
+          bottom: 0,
+        } as const;
+
+        volumeSeries.priceScale().applyOptions({
+          scaleMargins: volumeScaleMargins,
+        });
+
+        const volumeScale = chart.priceScale(VOLUME_SCALE_ID);
+        volumeScale.applyOptions({
+          scaleMargins: volumeScaleMargins,
+          autoScale: true,
+          visible: false,
+        });
+
+        chart.priceScale("right").applyOptions({
+          scaleMargins: {
+            top: 0.05,
+            bottom: 0.25,
+          },
+        });
+
+        volumeSeries.setData(volumes);
+      }
+
+      series.setData(candlesticks);
       chart.timeScale().fitContent();
 
       resizeObserver = new ResizeObserver((entries) => {
@@ -261,6 +514,28 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       resizeObserver.observe(containerRef.current);
       chartRef.current = chart;
+
+      removeTradingViewAttribution();
+
+      if (typeof MutationObserver !== "undefined") {
+        mutationObserver = new MutationObserver(() =>
+          removeTradingViewAttribution()
+        );
+
+        if (containerRef.current) {
+          mutationObserver.observe(containerRef.current, {
+            childList: true,
+            subtree: true,
+          });
+        }
+
+        if (typeof document !== "undefined" && document.body) {
+          mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+          });
+        }
+      }
     };
 
     void setupChart();
@@ -268,14 +543,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     return () => {
       disposed = true;
       resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
       chartRef.current?.remove();
       chartRef.current = null;
     };
-  }, [formattedData]);
+  }, [candlesticks, hasVolumeData, volumes]);
 
-  if (!formattedData.length) {
+  if (!candlesticks.length) {
     return (
-      <div className="flex h-[260px] w-full items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/60 text-sm text-muted-foreground">
+      <div className="flex h-[320px] w-full items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/60 text-sm text-muted-foreground sm:h-[340px] md:h-[380px] lg:h-[420px]">
         최근 한 달간의 캔들 데이터가 없습니다.
       </div>
     );
@@ -284,7 +560,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   return (
     <div
       ref={containerRef}
-      className="h-[260px] w-full sm:h-[280px] md:h-[320px] lg:h-[340px]"
+      className="h-[320px] w-full sm:h-[340px] md:h-[380px] lg:h-[420px]"
     />
   );
 }
