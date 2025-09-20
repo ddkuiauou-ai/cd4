@@ -6,8 +6,6 @@ import {
     formatNumberTooltip,
     formatNumberRatio,
     formatNumberPercent,
-    formatNumberForChart,
-    formatNumberRawForChart,
     formatNumberCompactForChart,
 } from "../lib/utils";
 import {
@@ -19,6 +17,7 @@ import {
     Tooltip,
     ResponsiveContainer,
     Legend,
+    Customized,
 } from "recharts";
 
 type Props = {
@@ -31,7 +30,289 @@ type Props = {
     selectedType?: string; // 선택된 종목 타입 (보통주, 우선주, 시가총액 구성)
 };
 
-function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성" }: Props) {
+type AxisBreakConfig = {
+    breakStart: number;
+    compressionRatio: number;
+    maxValue: number;
+    forward: (value: number) => number;
+    inverse: (value: number) => number;
+};
+
+const AXIS_BREAK_RATIO_THRESHOLD = 6; // 축 생략을 적용할 최소 배율 차이
+const MIN_COMPRESSION_RATIO = 0.08;
+const MAX_COMPRESSION_RATIO = 0.35;
+
+function collectNumericValues(
+    data: Array<Record<string, string | number | null | undefined>>,
+    keys: string[],
+) {
+    const values: number[] = [];
+
+    data.forEach((item) => {
+        keys.forEach((key) => {
+            const raw = item?.[key];
+            if (typeof raw === "number" && Number.isFinite(raw)) {
+                values.push(raw);
+            }
+        });
+    });
+
+    return values;
+}
+
+function createAxisBreakConfig(values: number[]): AxisBreakConfig | null {
+    const numericValues = values
+        .filter((value) => typeof value === "number" && Number.isFinite(value) && value >= 0)
+        .sort((a, b) => a - b);
+
+    if (numericValues.length < 2) {
+        return null;
+    }
+
+    const maxValue = numericValues[numericValues.length - 1];
+    const secondMaxValue = numericValues[numericValues.length - 2];
+
+    if (!Number.isFinite(maxValue) || maxValue <= 0) {
+        return null;
+    }
+
+    const ratio = secondMaxValue > 0 ? maxValue / secondMaxValue : Number.POSITIVE_INFINITY;
+
+    if (!Number.isFinite(ratio) || ratio < AXIS_BREAK_RATIO_THRESHOLD) {
+        return null;
+    }
+
+    const positiveValues = numericValues.filter((value) => value > 0);
+    const fallbackReference = positiveValues.length > 1
+        ? positiveValues[Math.max(0, positiveValues.length - 2)]
+        : maxValue * 0.1;
+
+    const referenceValue = secondMaxValue > 0 ? secondMaxValue : fallbackReference;
+
+    let breakStart = referenceValue * 1.1;
+
+    if (!Number.isFinite(breakStart) || breakStart <= 0) {
+        breakStart = maxValue * 0.15;
+    }
+
+    if (breakStart >= maxValue) {
+        breakStart = maxValue * 0.6;
+    }
+
+    const gap = maxValue - breakStart;
+
+    if (gap <= 0) {
+        return null;
+    }
+
+    const desiredGap = breakStart * 0.5;
+    const compressionRatio = Math.min(
+        MAX_COMPRESSION_RATIO,
+        Math.max(MIN_COMPRESSION_RATIO, desiredGap / gap),
+    );
+
+    const forward = (value: number) => {
+        if (!Number.isFinite(value)) {
+            return value;
+        }
+
+        if (value <= breakStart) {
+            return value;
+        }
+
+        return breakStart + (value - breakStart) * compressionRatio;
+    };
+
+    const inverse = (value: number) => {
+        if (!Number.isFinite(value)) {
+            return value;
+        }
+
+        if (value <= breakStart) {
+            return value;
+        }
+
+        return breakStart + (value - breakStart) / compressionRatio;
+    };
+
+    return {
+        breakStart,
+        compressionRatio,
+        maxValue,
+        forward,
+        inverse,
+    };
+}
+
+function transformChartData(
+    data: Array<Record<string, string | number | null | undefined>>,
+    keys: string[],
+    axisBreak: AxisBreakConfig | null,
+) {
+    return data.map((item) => {
+        const transformed: Record<string, string | number | null | undefined> = {
+            date: item.date,
+        };
+
+        if (Object.prototype.hasOwnProperty.call(item, "value")) {
+            const rawValue = item.value as number | null | undefined;
+
+            if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+                transformed.value = axisBreak ? axisBreak.forward(rawValue) : rawValue;
+                transformed.__original__value = rawValue;
+            } else {
+                transformed.value = rawValue ?? null;
+                transformed.__original__value = typeof rawValue === "number" ? rawValue : null;
+            }
+        }
+
+        keys.forEach((key) => {
+            const rawValue = item?.[key];
+
+            if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+                const transformedValue = axisBreak ? axisBreak.forward(rawValue) : rawValue;
+                transformed[key] = transformedValue;
+                transformed[`__original__${key}`] = rawValue;
+            } else {
+                transformed[key] = rawValue ?? null;
+                transformed[`__original__${key}`] = typeof rawValue === "number" ? rawValue : null;
+            }
+        });
+
+        return transformed;
+    });
+}
+
+function computeYAxisDomain(
+    data: Array<Record<string, string | number | null | undefined>>,
+    keys: string[],
+) {
+    const domainValues = keys.reduce<number[]>((acc, key) => {
+        data.forEach((item) => {
+            const value = item?.[key];
+            if (typeof value === "number" && Number.isFinite(value)) {
+                acc.push(value);
+            }
+        });
+        return acc;
+    }, []);
+
+    if (!domainValues.length) {
+        return ['dataMin - 5%', 'dataMax + 5%'] as const;
+    }
+
+    const minValue = Math.min(...domainValues);
+    const maxValue = Math.max(...domainValues);
+
+    if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
+        return ['dataMin - 5%', 'dataMax + 5%'] as const;
+    }
+
+    if (maxValue === minValue) {
+        const center = minValue;
+        const padding = Math.max(Math.abs(center) * 0.1, 1_000_000);
+        return [center - padding, center + padding] as const;
+    }
+
+    const range = maxValue - minValue;
+    const padding = range * 0.08;
+
+    return [Math.max(0, minValue - padding), maxValue + padding] as const;
+}
+
+function generateAxisBreakTicks(
+    minValue: number,
+    axisBreak: AxisBreakConfig,
+) {
+    if (!Number.isFinite(minValue)) {
+        return undefined;
+    }
+
+    const ticks = new Set<number>();
+
+    ticks.add(minValue);
+    const lowerRange = axisBreak.breakStart - minValue;
+
+    if (lowerRange > 0) {
+        const segments = 3;
+        for (let index = 1; index < segments; index += 1) {
+            const tickValue = minValue + (lowerRange * index) / segments;
+            if (tickValue > minValue && tickValue < axisBreak.breakStart) {
+                ticks.add(tickValue);
+            }
+        }
+    }
+
+    ticks.add(axisBreak.breakStart);
+    ticks.add(axisBreak.maxValue);
+
+    return Array.from(ticks)
+        .sort((a, b) => a - b)
+        .map((tick) => axisBreak.forward(tick));
+}
+
+function AxisBreakIndicator({ axisBreak }: { axisBreak: AxisBreakConfig }) {
+    const breakPosition = axisBreak.forward(axisBreak.breakStart);
+
+    return (
+        <Customized
+            component={({ yAxisMap, offset }: any) => {
+                const axisEntries = Object.values(yAxisMap ?? {});
+                const activeAxis: any = axisEntries[0];
+
+                if (!activeAxis || typeof activeAxis.scale !== "function") {
+                    return null;
+                }
+
+                const yCoord = activeAxis.scale(breakPosition);
+
+                if (!Number.isFinite(yCoord)) {
+                    return null;
+                }
+
+                const indicatorX = (offset?.left ?? 0) + 6;
+                const slashWidth = 6;
+                const slashGap = 8;
+                const slashHeight = 6;
+
+                const firstSlashStartX = indicatorX;
+                const firstSlashEndX = indicatorX + slashWidth;
+                const secondSlashStartX = indicatorX + slashGap;
+                const secondSlashEndX = indicatorX + slashGap + slashWidth;
+
+                const upperY = yCoord - slashHeight;
+                const lowerY = yCoord + slashHeight;
+
+                return (
+                    <g pointerEvents="none">
+                        <path
+                            d={`M${firstSlashStartX},${upperY} L${firstSlashEndX},${lowerY}`}
+                            stroke="#9ca3af"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                        />
+                        <path
+                            d={`M${secondSlashStartX},${upperY} L${secondSlashEndX},${lowerY}`}
+                            stroke="#9ca3af"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                        />
+                        <text
+                            x={secondSlashEndX + 4}
+                            y={yCoord + 4}
+                            fill="#9ca3af"
+                            fontSize={10}
+                        >
+                            축 생략
+                        </text>
+                    </g>
+                );
+            }}
+        />
+    );
+}
+
+function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedType = "시가총액 구성" }: Props) {
     const [isMobile, setIsMobile] = useState(false);
     const [isClient, setIsClient] = useState(false);
 
@@ -144,51 +425,57 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
         );
     }
 
-    const keys = Object.keys(data[0]);
-    // reoder by date in inputValues
-    data.sort((a, b) => (a.date < b.date ? -1 : 1));
-
-    // 📊 Y축 도메인 계산 (데이터 범위에 맞게 자동 조정)
-    const getYAxisDomain = () => {
-        const dataKeys = keys.filter(key => key !== "date");
-        if (!dataKeys.length) return ['dataMin - 5%', 'dataMax + 5%'];
-
-        let minValue = Infinity;
-        let maxValue = -Infinity;
-
-        data.forEach(item => {
-            dataKeys.forEach(key => {
-                const value = (item as any)[key];
-                if (value !== null && value !== undefined && typeof value === 'number') {
-                    minValue = Math.min(minValue, value);
-                    maxValue = Math.max(maxValue, value);
-                }
-            });
-        });
-
-        // 유효한 데이터가 없는 경우
-        if (minValue === Infinity || maxValue === -Infinity) {
-            return ['dataMin - 5%', 'dataMax + 5%'];
+    const sortedData = useMemo(() => {
+        if (!Array.isArray(data)) {
+            return [] as typeof data;
         }
 
-        // 데이터 범위가 너무 작은 경우 (예: 모든 값이 동일)
-        if (maxValue - minValue < (maxValue * 0.01)) {
-            const center = (minValue + maxValue) / 2;
-            const padding = Math.max(center * 0.1, 1000000); // 최소 100만원 패딩
-            return [center - padding, center + padding];
+        return [...data].sort((a, b) => (a.date < b.date ? -1 : 1));
+    }, [data]);
+
+    const lineKeys = useMemo(() => {
+        if (!sortedData.length) {
+            return [] as string[];
         }
 
-        // 일반적인 경우: 5-10% 패딩
-        const range = maxValue - minValue;
-        const padding = range * 0.08;
+        const firstItem = sortedData[0] as Record<string, unknown>;
+        return Object.keys(firstItem).filter((key) => key !== "date" && key !== "value");
+    }, [sortedData]);
 
-        return [
-            Math.max(0, minValue - padding), // 음수 방지
-            maxValue + padding
-        ];
+    const numericValues = useMemo(() => collectNumericValues(sortedData as any, lineKeys), [sortedData, lineKeys]);
+
+    const axisBreak = useMemo(() => createAxisBreakConfig(numericValues), [numericValues]);
+
+    const transformedData = useMemo(
+        () => transformChartData(sortedData as any, lineKeys, axisBreak),
+        [sortedData, lineKeys, axisBreak],
+    );
+
+    const yAxisDomain = useMemo(
+        () => computeYAxisDomain(transformedData as any, lineKeys),
+        [transformedData, lineKeys],
+    );
+
+    const minActualValue = useMemo(() => {
+        if (!numericValues.length) {
+            return Number.NaN;
+        }
+        return Math.min(...numericValues);
+    }, [numericValues]);
+
+    const yAxisTicks = useMemo(
+        () => (axisBreak ? generateAxisBreakTicks(minActualValue, axisBreak) : undefined),
+        [axisBreak, minActualValue],
+    );
+
+    const formatTickValue = (value: number) => {
+        if (!axisBreak) {
+            return formatNumberCompactForChart(value);
+        }
+
+        const originalValue = axisBreak.inverse(value);
+        return formatNumberCompactForChart(originalValue);
     };
-
-    const yAxisDomain = getYAxisDomain();
 
     if (!isClient || !data || data.length === 0) {
         return (
@@ -204,7 +491,7 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
         <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={250}>
                 <LineChart
-                    data={data}
+                    data={transformedData as any}
                     margin={{
                         top: 8,   // 5 -> 8로 조금 증가 (범례와의 여백)
                         right: 12, // 10 -> 12로 조금 증가
@@ -229,7 +516,7 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                     />
                     <YAxis
                         domain={yAxisDomain}
-                        tickFormatter={formatNumberCompactForChart}
+                        tickFormatter={formatTickValue}
                         stroke="#666666"
                         className="dark:stroke-gray-400"
                         fontSize={12}
@@ -237,24 +524,21 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                         axisLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
                         tickLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
                         width={40} // 50 -> 40으로 더 줄임 (Y축과 카드 경계 가까이)
+                        ticks={yAxisTicks}
                     />
                     <Tooltip
                         content={<CustomTooltip formatTooltip={formatTooltip} selectedType={selectedType} />}
                         isAnimationActive={false}
                     />
                     <Legend
-                        content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
+                        content={<CustomLegend payload={lineKeys.map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
                         wrapperStyle={{
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
                             position: 'relative',
                             marginTop: '-6px', // -8px -> -6px로 약간 완화
                         }}
                     />
-                    {keys.map((key, index) => {
-                        if (key === "date" || key === "value") {
-                            return null;
-                        }
-
+                    {lineKeys.map((key, index) => {
                         const lineStyle = getLineStyle(key);
 
                         return (
@@ -271,6 +555,7 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                             />
                         );
                     })}
+                    {axisBreak && <AxisBreakIndicator axisBreak={axisBreak} />}
                 </LineChart>
             </ResponsiveContainer>
         </div>
@@ -360,7 +645,16 @@ function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomT
                             </span>
                         </div>
                         <span className="text-xs font-medium text-gray-900 dark:text-gray-100 text-right">
-                            {formatTooltipFunction(entry.value, formatTooltip)}
+                            {(() => {
+                                const originalValueKey = `__original__${entry.dataKey}`;
+                                const originalValue = (entry.payload as any)?.[originalValueKey];
+                                const resolvedValue = (typeof originalValue === 'number' && Number.isFinite(originalValue))
+                                    ? originalValue
+                                    : (typeof entry.value === 'number' && Number.isFinite(entry.value)
+                                        ? entry.value
+                                        : null);
+                                return formatTooltipFunction(resolvedValue, formatTooltip);
+                            })()}
                         </span>
                     </div>
                 ))}
@@ -452,7 +746,11 @@ function CustomLegend({ payload, selectedType }: CustomLegendProps) {
     );
 }
 
-function formatTooltipFunction(value: number, formatType: string) {
+function formatTooltipFunction(value: number | null | undefined, formatType: string) {
+    if (value == null || Number.isNaN(value)) {
+        return "—";
+    }
+
     switch (formatType) {
         case "formatNumberTooltip":
             return formatNumberTooltip(value);
