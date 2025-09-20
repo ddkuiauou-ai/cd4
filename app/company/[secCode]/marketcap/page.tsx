@@ -191,7 +191,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     ? new Date(latestPricePoint.date.getTime())
     : new Date();
   const periodStartDate = new Date(periodReferenceDate.getTime());
-  periodStartDate.setMonth(periodStartDate.getMonth() - 3);
+  periodStartDate.setDate(periodStartDate.getDate() - 90);
 
   let candlestickSeriesData = sortedPricePoints.filter(
     (point) => point.date >= periodStartDate && point.date <= periodReferenceDate
@@ -402,7 +402,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm lg:col-span-2">
               <div className="flex items-start justify-between gap-2 px-5 pt-5">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 분기 가격 차트</h3>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 3개월 가격 차트</h3>
                   <p className="text-xs text-muted-foreground">
                     {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름
                   </p>
