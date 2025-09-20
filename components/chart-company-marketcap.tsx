@@ -96,7 +96,6 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "ì‹
         const color = getLineColor(key, index);
         const isHighlighted = shouldHighlightLine(key, selectedType);
         const baseRadius = isMobile ? 4 : 5;
-
         return {
             r: isHighlighted ? baseRadius + 1 : baseRadius,
             stroke: color,
