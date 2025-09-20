@@ -241,7 +241,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartContextRef = useRef<ChartContext | null>(null);
 
-  const { candlesticks, volumes, hasVolumeData } = useMemo(() => {
+  const { candlesticks, volumes, area, hasVolumeData } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -255,7 +255,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     const upVolumeColor = "rgba(38, 166, 154, 0.8)";
     const downVolumeColor = "rgba(239, 83, 80, 0.8)";
-
     const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
       time: point.time,
       open: Number(point.open),
@@ -282,9 +281,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       };
     });
 
+    const areaPoints = candlestickPoints.map((point) => ({
+      time: point.time as Time,
+      value: point.close,
+    }));
+
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
+      area: areaPoints,
       hasVolumeData: hasVolume,
     };
   }, [data]);
@@ -516,6 +521,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           }
         }
 
+
         if (volumeSeries) {
           volumeSeries.priceScale().applyOptions({
             scaleMargins: { top: 0.2, bottom: 0 },
@@ -545,6 +551,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           : null;
 
       resizeObserver?.observe(container);
+
 
       context = {
         chart,
@@ -634,6 +641,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     removeTradingViewAttribution();
   }, [candlesticks, hasVolumeData, volumes]);
+
 
   if (!candlesticks.length) {
     return (
