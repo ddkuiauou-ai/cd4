@@ -147,13 +147,13 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
   const sortedPricePoints = parsedPricePoints.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  const extendedPeriodStart = new Date();
+  extendedPeriodStart.setMonth(extendedPeriodStart.getMonth() - 3);
 
-  let candlestickSeriesData = sortedPricePoints.filter((point) => point.date >= oneMonthAgo);
+  let candlestickSeriesData = sortedPricePoints.filter((point) => point.date >= extendedPeriodStart);
 
   if (!candlestickSeriesData.length) {
-    candlestickSeriesData = sortedPricePoints.slice(-30);
+    candlestickSeriesData = sortedPricePoints.slice(-90);
   }
 
   const candlestickData = candlestickSeriesData.map(({ time, open, high, low, close }) => ({
@@ -324,40 +324,38 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </header>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
-            <div className="h-full space-y-4">
-              <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
-                <InteractiveChartSection
-                  companyMarketcapData={companyMarketcapData}
-                  companySecs={companySecs}
-                  type="summary"
-                  selectedType={selectedType}
-                />
-              </div>
-
-              <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm">
-                <div className="flex items-start justify-between gap-2 px-5 pt-5">
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 한 달 캔들 차트</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가 흐름
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    1M
-                  </span>
-                </div>
-                <div className="px-3 pb-5 pt-3">
-                  <CandlestickChart data={candlestickData} />
-                </div>
-              </div>
+            <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-background/80 p-2 shadow-sm">
+              <InteractiveChartSection
+                companyMarketcapData={companyMarketcapData}
+                companySecs={companySecs}
+                type="summary"
+                selectedType={selectedType}
+              />
             </div>
 
-            <div className="space-y-4">
+            <div className="h-full">
               <CardCompanyMarketcap
                 data={companyMarketcapData}
                 market={market}
                 selectedType={selectedType}
               />
+            </div>
+
+            <div className="flex flex-col rounded-2xl border border-border/60 bg-background/80 shadow-sm lg:col-span-2">
+              <div className="flex items-start justify-between gap-2 px-5 pt-5">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 분기 캔들 차트</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가 흐름
+                  </p>
+                </div>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  3M
+                </span>
+              </div>
+              <div className="px-3 pb-5 pt-3">
+                <CandlestickChart data={candlestickData} />
+              </div>
             </div>
           </div>
         </section>
