@@ -38,65 +38,113 @@ type AxisBreakConfig = {
     inverse: (value: number) => number;
 };
 
-const AXIS_BREAK_RATIO_THRESHOLD = 6; // 축 생략을 적용할 최소 배율 차이
+type SeriesStats = {
+    key: string;
+    min: number;
+    max: number;
+    values: number[];
+};
+
+const AXIS_BREAK_RATIO_THRESHOLD = 1.75; // 축 생략을 적용할 최소 배율 차이 (완화)
+const AXIS_BREAK_GAP_THRESHOLD = 0.35; // 최대값 대비 갭 비중 기준
 const MIN_COMPRESSION_RATIO = 0.08;
 const MAX_COMPRESSION_RATIO = 0.35;
 
-function collectNumericValues(
+function computeSeriesStats(
     data: Array<Record<string, string | number | null | undefined>>,
     keys: string[],
-) {
-    const values: number[] = [];
+): SeriesStats[] {
+    return keys
+        .map((key) => {
+            const values: number[] = [];
 
-    data.forEach((item) => {
-        keys.forEach((key) => {
-            const raw = item?.[key];
-            if (typeof raw === "number" && Number.isFinite(raw)) {
-                values.push(raw);
+            data.forEach((item) => {
+                const raw = item?.[key];
+
+                if (typeof raw === "number" && Number.isFinite(raw)) {
+                    values.push(raw);
+                }
+            });
+
+            if (!values.length) {
+                return null;
             }
-        });
-    });
 
-    return values;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            if (!Number.isFinite(min) || !Number.isFinite(max)) {
+                return null;
+            }
+
+            return { key, min, max, values };
+        })
+        .filter((stat): stat is SeriesStats => Boolean(stat));
 }
 
-function createAxisBreakConfig(values: number[]): AxisBreakConfig | null {
-    const numericValues = values
-        .filter((value) => typeof value === "number" && Number.isFinite(value) && value >= 0)
-        .sort((a, b) => a - b);
+function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | null {
+    const positiveStats = seriesStats
+        .map((stat) => ({
+            ...stat,
+            values: stat.values.filter((value) => typeof value === "number" && Number.isFinite(value) && value >= 0),
+        }))
+        .filter((stat) => stat.values.length > 0);
 
-    if (numericValues.length < 2) {
+    if (positiveStats.length < 2) {
         return null;
     }
 
-    const maxValue = numericValues[numericValues.length - 1];
-    const secondMaxValue = numericValues[numericValues.length - 2];
+    const sortedByMax = [...positiveStats].sort((a, b) => a.max - b.max);
+
+    const largestSeries = sortedByMax[sortedByMax.length - 1];
+    const comparisonSeries = sortedByMax[sortedByMax.length - 2];
+
+    const maxValue = largestSeries.max;
+    const comparisonValue = comparisonSeries.max;
+
 
     if (!Number.isFinite(maxValue) || maxValue <= 0) {
         return null;
     }
 
-    const ratio = secondMaxValue > 0 ? maxValue / secondMaxValue : Number.POSITIVE_INFINITY;
+    const ratio = comparisonValue > 0 ? maxValue / comparisonValue : Number.POSITIVE_INFINITY;
+    const gapShare = comparisonValue > 0 ? (maxValue - comparisonValue) / maxValue : 1;
 
-    if (!Number.isFinite(ratio) || ratio < AXIS_BREAK_RATIO_THRESHOLD) {
+    if (
+        (!Number.isFinite(ratio) || ratio < AXIS_BREAK_RATIO_THRESHOLD)
+        && gapShare < AXIS_BREAK_GAP_THRESHOLD
+    ) {
         return null;
     }
 
-    const positiveValues = numericValues.filter((value) => value > 0);
-    const fallbackReference = positiveValues.length > 1
-        ? positiveValues[Math.max(0, positiveValues.length - 2)]
-        : maxValue * 0.1;
+    const thirdLargest = sortedByMax.length >= 3 ? sortedByMax[sortedByMax.length - 3] : undefined;
 
-    const referenceValue = secondMaxValue > 0 ? secondMaxValue : fallbackReference;
+    const fallbackReference = thirdLargest && thirdLargest.max > 0
+        ? thirdLargest.max
+        : comparisonValue > 0
+            ? comparisonValue
+            : maxValue * 0.1;
 
-    let breakStart = referenceValue * 1.1;
+    const comparisonBase = comparisonValue > 0 ? comparisonValue : fallbackReference;
+    const gapBetween = maxValue - comparisonBase;
+
+    let breakStart = comparisonBase > 0
+        ? comparisonBase + gapBetween * 0.25
+        : fallbackReference * 1.2;
+
+    if (comparisonBase > 0) {
+        const minimumBreak = comparisonBase * 1.05;
+        if (!Number.isFinite(breakStart) || breakStart < minimumBreak) {
+            breakStart = minimumBreak;
+        }
+    }
 
     if (!Number.isFinite(breakStart) || breakStart <= 0) {
-        breakStart = maxValue * 0.15;
+        breakStart = maxValue * 0.4;
     }
 
     if (breakStart >= maxValue) {
-        breakStart = maxValue * 0.6;
+        breakStart = maxValue * 0.7;
     }
 
     const gap = maxValue - breakStart;
@@ -105,7 +153,10 @@ function createAxisBreakConfig(values: number[]): AxisBreakConfig | null {
         return null;
     }
 
-    const desiredGap = breakStart * 0.5;
+    const desiredGap = Math.max(
+        comparisonBase > 0 ? comparisonBase * 0.35 : 0,
+        breakStart * 0.45,
+    );
     const compressionRatio = Math.min(
         MAX_COMPRESSION_RATIO,
         Math.max(MIN_COMPRESSION_RATIO, desiredGap / gap),
@@ -442,9 +493,15 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         return Object.keys(firstItem).filter((key) => key !== "date" && key !== "value");
     }, [sortedData]);
 
-    const numericValues = useMemo(() => collectNumericValues(sortedData as any, lineKeys), [sortedData, lineKeys]);
+    const seriesStats = useMemo(
+        () => computeSeriesStats(sortedData as any, lineKeys),
+        [sortedData, lineKeys],
+    );
 
-    const axisBreak = useMemo(() => createAxisBreakConfig(numericValues), [numericValues]);
+    const axisBreak = useMemo(
+        () => createAxisBreakConfig(seriesStats),
+        [seriesStats],
+    );
 
     const transformedData = useMemo(
         () => transformChartData(sortedData as any, lineKeys, axisBreak),
@@ -457,11 +514,22 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
     );
 
     const minActualValue = useMemo(() => {
-        if (!numericValues.length) {
+        if (!seriesStats.length) {
+            return Number.NaN;
+        }
+
+        const minima = seriesStats
+            .map((stat) => stat.min)
+            .filter((value) => typeof value === "number" && Number.isFinite(value));
+
+        if (!minima.length) {
             return Number.NaN;
         }
         return Math.min(...numericValues);
     }, [numericValues]);
+
+        return Math.min(0, ...minima);
+    }, [seriesStats]);
 
     const yAxisTicks = useMemo(
         () => (axisBreak ? generateAxisBreakTicks(minActualValue, axisBreak) : undefined),
