@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   BusinessDay,
   CandlestickData,
   IChartApi,
+  IPaneApi,
+  ISeriesApi,
   LineData,
   Time,
 } from "lightweight-charts";
@@ -115,6 +117,10 @@ function normalizeColor(color: string | null | undefined, fallback: string) {
   }
 
   return trimmed;
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return error instanceof Error && error.name === "NotFoundError";
 }
 
 function removeTradingViewAttribution() {
@@ -238,7 +244,10 @@ interface CandlestickChartProps {
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-
+  const chartRef = useRef<IChartApi | null>(null);
+  const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
+  const volumeSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const { candlesticks, volumes } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
@@ -262,7 +271,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     const volumePoints = sanitized
       .map((point) => {
         const normalizedVolume = normalizeVolumeValue(point.volume);
-
         if (normalizedVolume === null) {
           return null;
         }
@@ -278,12 +286,60 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       volumes: volumePoints,
     };
   }, [data]);
+  const hasCandlestickData = candlesticks.length > 0;
   const hasVolumeData = volumes.length > 0;
 
+  const disposeChart = useCallback(() => {
+    const existingChart = chartRef.current;
+
+    if (volumeSeriesRef.current && existingChart) {
+      try {
+        existingChart.removeSeries(volumeSeriesRef.current);
+      } catch (error) {
+        if (!isNotFoundError(error)) {
+          console.error("Failed to remove volume series:", error);
+        }
+      }
+    }
+
+    volumeSeriesRef.current = null;
+
+    if (volumePaneRef.current && existingChart) {
+      try {
+        const paneIndex = volumePaneRef.current.paneIndex();
+        existingChart.removePane(paneIndex);
+      } catch (error) {
+        if (!isNotFoundError(error)) {
+          console.error("Failed to remove volume pane:", error);
+        }
+      }
+    }
+
+    volumePaneRef.current = null;
+
+    if (existingChart) {
+      try {
+        existingChart.remove();
+      } catch (error) {
+        if (!isNotFoundError(error)) {
+          console.error("Failed to dispose lightweight chart:", error);
+        }
+      }
+    }
+
+    chartRef.current = null;
+    priceSeriesRef.current = null;
+  }, []);
+
   useEffect(() => {
+    if (!hasCandlestickData) {
+      disposeChart();
+      return;
+    }
+
     const container = containerRef.current;
 
-    if (!container || candlesticks.length === 0) {
+    if (!container || chartRef.current) {
       return;
     }
 
@@ -314,7 +370,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         vertLines: { color: "rgba(148, 163, 184, 0.16)" },
       },
       leftPriceScale: {
-        visible: hasVolumeData,
+        visible: true,
         borderColor,
       },
       rightPriceScale: { borderColor },
@@ -347,8 +403,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       priceScaleId: "right",
     });
 
-    candlestickSeries.setData(candlesticks);
-
     candlestickSeries
       .priceScale()
       .applyOptions({
@@ -357,57 +411,147 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         autoScale: true,
         scaleMargins: {
           top: 0.1,
-          bottom: hasVolumeData ? 0.3 : 0.1,
+          bottom: 0.3,
         },
         position: "right",
       });
 
-    let resizeObserver: ResizeObserver | undefined;
+    chartRef.current = chart;
+    priceSeriesRef.current = candlestickSeries;
+
+    const removeAttributionFrame = requestAnimationFrame(() => {
+      removeTradingViewAttribution();
+    });
+
+    return () => {
+      cancelAnimationFrame(removeAttributionFrame);
+      disposeChart();
+    };
+  }, [disposeChart, hasCandlestickData]);
+
+  useEffect(() => {
+    if (!hasCandlestickData) {
+      disposeChart();
+      return;
+    }
+
+    const chart = chartRef.current;
+    const candlestickSeries = priceSeriesRef.current;
+
+    if (!chart || !candlestickSeries) {
+      return;
+    }
+
+    candlestickSeries.setData(candlesticks);
+
+    const borderColor = normalizeColor(
+      getComputedStyle(document.documentElement).getPropertyValue("--border"),
+      "rgba(148, 163, 184, 0.4)"
+    );
+
+    candlestickSeries.priceScale().applyOptions({
+      borderColor,
+      mode: PriceScaleMode.Normal,
+      autoScale: true,
+      position: "right",
+      scaleMargins: {
+        top: 0.1,
+        bottom: hasVolumeData ? 0.3 : 0.1,
+      },
+    });
+
+    chart.applyOptions({
+      leftPriceScale: {
+        visible: hasVolumeData,
+        borderColor,
+      },
+      rightPriceScale: { borderColor },
+    });
 
     if (hasVolumeData) {
-      const volumePane = chart.addPane();
-      volumePane.setHeight(136);
-      volumePane.setStretchFactor(0.32);
-      volumePane.moveTo(1);
+      let volumePane = volumePaneRef.current;
+      let volumeSeries = volumeSeriesRef.current;
 
-      const volumeSeries = volumePane.addSeries(LineSeries, {
-        priceFormat: {
-          type: "custom",
-          minMove: 1,
-          formatter: (value: number) =>
-            koreanVolumeFormatter.format(Math.max(value, 0)),
-        },
-        priceLineVisible: false,
-        lastValueVisible: true,
-        crosshairMarkerVisible: true,
-        lineWidth: 2,
-        color: "rgba(214, 0, 0, 0.85)",
-        priceScaleId: "volume",
-        pointMarkersVisible: false,
-      });
+      if (!volumePane) {
+        volumePane = chart.addPane();
+        volumePane.setHeight(136);
+        volumePane.setStretchFactor(0.32);
+        volumePane.moveTo(1);
+        volumePaneRef.current = volumePane;
+      }
+
+      if (!volumeSeries) {
+        volumeSeries = volumePane.addSeries(LineSeries, {
+          priceFormat: {
+            type: "custom",
+            minMove: 1,
+            formatter: (value: number) =>
+              koreanVolumeFormatter.format(Math.max(value, 0)),
+          },
+          priceLineVisible: false,
+          lastValueVisible: true,
+          crosshairMarkerVisible: true,
+          lineWidth: 2,
+          color: "rgba(214, 0, 0, 0.85)",
+          priceScaleId: "volume",
+          pointMarkersVisible: false,
+        });
+        volumeSeriesRef.current = volumeSeries;
+      }
 
       volumeSeries.setData(volumes);
 
-      chart
-        .priceScale("volume", 1)
-        .applyOptions({
-          borderColor,
-          mode: PriceScaleMode.Normal,
-          autoScale: true,
-          position: "left",
-          scaleMargins: {
-            top: 0.1,
-            bottom: 0,
-          },
-        });
+      const paneIndex = volumePane.paneIndex();
+
+      chart.priceScale("volume", paneIndex).applyOptions({
+        borderColor,
+        mode: PriceScaleMode.Normal,
+        autoScale: true,
+        position: "left",
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0,
+        },
+      });
+    } else {
+      if (volumeSeriesRef.current) {
+        try {
+          chart.removeSeries(volumeSeriesRef.current);
+        } catch (error) {
+          if (!isNotFoundError(error)) {
+            console.error("Failed to remove volume series:", error);
+          }
+        }
+        volumeSeriesRef.current = null;
+      }
+
+      if (volumePaneRef.current) {
+        try {
+          const paneIndex = volumePaneRef.current.paneIndex();
+          chart.removePane(paneIndex);
+        } catch (error) {
+          if (!isNotFoundError(error)) {
+            console.error("Failed to remove volume pane:", error);
+          }
+        }
+        volumePaneRef.current = null;
+      }
     }
+
+    let animationFrame: number | undefined;
 
     const firstVisibleTime = candlesticks[0]?.time;
     const lastVisibleTime = candlesticks[candlesticks.length - 1]?.time;
 
     if (firstVisibleTime && lastVisibleTime) {
-      requestAnimationFrame(() => {
-        chart.timeScale().setVisibleRange({
+      animationFrame = requestAnimationFrame(() => {
+        const activeChart = chartRef.current;
+
+        if (!activeChart) {
+          return;
+        }
+
+        activeChart.timeScale().setVisibleRange({
           from: firstVisibleTime as Time,
           to: lastVisibleTime as Time,
         });
@@ -416,40 +560,21 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       chart.timeScale().fitContent();
     }
 
-    if (typeof ResizeObserver !== "undefined") {
-      resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
-
-        if (!entry) {
-          return;
-        }
-
-        chart.applyOptions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
-      });
-
-      resizeObserver.observe(container);
-    }
-
-    removeTradingViewAttribution();
+    const attributionFrame = requestAnimationFrame(() => {
+      removeTradingViewAttribution();
+    });
 
     return () => {
-      resizeObserver?.disconnect();
-
-      try {
-        chart.remove();
-      } catch (error) {
-        if (!(error instanceof Error && error.name === "NotFoundError")) {
-          console.error("Failed to dispose lightweight chart:", error);
-        }
+      if (animationFrame !== undefined) {
+        cancelAnimationFrame(animationFrame);
       }
+      cancelAnimationFrame(attributionFrame);
     };
-  }, [candlesticks, hasVolumeData, volumes]);
+  }, [candlesticks, disposeChart, hasCandlestickData, hasVolumeData, volumes]);
 
 
-  if (!candlesticks.length) {
+
+  if (!hasCandlestickData) {
     return (
       <div className="flex h-[320px] w-full items-center justify-center rounded-xl border border-dashed border-border/60 bg-background/60 text-sm text-muted-foreground sm:h-[340px] md:h-[380px] lg:h-[420px]">
         최근 한 달간의 캔들 데이터가 없습니다.
