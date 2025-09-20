@@ -524,6 +524,8 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         if (!minima.length) {
             return Number.NaN;
         }
+        return Math.min(...numericValues);
+    }, [numericValues]);
 
         return Math.min(0, ...minima);
     }, [seriesStats]);
