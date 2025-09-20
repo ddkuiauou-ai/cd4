@@ -248,7 +248,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
-
   const { candlesticks, volumes } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
@@ -272,11 +271,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     const volumePoints = sanitized
       .map((point) => {
         const normalizedVolume = normalizeVolumeValue(point.volume);
-
         if (normalizedVolume === null) {
           return null;
         }
-
         return {
           time: point.time as Time,
           value: normalizedVolume,
@@ -346,6 +343,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       return;
     }
 
+    container.replaceChildren();
+    container.replaceChildren();
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
       computedStyle.getPropertyValue("--foreground"),
@@ -572,6 +571,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       cancelAnimationFrame(attributionFrame);
     };
   }, [candlesticks, disposeChart, hasCandlestickData, hasVolumeData, volumes]);
+
 
 
   if (!hasCandlestickData) {
