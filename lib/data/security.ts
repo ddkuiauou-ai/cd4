@@ -285,7 +285,10 @@ export const getSecurityByCode = unstable_cache(
           where: eq(schema.security.ticker, parsed.code),
           with: {
             company: true,
-            prices: { orderBy: [schema.price.date], limit: 30 },
+            prices: {
+              orderBy: [desc(schema.price.date)],
+              limit: 180,
+            },
             marketcaps: { orderBy: [schema.marketcap.date], limit: 100 },
           },
         });
@@ -297,7 +300,12 @@ export const getSecurityByCode = unstable_cache(
             securities: {
               where: eq(schema.security.type, '보통주'),
               limit: 1,
-              with: { prices: { orderBy: [schema.price.date], limit: 30 } },
+              with: {
+                prices: {
+                  orderBy: [desc(schema.price.date)],
+                  limit: 180,
+                },
+              },
             },
           },
         });
@@ -310,7 +318,10 @@ export const getSecurityByCode = unstable_cache(
           where: eq(schema.security.name, decodedParam),
           with: {
             company: true,
-            prices: { orderBy: [schema.price.date], limit: 30 },
+            prices: {
+              orderBy: [desc(schema.price.date)],
+              limit: 180,
+            },
             marketcaps: { orderBy: [schema.marketcap.date], limit: 100 },
           },
         });
@@ -320,7 +331,10 @@ export const getSecurityByCode = unstable_cache(
           where: eq(schema.security.ticker, decodedParam),
           with: {
             company: true,
-            prices: { orderBy: [schema.price.date], limit: 30 },
+            prices: {
+              orderBy: [desc(schema.price.date)],
+              limit: 180,
+            },
             marketcaps: { orderBy: [schema.marketcap.date], limit: 100 },
           },
         });
@@ -332,7 +346,12 @@ export const getSecurityByCode = unstable_cache(
             securities: {
               where: eq(schema.security.type, '보통주'),
               limit: 1,
-              with: { prices: { orderBy: [schema.price.date], limit: 30 } },
+              with: {
+                prices: {
+                  orderBy: [desc(schema.price.date)],
+                  limit: 180,
+                },
+              },
             },
           },
         });
@@ -348,7 +367,12 @@ export const getSecurityByCode = unstable_cache(
               securities: {
                 where: eq(schema.security.type, '보통주'),
                 limit: 1,
-                with: { prices: { orderBy: [schema.price.date], limit: 30 } },
+                with: {
+                  prices: {
+                    orderBy: [desc(schema.price.date)],
+                    limit: 180,
+                  },
+                },
               },
             },
           });
