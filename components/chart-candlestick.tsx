@@ -324,6 +324,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         nodes.forEach((node) => node.remove());
       };
 
+      const removeAttribution = () => {
+        if (typeof document === "undefined") {
+          return;
+        }
+
+        const nodes = document.querySelectorAll("#tv-attr-logo");
+        nodes.forEach((node) => node.remove());
+      };
+
       if (typeof chart.addCandlestickSeries === "function") {
         series = chart.addCandlestickSeries(seriesOptions);
       } else {
