@@ -116,14 +116,14 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
     };
   };
 
-  const getDotStyle = (key: string, index: number) => {
+  const getActiveDotProps = (key: string, index: number) => {
     const color = getLineColor(key, index);
     const isHighlighted = shouldHighlightLine(key, selectedType);
 
     return {
-      r: isHighlighted ? 4 : 3,
+      r: isHighlighted ? 6 : 5,
       stroke: color,
-      strokeWidth: isHighlighted ? 1.5 : 1,
+      strokeWidth: isHighlighted ? 2 : 1.5,
       fill: '#ffffff',
     };
   };
@@ -246,22 +246,27 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
               marginTop: '-6px', // -8px -> -6px로 약간 완화
             }}
           />
-          {keys.map(
-            (key, index) =>
-              key !== "date" && key !== "value" && ( // "value" 키 제외
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={getLineColor(key, index)}
-                  strokeWidth={getLineStyle(key).strokeWidth}
-                  strokeOpacity={getLineStyle(key).strokeOpacity}
-                  strokeDasharray={getStrokePattern(key)}
-                  dot={getDotStyle(key, index)}
-                  activeDot={{ r: 5, strokeWidth: 1.5, stroke: getLineColor(key, index), fill: '#ffffff' }}
-                />
-              )
-          )}
+          {keys.map((key, index) => {
+            if (key === "date" || key === "value") {
+              return null;
+            }
+
+            const lineStyle = getLineStyle(key);
+
+            return (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={getLineColor(key, index)}
+                strokeWidth={lineStyle.strokeWidth}
+                strokeOpacity={lineStyle.strokeOpacity}
+                strokeDasharray={getStrokePattern(key)}
+                dot={false}
+                activeDot={getActiveDotProps(key, index)}
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>

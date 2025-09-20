@@ -92,15 +92,14 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
         };
     };
 
-    const getDotStyle = (key: string, index: number) => {
+    const getActiveDotProps = (key: string, index: number) => {
         const color = getLineColor(key, index);
         const isHighlighted = shouldHighlightLine(key, selectedType);
-        const baseRadius = isMobile ? 2 : 3;
-
+        const baseRadius = isMobile ? 4 : 5;
         return {
             r: isHighlighted ? baseRadius + 1 : baseRadius,
             stroke: color,
-            strokeWidth: isHighlighted ? 1.5 : 1,
+            strokeWidth: isHighlighted ? 2 : 1.5,
             fill: '#ffffff',
         };
     };
@@ -244,29 +243,34 @@ function ChartCompanyMarketcap({ data, format, formatTooltip, selectedType = "�
                         isAnimationActive={false}
                     />
                     <Legend
-                        content={<CustomLegend payload={keys.filter(key => key !== "date").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
+                        content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
                         wrapperStyle={{
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
                             position: 'relative',
                             marginTop: '-6px', // -8px -> -6px로 약간 완화
                         }}
                     />
-                    {keys.map(
-                        (key, index) =>
-                            key !== "date" && (
-                                <Line
-                                    key={key}
-                                    type="monotone"
-                                    dataKey={key}
-                                    stroke={getLineColor(key, index)}
-                                    strokeWidth={getLineStyle(key).strokeWidth}
-                                    strokeOpacity={getLineStyle(key).strokeOpacity}
-                                    strokeDasharray={getStrokePattern(key)}
-                                    dot={getDotStyle(key, index)}
-                                    activeDot={{ r: 5, strokeWidth: 1.5, stroke: getLineColor(key, index), fill: '#ffffff' }}
-                                />
-                            )
-                    )}
+                    {keys.map((key, index) => {
+                        if (key === "date" || key === "value") {
+                            return null;
+                        }
+
+                        const lineStyle = getLineStyle(key);
+
+                        return (
+                            <Line
+                                key={key}
+                                type="monotone"
+                                dataKey={key}
+                                stroke={getLineColor(key, index)}
+                                strokeWidth={lineStyle.strokeWidth}
+                                strokeOpacity={lineStyle.strokeOpacity}
+                                strokeDasharray={getStrokePattern(key)}
+                                dot={false}
+                                activeDot={getActiveDotProps(key, index)}
+                            />
+                        );
+                    })}
                 </LineChart>
             </ResponsiveContainer>
         </div>
@@ -324,6 +328,10 @@ function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomT
 
     // 🔄 중복 데이터 필터링 (payload 기반)
     const filteredEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
+        if (entry.dataKey === "value") {
+            return acc;
+        }
+
         const label = getSimplifiedLabel(entry.dataKey);
 
         // 이미 같은 라벨이 있다면 건너뛰기 (첫 번째 것만 유지)
@@ -404,6 +412,10 @@ function CustomLegend({ payload, selectedType }: CustomLegendProps) {
     // 🔄 중복 제거
     const uniqueEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
         const simplifiedLabel = getSimplifiedLabel(entry.value);
+
+        if (entry.value === "value") {
+            return acc;
+        }
 
         // 이미 같은 라벨이 있다면 건너뛰기
         if (!acc.some(item => getSimplifiedLabel(item.value) === simplifiedLabel)) {
