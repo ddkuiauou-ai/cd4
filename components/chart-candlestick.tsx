@@ -8,6 +8,7 @@ import type {
   LineData,
   Time,
 } from "lightweight-charts";
+
 import { ColorType, CrosshairMode, PriceScaleMode, createChart } from "lightweight-charts";
 
 interface CandlestickPoint {
@@ -282,7 +283,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     container.replaceChildren();
-
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
       computedStyle.getPropertyValue("--foreground"),
@@ -308,6 +308,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         vertLines: { color: "rgba(148, 163, 184, 0.16)" },
       },
       leftPriceScale: {
+
         visible: hasVolumeData,
         borderColor,
       },
