@@ -247,17 +247,26 @@ interface CandlestickChartProps {
 }
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
-  const { candlesticks, volumes, priceMin, priceMax, priceSpan } = useMemo(() => {
-    const sanitized = data.filter((point) =>
-      point.open !== null &&
-      point.high !== null &&
-      point.low !== null &&
-      point.close !== null &&
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const tooltipDateRef = useRef<HTMLDivElement | null>(null);
+  const tooltipOpenRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipHighRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipLowRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipCloseRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipVolumeRef = useRef<HTMLSpanElement | null>(null);
+  const { candlesticks, volumes, priceMin, priceMax, priceSpan, volumeValueMap } =
+    useMemo(() => {
+      const sanitized = data.filter((point) =>
+        point.open !== null &&
+        point.high !== null &&
+        point.low !== null &&
+        point.close !== null &&
       Number.isFinite(point.open) &&
       Number.isFinite(point.high) &&
       Number.isFinite(point.low) &&
@@ -291,12 +300,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         ? Math.max(computedMax - computedMin, 0)
         : null;
 
+    const volumeValueMap = new Map<Time, number>();
+
     const volumePoints = sanitized
       .map((point) => {
         const normalizedVolume = normalizeVolumeValue(point.volume);
         if (normalizedVolume === null) {
           return null;
         }
+        volumeValueMap.set(point.time as Time, normalizedVolume);
         return {
           time: point.time as Time,
           value: normalizedVolume,
@@ -304,14 +316,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       })
       .filter((point): point is AreaData => point !== null);
 
-    return {
-      candlesticks: candlestickPoints,
-      volumes: volumePoints,
-      priceMin: computedMin,
-      priceMax: computedMax,
-      priceSpan: priceSpanValue,
-    };
-  }, [data]);
+      return {
+        candlesticks: candlestickPoints,
+        volumes: volumePoints,
+        priceMin: computedMin,
+        priceMax: computedMax,
+        priceSpan: priceSpanValue,
+        volumeValueMap,
+      };
+    }, [data]);
   const hasCandlestickData = candlesticks.length > 0;
   const hasVolumeData = volumes.length > 0;
   const priceScaleBottomMargin = useMemo(() => {
@@ -625,6 +638,146 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     volumes,
   ]);
 
+  useEffect(() => {
+    const chart = chartRef.current;
+    const candlestickSeries = priceSeriesRef.current;
+    const tooltipElement = tooltipRef.current;
+    const wrapper = wrapperRef.current;
+
+    if (!chart || !candlestickSeries || !tooltipElement || !wrapper) {
+      return;
+    }
+
+    const hideTooltip = () => {
+      tooltipElement.style.display = "none";
+    };
+
+    const showTooltip = () => {
+      tooltipElement.style.display = "block";
+    };
+
+    hideTooltip();
+
+    const handleCrosshairMove = (param: Parameters<IChartApi["subscribeCrosshairMove"]>[0]) => {
+      if (!param || param.time === undefined || !param.point) {
+        hideTooltip();
+        return;
+      }
+
+      const { point, time } = param;
+
+      if (point.x === undefined || point.y === undefined) {
+        hideTooltip();
+        return;
+      }
+
+      const priceAtCrosshair = param.seriesPrices.get(candlestickSeries);
+      const isCandlestickPrice =
+        priceAtCrosshair !== undefined &&
+        typeof priceAtCrosshair === "object" &&
+        priceAtCrosshair !== null &&
+        "open" in priceAtCrosshair &&
+        "high" in priceAtCrosshair &&
+        "low" in priceAtCrosshair &&
+        "close" in priceAtCrosshair;
+
+      if (!isCandlestickPrice) {
+        hideTooltip();
+        return;
+      }
+
+      const { open, high, low, close } = priceAtCrosshair as CandlestickData;
+      const formatPriceValue = (value: number | undefined) =>
+        value !== undefined && Number.isFinite(value)
+          ? koreanPriceFormatter.format(value)
+          : "-";
+
+      if (tooltipDateRef.current) {
+        tooltipDateRef.current.textContent = formatTooltipDate(time) || "";
+      }
+
+      if (tooltipOpenRef.current) {
+        tooltipOpenRef.current.textContent = formatPriceValue(open);
+      }
+
+      if (tooltipHighRef.current) {
+        tooltipHighRef.current.textContent = formatPriceValue(high);
+      }
+
+      if (tooltipLowRef.current) {
+        tooltipLowRef.current.textContent = formatPriceValue(low);
+      }
+
+      if (tooltipCloseRef.current) {
+        tooltipCloseRef.current.textContent = formatPriceValue(close);
+      }
+
+      let resolvedVolume: number | null = null;
+      const volumeSeries = volumeSeriesRef.current;
+
+      if (volumeSeries) {
+        const volumePrice = param.seriesPrices.get(volumeSeries);
+        if (typeof volumePrice === "number" && Number.isFinite(volumePrice)) {
+          resolvedVolume = volumePrice;
+        } else if (
+          typeof volumePrice === "object" &&
+          volumePrice !== null &&
+          "value" in volumePrice &&
+          typeof (volumePrice as { value: unknown }).value === "number" &&
+          Number.isFinite((volumePrice as { value: number }).value)
+        ) {
+          resolvedVolume = (volumePrice as { value: number }).value;
+        }
+      }
+
+      if (resolvedVolume === null) {
+        const fromMap = volumeValueMap.get(time as Time);
+        if (typeof fromMap === "number" && Number.isFinite(fromMap)) {
+          resolvedVolume = fromMap;
+        }
+      }
+
+      if (tooltipVolumeRef.current) {
+        tooltipVolumeRef.current.textContent =
+          resolvedVolume !== null
+            ? koreanVolumeFormatter.format(Math.max(resolvedVolume, 0))
+            : "-";
+      }
+
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const tooltipWidth = tooltipElement.offsetWidth;
+      const tooltipHeight = tooltipElement.offsetHeight;
+      const horizontalPadding = 12;
+      const verticalPadding = 12;
+
+      const proposedLeft = point.x + 16;
+      const proposedTop = point.y + 16;
+
+      const clampedLeft = clamp(
+        proposedLeft,
+        horizontalPadding,
+        Math.max(wrapperRect.width - tooltipWidth - horizontalPadding, horizontalPadding)
+      );
+      const clampedTop = clamp(
+        proposedTop,
+        verticalPadding,
+        Math.max(wrapperRect.height - tooltipHeight - verticalPadding, verticalPadding)
+      );
+
+      tooltipElement.style.left = `${clampedLeft}px`;
+      tooltipElement.style.top = `${clampedTop}px`;
+
+      showTooltip();
+    };
+
+    chart.subscribeCrosshairMove(handleCrosshairMove);
+
+    return () => {
+      hideTooltip();
+      chart.unsubscribeCrosshairMove(handleCrosshairMove);
+    };
+  }, [hasCandlestickData, hasVolumeData, volumeValueMap]);
+
 
 
   if (!hasCandlestickData) {
@@ -636,8 +789,33 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   }
 
   return (
-    <div className="relative h-[320px] w-full overflow-hidden rounded-xl border border-border/60 bg-background/80 sm:h-[340px] md:h-[380px] lg:h-[420px]">
+    <div
+      ref={wrapperRef}
+      className="relative h-[320px] w-full overflow-hidden rounded-xl border border-border/60 bg-background/80 sm:h-[340px] md:h-[380px] lg:h-[420px]"
+    >
       <div ref={containerRef} className="absolute inset-0" />
+      <div
+        ref={tooltipRef}
+        style={{ display: "none" }}
+        className="pointer-events-none absolute left-3 top-3 z-10 min-w-[180px] rounded-lg border border-border/60 bg-background/95 p-3 text-[11px] shadow-lg backdrop-blur"
+      >
+        <div
+          ref={tooltipDateRef}
+          className="mb-2 text-xs font-semibold tracking-tight text-foreground"
+        />
+        <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-1">
+          <span className="text-muted-foreground">시가</span>
+          <span ref={tooltipOpenRef} className="text-right font-semibold text-foreground" />
+          <span className="text-muted-foreground">고가</span>
+          <span ref={tooltipHighRef} className="text-right font-semibold text-foreground" />
+          <span className="text-muted-foreground">저가</span>
+          <span ref={tooltipLowRef} className="text-right font-semibold text-foreground" />
+          <span className="text-muted-foreground">종가</span>
+          <span ref={tooltipCloseRef} className="text-right font-semibold text-foreground" />
+          <span className="text-muted-foreground">거래량</span>
+          <span ref={tooltipVolumeRef} className="text-right font-semibold text-foreground" />
+        </div>
+      </div>
     </div>
   );
 }
