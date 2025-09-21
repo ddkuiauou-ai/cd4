@@ -84,11 +84,31 @@ function computeSeriesStats(
 
 function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | null {
     const positiveStats = seriesStats
-        .map((stat) => ({
-            ...stat,
-            values: stat.values.filter((value) => typeof value === "number" && Number.isFinite(value) && value >= 0),
-        }))
-        .filter((stat) => stat.values.length > 0);
+        .map((stat) => {
+            const nonNegativeValues = stat.values.filter(
+                (value) => typeof value === "number" && Number.isFinite(value) && value >= 0,
+            );
+
+            if (!nonNegativeValues.length) {
+                return null;
+            }
+
+            const positiveMax = Math.max(...nonNegativeValues);
+
+            if (!Number.isFinite(positiveMax) || positiveMax <= 0) {
+                return null;
+            }
+
+            const positiveMin = Math.min(...nonNegativeValues);
+
+            return {
+                ...stat,
+                values: nonNegativeValues,
+                min: positiveMin,
+                max: positiveMax,
+            } satisfies SeriesStats;
+        })
+        .filter((stat): stat is SeriesStats => Boolean(stat));
 
     if (positiveStats.length < 2) {
         return null;
@@ -96,18 +116,76 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
 
     const sortedByMax = [...positiveStats].sort((a, b) => a.max - b.max);
 
-    const largestSeries = sortedByMax[sortedByMax.length - 1];
-    const comparisonSeries = sortedByMax[sortedByMax.length - 2];
+    const globalMaxStat = sortedByMax[sortedByMax.length - 1];
+    const globalMaxValue = globalMaxStat.max;
 
-    const maxValue = largestSeries.max;
-    const comparisonValue = comparisonSeries.max;
+    if (!Number.isFinite(globalMaxValue) || globalMaxValue <= 0) {
+        return null;
+    }
+
+    type GapCandidate = {
+        higher: SeriesStats;
+        lower: SeriesStats;
+        higherIndex: number;
+        lowerIndex: number;
+        ratioScore: number;
+        gapShare: number;
+    };
+
+    let bestCandidate: GapCandidate | null = null;
+
+    for (let higherIndex = 0; higherIndex < sortedByMax.length; higherIndex += 1) {
+        const higher = sortedByMax[higherIndex];
+        const higherMax = higher.max;
+
+        if (!Number.isFinite(higherMax) || higherMax <= 0) {
+            continue;
+        }
+
+        for (let lowerIndex = 0; lowerIndex < higherIndex; lowerIndex += 1) {
+            const lower = sortedByMax[lowerIndex];
+            const lowerMax = lower.max;
+
+            if (!Number.isFinite(lowerMax) || lowerMax < 0) {
+                continue;
+            }
+
+            const ratio = lowerMax > 0 ? higherMax / lowerMax : Number.POSITIVE_INFINITY;
+            const gapShare = higherMax > 0
+                ? (higherMax - Math.max(lowerMax, 0)) / higherMax
+                : 0;
+            const ratioScore = Number.isFinite(ratio) ? ratio : Number.POSITIVE_INFINITY;
+
+            if (
+                !bestCandidate
+                || ratioScore > bestCandidate.ratioScore
+                || (ratioScore === bestCandidate.ratioScore && gapShare > bestCandidate.gapShare)
+            ) {
+                bestCandidate = {
+                    higher,
+                    lower,
+                    higherIndex,
+                    lowerIndex,
+                    ratioScore,
+                    gapShare,
+                };
+            }
+        }
+    }
+
+    if (!bestCandidate) {
+        return null;
+    }
+
+    const maxValue = bestCandidate.higher.max;
+    const comparisonValue = bestCandidate.lower.max;
 
     if (!Number.isFinite(maxValue) || maxValue <= 0) {
         return null;
     }
 
     const ratio = comparisonValue > 0 ? maxValue / comparisonValue : Number.POSITIVE_INFINITY;
-    const gapShare = comparisonValue > 0 ? (maxValue - comparisonValue) / maxValue : 1;
+    const gapShare = maxValue > 0 ? (maxValue - Math.max(comparisonValue, 0)) / maxValue : 1;
 
     if (
         (!Number.isFinite(ratio) || ratio < AXIS_BREAK_RATIO_THRESHOLD)
@@ -116,20 +194,28 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
         return null;
     }
 
-    const thirdLargest = sortedByMax.length >= 3 ? sortedByMax[sortedByMax.length - 3] : undefined;
+    let fallbackReference: number | undefined;
 
-    const fallbackReference = thirdLargest && thirdLargest.max > 0
-        ? thirdLargest.max
+    for (let index = bestCandidate.lowerIndex - 1; index >= 0; index -= 1) {
+        const candidate = sortedByMax[index];
+        if (candidate.max > 0) {
+            fallbackReference = candidate.max;
+            break;
+        }
+    }
+
+    const fallbackValue = fallbackReference && fallbackReference > 0
+        ? fallbackReference
         : comparisonValue > 0
             ? comparisonValue
             : maxValue * 0.1;
 
-    const comparisonBase = comparisonValue > 0 ? comparisonValue : fallbackReference;
+    const comparisonBase = comparisonValue > 0 ? comparisonValue : fallbackValue;
     const gapBetween = maxValue - comparisonBase;
 
     let breakStart = comparisonBase > 0
         ? comparisonBase + gapBetween * 0.25
-        : fallbackReference * 1.2;
+        : fallbackValue * 1.2;
 
     if (comparisonBase > 0) {
         const minimumBreak = comparisonBase * 1.05;
@@ -146,7 +232,8 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
         breakStart = maxValue * 0.7;
     }
 
-    const gap = maxValue - breakStart;
+    const axisMaxValue = Math.max(globalMaxValue, maxValue);
+    const gap = axisMaxValue - breakStart;
 
     if (gap <= 0) {
         return null;
@@ -188,7 +275,7 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
     return {
         breakStart,
         compressionRatio,
-        maxValue,
+        maxValue: axisMaxValue,
         forward,
         inverse,
     };
