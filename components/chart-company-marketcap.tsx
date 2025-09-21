@@ -84,81 +84,172 @@ function computeSeriesStats(
 
 function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | null {
     const positiveStats = seriesStats
-        .map((stat) => ({
-            ...stat,
-            values: stat.values.filter((value) => typeof value === "number" && Number.isFinite(value) && value >= 0),
-        }))
-        .filter((stat) => stat.values.length > 0);
+        .map((stat) => {
+            const nonNegativeValues = stat.values.filter(
+                (value) => typeof value === "number" && Number.isFinite(value) && value >= 0,
+            );
+
+            if (!nonNegativeValues.length) {
+                return null;
+            }
+
+            const positiveMax = Math.max(...nonNegativeValues);
+
+            if (!Number.isFinite(positiveMax) || positiveMax <= 0) {
+                return null;
+            }
+
+            const positiveMin = Math.min(...nonNegativeValues);
+
+            return {
+                ...stat,
+                values: nonNegativeValues,
+                min: positiveMin,
+                max: positiveMax,
+            } satisfies SeriesStats;
+        })
+        .filter((stat): stat is SeriesStats => Boolean(stat));
 
     if (positiveStats.length < 2) {
         return null;
     }
 
-    const sortedByMax = [...positiveStats].sort((a, b) => a.max - b.max);
+    const sortedByMaxDesc = [...positiveStats].sort((a, b) => b.max - a.max);
+    const globalMaxValue = sortedByMaxDesc[0]?.max ?? Number.NaN;
 
-    const largestSeries = sortedByMax[sortedByMax.length - 1];
-    const comparisonSeries = sortedByMax[sortedByMax.length - 2];
-
-    const maxValue = largestSeries.max;
-    const comparisonValue = comparisonSeries.max;
-
-    if (!Number.isFinite(maxValue) || maxValue <= 0) {
+    if (!Number.isFinite(globalMaxValue) || globalMaxValue <= 0) {
         return null;
     }
 
-    const ratio = comparisonValue > 0 ? maxValue / comparisonValue : Number.POSITIVE_INFINITY;
-    const gapShare = comparisonValue > 0 ? (maxValue - comparisonValue) / maxValue : 1;
+    type GapCandidate = {
+        higher: SeriesStats;
+        lower: SeriesStats;
+        ratio: number;
+        gapShare: number;
+        score: number;
+    };
 
-    if (
-        (!Number.isFinite(ratio) || ratio < AXIS_BREAK_RATIO_THRESHOLD)
-        && gapShare < AXIS_BREAK_GAP_THRESHOLD
-    ) {
-        return null;
-    }
+    const evaluateCandidate = (
+        first: SeriesStats | undefined,
+        second: SeriesStats | undefined,
+    ): GapCandidate | null => {
+        if (!first || !second) {
+            return null;
+        }
 
-    const thirdLargest = sortedByMax.length >= 3 ? sortedByMax[sortedByMax.length - 3] : undefined;
+        const higher = first.max >= second.max ? first : second;
+        const lower = higher === first ? second : first;
 
-    const fallbackReference = thirdLargest && thirdLargest.max > 0
-        ? thirdLargest.max
-        : comparisonValue > 0
-            ? comparisonValue
-            : maxValue * 0.1;
+        const higherMax = higher.max;
+        const lowerMax = Math.max(lower.max, 0);
 
-    const comparisonBase = comparisonValue > 0 ? comparisonValue : fallbackReference;
-    const gapBetween = maxValue - comparisonBase;
+        if (!Number.isFinite(higherMax) || higherMax <= 0) {
+            return null;
+        }
 
-    let breakStart = comparisonBase > 0
-        ? comparisonBase + gapBetween * 0.25
-        : fallbackReference * 1.2;
+        const ratio = lowerMax > 0 ? higherMax / lowerMax : Number.POSITIVE_INFINITY;
+        const gapShare = higherMax > 0 ? (higherMax - lowerMax) / higherMax : 0;
+        const score = Number.isFinite(ratio) ? ratio + gapShare : Number.POSITIVE_INFINITY;
 
-    if (comparisonBase > 0) {
-        const minimumBreak = comparisonBase * 1.05;
-        if (!Number.isFinite(breakStart) || breakStart < minimumBreak) {
-            breakStart = minimumBreak;
+        return {
+            higher,
+            lower,
+            ratio,
+            gapShare,
+            score,
+        };
+    };
+
+    const qualifies = (candidate: GapCandidate | null): candidate is GapCandidate => {
+        if (!candidate) {
+            return false;
+        }
+
+        const ratioValid = Number.isFinite(candidate.ratio)
+            && candidate.ratio >= AXIS_BREAK_RATIO_THRESHOLD;
+        const ratioInfinite = !Number.isFinite(candidate.ratio) && candidate.lower.max <= 0;
+
+        return ratioValid || ratioInfinite || candidate.gapShare >= AXIS_BREAK_GAP_THRESHOLD;
+    };
+
+    const findStat = (pattern: RegExp) => sortedByMaxDesc.find((stat) => pattern.test(stat.key));
+
+    const commonStat = findStat(/보통주/i);
+    const preferredStat = findStat(/우선주/i);
+    const totalStat = findStat(/총|합계|total|marketcap|전체/i);
+
+    const prioritizedCandidates = [
+        evaluateCandidate(commonStat, preferredStat),
+        evaluateCandidate(totalStat, preferredStat),
+    ].filter(qualifies);
+
+    let bestCandidate: GapCandidate | null = null;
+
+    prioritizedCandidates.forEach((candidate) => {
+        if (!bestCandidate || candidate.score > bestCandidate.score) {
+            bestCandidate = candidate;
+        }
+    });
+
+    if (!bestCandidate) {
+        for (let higherIndex = 0; higherIndex < sortedByMaxDesc.length - 1; higherIndex += 1) {
+            const higher = sortedByMaxDesc[higherIndex];
+
+            if (!Number.isFinite(higher.max) || higher.max <= 0) {
+                continue;
+            }
+
+            for (let lowerIndex = higherIndex + 1; lowerIndex < sortedByMaxDesc.length; lowerIndex += 1) {
+                const lower = sortedByMaxDesc[lowerIndex];
+                const candidate = evaluateCandidate(higher, lower);
+
+                if (!qualifies(candidate)) {
+                    continue;
+                }
+
+                if (!bestCandidate || candidate.score > bestCandidate.score) {
+                    bestCandidate = candidate;
+                }
+            }
         }
     }
 
-    if (!Number.isFinite(breakStart) || breakStart <= 0) {
-        breakStart = maxValue * 0.4;
-    }
-
-    if (breakStart >= maxValue) {
-        breakStart = maxValue * 0.7;
-    }
-
-    const gap = maxValue - breakStart;
-
-    if (gap <= 0) {
+    if (!bestCandidate) {
         return null;
     }
 
-    const desiredGap = Math.max(
-        comparisonBase > 0 ? comparisonBase * 0.35 : 0,
-        breakStart * 0.45,
+    const maxValue = Math.max(globalMaxValue, bestCandidate.higher.max);
+    const lowerAnchor = Math.max(bestCandidate.lower.max, 0);
+
+    const preBreakPadding = Math.max(lowerAnchor * 0.08, maxValue * 0.01, 1);
+    let breakStart = lowerAnchor + preBreakPadding;
+
+    if (!Number.isFinite(breakStart) || breakStart <= 0) {
+        return null;
+    }
+
+    if (breakStart >= maxValue) {
+        breakStart = maxValue * 0.75;
+    }
+
+    const gapBeforeCompression = maxValue - breakStart;
+
+    if (gapBeforeCompression <= 0) {
+        return null;
+    }
+
+    const desiredGapAfterCompression = Math.max(
+        lowerAnchor * 0.6,
+        preBreakPadding * 3,
+        maxValue * 0.04,
     );
+
     const compressionRatio = Math.min(
         MAX_COMPRESSION_RATIO,
-        Math.max(MIN_COMPRESSION_RATIO, desiredGap / gap),
+        Math.max(
+            MIN_COMPRESSION_RATIO,
+            desiredGapAfterCompression / gapBeforeCompression,
+        ),
     );
 
     const forward = (value: number) => {
