@@ -374,7 +374,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         vertLines: { color: "rgba(148, 163, 184, 0.16)" },
       },
       leftPriceScale: {
-        visible: true,
+        visible: false,
         borderColor,
       },
       rightPriceScale: { borderColor },
@@ -466,7 +466,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chart.applyOptions({
       leftPriceScale: {
-        visible: hasVolumeData,
+        visible: false,
         borderColor,
       },
       rightPriceScale: { borderColor },
@@ -514,7 +514,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         borderColor,
         mode: PriceScaleMode.Normal,
         autoScale: true,
-        position: "left",
+        position: "right",
         scaleMargins: {
           top: 0.1,
           bottom: 0,
