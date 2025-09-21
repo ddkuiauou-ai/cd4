@@ -252,7 +252,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
-  const { candlesticks, volumes } = useMemo(() => {
+  const { candlesticks, volumes, priceMin, priceMax, priceSpan } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -264,13 +264,32 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       Number.isFinite(point.close)
     );
 
-    const candlestickPoints: CandlestickData[] = sanitized.map((point) => ({
-      time: point.time,
-      open: Number(point.open),
-      high: Number(point.high),
-      low: Number(point.low),
-      close: Number(point.close),
-    }));
+    const candlestickPoints: CandlestickData[] = [];
+    let computedMin: number | null = null;
+    let computedMax: number | null = null;
+
+    for (const point of sanitized) {
+      const open = Number(point.open);
+      const high = Number(point.high);
+      const low = Number(point.low);
+      const close = Number(point.close);
+
+      candlestickPoints.push({
+        time: point.time,
+        open,
+        high,
+        low,
+        close,
+      });
+
+      computedMin = computedMin === null ? low : Math.min(computedMin, low);
+      computedMax = computedMax === null ? high : Math.max(computedMax, high);
+    }
+
+    const priceSpanValue =
+      computedMin !== null && computedMax !== null
+        ? Math.max(computedMax - computedMin, 0)
+        : null;
 
     const volumePoints = sanitized
       .map((point) => {
@@ -288,10 +307,30 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
+      priceMin: computedMin,
+      priceMax: computedMax,
+      priceSpan: priceSpanValue,
     };
   }, [data]);
   const hasCandlestickData = candlesticks.length > 0;
   const hasVolumeData = volumes.length > 0;
+  const priceScaleBottomMargin = useMemo(() => {
+    if (!hasVolumeData) {
+      return 0.1;
+    }
+
+    if (priceMin === null || priceMax === null || priceSpan === null || priceSpan <= 0) {
+      return 0.16;
+    }
+
+    const minMargin = 0.08;
+    const maxMargin = 0.24;
+    const baseline = Math.max(Math.abs(priceMax), Math.abs(priceMin), 1);
+    const normalizedSpan = clamp(priceSpan / baseline, 0, 1);
+    const interpolatedMargin = minMargin + (maxMargin - minMargin) * normalizedSpan;
+
+    return clamp(interpolatedMargin, minMargin, maxMargin);
+  }, [hasVolumeData, priceMax, priceMin, priceSpan]);
 
   const disposeChart = useCallback(() => {
     const existingChart = chartRef.current;
@@ -415,7 +454,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         autoScale: true,
         scaleMargins: {
           top: 0.1,
-          bottom: 0.3,
+          bottom: priceScaleBottomMargin,
         },
         position: "right",
       });
@@ -431,7 +470,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       cancelAnimationFrame(removeAttributionFrame);
       disposeChart();
     };
-  }, [disposeChart, hasCandlestickData]);
+  }, [disposeChart, hasCandlestickData, priceScaleBottomMargin]);
 
   useEffect(() => {
     if (!hasCandlestickData) {
@@ -460,7 +499,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       position: "right",
       scaleMargins: {
         top: 0.1,
-        bottom: hasVolumeData ? 0.3 : 0.1,
+        bottom: priceScaleBottomMargin,
       },
     });
 
@@ -577,7 +616,14 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
       cancelAnimationFrame(attributionFrame);
     };
-  }, [candlesticks, disposeChart, hasCandlestickData, hasVolumeData, volumes]);
+  }, [
+    candlesticks,
+    disposeChart,
+    hasCandlestickData,
+    hasVolumeData,
+    priceScaleBottomMargin,
+    volumes,
+  ]);
 
 
 
