@@ -6,6 +6,7 @@ import type {
   BusinessDay,
   CandlestickData,
   IChartApi,
+  LineData,
   MouseEventParams,
   IPaneApi,
   ISeriesApi,
@@ -16,6 +17,7 @@ import {
   CandlestickSeries,
   ColorType,
   CrosshairMode,
+  LineSeries,
   PriceScaleMode,
   createChart,
 } from "lightweight-charts";
@@ -28,6 +30,9 @@ interface CandlestickPoint {
   close: number;
   volume?: number | string | bigint | null;
 }
+
+const MOVING_AVERAGE_PERIOD = 5;
+const MOVING_AVERAGE_COLOR = "#f97316";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -272,6 +277,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const movingAverageSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -282,6 +288,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     priceMax,
     priceSpan,
     volumeByTime,
+    movingAverage,
   } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
@@ -295,8 +302,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     );
 
     const candlestickPoints: CandlestickData[] = [];
+    const movingAveragePoints: LineData[] = [];
+    const rollingWindow: number[] = [];
     let computedMin: number | null = null;
     let computedMax: number | null = null;
+    let rollingSum = 0;
     const volumePoints: AreaData[] = [];
     const rawVolumeByTime = new Map<string, number>();
 
@@ -314,6 +324,20 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         high,
         low,
         close,
+      });
+
+      rollingWindow.push(close);
+      rollingSum += close;
+      if (rollingWindow.length > MOVING_AVERAGE_PERIOD) {
+        const removed = rollingWindow.shift();
+        if (typeof removed === "number") {
+          rollingSum -= removed;
+        }
+      }
+      const divisor = rollingWindow.length || 1;
+      movingAveragePoints.push({
+        time: timeValue,
+        value: rollingSum / divisor,
       });
 
       computedMin = computedMin === null ? low : Math.min(computedMin, low);
@@ -345,6 +369,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       priceMax: computedMax,
       priceSpan: priceSpanValue,
       volumeByTime: rawVolumeByTime,
+      movingAverage: movingAveragePoints,
     };
   }, [data]);
   const hasCandlestickData = candlesticks.length > 0;
@@ -399,6 +424,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     volumePaneRef.current = null;
+    if (existingChart && movingAverageSeriesRef.current) {
+      try {
+        existingChart.removeSeries(movingAverageSeriesRef.current);
+      } catch (error) {
+        if (!isNotFoundError(error)) {
+          console.error("Failed to dispose moving average series:", error);
+        }
+      }
+    }
 
     if (existingChart) {
       try {
@@ -412,6 +446,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chartRef.current = null;
     priceSeriesRef.current = null;
+    movingAverageSeriesRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -486,6 +521,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       priceScaleId: "right",
     });
 
+    const movingAverageSeries = chart.addSeries(LineSeries, {
+      color: MOVING_AVERAGE_COLOR,
+      lineWidth: 2,
+      priceScaleId: "right",
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+    });
+
     candlestickSeries
       .priceScale()
       .applyOptions({
@@ -501,6 +545,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chartRef.current = chart;
     priceSeriesRef.current = candlestickSeries;
+    movingAverageSeriesRef.current = movingAverageSeries;
 
     const tooltip = document.createElement("div");
     tooltip.className =
@@ -543,6 +588,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
 
       const priceData = seriesData.get(series) as CandlestickData | undefined;
+      const movingAverageSeries = movingAverageSeriesRef.current;
+      const movingAverageData = movingAverageSeries
+        ? (seriesData.get(movingAverageSeries) as LineData | undefined)
+        : undefined;
 
       if (!priceData) {
         tooltipEl.style.visibility = "hidden";
@@ -553,12 +602,18 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const high = priceData.high ?? priceData.close ?? open;
       const low = priceData.low ?? priceData.close ?? open;
       const close = priceData.close ?? priceData.open ?? open;
+      const movingAverageValue =
+        typeof movingAverageData?.value === "number"
+          ? movingAverageData.value
+          : null;
 
       const timeLabel = formatTooltipDate(time as Time);
       const openText = koreanPriceFormatter.format(open);
       const highText = koreanPriceFormatter.format(high);
       const lowText = koreanPriceFormatter.format(low);
       const closeText = koreanPriceFormatter.format(close);
+      const movingAverageText =
+        movingAverageValue !== null ? koreanPriceFormatter.format(movingAverageValue) : null;
 
       const volumeMap = volumeByTimeRef.current;
       const volumeKey = formatTimeKey(time as Time);
@@ -588,6 +643,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
               <span class="text-muted-foreground">종가</span>
               <span class="font-semibold text-foreground">${closeText}</span>
             </div>
+            ${
+              movingAverageText
+                ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">5일 이평</span><span class="font-semibold" style="color:${MOVING_AVERAGE_COLOR}">${movingAverageText}</span></div>`
+                : ""
+            }
             ${
               volumeText
                 ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">거래량</span><span class="font-semibold text-foreground">${volumeText}</span></div>`
@@ -637,12 +697,21 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     const chart = chartRef.current;
     const candlestickSeries = priceSeriesRef.current;
+    const movingAverageSeries = movingAverageSeriesRef.current;
 
     if (!chart || !candlestickSeries) {
       return;
     }
 
     candlestickSeries.setData(candlesticks);
+
+    if (movingAverageSeries) {
+      if (movingAverage.length) {
+        movingAverageSeries.setData(movingAverage);
+      } else {
+        movingAverageSeries.setData([]);
+      }
+    }
 
     const borderColor = normalizeColor(
       getComputedStyle(document.documentElement).getPropertyValue("--border"),
@@ -778,6 +847,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     disposeChart,
     hasCandlestickData,
     hasVolumeData,
+    movingAverage,
     priceScaleBottomMargin,
     volumes,
   ]);
