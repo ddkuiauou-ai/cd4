@@ -6,6 +6,7 @@ import type {
   BusinessDay,
   CandlestickData,
   IChartApi,
+  MouseEventParams,
   IPaneApi,
   ISeriesApi,
   Time,
@@ -201,6 +202,27 @@ function coerceTimeToDate(time: Time): Date | null {
   return null;
 }
 
+function formatTimeKey(time: Time): string {
+  if (typeof time === "string" || typeof time === "number") {
+    return String(time);
+  }
+
+  if (typeof time === "object" && time !== null) {
+    const businessDay = time as BusinessDay;
+    const pad = (value: number) => value.toString().padStart(2, "0");
+
+    if (
+      Number.isInteger(businessDay.year) &&
+      Number.isInteger(businessDay.month) &&
+      Number.isInteger(businessDay.day)
+    ) {
+      return `${businessDay.year}-${pad(businessDay.month)}-${pad(businessDay.day)}`;
+    }
+  }
+
+  return "";
+}
+
 function formatTooltipDate(time: Time): string {
   const date = coerceTimeToDate(time);
 
@@ -252,7 +274,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
-  const { candlesticks, volumes, priceMin, priceMax, priceSpan } = useMemo(() => {
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const {
+    candlesticks,
+    volumes,
+    priceMin,
+    priceMax,
+    priceSpan,
+    volumeByTime,
+  } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
       point.high !== null &&
@@ -267,15 +297,19 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     const candlestickPoints: CandlestickData[] = [];
     let computedMin: number | null = null;
     let computedMax: number | null = null;
+    const volumePoints: AreaData[] = [];
+    const rawVolumeByTime = new Map<string, number>();
 
     for (const point of sanitized) {
       const open = Number(point.open);
       const high = Number(point.high);
       const low = Number(point.low);
       const close = Number(point.close);
+      const timeValue = point.time as Time;
+      const timeKey = formatTimeKey(timeValue);
 
       candlestickPoints.push({
-        time: point.time,
+        time: timeValue,
         open,
         high,
         low,
@@ -284,6 +318,19 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       computedMin = computedMin === null ? low : Math.min(computedMin, low);
       computedMax = computedMax === null ? high : Math.max(computedMax, high);
+
+      const normalizedVolume = normalizeVolumeValue(point.volume);
+
+      if (normalizedVolume !== null) {
+        volumePoints.push({
+          time: timeValue,
+          value: normalizedVolume,
+        });
+
+        if (timeKey) {
+          rawVolumeByTime.set(timeKey, normalizedVolume);
+        }
+      }
     }
 
     const priceSpanValue =
@@ -291,25 +338,13 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         ? Math.max(computedMax - computedMin, 0)
         : null;
 
-    const volumePoints = sanitized
-      .map((point) => {
-        const normalizedVolume = normalizeVolumeValue(point.volume);
-        if (normalizedVolume === null) {
-          return null;
-        }
-        return {
-          time: point.time as Time,
-          value: normalizedVolume,
-        } satisfies AreaData;
-      })
-      .filter((point): point is AreaData => point !== null);
-
     return {
       candlesticks: candlestickPoints,
       volumes: volumePoints,
       priceMin: computedMin,
       priceMax: computedMax,
       priceSpan: priceSpanValue,
+      volumeByTime: rawVolumeByTime,
     };
   }, [data]);
   const hasCandlestickData = candlesticks.length > 0;
@@ -331,6 +366,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     return clamp(interpolatedMargin, minMargin, maxMargin);
   }, [hasVolumeData, priceMax, priceMin, priceSpan]);
+  const volumeByTimeRef = useRef(volumeByTime);
+
+  useEffect(() => {
+    volumeByTimeRef.current = volumeByTime;
+  }, [volumeByTime]);
 
   const disposeChart = useCallback(() => {
     const existingChart = chartRef.current;
@@ -462,12 +502,129 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     chartRef.current = chart;
     priceSeriesRef.current = candlestickSeries;
 
+    const tooltip = document.createElement("div");
+    tooltip.className =
+      "pointer-events-none absolute z-20 whitespace-nowrap rounded-lg border border-border/80 bg-background/95 px-3 py-2 text-left text-[11px] shadow-lg ring-1 ring-black/5 backdrop-blur-sm";
+    tooltip.style.position = "absolute";
+    tooltip.style.left = "0px";
+    tooltip.style.top = "0px";
+    tooltip.style.visibility = "hidden";
+    tooltip.style.transform = "translateX(-50%)";
+    tooltipRef.current = tooltip;
+    container.appendChild(tooltip);
+
+    const handleCrosshairMove = (param: MouseEventParams) => {
+      const tooltipEl = tooltipRef.current;
+      const series = priceSeriesRef.current;
+
+      if (!tooltipEl || !series) {
+        return;
+      }
+
+      const containerElement = containerRef.current;
+
+      if (!containerElement || !param.point || param.time === undefined) {
+        tooltipEl.style.visibility = "hidden";
+        return;
+      }
+
+      const { point, seriesData, time } = param;
+      const width = containerElement.clientWidth;
+      const height = containerElement.clientHeight;
+      const isOutside =
+        point.x < 0 ||
+        point.y < 0 ||
+        point.x > width ||
+        point.y > height;
+
+      if (isOutside) {
+        tooltipEl.style.visibility = "hidden";
+        return;
+      }
+
+      const priceData = seriesData.get(series) as CandlestickData | undefined;
+
+      if (!priceData) {
+        tooltipEl.style.visibility = "hidden";
+        return;
+      }
+
+      const open = priceData.open ?? priceData.close ?? 0;
+      const high = priceData.high ?? priceData.close ?? open;
+      const low = priceData.low ?? priceData.close ?? open;
+      const close = priceData.close ?? priceData.open ?? open;
+
+      const timeLabel = formatTooltipDate(time as Time);
+      const openText = koreanPriceFormatter.format(open);
+      const highText = koreanPriceFormatter.format(high);
+      const lowText = koreanPriceFormatter.format(low);
+      const closeText = koreanPriceFormatter.format(close);
+
+      const volumeMap = volumeByTimeRef.current;
+      const volumeKey = formatTimeKey(time as Time);
+      const volumeValue = volumeMap?.get(volumeKey);
+      const volumeText =
+        volumeValue !== undefined
+          ? `${koreanVolumeFormatter.format(volumeValue)}주`
+          : null;
+
+      tooltipEl.innerHTML = `
+        <div class="flex flex-col gap-1.5">
+          <div class="text-[11px] font-medium text-muted-foreground">${timeLabel}</div>
+          <div class="grid gap-1 text-[11px] leading-relaxed">
+            <div class="flex items-center justify-between gap-6">
+              <span class="text-muted-foreground">시초가</span>
+              <span class="font-semibold text-foreground">${openText}</span>
+            </div>
+            <div class="flex items-center justify-between gap-6">
+              <span class="text-muted-foreground">고가</span>
+              <span class="font-semibold text-foreground">${highText}</span>
+            </div>
+            <div class="flex items-center justify-between gap-6">
+              <span class="text-muted-foreground">저가</span>
+              <span class="font-semibold text-foreground">${lowText}</span>
+            </div>
+            <div class="flex items-center justify-between gap-6">
+              <span class="text-muted-foreground">종가</span>
+              <span class="font-semibold text-foreground">${closeText}</span>
+            </div>
+            ${
+              volumeText
+                ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">거래량</span><span class="font-semibold text-foreground">${volumeText}</span></div>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+
+      tooltipEl.style.visibility = "visible";
+
+      const horizontalPadding = 12;
+      const tooltipWidth = tooltipEl.offsetWidth;
+      const tooltipHeight = tooltipEl.offsetHeight;
+      const clampedX = Math.min(
+        Math.max(point.x, horizontalPadding + tooltipWidth / 2),
+        width - horizontalPadding - tooltipWidth / 2
+      );
+      const clampedY = Math.max(point.y - tooltipHeight - 12, 0);
+
+      tooltipEl.style.left = `${clampedX}px`;
+      tooltipEl.style.top = `${clampedY}px`;
+    };
+
+    chart.subscribeCrosshairMove(handleCrosshairMove);
+
     const removeAttributionFrame = requestAnimationFrame(() => {
       removeTradingViewAttribution();
     });
 
     return () => {
       cancelAnimationFrame(removeAttributionFrame);
+      chart.unsubscribeCrosshairMove(handleCrosshairMove);
+      if (tooltipRef.current) {
+        tooltipRef.current.remove();
+        tooltipRef.current = null;
+      }
       disposeChart();
     };
   }, [disposeChart, hasCandlestickData, priceScaleBottomMargin]);
