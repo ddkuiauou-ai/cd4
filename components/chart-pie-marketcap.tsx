@@ -314,7 +314,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = 'ì‹
     }
 
     return (
-        <div className="flex h-full w-full flex-col gap-3.5">
+        <div className="flex h-full w-full flex-col gap-2.5">
             <div className="relative min-h-[200px] flex-1">
                 <ResponsiveContainer width="100%" height="100%" minWidth={220} minHeight={200}>
                     <PieChart>
@@ -324,8 +324,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = 'ì‹
                             cy="50%"
                             labelLine={false}
                             label={CustomLabel}
-                            outerRadius="78%"
-                            innerRadius="26%"
+                            outerRadius="92%"
+                            innerRadius="28%"
                             fill="#8884d8"
                             dataKey="value"
                             stroke="#ffffff"
