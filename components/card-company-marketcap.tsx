@@ -44,10 +44,10 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
         }));
 
     const chartContainerHeights: Record<typeof screenSize, string> = {
-        mobile: "h-[360px] min-h-[360px]",
-        tablet: "h-[380px] min-h-[380px]",
-        desktop: "h-[420px] min-h-[420px]",
-        "desktop-sidebar": "h-[400px] min-h-[400px]",
+        mobile: "h-[260px] min-h-[260px]",
+        tablet: "h-[260px] min-h-[260px]",
+        desktop: "h-[280px] min-h-[280px]",
+        "desktop-sidebar": "h-[280px] min-h-[280px]",
     };
 
     return (
