@@ -31,8 +31,14 @@ interface CandlestickPoint {
   volume?: number | string | bigint | null;
 }
 
-const MOVING_AVERAGE_PERIOD = 5;
-const MOVING_AVERAGE_COLOR = "#f97316";
+const MOVING_AVERAGE_CONFIGS = [
+  { period: 5, color: "#f97316", label: "5일 이평" },
+  { period: 10, color: "#0ea5e9", label: "10일 이평" },
+] as const;
+
+type MovingAverageConfig = (typeof MOVING_AVERAGE_CONFIGS)[number];
+type MovingAveragePeriod = MovingAverageConfig["period"];
+type MovingAverageSeriesData = Record<MovingAveragePeriod, LineData[]>;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -277,7 +283,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const movingAverageSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const movingAverageSeriesRef = useRef<
+    Map<MovingAveragePeriod, ISeriesApi<"Line">>
+  >(new Map());
   const volumePaneRef = useRef<IPaneApi<Time> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -288,7 +296,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     priceMax,
     priceSpan,
     volumeByTime,
-    movingAverage,
+    movingAverages,
   } = useMemo(() => {
     const sanitized = data.filter((point) =>
       point.open !== null &&
@@ -302,13 +310,20 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     );
 
     const candlestickPoints: CandlestickData[] = [];
-    const movingAveragePoints: LineData[] = [];
-    const rollingWindow: number[] = [];
+    const movingAveragePoints = {} as MovingAverageSeriesData;
+    const rollingWindows = new Map<
+      MovingAveragePeriod,
+      { values: number[]; sum: number }
+    >();
     let computedMin: number | null = null;
     let computedMax: number | null = null;
-    let rollingSum = 0;
     const volumePoints: AreaData[] = [];
     const rawVolumeByTime = new Map<string, number>();
+
+    MOVING_AVERAGE_CONFIGS.forEach((config) => {
+      movingAveragePoints[config.period] = [];
+      rollingWindows.set(config.period, { values: [], sum: 0 });
+    });
 
     for (const point of sanitized) {
       const open = Number(point.open);
@@ -326,18 +341,33 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         close,
       });
 
-      rollingWindow.push(close);
-      rollingSum += close;
-      if (rollingWindow.length > MOVING_AVERAGE_PERIOD) {
-        const removed = rollingWindow.shift();
-        if (typeof removed === "number") {
-          rollingSum -= removed;
+      MOVING_AVERAGE_CONFIGS.forEach(({ period }) => {
+        const windowState = rollingWindows.get(period);
+
+        if (!windowState) {
+          return;
         }
-      }
-      const divisor = rollingWindow.length || 1;
-      movingAveragePoints.push({
-        time: timeValue,
-        value: rollingSum / divisor,
+
+        windowState.values.push(close);
+        windowState.sum += close;
+
+        if (windowState.values.length > period) {
+          const removed = windowState.values.shift();
+
+          if (typeof removed === "number") {
+            windowState.sum -= removed;
+          }
+        }
+
+        const divisor = windowState.values.length || 1;
+        const series = movingAveragePoints[period];
+
+        if (series) {
+          series.push({
+            time: timeValue,
+            value: windowState.sum / divisor,
+          });
+        }
       });
 
       computedMin = computedMin === null ? low : Math.min(computedMin, low);
@@ -369,7 +399,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       priceMax: computedMax,
       priceSpan: priceSpanValue,
       volumeByTime: rawVolumeByTime,
-      movingAverage: movingAveragePoints,
+      movingAverages: movingAveragePoints,
     };
   }, [data]);
   const hasCandlestickData = candlesticks.length > 0;
@@ -424,14 +454,16 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     volumePaneRef.current = null;
-    if (existingChart && movingAverageSeriesRef.current) {
-      try {
-        existingChart.removeSeries(movingAverageSeriesRef.current);
-      } catch (error) {
-        if (!isNotFoundError(error)) {
-          console.error("Failed to dispose moving average series:", error);
+    if (existingChart) {
+      movingAverageSeriesRef.current.forEach((series) => {
+        try {
+          existingChart.removeSeries(series);
+        } catch (error) {
+          if (!isNotFoundError(error)) {
+            console.error("Failed to dispose moving average series:", error);
+          }
         }
-      }
+      });
     }
 
     if (existingChart) {
@@ -446,7 +478,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chartRef.current = null;
     priceSeriesRef.current = null;
-    movingAverageSeriesRef.current = null;
+    movingAverageSeriesRef.current.clear();
   }, []);
 
   useEffect(() => {
@@ -521,13 +553,22 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       priceScaleId: "right",
     });
 
-    const movingAverageSeries = chart.addSeries(LineSeries, {
-      color: MOVING_AVERAGE_COLOR,
-      lineWidth: 2,
-      priceScaleId: "right",
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
+    const movingAverageSeriesMap = new Map<
+      MovingAveragePeriod,
+      ISeriesApi<"Line">
+    >();
+
+    MOVING_AVERAGE_CONFIGS.forEach(({ period, color }) => {
+      const series = chart.addSeries(LineSeries, {
+        color,
+        lineWidth: 2,
+        priceScaleId: "right",
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+
+      movingAverageSeriesMap.set(period, series);
     });
 
     candlestickSeries
@@ -545,7 +586,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chartRef.current = chart;
     priceSeriesRef.current = candlestickSeries;
-    movingAverageSeriesRef.current = movingAverageSeries;
+    movingAverageSeriesRef.current = movingAverageSeriesMap;
 
     const tooltip = document.createElement("div");
     tooltip.className =
@@ -588,10 +629,22 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
 
       const priceData = seriesData.get(series) as CandlestickData | undefined;
-      const movingAverageSeries = movingAverageSeriesRef.current;
-      const movingAverageData = movingAverageSeries
-        ? (seriesData.get(movingAverageSeries) as LineData | undefined)
-        : undefined;
+      const movingAverageSeriesMap = movingAverageSeriesRef.current;
+      const movingAverageData = MOVING_AVERAGE_CONFIGS.map((config) => {
+        const series = movingAverageSeriesMap.get(config.period);
+        const valueData = series
+          ? (seriesData.get(series) as LineData | undefined)
+          : undefined;
+
+        const value =
+          typeof valueData?.value === "number" ? valueData.value : null;
+
+        return {
+          ...config,
+          value,
+          text: value !== null ? koreanPriceFormatter.format(value) : null,
+        };
+      });
 
       if (!priceData) {
         tooltipEl.style.visibility = "hidden";
@@ -602,18 +655,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const high = priceData.high ?? priceData.close ?? open;
       const low = priceData.low ?? priceData.close ?? open;
       const close = priceData.close ?? priceData.open ?? open;
-      const movingAverageValue =
-        typeof movingAverageData?.value === "number"
-          ? movingAverageData.value
-          : null;
-
       const timeLabel = formatTooltipDate(time as Time);
       const openText = koreanPriceFormatter.format(open);
       const highText = koreanPriceFormatter.format(high);
       const lowText = koreanPriceFormatter.format(low);
       const closeText = koreanPriceFormatter.format(close);
-      const movingAverageText =
-        movingAverageValue !== null ? koreanPriceFormatter.format(movingAverageValue) : null;
 
       const volumeMap = volumeByTimeRef.current;
       const volumeKey = formatTimeKey(time as Time);
@@ -643,10 +689,13 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
               <span class="text-muted-foreground">종가</span>
               <span class="font-semibold text-foreground">${closeText}</span>
             </div>
-            ${
-              movingAverageText
-                ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">5일 이평</span><span class="font-semibold" style="color:${MOVING_AVERAGE_COLOR}">${movingAverageText}</span></div>`
-                : ""
+            ${movingAverageData
+              .filter((item) => item.text)
+              .map(
+                (item) =>
+                  `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">${item.label}</span><span class="font-semibold" style="color:${item.color}">${item.text}</span></div>`
+              )
+              .join("")
             }
             ${
               volumeText
@@ -697,21 +746,27 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     const chart = chartRef.current;
     const candlestickSeries = priceSeriesRef.current;
-    const movingAverageSeries = movingAverageSeriesRef.current;
-
     if (!chart || !candlestickSeries) {
       return;
     }
 
     candlestickSeries.setData(candlesticks);
 
-    if (movingAverageSeries) {
-      if (movingAverage.length) {
-        movingAverageSeries.setData(movingAverage);
-      } else {
-        movingAverageSeries.setData([]);
+    MOVING_AVERAGE_CONFIGS.forEach(({ period }) => {
+      const series = movingAverageSeriesRef.current.get(period);
+
+      if (!series) {
+        return;
       }
-    }
+
+      const seriesData = movingAverages[period] ?? [];
+
+      if (seriesData.length) {
+        series.setData(seriesData);
+      } else {
+        series.setData([]);
+      }
+    });
 
     const borderColor = normalizeColor(
       getComputedStyle(document.documentElement).getPropertyValue("--border"),
@@ -847,7 +902,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     disposeChart,
     hasCandlestickData,
     hasVolumeData,
-    movingAverage,
+    movingAverages,
     priceScaleBottomMargin,
     volumes,
   ]);
