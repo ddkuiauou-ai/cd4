@@ -20,6 +20,7 @@ import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
 import { PageNavigation } from "@/components/page-navigation";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
+import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 
 type RgbTuple = [number, number, number];
 
@@ -49,6 +50,19 @@ const ACTIVE_METRIC = {
   id: "marketcap",
   label: "시가총액",
   description: "Market Cap",
+};
+
+type CompanySecuritySummary = {
+  securityId: string;
+  korName?: string | null;
+  name?: string | null;
+  type?: string | null;
+};
+
+type AggregatedHistoryEntry = {
+  date: Date | string;
+  totalMarketcap?: number | null;
+  securitiesBreakdown?: Record<string, number | null | undefined>;
 };
 
 /**
@@ -326,6 +340,54 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       return null;
     }
 
+    const aggregatedHistory = companyMarketcapData.aggregatedHistory as AggregatedHistoryEntry[];
+    const securities = companyMarketcapData.securities as CompanySecuritySummary[];
+
+    const formatSecurityDisplayName = (security: CompanySecuritySummary) => {
+      const securityName = security?.korName || security?.name || "알 수 없음";
+      const securityType = security?.type || "";
+
+      if (securityType.includes("보통주")) {
+        return `${securityName} 보통주`;
+      }
+
+      if (securityType.includes("우선주")) {
+        return `${securityName} 우선주`;
+      }
+
+      return securityType ? `${securityName} (${securityType})` : securityName;
+    };
+
+    const annualCsvData = aggregatedHistory.map((item) => {
+      const formattedDate = item.date instanceof Date ? item.date.toISOString().split("T")[0] : String(item.date);
+      const row: Record<string, string | number> = {
+        date: formattedDate,
+        totalMarketcap: typeof item.totalMarketcap === "number" && Number.isFinite(item.totalMarketcap)
+          ? item.totalMarketcap
+          : Number(item.totalMarketcap ?? 0),
+      };
+
+      securities.forEach((security) => {
+        const displayName = formatSecurityDisplayName(security);
+        const rawBreakdown = security.securityId ? item.securitiesBreakdown?.[security.securityId] : undefined;
+        const numericBreakdown = typeof rawBreakdown === "number" && Number.isFinite(rawBreakdown)
+          ? rawBreakdown
+          : Number(rawBreakdown ?? 0);
+        row[displayName] = numericBreakdown;
+      });
+
+      return row;
+    });
+
+    const latestHistoryItem = aggregatedHistory[aggregatedHistory.length - 1];
+    const latestHistoryDate = latestHistoryItem
+      ? (latestHistoryItem.date instanceof Date
+          ? latestHistoryItem.date.toISOString().split("T")[0]
+          : String(latestHistoryItem.date))
+      : undefined;
+    const sanitizedSecCode = secCode.replace(/\./g, "-");
+    const annualDownloadFilename = `${sanitizedSecCode}-annual-marketcap${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
+
     return (
       <div className="mt-14 space-y-16">
         {/* 기업 개요 섹션 */}
@@ -496,14 +558,23 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               </span>
             )}
           </div>
-          <header className="flex flex-wrap items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-800/50">
-              <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-800/50">
+                <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">연도별 데이터</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">연도별 데이터</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
-            </div>
+            {annualCsvData.length > 0 && (
+              <CsvDownloadButton
+                data={annualCsvData}
+                filename={annualDownloadFilename}
+                className="self-start border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-100 dark:hover:bg-red-900/30"
+              />
+            )}
           </header>
 
           <div className="space-y-8">
