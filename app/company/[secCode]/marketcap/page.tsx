@@ -47,7 +47,7 @@ const SECTION_GRADIENTS: Record<string, CSSProperties> = {
 };
 
 const EDGE_TO_EDGE_SECTION_BASE =
-  "relative -mx-4 space-y-6 border-y px-4 py-6 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
+  "relative -mx-4 space-y-4 border-y px-4 py-4 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
 
 const EDGE_TO_EDGE_CARD_BASE =
   "border border-border/60 bg-background/80 shadow-sm sm:rounded-2xl";
@@ -395,7 +395,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     const annualDownloadFilename = `${sanitizedSecCode}-annual-marketcap${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
 
     return (
-      <div className="mt-10 space-y-12 sm:mt-14 sm:space-y-16">
+      <div className="mt-6 space-y-6 sm:mt-14 sm:space-y-16">
         {/* 기업 개요 섹션 */}
         <section
           id="company-overview"
@@ -502,7 +502,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
           </header>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={companySecs}
@@ -512,7 +512,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </div>
         </section>
 
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-4 sm:space-y-8">
           <CompanyFinancialTabs secCode={secCode} className="-mx-4 sm:mx-0" />
 
           <div
@@ -583,7 +583,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             )}
           </header>
 
-          <div className="space-y-8">
+          <div className="space-y-5 sm:space-y-8">
             <div>
               <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                 <InteractiveChartSection
@@ -595,7 +595,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <p className="sr-only">연말 기준 시가총액 추이를 통해 기업의 성장 패턴을 분석합니다</p>
 
               <ListMarketcap
@@ -608,7 +608,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </div>
         </section>
 
-        <div className="pt-2">
+        <div className="pt-1 sm:pt-2">
           <CompanyMarketcapPager rank={security.company?.marketcapRank || 1} currentMarket={market} />
         </div>
       </div>
@@ -616,9 +616,9 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   };
 
   const renderEmptyState = () => (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       {/* 🚨 데이터 없음 상태 UI 개선 */}
-        <section className="flex flex-col items-center justify-center gap-6 border border-border/60 bg-muted/40 px-6 py-10 text-center shadow-sm -mx-4 sm:mx-0 sm:rounded-3xl sm:px-8 sm:py-12">
+        <section className="flex flex-col items-center justify-center gap-4 border border-border/60 bg-muted/40 px-4 py-8 text-center shadow-sm -mx-4 sm:mx-0 sm:rounded-3xl sm:px-8 sm:py-12">
           {/* 아이콘 */}
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/60">
             <svg className="h-10 w-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -636,7 +636,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </div>
 
           {/* 대안 액션 */}
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+          <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:gap-3">
             <Link
               href={`/company/${secCode}`}
               className="inline-flex items-center justify-center rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
@@ -653,7 +653,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         </section>
 
         {companySecs.length > 0 ? (
-          <section className="space-y-6">
+          <section className="space-y-4 sm:space-y-6">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
               관련 종목 ({companySecs.length}개)
             </h2>
@@ -669,7 +669,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               ))}
             </div>
 
-            <div className="pt-6 text-center">
+            <div className="pt-4 text-center sm:pt-6">
               <Link
                 href={`/security/${secCode}/marketcap`}
                 className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-6 sm:py-3"
@@ -702,7 +702,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       );
 
   return (
-    <main className="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+    <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -730,7 +730,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           logoUrl={security.company?.logo}
         />
 
-        <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-6">
+        <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
           <p className="text-base text-muted-foreground md:text-lg">
             기업 전체 가치와 종목별 시가총액 구성을 분석합니다
           </p>

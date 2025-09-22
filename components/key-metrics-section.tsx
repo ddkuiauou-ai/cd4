@@ -33,7 +33,7 @@ const DEFAULT_BACKGROUND: CSSProperties = {
 };
 
 const EDGE_TO_EDGE_SECTION_CLASS =
-    "relative -mx-4 space-y-6 border-y px-4 py-6 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
+    "relative -mx-4 space-y-4 border-y px-4 py-4 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
 
 const MARQUEE_CARD_STYLE: CSSProperties = {
     width: "min(calc((100vw - 16px) / 5.5), 140px)",
