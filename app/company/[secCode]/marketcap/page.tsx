@@ -23,24 +23,44 @@ import { StickyCompanyHeader } from "@/components/sticky-company-header";
 
 type RgbTuple = [number, number, number];
 
-const GRADIENT_STOPS = [
+type GradientStop = { offset: number; alpha: number };
+
+interface SectionGradientOptions {
+  backgroundAlpha?: number;
+  stops?: readonly GradientStop[];
+}
+
+const GRADIENT_STOPS: readonly GradientStop[] = [
   { offset: 0, alpha: 0.09 },
   { offset: 120, alpha: 0.05 },
   { offset: 280, alpha: 0.025 },
   { offset: 520, alpha: 0 },
-] as const;
+];
 
-const createSectionGradient = ([r, g, b]: RgbTuple): CSSProperties => ({
-  backgroundColor: `rgba(${r}, ${g}, ${b}, 0.02)`,
-  backgroundImage: `linear-gradient(180deg, ${GRADIENT_STOPS.map(
-    stop => `rgba(${r}, ${g}, ${b}, ${stop.alpha}) ${stop.offset}px`
-  ).join(", ")})`,
+const SEMI_TRANSPARENT_STOPS: readonly GradientStop[] = [
+  { offset: 0, alpha: 0.45 },
+  { offset: 120, alpha: 0.3 },
+  { offset: 280, alpha: 0.18 },
+  { offset: 520, alpha: 0.08 },
+];
+
+const createSectionGradient = (
+  [r, g, b]: RgbTuple,
+  { backgroundAlpha = 0.02, stops = GRADIENT_STOPS }: SectionGradientOptions = {}
+): CSSProperties => ({
+  backgroundColor: `rgba(${r}, ${g}, ${b}, ${backgroundAlpha})`,
+  backgroundImage: `linear-gradient(180deg, ${stops
+    .map(stop => `rgba(${r}, ${g}, ${b}, ${stop.alpha}) ${stop.offset}px`)
+    .join(", ")})`,
 });
 
 const SECTION_GRADIENTS: Record<string, CSSProperties> = {
   overview: createSectionGradient([59, 130, 246]),
   charts: createSectionGradient([34, 197, 94]),
-  securities: createSectionGradient([168, 85, 247]),
+  securities: createSectionGradient([168, 85, 247], {
+    backgroundAlpha: 0.16,
+    stops: SEMI_TRANSPARENT_STOPS,
+  }),
   indicators: createSectionGradient([249, 115, 22]),
   annual: createSectionGradient([239, 68, 68]),
 };
