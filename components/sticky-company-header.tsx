@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Balancer } from "react-wrap-balancer";
 
 import CompanyLogo from "@/components/CompanyLogo";
+import { useMobileHeader } from "@/components/mobile-header-context";
 import { cn } from "@/lib/utils";
 
 interface StickyCompanyHeaderProps {
@@ -29,6 +30,33 @@ export function StickyCompanyHeader({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [isPinned, setIsPinned] = useState(false);
   const [effectiveOffset, setEffectiveOffset] = useState(stickyOffset);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const { setContent: setMobileHeaderContent } = useMobileHeader();
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 640px)");
+    const handleChange = () => {
+      setIsSmallScreen(!mediaQuery.matches);
+    };
+
+    handleChange();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => {
+        mediaQuery.removeEventListener("change", handleChange);
+      };
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => {
+      mediaQuery.removeListener(handleChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -119,7 +147,39 @@ export function StickyCompanyHeader({
     };
   }, [effectiveOffset]);
 
+  useEffect(() => {
+    if (!isSmallScreen) {
+      setMobileHeaderContent(null);
+      return () => {
+        setMobileHeaderContent(null);
+      };
+    }
+
+    if (isPinned) {
+      setMobileHeaderContent({
+        type: "company",
+        displayName,
+        companyName,
+        logoUrl,
+      });
+    } else {
+      setMobileHeaderContent(null);
+    }
+
+    return () => {
+      setMobileHeaderContent(null);
+    };
+  }, [
+    isPinned,
+    isSmallScreen,
+    displayName,
+    companyName,
+    logoUrl,
+    setMobileHeaderContent,
+  ]);
+
   const logoSize = isPinned ? 40 : 56;
+  const shouldHideForMobile = isPinned && isSmallScreen;
 
   return (
     <>
@@ -131,7 +191,10 @@ export function StickyCompanyHeader({
             ? "border-b border-border/60 bg-background/95 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/75"
             : "py-6 sm:py-8"
         )}
-        style={{ top: `${effectiveOffset}px` }}
+        style={{
+          top: `${effectiveOffset}px`,
+          display: shouldHideForMobile ? "none" : undefined,
+        }}
       >
         <div
           className={cn(
