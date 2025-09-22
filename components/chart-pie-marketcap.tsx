@@ -393,35 +393,36 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                     </ResponsiveContainer>
                 </div>
 
-                <div className="space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <div
+                    className="flex flex-nowrap items-center overflow-x-auto text-[11px] text-slate-500 dark:text-slate-400"
+                    role="list"
+                    aria-label="시가총액 구성 종목"
+                >
                     {chartData.map((entry, index) => {
                         const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
 
                         return (
-                            <div
+                            <span
                                 key={`legend-${index}`}
+                                role="listitem"
                                 className={cn(
-                                    'flex items-center justify-between gap-3 border-b border-slate-200/50 pb-1.5 last:border-b-0 last:pb-0 dark:border-slate-700/50',
+                                    'inline-flex items-center gap-1 whitespace-nowrap text-slate-700 dark:text-slate-200',
                                     hasAnnotation && !isHighlighted ? 'opacity-50' : 'opacity-100',
+                                    index < chartData.length - 1
+                                        ? "after:content-[','] after:mr-1 after:text-slate-400 dark:after:text-slate-500"
+                                        : '',
                                 )}
                             >
-                                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                                    <span
-                                        className="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-sm"
-                                        style={{
-                                            backgroundColor: entry.color,
-                                            opacity: hasAnnotation && !isHighlighted ? 0.6 : 1,
-                                        }}
-                                    />
-                                    <span className="font-medium tracking-tight whitespace-nowrap">{entry.compactLabel}</span>
-                                </div>
-                                <div className="flex items-baseline gap-2 text-right">
-                                    <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                        {entry.percentage.toFixed(1)}%
-                                    </span>
-                                    <span>{formatNumber(entry.value)}원</span>
-                                </div>
-                            </div>
+                                <span
+                                    className="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-sm"
+                                    style={{
+                                        backgroundColor: entry.color,
+                                        opacity: hasAnnotation && !isHighlighted ? 0.6 : 1,
+                                    }}
+                                    aria-hidden="true"
+                                />
+                                <span className="font-medium tracking-tight">{entry.compactLabel}</span>
+                            </span>
                         );
                     })}
                 </div>
