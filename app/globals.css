@@ -198,3 +198,22 @@
 .button-consistent {
   @apply transition-all duration-200 hover:scale-[1.02] focus:scale-[1.02];
 }
+
+/* Securities card surface backgrounds */
+.securities-card-surface {
+  background-color: color-mix(in oklch, var(--background) 70%, var(--muted) 30%);
+}
+
+.dark .securities-card-surface {
+  background-color: color-mix(in oklch, var(--background) 70%, var(--muted) 30%);
+}
+
+@supports not (color: color-mix(in oklch, black 50%, white 50%)) {
+  .securities-card-surface {
+    background-color: oklch(0.9904 0.0021 247.896);
+  }
+
+  .dark .securities-card-surface {
+    background-color: oklch(0.174 0.0417 263.32);
+  }
+}
