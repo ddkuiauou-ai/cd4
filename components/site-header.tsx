@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Balancer } from "react-wrap-balancer";
 
 import CompanyLogo from "@/components/CompanyLogo";
 import { CommandMenu } from "@/components/command-menu";
@@ -94,17 +95,17 @@ function MobileCompanyIdentity({
   logoUrl?: string | null;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2 sm:hidden">
+    <div className="flex min-w-0 items-center gap-3 rounded-lg px-2 py-1.5 sm:hidden">
       <CompanyLogo
         companyName={companyName ?? displayName}
         logoUrl={logoUrl}
-        size={32}
-        className="h-8 w-8"
+        size={40}
+        className="h-10 w-10 flex-shrink-0 shadow-sm"
       />
       <div className="min-w-0">
-        <span className="block truncate text-lg font-semibold leading-tight">
-          {displayName}
-        </span>
+        <h1 className="font-heading text-lg font-bold leading-tight tracking-tight">
+          <Balancer>{displayName} 시가총액</Balancer>
+        </h1>
       </div>
     </div>
   );
