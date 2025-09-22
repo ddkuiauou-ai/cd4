@@ -12,7 +12,6 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    LabelList,
 } from 'recharts';
 import { cn, formatNumber } from '@/lib/utils';
 
@@ -159,21 +158,66 @@ const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }:
     );
 };
 
-const BarPercentageLabel = ({ x, y, width, height, value }: any) => {
-    if (typeof value !== 'number') return null;
+interface StackedBarTooltipProps {
+    active?: boolean;
+    payload?: Array<{
+        dataKey: string;
+        value: number;
+    }>;
+    segments: Array<{
+        key: string;
+        name: string;
+        percentage: number;
+        value: number;
+        color: string;
+        highlighted: boolean;
+    }>;
+    selectedType?: string;
+}
 
-    const labelX = (x ?? 0) + (width ?? 0) + 12;
-    const labelY = (y ?? 0) + (height ?? 0) / 2;
+const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps) => {
+    if (!active || !payload || payload.length === 0) {
+        return null;
+    }
+
+    const visibleSegments = payload
+        .map((entry) => {
+            const segment = segments.find((item) => item.key === entry.dataKey);
+            if (!segment || typeof entry.value !== 'number' || entry.value <= 0) {
+                return null;
+            }
+            return segment;
+        })
+        .filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+    if (!visibleSegments.length) {
+        return null;
+    }
 
     return (
-        <text
-            x={labelX}
-            y={labelY}
-            className="text-[11px] font-semibold text-slate-600 dark:text-slate-200"
-            dominantBaseline="middle"
-        >
-            {`${value.toFixed(1)}%`}
-        </text>
+        <div className="min-w-36 rounded-lg border border-gray-200 bg-white p-2.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <div className="space-y-1">
+                {visibleSegments.map((segment) => (
+                    <div key={segment.key} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                            <span
+                                className="h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: segment.color }}
+                            />
+                            <span className="text-xs text-gray-600 dark:text-gray-300">{segment.name}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100">
+                                {segment.percentage.toFixed(1)}%
+                            </span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                {formatNumber(segment.value)}원
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 
@@ -194,7 +238,37 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
     );
 
     const hasAnnotation = useMemo(() => Boolean(selectedType && selectedType !== '시가총액 구성'), [selectedType]);
-    const barChartMinHeight = useMemo(() => Math.max(120, chartData.length * 32), [chartData.length]);
+
+    const stackedSegments = useMemo(
+        () =>
+            chartData.map((item, index) => ({
+                key: `segment_${index}`,
+                name: item.name,
+                percentage: item.percentage,
+                value: item.value,
+                color: item.color,
+                highlighted: shouldHighlightSegment(item.name, selectedType),
+            })),
+        [chartData, selectedType],
+    );
+
+    const stackedBarData = useMemo(() => {
+        if (!stackedSegments.length) {
+            return [] as Array<Record<string, number | string>>;
+        }
+
+        const totalRow = stackedSegments.reduce(
+            (acc, segment) => {
+                acc[segment.key] = segment.percentage;
+                return acc;
+            },
+            { name: '시가총액 구성' } as Record<string, number | string>,
+        );
+
+        return [totalRow];
+    }, [stackedSegments]);
+
+    const stackedBarHeight = 92;
 
     if (!isClient || chartData.length === 0) {
         return (
@@ -207,7 +281,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
     }
 
     return (
-        <div className="grid h-full w-full grid-rows-[minmax(200px,1fr)_minmax(140px,0.8fr)_auto] gap-3">
+        <div className="grid h-full w-full grid-rows-[minmax(200px,1fr)_auto_auto] gap-2.5">
             <div className="relative min-h-[200px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                     <PieChart>
@@ -260,35 +334,45 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 )}
             </div>
 
-            <div className="relative" style={{ minHeight: barChartMinHeight }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={barChartMinHeight}>
-                    <BarChart data={chartData} layout="vertical" margin={{ top: 8, right: 32, bottom: 8, left: 12 }}>
-                        <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.35)" />
+            <div className="relative" style={{ minHeight: stackedBarHeight }}>
+                <ResponsiveContainer width="100%" height={stackedBarHeight} minWidth={200}>
+                    <BarChart data={stackedBarData} layout="vertical" margin={{ top: 12, right: 32, bottom: 12, left: 12 }}>
+                        <CartesianGrid horizontal={false} vertical={false} />
                         <XAxis type="number" domain={[0, 100]} hide />
                         <YAxis type="category" dataKey="name" hide />
                         <Tooltip
-                            content={<CustomTooltip selectedType={selectedType} />}
-                            cursor={{ fill: 'rgba(148, 163, 184, 0.16)' }}
+                            content={<StackedBarTooltip segments={stackedSegments} selectedType={selectedType} />}
+                            cursor={{ fill: 'rgba(148, 163, 184, 0.18)' }}
                         />
-                        <Bar dataKey="percentage" radius={[6, 6, 6, 6]} maxBarSize={32}>
-                            {chartData.map((entry, index) => {
-                                const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
-
-                                return (
-                                    <Cell
-                                        key={`bar-${index}`}
-                                        fill={entry.color}
-                                        fillOpacity={hasAnnotation ? (isHighlighted ? 0.95 : 0.35) : 0.9}
-                                    />
-                                );
-                            })}
-                            <LabelList dataKey="percentage" content={<BarPercentageLabel />} />
-                        </Bar>
+                        {stackedSegments.map((segment, index) => (
+                            <Bar
+                                key={segment.key}
+                                dataKey={segment.key}
+                                stackId="total"
+                                fill={segment.color}
+                                fillOpacity={hasAnnotation ? (segment.highlighted ? 0.95 : 0.35) : 0.9}
+                                radius={
+                                    index === stackedSegments.length - 1
+                                        ? [0, 10, 10, 0]
+                                        : index === 0
+                                            ? [10, 0, 0, 10]
+                                            : [0, 0, 0, 0]
+                                }
+                                isAnimationActive={false}
+                            />
+                        ))}
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
-            <div className="grid gap-1.5 text-[10px]">
+            <div
+                className={cn(
+                    'flex min-h-[44px] w-full items-center gap-3 overflow-x-auto rounded-lg border px-3 py-2 text-[10px]',
+                    hasAnnotation
+                        ? 'border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-900/30'
+                        : 'border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-900/40',
+                )}
+            >
                 {chartData.map((entry, index) => {
                     const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
 
@@ -296,34 +380,23 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                         <div
                             key={`legend-${index}`}
                             className={cn(
-                                'flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 transition-colors',
+                                'flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 transition-colors whitespace-nowrap',
                                 hasAnnotation
                                     ? isHighlighted
-                                        ? 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-200'
-                                        : 'border-transparent bg-slate-100/70 text-slate-400 dark:bg-slate-900/20 dark:text-slate-500'
-                                    : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-200',
+                                        ? 'border-slate-300 bg-white text-slate-700 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-100'
+                                        : 'border-transparent text-slate-400 dark:text-slate-500'
+                                    : 'border-slate-200 bg-white/70 text-slate-600 dark:border-slate-700/60 dark:bg-slate-900/60 dark:text-slate-200',
                             )}
                         >
-                            <div className="flex min-w-0 items-center gap-1.5">
-                                <span
-                                    className="h-2 w-2 flex-shrink-0 rounded-full"
-                                    style={{
-                                        backgroundColor: entry.color,
-                                        opacity: hasAnnotation && !isHighlighted ? 0.4 : 1,
-                                    }}
-                                />
-                                <span className="truncate">{entry.name}</span>
-                            </div>
                             <span
-                                className={cn(
-                                    'tabular-nums font-semibold',
-                                    hasAnnotation && !isHighlighted
-                                        ? 'text-slate-400 dark:text-slate-500'
-                                        : 'text-slate-600 dark:text-slate-200',
-                                )}
-                            >
-                                {entry.percentage.toFixed(1)}%
-                            </span>
+                                className="h-2 w-2 flex-shrink-0 rounded-full"
+                                style={{
+                                    backgroundColor: entry.color,
+                                    opacity: hasAnnotation && !isHighlighted ? 0.4 : 1,
+                                }}
+                            />
+                            <span className="font-medium">{entry.name}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{entry.percentage.toFixed(1)}%</span>
                         </div>
                     );
                 })}
