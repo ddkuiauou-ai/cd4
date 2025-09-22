@@ -167,6 +167,7 @@ interface StackedBarTooltipProps {
     segments: Array<{
         key: string;
         name: string;
+        label: string;
         percentage: number;
         value: number;
         color: string;
@@ -204,7 +205,9 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
                                 className="h-2.5 w-2.5 rounded-full"
                                 style={{ backgroundColor: segment.color }}
                             />
-                            <span className="text-xs text-gray-600 dark:text-gray-300">{segment.name}</span>
+                            <span className="text-xs text-gray-600 dark:text-gray-300" title={segment.name}>
+                                {segment.label}
+                            </span>
                         </div>
                         <div className="flex flex-col items-end">
                             <span className="text-[11px] font-semibold text-gray-900 dark:text-gray-100">
@@ -221,6 +224,28 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
     );
 };
 
+const getCompactLabel = (
+    item: ChartPieMarketcapProps['data'][number],
+    index: number,
+    typeCounts: Map<string, number>,
+    typeIndexes: Map<string, number>,
+) => {
+    const fallback = item.name?.replace(/\s+/g, '') || `구성 ${index + 1}`;
+    const baseKey = item.type || item.name || fallback;
+
+    const currentIndex = (typeIndexes.get(baseKey) ?? 0) + 1;
+    typeIndexes.set(baseKey, currentIndex);
+
+    const compactBase = item.type || item.name?.split(/\s+/)[0] || fallback;
+    const hasDuplicates = (typeCounts.get(baseKey) ?? 0) > 1;
+
+    if (hasDuplicates) {
+        return `${compactBase} ${currentIndex}`;
+    }
+
+    return compactBase;
+};
+
 export default function ChartPieMarketcap({ data, centerText, selectedType = '시가총액 구성' }: ChartPieMarketcapProps) {
     const [isClient, setIsClient] = useState(false);
 
@@ -228,14 +253,21 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
         setIsClient(true);
     }, []);
 
-    const chartData = useMemo(
-        () =>
-            data.map((item, index) => ({
-                ...item,
-                color: item.color || getSmartColor(item.name, index, selectedType),
-            })),
-        [data, selectedType],
-    );
+    const chartData = useMemo(() => {
+        const typeCounts = new Map<string, number>();
+        data.forEach((item) => {
+            const key = item.type || item.name || '';
+            typeCounts.set(key, (typeCounts.get(key) ?? 0) + 1);
+        });
+
+        const typeIndexes = new Map<string, number>();
+
+        return data.map((item, index) => ({
+            ...item,
+            color: item.color || getSmartColor(item.name, index, selectedType),
+            compactLabel: getCompactLabel(item, index, typeCounts, typeIndexes),
+        }));
+    }, [data, selectedType]);
 
     const hasAnnotation = useMemo(() => Boolean(selectedType && selectedType !== '시가총액 구성'), [selectedType]);
 
@@ -244,6 +276,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
             chartData.map((item, index) => ({
                 key: `segment_${index}`,
                 name: item.name,
+                label: item.compactLabel,
                 percentage: item.percentage,
                 value: item.value,
                 color: item.color,
@@ -268,7 +301,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
         return [totalRow];
     }, [stackedSegments]);
 
-    const stackedBarHeight = 88;
+    const stackedBarHeight = 68;
 
     if (!isClient || chartData.length === 0) {
         return (
@@ -281,9 +314,9 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
     }
 
     return (
-        <div className="flex h-full w-full flex-col gap-5">
-            <div className="relative min-h-[220px] flex-1">
-                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+        <div className="flex h-full w-full flex-col gap-4">
+            <div className="relative min-h-[240px] flex-1">
+                <ResponsiveContainer width="100%" height="100%" minWidth={220} minHeight={240}>
                     <PieChart>
                         <Pie
                             data={chartData}
@@ -291,8 +324,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             cy="50%"
                             labelLine={false}
                             label={CustomLabel}
-                            outerRadius="72%" // 70% → 72%로 약간 확대 (290px 높이에 맞춤)
-                            innerRadius="29%" // 28% → 29%로 비례 조정
+                            outerRadius="78%"
+                            innerRadius="26%"
                             fill="#8884d8"
                             dataKey="value"
                             stroke="#ffffff"
@@ -334,10 +367,10 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 )}
             </div>
 
-            <div className="flex flex-col gap-3">
-                <div className="relative" style={{ minHeight: stackedBarHeight }}>
-                    <ResponsiveContainer width="100%" height={stackedBarHeight} minWidth={200}>
-                        <BarChart data={stackedBarData} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
+            <div className="flex flex-col gap-2.5">
+                <div className="relative flex items-center justify-center" style={{ minHeight: stackedBarHeight }}>
+                    <ResponsiveContainer width="90%" height={stackedBarHeight} minWidth={200}>
+                        <BarChart data={stackedBarData} layout="vertical" margin={{ top: 6, right: 12, bottom: 6, left: 12 }}>
                             <CartesianGrid horizontal={false} vertical={false} />
                             <XAxis type="number" domain={[0, 100]} hide />
                             <YAxis type="category" dataKey="name" hide />
@@ -360,7 +393,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                     </ResponsiveContainer>
                 </div>
 
-                <div className="space-y-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                     {chartData.map((entry, index) => {
                         const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
 
@@ -368,7 +401,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             <div
                                 key={`legend-${index}`}
                                 className={cn(
-                                    'flex items-center justify-between gap-3 border-b border-slate-200/60 pb-2 last:border-b-0 last:pb-0 dark:border-slate-700/60',
+                                    'flex items-center justify-between gap-3 border-b border-slate-200/50 pb-1.5 last:border-b-0 last:pb-0 dark:border-slate-700/50',
                                     hasAnnotation && !isHighlighted ? 'opacity-50' : 'opacity-100',
                                 )}
                             >
@@ -380,7 +413,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                                             opacity: hasAnnotation && !isHighlighted ? 0.6 : 1,
                                         }}
                                     />
-                                    <span className="font-medium tracking-tight">{entry.name}</span>
+                                    <span className="font-medium tracking-tight whitespace-nowrap">{entry.compactLabel}</span>
                                 </div>
                                 <div className="flex items-baseline gap-2 text-right">
                                     <span className="font-semibold text-slate-900 dark:text-slate-100">
