@@ -1,9 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { Balancer } from "react-wrap-balancer";
+
+import CompanyLogo from "@/components/CompanyLogo";
+import { CommandMenu } from "@/components/command-menu";
 import { MainNav } from "@/components/main-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ModeToggle } from "@/components/mode-toggle";
-import { CommandMenu } from "@/components/command-menu";
+import { useMobileHeader } from "@/components/mobile-header-context";
+import { cn } from "@/lib/utils";
 
 // Define props for SiteHeader to accept searchData
 interface SiteHeaderProps {
@@ -16,8 +23,14 @@ interface SiteHeaderProps {
   }[];
 }
 
-const Logo = () => (
-  <Link href="/" className="flex items-center space-x-2">
+const Logo = ({ showMobileVariant = true }: { showMobileVariant?: boolean }) => (
+  <Link
+    href="/"
+    className={cn(
+      "items-center space-x-2",
+      showMobileVariant ? "flex" : "hidden sm:flex"
+    )}
+  >
     {/* Default (sm and up) */}
     <div className="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group">
       <span
@@ -44,33 +57,64 @@ const Logo = () => (
     </div>
 
     {/* XS layout */}
-    <div className="flex sm:hidden items-center space-x-1.5 px-2 py-2 rounded-lg transition-all duration-300 group">
-      <span
-        className="font-serif font-bold text-lg text-rose-500 transition-all duration-300"
-        style={{ textShadow: "-1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000" }}
-      >
-        천하
-      </span>
-      <div className="relative">
-        <Image
-          src="/icon.svg"
-          alt="로고"
-          width={24}
-          height={24}
-          className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12"
-        />
+    {showMobileVariant ? (
+      <div className="flex sm:hidden items-center space-x-1.5 px-2 py-2 rounded-lg transition-all duration-300 group">
+        <span
+          className="font-serif font-bold text-lg text-rose-500 transition-all duration-300"
+          style={{ textShadow: "-1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000" }}
+        >
+          천하
+        </span>
+        <div className="relative">
+          <Image
+            src="/icon.svg"
+            alt="로고"
+            width={24}
+            height={24}
+            className="h-6 w-6 transition-transform duration-300 group-hover:rotate-12"
+          />
+        </div>
+        <span
+          className="font-serif font-bold text-lg text-rose-500 transition-all duration-300"
+          style={{ textShadow: "-1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000" }}
+        >
+          제일
+        </span>
       </div>
-      <span
-        className="font-serif font-bold text-lg text-rose-500 transition-all duration-300"
-        style={{ textShadow: "-1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000" }}
-      >
-        제일
-      </span>
-    </div>
+    ) : null}
   </Link>
 );
 
+function MobileCompanyIdentity({
+  displayName,
+  companyName,
+  logoUrl,
+}: {
+  displayName: string;
+  companyName?: string | null;
+  logoUrl?: string | null;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-lg px-2 py-1.5 sm:hidden">
+      <CompanyLogo
+        companyName={companyName ?? displayName}
+        logoUrl={logoUrl}
+        size={40}
+        className="h-10 w-10 flex-shrink-0 shadow-sm"
+      />
+      <div className="min-w-0">
+        <h1 className="font-heading text-lg font-bold leading-tight tracking-tight">
+          <Balancer>{displayName} 시가총액</Balancer>
+        </h1>
+      </div>
+    </div>
+  );
+}
+
 export function SiteHeader({ searchData }: SiteHeaderProps) {
+  const { content } = useMobileHeader();
+  const showMobileCompany = content?.type === "company";
+
   return (
     <header
       data-site-header
@@ -78,7 +122,14 @@ export function SiteHeader({ searchData }: SiteHeaderProps) {
     >
       <div className="container mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <Logo />
+          <Logo showMobileVariant={!showMobileCompany} />
+          {showMobileCompany && content ? (
+            <MobileCompanyIdentity
+              displayName={content.displayName}
+              companyName={content.companyName}
+              logoUrl={content.logoUrl}
+            />
+          ) : null}
           <div className="hidden md:block">
             <MainNav />
           </div>
