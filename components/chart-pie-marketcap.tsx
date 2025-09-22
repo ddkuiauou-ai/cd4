@@ -268,7 +268,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = 'Ïã
         return [totalRow];
     }, [stackedSegments]);
 
-    const stackedBarHeight = 92;
+    const stackedBarHeight = 88;
 
     if (!isClient || chartData.length === 0) {
         return (
@@ -281,8 +281,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = 'Ïã
     }
 
     return (
-        <div className="grid h-full w-full grid-rows-[minmax(200px,1fr)_auto_auto] gap-2.5">
-            <div className="relative min-h-[200px]">
+        <div className="flex h-full w-full flex-col gap-5">
+            <div className="relative min-h-[220px] flex-1">
                 <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                     <PieChart>
                         <Pie
@@ -334,72 +334,64 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = 'Ïã
                 )}
             </div>
 
-            <div className="relative" style={{ minHeight: stackedBarHeight }}>
-                <ResponsiveContainer width="100%" height={stackedBarHeight} minWidth={200}>
-                    <BarChart data={stackedBarData} layout="vertical" margin={{ top: 12, right: 32, bottom: 12, left: 12 }}>
-                        <CartesianGrid horizontal={false} vertical={false} />
-                        <XAxis type="number" domain={[0, 100]} hide />
-                        <YAxis type="category" dataKey="name" hide />
-                        <Tooltip
-                            content={<StackedBarTooltip segments={stackedSegments} selectedType={selectedType} />}
-                            cursor={{ fill: 'rgba(148, 163, 184, 0.18)' }}
-                        />
-                        {stackedSegments.map((segment, index) => (
-                            <Bar
-                                key={segment.key}
-                                dataKey={segment.key}
-                                stackId="total"
-                                fill={segment.color}
-                                fillOpacity={hasAnnotation ? (segment.highlighted ? 0.95 : 0.35) : 0.9}
-                                radius={
-                                    index === stackedSegments.length - 1
-                                        ? [0, 10, 10, 0]
-                                        : index === 0
-                                            ? [10, 0, 0, 10]
-                                            : [0, 0, 0, 0]
-                                }
-                                isAnimationActive={false}
+            <div className="flex flex-col gap-3">
+                <div className="relative" style={{ minHeight: stackedBarHeight }}>
+                    <ResponsiveContainer width="100%" height={stackedBarHeight} minWidth={200}>
+                        <BarChart data={stackedBarData} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
+                            <CartesianGrid horizontal={false} vertical={false} />
+                            <XAxis type="number" domain={[0, 100]} hide />
+                            <YAxis type="category" dataKey="name" hide />
+                            <Tooltip
+                                content={<StackedBarTooltip segments={stackedSegments} selectedType={selectedType} />}
+                                cursor={{ fill: 'rgba(148, 163, 184, 0.18)' }}
                             />
-                        ))}
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+                            {stackedSegments.map((segment, index) => (
+                                <Bar
+                                    key={segment.key}
+                                    dataKey={segment.key}
+                                    stackId="total"
+                                    fill={segment.color}
+                                    fillOpacity={hasAnnotation ? (segment.highlighted ? 0.95 : 0.35) : 0.9}
+                                    radius={0}
+                                    isAnimationActive={false}
+                                />
+                            ))}
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
 
-            <div
-                className={cn(
-                    'flex min-h-[44px] w-full items-center gap-3 overflow-x-auto rounded-lg border px-3 py-2 text-[10px]',
-                    hasAnnotation
-                        ? 'border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-900/30'
-                        : 'border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-900/40',
-                )}
-            >
-                {chartData.map((entry, index) => {
-                    const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
+                <div className="space-y-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    {chartData.map((entry, index) => {
+                        const isHighlighted = shouldHighlightSegment(entry.name, selectedType);
 
-                    return (
-                        <div
-                            key={`legend-${index}`}
-                            className={cn(
-                                'flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 transition-colors whitespace-nowrap',
-                                hasAnnotation
-                                    ? isHighlighted
-                                        ? 'border-slate-300 bg-white text-slate-700 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-100'
-                                        : 'border-transparent text-slate-400 dark:text-slate-500'
-                                    : 'border-slate-200 bg-white/70 text-slate-600 dark:border-slate-700/60 dark:bg-slate-900/60 dark:text-slate-200',
-                            )}
-                        >
-                            <span
-                                className="h-2 w-2 flex-shrink-0 rounded-full"
-                                style={{
-                                    backgroundColor: entry.color,
-                                    opacity: hasAnnotation && !isHighlighted ? 0.4 : 1,
-                                }}
-                            />
-                            <span className="font-medium">{entry.name}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{entry.percentage.toFixed(1)}%</span>
-                        </div>
-                    );
-                })}
+                        return (
+                            <div
+                                key={`legend-${index}`}
+                                className={cn(
+                                    'flex items-center justify-between gap-3 border-b border-slate-200/60 pb-2 last:border-b-0 last:pb-0 dark:border-slate-700/60',
+                                    hasAnnotation && !isHighlighted ? 'opacity-50' : 'opacity-100',
+                                )}
+                            >
+                                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                                    <span
+                                        className="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-sm"
+                                        style={{
+                                            backgroundColor: entry.color,
+                                            opacity: hasAnnotation && !isHighlighted ? 0.6 : 1,
+                                        }}
+                                    />
+                                    <span className="font-medium tracking-tight">{entry.name}</span>
+                                </div>
+                                <div className="flex items-baseline gap-2 text-right">
+                                    <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                        {entry.percentage.toFixed(1)}%
+                                    </span>
+                                    <span>{formatNumber(entry.value)}Ïõê</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
