@@ -32,6 +32,18 @@ const DEFAULT_BACKGROUND: CSSProperties = {
         "linear-gradient(180deg, rgba(249,115,22,0.09) 0px, rgba(249,115,22,0.05) 120px, rgba(249,115,22,0.025) 280px, rgba(249,115,22,0) 520px)",
 };
 
+const EDGE_TO_EDGE_SECTION_CLASS =
+    "relative -mx-4 space-y-6 border-y px-4 py-6 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
+
+const MARQUEE_CARD_STYLE: CSSProperties = {
+    width: "min(calc((100vw - 16px) / 5.5), 140px)",
+    height: "min(calc((100vw - 16px) / 5.5), 140px)",
+    minWidth: "96px",
+    minHeight: "96px",
+    maxWidth: "140px",
+    maxHeight: "140px",
+};
+
 export function KeyMetricsSection({
     companyMarketcapData,
     companySecs,
@@ -344,7 +356,7 @@ export function KeyMetricsSection({
     return (
         <section
             id="indicators"
-            className="relative space-y-8 overflow-hidden rounded-3xl border border-orange-200/70 px-6 py-8 shadow-sm dark:border-orange-900/40 dark:bg-orange-950/20"
+            className={`${EDGE_TO_EDGE_SECTION_CLASS} border-orange-200/70 dark:border-orange-900/40 dark:bg-orange-950/20`}
             style={backgroundStyle ?? DEFAULT_BACKGROUND}
         >
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-orange-700/80">
@@ -382,7 +394,7 @@ export function KeyMetricsSection({
                 contentStyle={{ minWidth: "fit-content" }}
             >
                     {/* 시총 랭킹 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 if (selectedSecurityType === "시가총액 구성") {
@@ -448,7 +460,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 현재 시가총액 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('current');
@@ -476,7 +488,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 현재 주가 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             <span className="text-xl sm:text-2xl md:text-3xl">{getCurrentPrice()}</span>
                             <span className="text-sm sm:text-base ml-1">원</span>
@@ -494,7 +506,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 12개월 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('avg12m');
@@ -521,7 +533,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 3년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('avg3y');
@@ -547,7 +559,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 5년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('avg5y');
@@ -573,7 +585,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 10년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('avg10y');
@@ -599,7 +611,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 전체 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('avgAll');
@@ -617,7 +629,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 최저 시총 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('min');
@@ -634,7 +646,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 최고 시총 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             {(() => {
                                 const value = getMetricValue('max');
@@ -651,7 +663,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 최고 보통주 비중 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             <span className="text-xl sm:text-2xl md:text-3xl">
                                 {(() => {
@@ -676,7 +688,7 @@ export function KeyMetricsSection({
                     </div>
 
                     {/* 최저 보통주 비중 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={{ width: 'calc((100vw - 32px - 5px) / 6)', minWidth: '100px', height: 'calc((100vw - 32px - 5px) / 6)', minHeight: '100px', maxWidth: '140px', maxHeight: '140px' }}>
+                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
                         <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                             <span className="text-xl sm:text-2xl md:text-3xl">
                                 {(() => {
