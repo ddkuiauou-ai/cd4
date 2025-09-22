@@ -301,7 +301,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
         return [totalRow];
     }, [stackedSegments]);
 
-    const stackedBarHeight = 68;
+    const stackedBarHeight = 56;
 
     if (!isClient || chartData.length === 0) {
         return (
@@ -314,9 +314,9 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
     }
 
     return (
-        <div className="flex h-full w-full flex-col gap-4">
-            <div className="relative min-h-[240px] flex-1">
-                <ResponsiveContainer width="100%" height="100%" minWidth={220} minHeight={240}>
+        <div className="flex h-full w-full flex-col gap-3.5">
+            <div className="relative min-h-[200px] flex-1">
+                <ResponsiveContainer width="100%" height="100%" minWidth={220} minHeight={200}>
                     <PieChart>
                         <Pie
                             data={chartData}
@@ -367,7 +367,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 )}
             </div>
 
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
                 <div className="relative flex items-center justify-center" style={{ minHeight: stackedBarHeight }}>
                     <ResponsiveContainer width="90%" height={stackedBarHeight} minWidth={200}>
                         <BarChart data={stackedBarData} layout="vertical" margin={{ top: 6, right: 12, bottom: 6, left: 12 }}>
@@ -394,7 +394,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 </div>
 
                 <div
-                    className="flex flex-nowrap items-center overflow-x-auto text-[11px] text-slate-500 dark:text-slate-400"
+                    className="flex w-full flex-nowrap items-center justify-center overflow-x-auto text-center text-[11px] text-slate-500 dark:text-slate-400"
                     role="list"
                     aria-label="시가총액 구성 종목"
                 >

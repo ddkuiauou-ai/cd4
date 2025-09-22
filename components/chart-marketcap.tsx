@@ -191,7 +191,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
   if (!isClient || !data || data.length === 0) {
     return (
-      <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] flex items-center justify-center">
+      <div className="w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px] flex items-center justify-center">
         <div className="text-sm text-gray-500 dark:text-gray-400">
           {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
         </div>
@@ -200,8 +200,8 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   }
 
   return (
-    <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px]">
-      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={250}>
+    <div className="w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px]">
+      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200}>
         <LineChart
           data={safeData}
           margin={{ top: 8, right: 12, left: 8, bottom: 10 }}
