@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatNumber, formatDate } from "@/lib/utils";
+import { cn, formatNumber, formatDate } from "@/lib/utils";
 import ChartPieMarketcap from "@/components/chart-pie-marketcap";
 import type { CompanyMarketcapAggregated } from "@/lib/data/company";
 
@@ -43,6 +43,13 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
             type: security.type || '보통주'
         }));
 
+    const chartContainerHeights: Record<typeof screenSize, string> = {
+        mobile: "h-[360px] min-h-[360px]",
+        tablet: "h-[380px] min-h-[380px]",
+        desktop: "h-[420px] min-h-[420px]",
+        "desktop-sidebar": "h-[400px] min-h-[400px]",
+    };
+
     return (
         <Card className="flex h-full w-full flex-col">
             <CardHeader className="space-y-2 px-5 pt-5 pb-3">
@@ -62,57 +69,16 @@ export default function CardCompanyMarketcap({ data, market = "KOSPI", selectedT
             <CardContent className="flex flex-1 flex-col px-5 pb-5 pt-0">
                 <div className="flex-1 space-y-3">
                     <div className="w-full">
-                        {screenSize === 'mobile' && (
-                            <div className="h-[200px] min-h-[200px]">
-                                <ChartPieMarketcap
-                                    data={chartData}
-                                    centerText={{
-                                        title: "총액",
-                                        value: formatNumber(data.totalMarketcap)
-                                    }}
-                                    selectedType={selectedType}
-                                />
-                            </div>
-                        )}
-
-                        {screenSize === 'tablet' && (
-                            <div className="h-[240px] min-h-[240px]">
-                                <ChartPieMarketcap
-                                    data={chartData}
-                                    centerText={{
-                                        title: "총액",
-                                        value: formatNumber(data.totalMarketcap)
-                                    }}
-                                    selectedType={selectedType}
-                                />
-                            </div>
-                        )}
-
-                        {screenSize === 'desktop' && (
-                            <div className="h-[280px] min-h-[280px]">
-                                <ChartPieMarketcap
-                                    data={chartData}
-                                    centerText={{
-                                        title: "총액",
-                                        value: formatNumber(data.totalMarketcap)
-                                    }}
-                                    selectedType={selectedType}
-                                />
-                            </div>
-                        )}
-
-                        {screenSize === 'desktop-sidebar' && (
-                            <div className="h-[260px] min-h-[260px]">
-                                <ChartPieMarketcap
-                                    data={chartData}
-                                    centerText={{
-                                        title: "총액",
-                                        value: formatNumber(data.totalMarketcap)
-                                    }}
-                                    selectedType={selectedType}
-                                />
-                            </div>
-                        )}
+                        <div className={cn("w-full", chartContainerHeights[screenSize])}>
+                            <ChartPieMarketcap
+                                data={chartData}
+                                centerText={{
+                                    title: "총액",
+                                    value: formatNumber(data.totalMarketcap)
+                                }}
+                                selectedType={selectedType}
+                            />
+                        </div>
                     </div>
                 </div>
             </CardContent>
