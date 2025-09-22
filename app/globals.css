@@ -157,6 +157,13 @@
   }
 }
 
+@layer components {
+  .securities-card-surface {
+    background-color: var(--muted);
+    background-color: color-mix(in oklch, var(--background) 70%, var(--muted) 30%);
+  }
+}
+
 /* Enhanced visual hierarchy for financial data */
 /* Add specific typography and color emphasis for key financial values */
 

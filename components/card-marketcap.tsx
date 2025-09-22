@@ -156,8 +156,8 @@ function cardMarketcap({
       return "bg-background text-foreground border border-border shadow-sm";
     }
 
-    // CM-1-3A-2: 기본 상태 스타일 (회색 배경 + 투명 테두리 + 투명 그림자로 공간 유지)
-    return "bg-muted/30 hover:bg-muted/50 transition-all duration-200 border border-transparent shadow-sm shadow-transparent";
+    // CM-1-3A-2: 기본 상태 스타일 (불투명 카드 배경으로 섹션 배경 투과 방지)
+    return "securities-card-surface text-card-foreground transition-all duration-200 border border-border/60 hover:border-border hover:shadow-sm";
   };
 
   /*
