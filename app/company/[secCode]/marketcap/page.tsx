@@ -533,6 +533,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               market={market}
               currentTicker={currentTicker}
               baseUrl="security"
+              highlightActiveTicker={false}
             />
           </div>
         </section>
@@ -856,6 +857,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               compactMode={false}
               baseUrl="security"
               currentMetric="marketcap"
+              highlightActiveTicker={false}
             />
           )}
         </div>
