@@ -17,6 +17,12 @@ interface StickyCompanyHeaderProps {
    * header cannot be measured on the client.
    */
   stickyOffset?: number;
+  titleSuffix?: string | null;
+  detail?: {
+    label?: string | null;
+    value?: string | null;
+    badge?: string | null;
+  } | null;
 }
 
 const DEFAULT_STICKY_OFFSET = 80; // matches Tailwind's top-20 (5rem)
@@ -26,6 +32,8 @@ export function StickyCompanyHeader({
   companyName,
   logoUrl,
   stickyOffset = DEFAULT_STICKY_OFFSET,
+  titleSuffix = "시가총액",
+  detail,
 }: StickyCompanyHeaderProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [isPinned, setIsPinned] = useState(false);
@@ -161,6 +169,8 @@ export function StickyCompanyHeader({
         displayName,
         companyName,
         logoUrl,
+        titleSuffix,
+        detail,
       });
     } else {
       setMobileHeaderContent(null);
@@ -175,11 +185,15 @@ export function StickyCompanyHeader({
     displayName,
     companyName,
     logoUrl,
+    titleSuffix,
+    detail,
     setMobileHeaderContent,
   ]);
 
   const logoSize = isPinned ? 40 : 56;
   const shouldHideForMobile = isPinned && isSmallScreen;
+
+  const headingText = titleSuffix ? `${displayName} ${titleSuffix}` : displayName;
 
   return (
     <>
@@ -218,8 +232,35 @@ export function StickyCompanyHeader({
                 isPinned ? "text-xl sm:text-2xl" : "text-3xl md:text-4xl lg:text-5xl"
               )}
             >
-              <Balancer>{displayName} 시가총액</Balancer>
+              <Balancer>{headingText}</Balancer>
             </h1>
+            {(detail?.value || detail?.label || detail?.badge) && (
+              <div
+                className={cn(
+                  "mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1",
+                  isPinned ? "text-sm" : "text-base"
+                )}
+              >
+                <div className="flex items-baseline gap-2">
+                  {detail?.label && (
+                    <span className="text-sm text-muted-foreground">{detail.label}</span>
+                  )}
+                  {detail?.value && (
+                    <span
+                      className={cn(
+                        "font-semibold text-foreground",
+                        isPinned ? "text-lg" : "text-xl"
+                      )}
+                    >
+                      {detail.value}
+                    </span>
+                  )}
+                </div>
+                {detail?.badge && (
+                  <span className="text-xs text-muted-foreground">{detail.badge}</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
