@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { formatNumberWithSeparateUnit } from "@/lib/utils";
 
@@ -27,7 +27,6 @@ export function KeyMetricsSidebar({
     selectedSecurityTypeOverride,
 }: KeyMetricsSidebarProps) {
     const pathname = usePathname();
-    const searchParams = useSearchParams();
 
     const pathTicker = useMemo(() => {
         const pathParts = pathname.split('/');
@@ -48,23 +47,23 @@ export function KeyMetricsSidebar({
     const selectedSecurityType = useMemo(() => {
         if (selectedSecurityTypeOverride) return selectedSecurityTypeOverride;
         if (!companyMarketcapData || !companySecs.length) return "시가총액 구성";
-        if (!resolvedTicker) return "시가총액 구성";
+        if (!resolvedTicker || !resolvedCurrentSecurity) return "시가총액 구성";
 
-        if (!resolvedCurrentSecurity) return "시가총액 구성";
+        const securityType = resolvedCurrentSecurity.type || "";
+        const isCommonStock = securityType.includes("보통주");
+        const isPreferredStock = securityType.includes("우선주");
+        const onSecurityRoute = pathname.includes("/security/");
 
-        // 보통주인지 확인
-        const isCommonStock = resolvedCurrentSecurity.type?.includes("보통주");
-
-        if (isCommonStock) {
-            // 보통주의 경우: focus=stock 여부로 결정
-            const focusStock = searchParams.get('focus') === 'stock';
-            return focusStock ? "보통주" : "시가총액 구성";
-        } else {
-            // 우선주 등: 항상 개별 종목 어노테이션
-            if (resolvedCurrentSecurity.type?.includes("우선주")) return "우선주";
-            return "시가총액 구성";
+        if (isPreferredStock) {
+            return "우선주";
         }
-    }, [selectedSecurityTypeOverride, companyMarketcapData, companySecs, resolvedTicker, resolvedCurrentSecurity, searchParams]);
+
+        if (onSecurityRoute) {
+            return isCommonStock ? "보통주" : securityType || "시가총액 구성";
+        }
+
+        return "시가총액 구성";
+    }, [selectedSecurityTypeOverride, companyMarketcapData, companySecs, resolvedTicker, resolvedCurrentSecurity, pathname]);
 
     // 날짜 기반 데이터 필터링 헬퍼
     const getDataByPeriod = (months: number) => {

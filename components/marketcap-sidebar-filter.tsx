@@ -19,12 +19,8 @@ export function MarketcapSidebarFilter({
     const pathname = usePathname();
 
     // 필터 버튼 클릭 핸들러
-    const handleFilterClick = (secType: string) => {
-        if (secType.includes("보통주") || secType.includes("우선주")) {
-            window.history.pushState(null, '', `${pathname}?focus=stock`);
-        } else {
-            window.history.pushState(null, '', pathname); // 파라미터 제거
-        }
+    const handleFilterClick = () => {
+        window.history.pushState(null, '', pathname);
         // 페이지 새로고침하여 차트 업데이트
         window.location.reload();
     };
@@ -51,7 +47,7 @@ export function MarketcapSidebarFilter({
                     return (
                         <button
                             key={sec.securityId}
-                            onClick={() => handleFilterClick(sec.type || "")}
+                            onClick={handleFilterClick}
                             className={`block w-full p-3 rounded-lg border transition-all hover:shadow-sm text-left ${isCurrentSecurity
                                     ? 'bg-primary/5 border-primary/20 shadow-sm'
                                     : 'hover:bg-muted/50'

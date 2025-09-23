@@ -338,29 +338,16 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
   const periodAnalysis = calculatePeriodAnalysis();
 
-  // URL 파라미터와 종목 정보 기반 어노테이션 타입 결정
-  const getSelectedTypeFromFocusAndSecurity = (
-    focus: string | string[] | undefined,
-    security: any
-  ): string => {
-    const hasFocusParam = focus === "stock";
+  const getDefaultSelectedType = (security: any): string => {
     const isCommonStock = security?.type?.includes("보통주");
     const isPreferredStock = security?.type?.includes("우선주");
 
-    if (hasFocusParam) {
-      // focus=stock: 해당 개별 종목만 어노테이션
-      if (isCommonStock) return "보통주";
-      if (isPreferredStock) return "우선주";
-      return "시가총액 구성";
-    } else {
-      // 기본 상태: 보통주는 전체 표시, 우선주는 항상 강조
-      if (isCommonStock) return "시가총액 구성";
-      if (isPreferredStock) return "우선주";
-      return "시가총액 구성";
-    }
+    if (isPreferredStock) return "우선주";
+    if (isCommonStock) return "시가총액 구성";
+    return "시가총액 구성";
   };
 
-  const selectedType = getSelectedTypeFromFocusAndSecurity(undefined, security);
+  const selectedType = getDefaultSelectedType(security);
 
   const hasMarketcapDetails = Boolean(
     companyMarketcapData?.aggregatedHistory?.length && companyMarketcapData?.securities?.length
