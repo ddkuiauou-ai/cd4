@@ -77,11 +77,15 @@ export async function generateMetadata({ params }: SecurityMarketcapPageProps) {
 const formatHistoryEntry = (
   entry: { date: Date | string; marketcap: number | string | null },
 ): { date: Date; value: number } | null => {
+  if (entry.marketcap === null || entry.marketcap === undefined) {
+    return null;
+  }
+
   const date = entry.date instanceof Date ? entry.date : new Date(entry.date);
   const value =
     typeof entry.marketcap === "number"
       ? entry.marketcap
-      : Number(entry.marketcap ?? 0);
+      : Number(entry.marketcap);
 
   if (!Number.isFinite(value) || Number.isNaN(date.getTime())) {
     return null;
