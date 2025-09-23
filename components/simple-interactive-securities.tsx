@@ -284,8 +284,6 @@ export function InteractiveSecuritiesSection({
         return (
             <div className="space-y-3">
                 {displaySecurities.map((security: any) => {
-                    const isCurrentSecurity = security.data?.ticker === currentTicker;
-                    const latestMarketcap = security.data?.marketcaps?.[0]?.marketcap || 0;
 
                     return (
                         <div
@@ -312,7 +310,7 @@ export function InteractiveSecuritiesSection({
                                 <CardMarketcap
                                     security={security.data as any}
                                     market={market}
-                                    isSelected={isCurrentSecurity}
+                                    isSelected={false}
                                     isCompanyPage={true}
                                     currentMetric={currentMetric}
                                 />
