@@ -51,6 +51,7 @@ interface InteractiveSecuritiesSectionProps {
     showSummaryCard?: boolean; // 시가총액 구성 카드 표시 여부
     compactMode?: boolean; // 간결한 UI 모드
     highlightActiveTicker?: boolean; // 활성화된 종목 강조 여부
+    defaultFilter?: FilterType; // 초기 선택 필터
 }
 
 /**
@@ -70,13 +71,14 @@ export function InteractiveSecuritiesSection({
     maxItems,
     showSummaryCard = true,
     compactMode = false,
-    highlightActiveTicker = true
+    highlightActiveTicker = true,
+    defaultFilter = "all"
 }: InteractiveSecuritiesSectionProps) {
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
     const [mounted, setMounted] = useState(false);
-    const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
+    const [selectedFilter, setSelectedFilter] = useState<FilterType>(defaultFilter);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [clickedButton, setClickedButton] = useState<string | null>(null);
 
@@ -181,7 +183,7 @@ export function InteractiveSecuritiesSection({
 
             // 보통주 URL로 이동 (focus=stock 없음 → 시가총액 구성 어노테이션)
             const secCode = `${representativeSecurity.data.exchange}.${representativeSecurity.data.ticker}`;
-            const newUrl = `/${baseUrl}/${secCode}/${currentMetric}`;
+            const newUrl = `/company/${secCode}/${currentMetric}`;
 
             // 클라이언트 사이드 네비게이션
             router.push(newUrl, { scroll: false });
@@ -234,18 +236,18 @@ export function InteractiveSecuritiesSection({
     // 초기 필터 설정 - URL 파라미터 고려
     useEffect(() => {
         if (!mounted || !hasValidData) {
-            setSelectedFilter("all");
+            setSelectedFilter(defaultFilter);
             return;
         }
 
         if (!highlightActiveTicker) {
-            setSelectedFilter("all");
+            setSelectedFilter(defaultFilter);
             return;
         }
 
         const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
         if (!currentSecurity) {
-            setSelectedFilter("all");
+            setSelectedFilter(defaultFilter);
             return;
         }
 
@@ -258,9 +260,9 @@ export function InteractiveSecuritiesSection({
             setSelectedFilter(focusStock ? "보통주" : "시가총액 구성");
         } else {
             // 우선주 등: 종목 타입으로 설정
-            setSelectedFilter(currentSecurity.type || "all");
+            setSelectedFilter(currentSecurity.type || defaultFilter);
         }
-    }, [mounted, currentTicker, companySecs, hasValidData, highlightActiveTicker]);
+    }, [mounted, currentTicker, companySecs, hasValidData, highlightActiveTicker, defaultFilter]);
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -451,7 +453,7 @@ export function InteractiveSecuritiesSection({
                             <MarketcapSummaryExpandable
                                 data={companyMarketcapData}
                                 filterType={selectedFilter as any}
-                                isSelected={highlightActiveTicker && selectedFilter === "시가총액 구성"}
+                                isSelected={selectedFilter === "시가총액 구성"}
                             />
                         </div>
                     </div>

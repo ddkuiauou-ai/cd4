@@ -136,6 +136,9 @@ function cardMarketcap({
 
     // CM-1-2A-3: 메트릭별 경로 분기
     if (currentMetric === "marketcap") {
+      if (isCompanyPage) {
+        return `/security/${securityId}/marketcap`;
+      }
       return `/company/${securityId}/marketcap`;        // 회사 컨텍스트
     } else {
       return `/security/${securityId}/${currentMetric}`; // 종목 컨텍스트

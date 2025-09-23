@@ -534,6 +534,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               currentTicker={currentTicker}
               baseUrl="security"
               highlightActiveTicker={false}
+              defaultFilter="시가총액 구성"
             />
           </div>
         </section>
@@ -858,6 +859,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               baseUrl="security"
               currentMetric="marketcap"
               highlightActiveTicker={false}
+              defaultFilter="시가총액 구성"
             />
           )}
         </div>
