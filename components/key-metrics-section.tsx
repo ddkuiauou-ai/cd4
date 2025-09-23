@@ -24,6 +24,8 @@ interface KeyMetricsSectionProps {
         description?: string;
     };
     backgroundStyle?: CSSProperties;
+    currentTickerOverride?: string;
+    selectedSecurityTypeOverride?: string;
 }
 
 const DEFAULT_BACKGROUND: CSSProperties = {
@@ -52,27 +54,37 @@ export function KeyMetricsSection({
     marketCapRanking,
     activeMetric,
     backgroundStyle,
+    currentTickerOverride,
+    selectedSecurityTypeOverride,
 }: KeyMetricsSectionProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    // 현재 선택된 종목 타입 실시간 감지
-    const selectedSecurityType = useMemo(() => {
-        if (!companyMarketcapData || !companySecs.length) return "시가총액 구성";
-
+    const pathTicker = useMemo(() => {
         const pathParts = pathname.split('/');
         const secCodePart = pathParts.find(part => part.includes('.'));
-        if (!secCodePart) return "시가총액 구성";
+        if (!secCodePart) return null;
+        const tickerFromPath = secCodePart.split('.')[1];
+        return tickerFromPath ?? null;
+    }, [pathname]);
 
-        const currentTicker = secCodePart.split('.')[1];
-        if (!currentTicker) return "시가총액 구성";
+    const resolvedTicker = currentTickerOverride ?? pathTicker ?? undefined;
 
-        // 현재 종목 정보 조회
-        const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
-        if (!currentSecurity) return "시가총액 구성";
+    const resolvedCurrentSecurity = useMemo(() => {
+        if (!resolvedTicker) return undefined;
+        return companySecs.find(sec => sec.ticker === resolvedTicker);
+    }, [companySecs, resolvedTicker]);
+
+    // 현재 선택된 종목 타입 실시간 감지
+    const selectedSecurityType = useMemo(() => {
+        if (selectedSecurityTypeOverride) return selectedSecurityTypeOverride;
+        if (!companyMarketcapData || !companySecs.length) return "시가총액 구성";
+        if (!resolvedTicker) return "시가총액 구성";
+
+        if (!resolvedCurrentSecurity) return "시가총액 구성";
 
         // 보통주인지 확인
-        const isCommonStock = currentSecurity.type?.includes("보통주");
+        const isCommonStock = resolvedCurrentSecurity.type?.includes("보통주");
 
         if (isCommonStock) {
             // 보통주의 경우: focus=stock 여부로 결정
@@ -80,10 +92,10 @@ export function KeyMetricsSection({
             return focusStock ? "보통주" : "시가총액 구성";
         } else {
             // 우선주 등: 항상 개별 종목 어노테이션
-            if (currentSecurity.type?.includes("우선주")) return "우선주";
+            if (resolvedCurrentSecurity.type?.includes("우선주")) return "우선주";
             return "시가총액 구성";
         }
-    }, [pathname, searchParams, companyMarketcapData, companySecs]);
+    }, [selectedSecurityTypeOverride, companyMarketcapData, companySecs, resolvedTicker, resolvedCurrentSecurity, searchParams]);
 
     // 날짜 기반 데이터 필터링 헬퍼
     const getDataByPeriod = (months: number) => {
@@ -140,45 +152,64 @@ export function KeyMetricsSection({
             }
         } else {
             // 개별 종목: 해당 종목의 시가총액만
-            const pathParts = pathname.split('/');
-            const secCodePart = pathParts.find(part => part.includes('.'));
-            const currentTicker = secCodePart?.split('.')[1];
-            const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
-
-            if (!currentSecurity) return null;
+            if (!resolvedCurrentSecurity) return null;
 
             const history = companyMarketcapData.aggregatedHistory;
             const securityValues = history
-                .map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0)
+                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
                 .filter((value: number) => value > 0);
 
-            if (securityValues.length === 0) return null; switch (type) {
-                case 'current': return securityValues[securityValues.length - 1];
+            if (securityValues.length === 0) return null;
+
+            switch (type) {
+                case 'current':
+                    return securityValues[securityValues.length - 1];
                 case 'avg12m': {
                     const data = getDataByPeriod(12);
-                    const values = data.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
+                    const values = data
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((v: number) => v > 0);
                     return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
                 }
                 case 'avg3y': {
                     const data = getDataByPeriod(36);
-                    const values = data.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
+                    const values = data
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((v: number) => v > 0);
                     return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
                 }
                 case 'avg5y': {
                     const data = getDataByPeriod(60);
-                    const values = data.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
+                    const values = data
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((v: number) => v > 0);
                     return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
                 }
                 case 'avg10y': {
                     const data = getDataByPeriod(120);
-                    const values = data.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
+                    const values = data
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((v: number) => v > 0);
                     return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
                 }
                 case 'avgAll': {
-                    return securityValues.reduce((sum: number, val: number) => sum + val, 0) / securityValues.length;
+                    const values = companyMarketcapData.aggregatedHistory
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((value: number) => value > 0);
+                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
                 }
-                case 'min': return Math.min(...securityValues);
-                case 'max': return Math.max(...securityValues);
+                case 'min': {
+                    const values = companyMarketcapData.aggregatedHistory
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((value: number) => value > 0);
+                    return values.length > 0 ? Math.min(...values) : null;
+                }
+                case 'max': {
+                    const values = companyMarketcapData.aggregatedHistory
+                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                        .filter((value: number) => value > 0);
+                    return values.length > 0 ? Math.max(...values) : null;
+                }
             }
         }
         return null;
@@ -306,14 +337,9 @@ export function KeyMetricsSection({
             return { current: today.close, previous: yesterday.close };
         } else {
             // 개별 종목의 경우 해당 종목의 주가 변화율
-            const pathParts = pathname.split('/');
-            const secCodePart = pathParts.find(part => part.includes('.'));
-            const currentTicker = secCodePart?.split('.')[1];
-            const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
-
-            if (!currentSecurity?.prices || currentSecurity.prices.length < 2) return null;
-            const today = currentSecurity.prices[0];
-            const yesterday = currentSecurity.prices[1];
+            if (!resolvedCurrentSecurity?.prices || resolvedCurrentSecurity.prices.length < 2) return null;
+            const today = resolvedCurrentSecurity.prices[0];
+            const yesterday = resolvedCurrentSecurity.prices[1];
             return { current: today.close, previous: yesterday.close };
         }
     };
@@ -339,13 +365,8 @@ export function KeyMetricsSection({
             return security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}` : "—";
         } else {
             // 개별 종목의 경우 해당 종목 주가 표시
-            const pathParts = pathname.split('/');
-            const secCodePart = pathParts.find(part => part.includes('.'));
-            const currentTicker = secCodePart?.split('.')[1];
-            const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
-
-            if (currentSecurity?.prices?.[0]?.close) {
-                return currentSecurity.prices[0].close.toLocaleString();
+            if (resolvedCurrentSecurity?.prices?.[0]?.close) {
+                return resolvedCurrentSecurity.prices[0].close.toLocaleString();
             }
             return security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}` : "—";
         }

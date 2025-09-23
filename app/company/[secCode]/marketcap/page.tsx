@@ -95,25 +95,49 @@ interface CompanyMarketcapPageProps {
 }
 
 export default async function CompanyMarketcapPage({ params }: CompanyMarketcapPageProps) {
-  const { secCode } = await params;
+  const { secCode: initialSecCode } = await params;
 
-  const security = await getSecurityByCode(secCode);
+  let security = await getSecurityByCode(initialSecCode);
 
   if (!security) {
     notFound();
   }
+  // Get company-related securities if this security has a company
+  const companySecs = security.companyId
+    ? await getCompanySecurities(security.companyId)
+    : [];
+
+  // Determine representative (보통주) security for the company when available
+  let resolvedSecCode = initialSecCode;
+
+  if (!security.type?.includes("보통주")) {
+    const representativeSecurity = companySecs.find(
+      (companySecurity) => companySecurity.type?.includes("보통주")
+    );
+
+    if (representativeSecurity?.exchange && representativeSecurity?.ticker) {
+      const candidateSecCode = `${representativeSecurity.exchange}.${representativeSecurity.ticker}`;
+      const canonicalSecurity = await getSecurityByCode(candidateSecCode);
+
+      if (canonicalSecurity) {
+        security = canonicalSecurity;
+        resolvedSecCode = candidateSecCode;
+      }
+    }
+  }
+
+  const secCode = resolvedSecCode;
   const displayName = security.korName || security.name;
 
   // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
   const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
 
-  // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
-  const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
-
-  // Get company-related securities if this security has a company
-  const companySecs = security.companyId
-    ? await getCompanySecurities(security.companyId)
-    : [];
+  // Extract ticker from resolved security information
+  const currentTicker = security.ticker
+    ? security.ticker
+    : secCode.includes('.')
+      ? secCode.split('.')[1]
+      : secCode;
 
   // Get aggregated company marketcap data
   const companyMarketcapData = security.companyId
@@ -508,6 +532,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               companySecs={companySecs}
               market={market}
               currentTicker={currentTicker}
+              baseUrl="security"
             />
           </div>
         </section>
@@ -543,6 +568,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           marketCapRanking={marketCapRanking}
           activeMetric={ACTIVE_METRIC}
           backgroundStyle={SECTION_GRADIENTS.indicators}
+          currentTickerOverride={currentTicker}
         />
 
         {/* 연도별 데이터 섹션 */}
@@ -813,6 +839,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               companySecs={companySecs}
               security={security}
               marketCapRanking={marketCapRanking}
+              currentTickerOverride={currentTicker}
             />
           )}
 
@@ -827,7 +854,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               maxItems={4}
               showSummaryCard={true}
               compactMode={false}
-              baseUrl="company"
+              baseUrl="security"
               currentMetric="marketcap"
             />
           )}
