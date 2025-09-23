@@ -284,15 +284,14 @@ export function KeyMetricsSection({
             const previousAvg = previousPeriodData.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / previousPeriodData.length;
             return { current: currentAvg, previous: previousAvg };
         } else {
-            const pathParts = pathname.split('/');
-            const secCodePart = pathParts.find(part => part.includes('.'));
-            const currentTicker = secCodePart?.split('.')[1];
-            const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
+            if (!resolvedCurrentSecurity) return null;
 
-            if (!currentSecurity) return null;
-
-            const currentValues = currentPeriodData.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
-            const previousValues = previousPeriodData.map((item: any) => item.securitiesBreakdown?.[currentSecurity.securityId] || 0).filter((v: number) => v > 0);
+            const currentValues = currentPeriodData
+                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                .filter((v: number) => v > 0);
+            const previousValues = previousPeriodData
+                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
+                .filter((v: number) => v > 0);
 
             if (currentValues.length === 0 || previousValues.length === 0) return null;
 
@@ -313,15 +312,10 @@ export function KeyMetricsSection({
         if (selectedSecurityType === "시가총액 구성") {
             return { current: today.totalMarketcap, previous: yesterday.totalMarketcap };
         } else {
-            const pathParts = pathname.split('/');
-            const secCodePart = pathParts.find(part => part.includes('.'));
-            const currentTicker = secCodePart?.split('.')[1];
-            const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
+            if (!resolvedCurrentSecurity) return null;
 
-            if (!currentSecurity) return null;
-
-            const todayValue = today.securitiesBreakdown?.[currentSecurity.securityId] || 0;
-            const yesterdayValue = yesterday.securitiesBreakdown?.[currentSecurity.securityId] || 0;
+            const todayValue = today.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0;
+            const yesterdayValue = yesterday.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0;
 
             return { current: todayValue, previous: yesterdayValue };
         }
