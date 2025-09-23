@@ -310,7 +310,7 @@ export function InteractiveSecuritiesSection({
                                 <CardMarketcap
                                     security={security.data as any}
                                     market={market}
-                                    isSelected={false}
+                                    isSelected={security.data?.ticker === currentTicker}
                                     isCompanyPage={true}
                                     currentMetric={currentMetric}
                                 />
@@ -412,7 +412,7 @@ export function InteractiveSecuritiesSection({
                                 <CardMarketcap
                                     security={security.data as any}
                                     market={market}
-                                    isSelected={selectedFilter === security.type}
+                                    isSelected={security.data?.ticker === currentTicker}
                                     isCompanyPage={true}
                                     currentMetric={currentMetric}
                                 />
