@@ -50,6 +50,7 @@ interface InteractiveSecuritiesSectionProps {
     maxItems?: number; // 사이드바용 아이템 제한
     showSummaryCard?: boolean; // 시가총액 구성 카드 표시 여부
     compactMode?: boolean; // 간결한 UI 모드
+    highlightActiveTicker?: boolean; // 활성화된 종목 강조 여부
 }
 
 /**
@@ -68,7 +69,8 @@ export function InteractiveSecuritiesSection({
     layout = "main",
     maxItems,
     showSummaryCard = true,
-    compactMode = false
+    compactMode = false,
+    highlightActiveTicker = true
 }: InteractiveSecuritiesSectionProps) {
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -236,6 +238,11 @@ export function InteractiveSecuritiesSection({
             return;
         }
 
+        if (!highlightActiveTicker) {
+            setSelectedFilter("all");
+            return;
+        }
+
         const currentSecurity = companySecs.find(sec => sec.ticker === currentTicker);
         if (!currentSecurity) {
             setSelectedFilter("all");
@@ -253,7 +260,7 @@ export function InteractiveSecuritiesSection({
             // 우선주 등: 종목 타입으로 설정
             setSelectedFilter(currentSecurity.type || "all");
         }
-    }, [mounted, currentTicker, companySecs, hasValidData]);
+    }, [mounted, currentTicker, companySecs, hasValidData, highlightActiveTicker]);
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -310,7 +317,7 @@ export function InteractiveSecuritiesSection({
                                 <CardMarketcap
                                     security={security.data as any}
                                     market={market}
-                                    isSelected={security.data?.ticker === currentTicker}
+                                    isSelected={highlightActiveTicker && security.data?.ticker === currentTicker}
                                     isCompanyPage={true}
                                     currentMetric={currentMetric}
                                 />
@@ -412,7 +419,7 @@ export function InteractiveSecuritiesSection({
                                 <CardMarketcap
                                     security={security.data as any}
                                     market={market}
-                                    isSelected={security.data?.ticker === currentTicker}
+                                    isSelected={highlightActiveTicker && security.data?.ticker === currentTicker}
                                     isCompanyPage={true}
                                     currentMetric={currentMetric}
                                 />
@@ -444,7 +451,7 @@ export function InteractiveSecuritiesSection({
                             <MarketcapSummaryExpandable
                                 data={companyMarketcapData}
                                 filterType={selectedFilter as any}
-                                isSelected={selectedFilter === "시가총액 구성"}
+                                isSelected={highlightActiveTicker && selectedFilter === "시가총액 구성"}
                             />
                         </div>
                     </div>
