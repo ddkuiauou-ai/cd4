@@ -139,28 +139,25 @@ export function InteractiveSecuritiesSection({
         setClickedButton(security.type);
         setTimeout(() => setClickedButton(null), 200);
 
+        const normalizedFilter = security.type?.includes("우선주")
+            ? "우선주"
+            : security.type?.includes("보통주")
+                ? "보통주"
+                : security.type;
+
         setIsTransitioning(true);
-        setSelectedFilter(security.type); console.log('🚀 Card clicked:', security.type, security.data.ticker);
+        setSelectedFilter(normalizedFilter || defaultFilter);
+        console.log('🚀 Card clicked:', security.type, security.data.ticker);
 
         // URL 변경 (새로운 종목으로 이동)
         const secCode = `${security.data.exchange}.${security.data.ticker}`;
         let newUrl = `/${baseUrl}/${secCode}/${currentMetric}`;
 
-        // 보통주는 메인/사이드바 관계없이 focus=stock 추가
-        const isCommonStock = security.type?.includes("보통주");
-        if (isCommonStock) {
-            newUrl += "?focus=stock";
-        }
-        // 메인 콘텐츠의 우선주만 focus=stock 추가 (사이드바 우선주는 파라미터 없음)
-        else if (layout !== "sidebar") {
-            newUrl += "?focus=stock";
-        }
-
         // Next.js 클라이언트 사이드 네비게이션 사용 (스크롤 유지)
         router.push(newUrl, { scroll: false });
 
         // 선택된 필터 업데이트
-        setSelectedFilter(security.type);
+        setSelectedFilter(normalizedFilter || defaultFilter);
 
         setTimeout(() => setIsTransitioning(false), 300);
     };
@@ -181,7 +178,7 @@ export function InteractiveSecuritiesSection({
             setIsTransitioning(true);
             setSelectedFilter("시가총액 구성");
 
-            // 보통주 URL로 이동 (focus=stock 없음 → 시가총액 구성 어노테이션)
+            // 보통주 URL로 이동하여 회사 전체 구성으로 전환
             const secCode = `${representativeSecurity.data.exchange}.${representativeSecurity.data.ticker}`;
             const newUrl = `/company/${secCode}/${currentMetric}`;
 
@@ -251,17 +248,17 @@ export function InteractiveSecuritiesSection({
             return;
         }
 
-        // URL에서 focus 파라미터 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const focusStock = urlParams.get('focus') === 'stock';
-
-        // 보통주의 경우: focus=stock 여부로 필터 결정
         if (currentSecurity.type?.includes("보통주")) {
-            setSelectedFilter(focusStock ? "보통주" : "시가총액 구성");
-        } else {
-            // 우선주 등: 종목 타입으로 설정
-            setSelectedFilter(currentSecurity.type || defaultFilter);
+            setSelectedFilter("보통주");
+            return;
         }
+
+        if (currentSecurity.type?.includes("우선주")) {
+            setSelectedFilter("우선주");
+            return;
+        }
+
+        setSelectedFilter(currentSecurity.type || defaultFilter);
     }, [mounted, currentTicker, companySecs, hasValidData, highlightActiveTicker, defaultFilter]);
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
