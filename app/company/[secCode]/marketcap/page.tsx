@@ -6,6 +6,7 @@ import { getSecurityByCode, getCompanySecurities } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getSecurityMarketCapRanking, getAllCompanyCodes } from "@/lib/select";
 import type { CSSProperties } from "react";
+import { formatNumber, formatDate } from "@/lib/utils";
 
 import CardCompanyMarketcap from "@/components/card-company-marketcap";
 import CardMarketcap from "@/components/card-marketcap";
@@ -729,6 +730,20 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       </div>
       );
 
+  const headerDetail = companyMarketcapData
+    ? {
+        label: "시가총액",
+        value: formatNumber(companyMarketcapData.totalMarketcap ?? 0, "원"),
+        badge: companyMarketcapData.totalMarketcapDate
+          ? `${formatDate(companyMarketcapData.totalMarketcapDate, "ko-KR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })} 기준`
+          : undefined,
+      }
+    : undefined;
+
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
       <div className="mx-auto w-full min-w-0">
@@ -756,6 +771,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           displayName={displayName}
           companyName={security.company?.korName || security.company?.name}
           logoUrl={security.company?.logo}
+          detail={headerDetail}
         />
 
         <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">

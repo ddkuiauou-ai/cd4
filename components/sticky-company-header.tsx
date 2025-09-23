@@ -18,6 +18,7 @@ interface StickyCompanyHeaderProps {
    */
   stickyOffset?: number;
   titleSuffix?: string | null;
+  titleBadge?: string | null;
   detail?: {
     label?: string | null;
     value?: string | null;
@@ -33,6 +34,7 @@ export function StickyCompanyHeader({
   logoUrl,
   stickyOffset = DEFAULT_STICKY_OFFSET,
   titleSuffix = "시가총액",
+  titleBadge = null,
   detail,
 }: StickyCompanyHeaderProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -170,6 +172,7 @@ export function StickyCompanyHeader({
         companyName,
         logoUrl,
         titleSuffix,
+        titleBadge,
         detail,
       });
     } else {
@@ -186,6 +189,7 @@ export function StickyCompanyHeader({
     companyName,
     logoUrl,
     titleSuffix,
+    titleBadge,
     detail,
     setMobileHeaderContent,
   ]);
@@ -232,7 +236,19 @@ export function StickyCompanyHeader({
                 isPinned ? "text-xl sm:text-2xl" : "text-3xl md:text-4xl lg:text-5xl"
               )}
             >
-              <Balancer>{headingText}</Balancer>
+              <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <Balancer>{headingText}</Balancer>
+                {titleBadge ? (
+                  <span
+                    className={cn(
+                      "font-medium text-muted-foreground",
+                      isPinned ? "text-xs" : "text-sm"
+                    )}
+                  >
+                    {titleBadge}
+                  </span>
+                ) : null}
+              </span>
             </h1>
             {(detail?.value || detail?.label || detail?.badge) && (
               <div

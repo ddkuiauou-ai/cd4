@@ -90,6 +90,7 @@ type MobileCompanyIdentityProps = {
   companyName?: string | null;
   logoUrl?: string | null;
   titleSuffix?: string | null;
+  titleBadge?: string | null;
   detail?: {
     label?: string | null;
     value?: string | null;
@@ -102,6 +103,7 @@ function MobileCompanyIdentity({
   companyName,
   logoUrl,
   titleSuffix,
+  titleBadge,
   detail,
 }: MobileCompanyIdentityProps) {
   const headingSuffix = titleSuffix ?? "시가총액";
@@ -117,7 +119,14 @@ function MobileCompanyIdentity({
       />
       <div className="min-w-0">
         <h1 className="font-heading text-lg font-bold leading-tight tracking-tight">
-          <Balancer>{headingText}</Balancer>
+          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <Balancer>{headingText}</Balancer>
+            {titleBadge ? (
+              <span className="text-xs font-medium text-muted-foreground">
+                {titleBadge}
+              </span>
+            ) : null}
+          </span>
         </h1>
         {(detail?.value || detail?.label || detail?.badge) && (
           <div className="mt-0.5 space-y-0.5">
@@ -155,6 +164,7 @@ export function SiteHeader({ searchData }: SiteHeaderProps) {
               companyName={content.companyName}
               logoUrl={content.logoUrl}
               titleSuffix={content.titleSuffix}
+              titleBadge={content.titleBadge}
               detail={content.detail}
             />
           ) : null}

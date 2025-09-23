@@ -15,6 +15,7 @@ export type MobileHeaderContent = {
   companyName?: string | null;
   logoUrl?: string | null;
   titleSuffix?: string | null;
+  titleBadge?: string | null;
   detail?: {
     label?: string | null;
     value?: string | null;
@@ -61,6 +62,7 @@ export function MobileHeaderProvider({ children }: { children: ReactNode }) {
         prev.companyName === next.companyName &&
         prev.logoUrl === next.logoUrl &&
         prev.titleSuffix === next.titleSuffix &&
+        prev.titleBadge === next.titleBadge &&
         (prev.detail?.label ?? null) === (next.detail?.label ?? null) &&
         (prev.detail?.value ?? null) === (next.detail?.value ?? null) &&
         (prev.detail?.badge ?? null) === (next.detail?.badge ?? null);
@@ -87,4 +89,3 @@ export function MobileHeaderProvider({ children }: { children: ReactNode }) {
 export function useMobileHeader() {
   return useContext(MobileHeaderContext) ?? defaultValue;
 }
-

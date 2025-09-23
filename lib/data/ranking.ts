@@ -4,18 +4,40 @@ export function getTodayISO(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-// Future: implement logic to fallback to last available rank date if "today" is empty
-export async function getEffectiveRankDate(metric: string): Promise<string> {
-  // For now, just return today. Extend to query latest available date per metric.
-  return getTodayISO();
-}
-
 // Security ranking helpers (migrated from lib/getRanking.ts)
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { and, eq, sql } from "drizzle-orm";
 
 export type MetricType = 'marketcap' | 'bps' | 'per' | 'pbr' | 'eps' | 'div' | 'dps';
+
+export async function getEffectiveRankDate(metric: string): Promise<string> {
+  try {
+    const rows = metric === 'multi'
+      ? await db
+          .select({ maxDate: sql<Date>`max(${schema.securityRank.rankDate})` })
+          .from(schema.securityRank)
+          .limit(1)
+      : await db
+          .select({ maxDate: sql<Date>`max(${schema.securityRank.rankDate})` })
+          .from(schema.securityRank)
+          .where(eq(schema.securityRank.metricType, metric as MetricType))
+          .limit(1);
+
+    const latestDate = rows[0]?.maxDate;
+
+    if (!latestDate) {
+      throw new Error(`No rank date found for metric ${metric}`);
+    }
+
+    return latestDate instanceof Date
+      ? latestDate.toISOString().split('T')[0]
+      : new Date(latestDate).toISOString().split('T')[0];
+  } catch (error) {
+    console.error(`[getEffectiveRankDate] Failed to resolve rank date for metric ${metric}:`, error);
+    return getTodayISO();
+  }
+}
 
 export async function getSecurityRank(
   securityId: string,

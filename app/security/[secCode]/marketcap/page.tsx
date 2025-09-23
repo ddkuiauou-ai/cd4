@@ -798,7 +798,7 @@ export default async function SecurityMarketcapPage({
     badge: securityType,
   } as const;
 
-  const titleSuffix = securityType ? `${securityType} 시가총액` : "시가총액";
+  const titleSuffix = "시가총액";
 
   const navigationSections = [
     {
@@ -870,6 +870,7 @@ export default async function SecurityMarketcapPage({
           companyName={security.company?.korName || security.company?.name}
           logoUrl={security.company?.logo}
           titleSuffix={titleSuffix}
+          titleBadge={security.type ?? null}
           detail={headerDetail}
         />
 

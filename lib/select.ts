@@ -140,12 +140,23 @@ export const getSecurityById = unstable_cache(
 export const getSecurityMarketCapRanking = unstable_cache(
     async (securityId: string) => {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const latestRankDateResult = await db
+                .select({ maxDate: sql<Date>`max(${schema.securityRank.rankDate})` })
+                .from(schema.securityRank)
+                .where(eq(schema.securityRank.metricType, 'marketcap'))
+                .limit(1);
+
+            const latestRankDate = latestRankDateResult[0]?.maxDate;
+
+            if (!latestRankDate) {
+                return null;
+            }
+
             const result = await db.query.securityRank.findFirst({
                 where: and(
                     eq(schema.securityRank.securityId, securityId),
                     eq(schema.securityRank.metricType, 'marketcap'),
-                    eq(schema.securityRank.rankDate, today)
+                    eq(schema.securityRank.rankDate, latestRankDate)
                 ),
                 columns: {
                     currentRank: true,
