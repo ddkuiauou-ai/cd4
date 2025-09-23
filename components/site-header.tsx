@@ -85,15 +85,28 @@ const Logo = ({ showMobileVariant = true }: { showMobileVariant?: boolean }) => 
   </Link>
 );
 
+type MobileCompanyIdentityProps = {
+  displayName: string;
+  companyName?: string | null;
+  logoUrl?: string | null;
+  titleSuffix?: string | null;
+  detail?: {
+    label?: string | null;
+    value?: string | null;
+    badge?: string | null;
+  } | null;
+};
+
 function MobileCompanyIdentity({
   displayName,
   companyName,
   logoUrl,
-}: {
-  displayName: string;
-  companyName?: string | null;
-  logoUrl?: string | null;
-}) {
+  titleSuffix,
+  detail,
+}: MobileCompanyIdentityProps) {
+  const headingSuffix = titleSuffix ?? "시가총액";
+  const headingText = headingSuffix ? `${displayName} ${headingSuffix}` : displayName;
+
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-lg px-2 py-1.5 sm:hidden">
       <CompanyLogo
@@ -104,8 +117,21 @@ function MobileCompanyIdentity({
       />
       <div className="min-w-0">
         <h1 className="font-heading text-lg font-bold leading-tight tracking-tight">
-          <Balancer>{displayName} 시가총액</Balancer>
+          <Balancer>{headingText}</Balancer>
         </h1>
+        {(detail?.value || detail?.label || detail?.badge) && (
+          <div className="mt-0.5 space-y-0.5">
+            {detail?.value && (
+              <p className="text-sm font-medium text-foreground">
+                {detail?.label ? `${detail.label} ` : null}
+                {detail.value}
+              </p>
+            )}
+            {detail?.badge && (
+              <p className="text-xs text-muted-foreground">{detail.badge}</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -128,6 +154,8 @@ export function SiteHeader({ searchData }: SiteHeaderProps) {
               displayName={content.displayName}
               companyName={content.companyName}
               logoUrl={content.logoUrl}
+              titleSuffix={content.titleSuffix}
+              detail={content.detail}
             />
           ) : null}
           <div className="hidden md:block">

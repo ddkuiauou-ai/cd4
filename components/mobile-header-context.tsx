@@ -14,6 +14,12 @@ export type MobileHeaderContent = {
   displayName: string;
   companyName?: string | null;
   logoUrl?: string | null;
+  titleSuffix?: string | null;
+  detail?: {
+    label?: string | null;
+    value?: string | null;
+    badge?: string | null;
+  } | null;
 };
 
 type MobileHeaderContextValue = {
@@ -53,7 +59,11 @@ export function MobileHeaderProvider({ children }: { children: ReactNode }) {
         prev.type === next.type &&
         prev.displayName === next.displayName &&
         prev.companyName === next.companyName &&
-        prev.logoUrl === next.logoUrl;
+        prev.logoUrl === next.logoUrl &&
+        prev.titleSuffix === next.titleSuffix &&
+        (prev.detail?.label ?? null) === (next.detail?.label ?? null) &&
+        (prev.detail?.value ?? null) === (next.detail?.value ?? null) &&
+        (prev.detail?.badge ?? null) === (next.detail?.badge ?? null);
 
       return isSame ? prev : next;
     });
