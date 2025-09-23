@@ -38,7 +38,7 @@ import { PageNavigation } from "@/components/page-navigation";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { SecMarketcapPager } from "@/components/pager-marketcap-security";
-import ChartMarketcap from "@/components/chart-marketcap";
+import SecurityMarketcapChart from "@/components/security-marketcap-chart";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Price } from "@/typings";
 
@@ -191,6 +191,11 @@ export default async function SecurityMarketcapPage({
       ? security.name
       : null;
   const securityType = security.type || "종목";
+  const selectedType = resolveSelectedType(security.type);
+  const chartSeriesKey =
+    selectedType === "시가총액 구성"
+      ? "총합계"
+      : [displayName, securityType].filter(Boolean).join(" ").trim();
 
   const market = secCode.includes(".")
     ? secCode.split(".")[0]
@@ -263,12 +268,12 @@ export default async function SecurityMarketcapPage({
     : marketcapHistory.slice(-90)
   ).map((item) => ({
     date: item.date.toISOString().split("T")[0],
-    totalValue: item.value,
+    [chartSeriesKey]: item.value,
   }));
 
   const fullChartData = marketcapHistory.map((item) => ({
     date: item.date.toISOString().split("T")[0],
-    totalValue: item.value,
+    [chartSeriesKey]: item.value,
   }));
 
   const listData = marketcapHistory.map((item) => ({
@@ -425,11 +430,9 @@ export default async function SecurityMarketcapPage({
       companyMarketcapData?.securities?.length,
   );
 
-  const selectedType = resolveSelectedType(security.type);
-
-  const annualCsvData = fullChartData.map((item) => ({
-    date: item.date,
-    marketcap: item.totalValue,
+  const annualCsvData = marketcapHistory.map((item) => ({
+    date: item.date.toISOString().split("T")[0],
+    marketcap: item.value,
   }));
 
   const latestHistoryDate = annualCsvData.at(-1)?.date;
@@ -624,11 +627,10 @@ export default async function SecurityMarketcapPage({
               </div>
               <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
                 <div className="min-h-[260px] flex-1">
-                  <ChartMarketcap
+                  <SecurityMarketcapChart
                     data={marketcapChartData}
-                    format="formatNumber"
-                    formatTooltip="formatNumberTooltip"
-                    selectedType="시가총액 구성"
+                    type="summary"
+                    selectedType={selectedType}
                   />
                 </div>
               </div>
@@ -769,11 +771,10 @@ export default async function SecurityMarketcapPage({
 
           <div className="space-y-5 sm:space-y-8">
             <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
-              <ChartMarketcap
+              <SecurityMarketcapChart
                 data={fullChartData}
-                format="formatNumber"
-                formatTooltip="formatNumberTooltip"
-                selectedType="시가총액 구성"
+                type="detailed"
+                selectedType={selectedType}
               />
             </div>
 
