@@ -172,8 +172,8 @@ export function StickyCompanyHeader({
         companyName,
         logoUrl,
         titleSuffix,
-        titleBadge,
-        detail,
+        titleBadge: null, // Hide badge on mobile
+        detail: null, // Hide detail on mobile
       });
     } else {
       setMobileHeaderContent(null);
@@ -197,6 +197,7 @@ export function StickyCompanyHeader({
   const logoSize = isPinned ? 40 : 56;
   const shouldHideForMobile = isPinned && isSmallScreen;
 
+  // Base heading text
   const headingText = titleSuffix ? `${displayName} ${titleSuffix}` : displayName;
 
   return (
@@ -238,45 +239,29 @@ export function StickyCompanyHeader({
             >
               <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <Balancer>{headingText}</Balancer>
-                {titleBadge ? (
+                {isPinned && !isSmallScreen && detail?.value && (
+                  <span
+                    className={cn(
+                      "font-semibold text-foreground",
+                      "text-sm" // smaller size when sticky
+                    )}
+                  >
+                    {detail.value}
+                  </span>
+                )}
+                {isPinned && !isSmallScreen && detail?.badge && (
                   <span
                     className={cn(
                       "font-medium text-muted-foreground",
-                      isPinned ? "text-xs" : "text-sm"
+                      "text-xs" // small and gray when sticky
                     )}
                   >
-                    {titleBadge}
+                    {detail.badge}
                   </span>
-                ) : null}
+                )}
               </span>
             </h1>
-            {(detail?.value || detail?.label || detail?.badge) && (
-              <div
-                className={cn(
-                  "mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1",
-                  isPinned ? "text-sm" : "text-base"
-                )}
-              >
-                <div className="flex items-baseline gap-2">
-                  {detail?.label && (
-                    <span className="text-sm text-muted-foreground">{detail.label}</span>
-                  )}
-                  {detail?.value && (
-                    <span
-                      className={cn(
-                        "font-semibold text-foreground",
-                        isPinned ? "text-lg" : "text-xl"
-                      )}
-                    >
-                      {detail.value}
-                    </span>
-                  )}
-                </div>
-                {detail?.badge && (
-                  <span className="text-xs text-muted-foreground">{detail.badge}</span>
-                )}
-              </div>
-            )}
+            {/* Hide detail section in non-sticky state as requested */}
           </div>
         </div>
       </div>

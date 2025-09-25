@@ -31,6 +31,7 @@ import ListMarketcap from "@/components/list-marketcap";
 import RankHeader from "@/components/header-rank";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
+import { InteractiveChartSection } from "@/components/interactive-chart-section";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
@@ -311,13 +312,13 @@ export default async function SecurityMarketcapPage({
 
         return { label, value: average };
       })
-      .filter((item): item is { label: string; value: number } => item !== null);
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
     const values = marketcapHistory.map((item) => item.value);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
     const twelveMonthAverage =
-      periods.find((p) => p.label === "12개월 평균")?.value ?? null;
+      periods.find((p) => p && p.label === "12개월 평균")?.value ?? null;
     const yearChange =
       twelveMonthAverage && twelveMonthAverage !== 0
         ? ((latestMarketcapValue - twelveMonthAverage) /
@@ -452,7 +453,7 @@ export default async function SecurityMarketcapPage({
       {
         title: "12개월 평균",
         value: formatNumber(
-          periodAnalysis.periods.find((p) => p.label === "12개월 평균")?.value || 0,
+          periodAnalysis.periods.find((p) => p && p.label === "12개월 평균")?.value || 0,
           "원",
         ),
         caption: "직전 1년",
@@ -624,12 +625,21 @@ export default async function SecurityMarketcapPage({
               </div>
               <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
                 <div className="min-h-[260px] flex-1">
-                  <ChartMarketcap
-                    data={marketcapChartData}
-                    format="formatNumber"
-                    formatTooltip="formatNumberTooltip"
-                    selectedType="시가총액 구성"
-                  />
+                  {hasCompanyMarketcapData && companyMarketcapData ? (
+                    <InteractiveChartSection
+                      companyMarketcapData={companyMarketcapData}
+                      companySecs={companySecs}
+                      type="summary"
+                      selectedType={selectedType}
+                    />
+                  ) : (
+                    <ChartMarketcap
+                      data={marketcapChartData}
+                      format="formatNumber"
+                      formatTooltip="formatNumberTooltip"
+                      selectedType="시가총액 구성"
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -769,12 +779,21 @@ export default async function SecurityMarketcapPage({
 
           <div className="space-y-5 sm:space-y-8">
             <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
-              <ChartMarketcap
-                data={fullChartData}
-                format="formatNumber"
-                formatTooltip="formatNumberTooltip"
-                selectedType="시가총액 구성"
-              />
+              {hasCompanyMarketcapData && companyMarketcapData ? (
+                <InteractiveChartSection
+                  companyMarketcapData={companyMarketcapData}
+                  companySecs={companySecs}
+                  type="detailed"
+                  selectedType={selectedType}
+                />
+              ) : (
+                <ChartMarketcap
+                  data={fullChartData}
+                  format="formatNumber"
+                  formatTooltip="formatNumberTooltip"
+                  selectedType="시가총액 구성"
+                />
+              )}
             </div>
 
             <div className="space-y-4 sm:space-y-6">
