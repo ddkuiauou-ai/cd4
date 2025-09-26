@@ -29,9 +29,9 @@ export function CompanyFinancialTabs({ secCode, className }: CompanyFinancialTab
             id: "marketcap",
             label: "시가총액",
             description: "Market Cap",
-            href: `/company/${secCode}/marketcap`, // Always company context - shows all securities
+            href: isCompanyContext ? `/company/${secCode}/marketcap` : `/security/${secCode}/marketcap`, // Context-aware routing
             icon: "🏢",
-            intent: "회사 전체 시가총액 비교"
+            intent: isCompanyContext ? "회사 전체 시가총액 비교" : "개별 종목 시가총액 분석"
         },
         {
             id: "per",
@@ -90,9 +90,9 @@ export function CompanyFinancialTabs({ secCode, className }: CompanyFinancialTab
         }
 
         // Extract metric from security pages
-        const securityMatch = pathname?.match(`^/security/${secCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/(.+)$`);
-        if (securityMatch) {
-            const metric = securityMatch[1];
+        if (pathname?.startsWith('/security/')) {
+            const parts = pathname.split('/').filter(p => p);
+            const metric = parts[parts.length - 1];
             return tabs.find(tab => tab.id === metric)?.id || "marketcap";
         }
 
@@ -105,11 +105,11 @@ export function CompanyFinancialTabs({ secCode, className }: CompanyFinancialTab
         <div className={cn("w-full", className)}>
             {/* Context indicator */}
 
-            <Tabs value={currentTab} className="w-full">
-                <ScrollArea className="w-full" orientation="horizontal">
+            <Tabs key={pathname} value={currentTab} onValueChange={() => {}} className="w-full">
+                <ScrollArea className="w-full">
                     <TabsList className="flex w-max gap-1 rounded-xl bg-muted/30 p-1 h-auto sm:grid sm:w-full sm:grid-cols-4 lg:grid-cols-7">
                         {tabs.map((tab) => (
-                            <Link key={tab.id} href={tab.href} className="w-auto sm:w-full">
+                            <Link key={tab.id} href={tab.href} scroll={false} className="w-auto sm:w-full">
                                 <TabsTrigger
                                     value={tab.id}
                                     className={cn(

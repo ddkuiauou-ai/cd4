@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText, Calculator } from "lucide-react";
+import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getPerRank } from "@/lib/data/security";
 import { getAllSecurityCodes } from "@/lib/select";
 import ChartPEREnhanced from "@/components/chart-PER-enhanced";
-import ListPEREnhanced from "@/components/list-PER-enhanced";
+import ListPERMarketcap from "@/components/list-per-marketcap";
 import PERHeatmap from "@/components/chart-per-heatmap";
 import ChartPERDistribution from "@/components/chart-per-distribution";
 import type { HeatMapSerie } from '@nivo/heatmap';
@@ -15,17 +15,21 @@ import RankHeader from "@/components/header-rank";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import { KeyMetricsSectionPER } from "@/components/key-metrics-section-per";
+import { KeyMetricsSidebarPER } from "@/components/key-metrics-sidebar-per";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import type { Price } from "@/typings";
+import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { PageNavigation } from "@/components/page-navigation";
 import {
   ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+import { calculatePERPeriodAnalysis, processPERData, coerceVolumeValue, type PERData } from "@/lib/per-utils";
 
 /**
  * Props for Security PER Page
@@ -34,11 +38,6 @@ interface SecurityPERPageProps {
   params: Promise<{ secCode: string }>;
 }
 
-type PERData = {
-  date: string;
-  value: number;
-  eps: number;
-};
 
 /**
  * Generate metadata for the security PER page
@@ -81,187 +80,99 @@ export async function generateStaticParams() {
  * Displays PER data and charts for a specific security
  */
 export default async function SecurityPERPage({ params }: SecurityPERPageProps) {
-  const { secCode } = await params;
+   const { secCode } = await params;
 
-  const security = await getSecurityByCode(secCode);
+   const security = await getSecurityByCode(secCode);
 
-  if (!security) {
-    notFound();
-  }
+   if (!security) {
+     notFound();
+   }
 
-  const displayName = security.korName || security.name;
-  const securityType = security.type || "종목";
+   const displayName = security.korName || security.name;
+   const securityType = security.type || "종목";
 
-  // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
-  const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
+   // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
+   const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
 
-  // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
-  const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
+   // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
+   const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
 
-  // Get company-related securities if this security has a company
-  const companySecs = security.companyId
-    ? await getCompanySecurities(security.companyId)
-    : [];
+   // Parallelize independent data fetching
+   const [
+     companySecs,
+     data,
+     perRank,
+     companyMarketcapData
+   ] = await Promise.all([
+     // Get company-related securities if this security has a company
+     security.companyId ? getCompanySecurities(security.companyId) : Promise.resolve([]),
+     // Get PER data
+     getSecurityMetricsHistory(security.securityId),
+     // Get PER rank
+     getPerRank(security.securityId),
+     // Get company marketcap data for Interactive Securities Section
+     security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+   ]);
 
-  // Find representative security (보통주)
-  const representativeSecurity = companySecs.find((sec) =>
-    sec.type?.includes("보통주"),
-  );
+   // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
+   if (!data || data.length === 0) {
+     notFound();
+   }
 
-  const companySecCode =
-    representativeSecurity?.exchange && representativeSecurity?.ticker
-      ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
-      : null;
+   // Find representative security (보통주)
+   const representativeSecurity = companySecs.find((sec) =>
+     sec.type?.includes("보통주"),
+   );
 
-  // 종목 비교용 필터링: 보통주와 우선주만 표시
-  const comparableSecurities = companySecs.filter((sec) =>
-    sec.type === "보통주" || sec.type === "우선주"
-  );
+   const companySecCode =
+     representativeSecurity?.exchange && representativeSecurity?.ticker
+       ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
+       : null;
 
-  // 🔥 종목별 PER 데이터 추가 - 종목 비교를 위해 현재 PER 값을 포함
-  const comparableSecuritiesWithPER = await Promise.all(
-    comparableSecurities.map(async (sec) => {
-      try {
-        // 각 종목의 최신 PER 데이터 가져오기
-        const securityWithPER = await getSecurityByCode(`${sec.exchange}.${sec.ticker}`);
-        return {
-          ...sec,
-          per: securityWithPER?.per || null,
-          perDate: securityWithPER?.perDate || null,
-        };
-      } catch (error) {
-        console.error(`Failed to get PER data for ${sec.ticker}:`, error);
-        return {
-          ...sec,
-          per: null,
-          perDate: null,
-        };
-      }
-    })
-  );
+   // 종목 비교용 필터링: 보통주와 우선주만 표시
+   const comparableSecurities = companySecs.filter((sec) =>
+     sec.type === "보통주" || sec.type === "우선주"
+   );
 
-  // Get PER data
-  const data = await getSecurityMetricsHistory(security.securityId);
-
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
-  if (!data || data.length === 0) {
-    notFound();
-  }
-
-  // Get PER rank
-  const perRank = await getPerRank(security.securityId);
-
-  // Get company marketcap data for Interactive Securities Section
-  let companyMarketcapData = null;
-  if (security.companyId) {
-    try {
-      companyMarketcapData = await getCompanyAggregatedMarketcap(security.companyId);
-    } catch (error) {
-      // Error is silently handled - fallback to null
-    }
-  }
+   // 🔥 종목별 PER 데이터 추가 - 종목 비교를 위해 현재 PER 값을 포함
+   const comparableSecuritiesWithPER = await Promise.all(
+     comparableSecurities.map(async (sec) => {
+       try {
+         // 각 종목의 최신 PER 데이터 가져오기
+         const securityWithPER = await getSecurityByCode(`${sec.exchange}.${sec.ticker}`);
+         return {
+           ...sec,
+           per: securityWithPER?.per || null,
+           perDate: securityWithPER?.perDate || null,
+         };
+       } catch (error) {
+         console.error(`Failed to get PER data for ${sec.ticker}:`, error);
+         return {
+           ...sec,
+           per: null,
+           perDate: null,
+         };
+       }
+     })
+   );
 
   // Transform data to match expected format for PER
-  const result = data
-    .filter((item) => item.per !== null && item.per !== undefined)
-    .map((item) => ({
-      date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
-      value: Number(item.per),
-      eps: Number(item.eps || 0),
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const result = processPERData(data);
+
+  const annualCsvData = result.map((item) => ({
+    date: item.date,
+    per: item.value,
+    eps: item.eps,
+  }));
+
+  const latestHistoryDate = annualCsvData.at(-1)?.date;
+  const sanitizedSecCode = secCode.replace(/\./g, "-");
+  const annualDownloadFilename = `${sanitizedSecCode}-per${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
+
 
   // Calculate period analysis for PER
-  function calculatePERPeriodAnalysis() {
-    if (!result || result.length === 0) return null;
+  const periodAnalysis = calculatePERPeriodAnalysis(result, displayName, market);
 
-    const latestPER = result.length > 0 ? result[result.length - 1].value : null;
-
-    // 기간별 데이터 필터링 함수
-    const getDataForPeriod = (months: number) => {
-      const cutoffDate = new Date();
-      cutoffDate.setMonth(cutoffDate.getMonth() - months);
-      return result.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate >= cutoffDate;
-      });
-    };
-
-    // 기간별 평균 계산
-    const periods = [
-      { label: '최근 PER', months: 0, desc: '현재 기준' },
-      { label: '12개월 평균', months: 12, desc: '직전 1년' },
-      { label: '3년 평균', months: 36, desc: '최근 3년' },
-      { label: '5년 평균', months: 60, desc: '최근 5년' },
-      { label: '10년 평균', months: 120, desc: '최근 10년' },
-      { label: '20년 평균', months: 240, desc: '최근 20년' }
-    ];
-
-    const analysis = periods.map(period => {
-      if (period.months === 0) {
-        return {
-          label: period.label,
-          value: latestPER || 0,
-          desc: period.desc
-        };
-      }
-
-      const periodData = getDataForPeriod(period.months);
-      if (periodData.length === 0) return null;
-
-      const average = periodData.reduce((sum, item) => sum + item.value, 0) / periodData.length;
-      return {
-        label: period.label,
-        value: average,
-        desc: period.desc
-      };
-    }).filter((item): item is NonNullable<typeof item> => item !== null);
-
-    // 최저/최고 계산
-    const allValues = result.map(item => item.value);
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
-
-    return {
-      periods: analysis,
-      minMax: { min: minValue, max: maxValue },
-      currentSecurity: displayName,
-      market,
-      latestPER
-    };
-  }
-
-  const periodAnalysis = calculatePERPeriodAnalysis();
-
-  const coerceVolumeValue = (primary: unknown, secondary?: unknown) => {
-    const candidates = [primary, secondary];
-
-    for (const candidate of candidates) {
-      if (candidate === null || candidate === undefined) {
-        continue;
-      }
-
-      if (typeof candidate === "number" && Number.isFinite(candidate)) {
-        return candidate;
-      }
-
-      if (typeof candidate === "bigint") {
-        const numeric = Number(candidate);
-        if (Number.isFinite(numeric)) {
-          return numeric;
-        }
-      }
-
-      if (typeof candidate === "string") {
-        const numeric = Number.parseFloat(candidate.replace(/,/g, ""));
-        if (Number.isFinite(numeric)) {
-          return numeric;
-        }
-      }
-    }
-
-    return null;
-  };
 
   // Process price data for candlestick chart
   const rawPrices: Price[] = Array.isArray(security.prices)
@@ -368,7 +279,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
     const allYears = Array.from(new Set(result.map(item => new Date(item.date).getFullYear().toString()))).sort();
 
     // Create data
-    const data: HeatMapSerie<{ x: string, y: number }, {}>[] = monthNames.map((monthName, index) => {
+    const data: HeatMapSerie<{ x: string, y: number }, object>[] = monthNames.map((monthName, index) => {
       const monthData = grouped[index] || {};
       const dataPoints = allYears.map(year => ({
         x: year,
@@ -397,6 +308,38 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
   const shareTitle = `${displayName} ${securityType} PER 분석 | ${siteConfig.name}`;
   const shareText = `${displayName}의 주가수익비율(PER) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/per`;
+
+  const navigationSections = [
+    {
+      id: "security-overview",
+      label: "종목 개요",
+      icon: <Building2 className="h-3 w-3" />,
+    },
+    {
+      id: "chart-analysis",
+      label: "차트 분석",
+      icon: <BarChart3 className="h-3 w-3" />,
+    },
+    ...(comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && companyMarketcapData
+      ? [
+        {
+          id: "securities-summary",
+          label: "종목 비교",
+          icon: <ArrowLeftRight className="h-3 w-3" />,
+        },
+      ]
+      : []),
+    {
+      id: "indicators",
+      label: "핵심 지표",
+      icon: <TrendingUp className="h-3 w-3" />,
+    },
+    {
+      id: "annual-data",
+      label: "연도별 데이터",
+      icon: <FileText className="h-3 w-3" />,
+    },
+  ];
 
   // 공통 NoData 컴포넌트
   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
@@ -731,82 +674,116 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && (
-            <div id="securities-summary" className="space-y-8 relative border-t border-purple-100 dark:border-purple-800/50 pt-8 pb-8 bg-purple-50/20 dark:bg-purple-900/20 rounded-xl -mx-4 px-4">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-800/50">
-                  <ArrowLeftRight className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && companyMarketcapData && (
+            <section
+              id="securities-summary"
+              className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
+              style={SECTION_GRADIENTS.securities}
+            >
+              <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-800/50">
+                  <ArrowLeftRight className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">종목 비교</h2>
-                  <p className="text-base text-gray-600 dark:text-gray-400 mt-1">동일 기업 내 각 종목 간 PER 비교</p>
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">종목 비교</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">해당 기업 내 다른 종목과 PER을 비교합니다</p>
                 </div>
-              </div>
+              </header>
 
-              {companyMarketcapData && (
-                <InteractiveSecuritiesSection
-                  companyMarketcapData={companyMarketcapData}
-                  companySecs={comparableSecuritiesWithPER}
-                  market={market}
-                  currentTicker={currentTicker}
-                  baseUrl="security"
-                  currentMetric="per"
-                />
-              )}
-            </div>
+              <InteractiveSecuritiesSection
+                companyMarketcapData={companyMarketcapData}
+                companySecs={comparableSecuritiesWithPER}
+                market={market}
+                currentTicker={currentTicker}
+                baseUrl="security"
+                currentMetric="per"
+                highlightActiveTicker
+              />
+            </section>
           )}
 
-          <CompanyFinancialTabs secCode={secCode} />
+          <div className="space-y-4 sm:space-y-8">
+            <CompanyFinancialTabs secCode={secCode} className="-mx-4 sm:mx-0" />
 
-          {/* 핵심 지표 섹션 */}
-          <div id="indicators" className="border-t border-yellow-100 dark:border-yellow-800/50 pt-8 pb-8 bg-yellow-50/20 dark:bg-yellow-900/20 rounded-xl -mx-4 px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-800/50">
-                <TrendingUp className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">핵심 지표</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">기간별 PER 분석 및 통계</p>
+            <div
+              className="relative -mx-4 overflow-hidden border border-orange-200/60 bg-orange-50/60 px-4 py-4 text-sm shadow-sm sm:mx-0 sm:rounded-3xl sm:px-6 sm:py-5 dark:border-orange-900/40 dark:bg-orange-950/10"
+              style={SECTION_GRADIENTS.indicators}
+            >
+              <div className="flex flex-col gap-3 text-orange-800/80 dark:text-orange-200/80">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold tracking-tight text-orange-900 dark:text-orange-200">
+                    선택한 지표가 아래 분석 카드에 바로 반영됩니다
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-700 shadow-sm dark:bg-orange-900/40 dark:text-orange-200/90">
+                    Tab Sync
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed text-orange-700/90 dark:text-orange-100/80 md:text-sm">
+                  <strong className="font-semibold text-orange-900 dark:text-orange-100">{ACTIVE_METRIC.label}</strong>을 포함한 탭을 선택하면 <strong className="font-semibold text-orange-900 dark:text-orange-50">핵심 지표</strong>와 <strong className="font-semibold text-orange-900 dark:text-orange-50">연도별 데이터</strong> 모듈이 함께 갱신되어, 한 화면에서 흐름을 비교할 수 있습니다.
+                </p>
               </div>
             </div>
-
-            {periodAnalysis && (
-              <KeyMetricsSectionPER
-                security={security}
-                perRank={perRank}
-                latestPER={periodAnalysis.latestPER}
-                per12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-                per3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-                per5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-                per10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-                per20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-                rangeMin={periodAnalysis.minMax.min}
-                rangeMax={periodAnalysis.minMax.max}
-                result={result}
-              />
-            )}
           </div>
 
-          {/* 연도별 데이터 섹션 */}
-          <div id="annual-data" className="border-t border-red-100 dark:border-red-800/50 pt-8 pb-8 bg-red-50/20 dark:bg-red-900/20 rounded-xl -mx-4 px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 dark:bg-red-800/50">
-                <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">연도별 데이터</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">PER 차트와 연말 기준 상세 데이터</p>
-              </div>
-            </div>
+          {/* 핵심 지표 섹션 */}
+          {periodAnalysis && (
+            <KeyMetricsSectionPER
+              security={security}
+              perRank={perRank}
+              latestPER={periodAnalysis.latestPER}
+              per12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
+              per3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
+              per5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
+              per10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
+              per20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
+              rangeMin={periodAnalysis.minMax.min}
+              rangeMax={periodAnalysis.minMax.max}
+              result={result}
+            />
+          )}
 
-            <div className="space-y-8">
-              {/* 상세 차트 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">PER 상세 차트</h3>
+          {/* 연도별 데이터 섹션 */}
+          <section
+            id="annual-data"
+            className={`${EDGE_TO_EDGE_SECTION_BASE} border-red-200/70 dark:border-red-900/40 dark:bg-red-950/20`}
+            style={SECTION_GRADIENTS.annual}
+          >
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-red-700/80 dark:text-red-200/80">
+              <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-red-700 shadow-sm dark:bg-red-900/40 dark:text-red-200">
+                탭 연동
+              </span>
+              <span className="text-sm font-semibold text-red-800/90 dark:text-red-100/90">
+                {ACTIVE_METRIC.label} 연도별 데이터 흐름
+              </span>
+              {ACTIVE_METRIC.description && (
+                <span className="text-[11px] font-medium text-red-700/70 dark:text-red-100/70">
+                  {ACTIVE_METRIC.description}
+                </span>
+              )}
+            </div>
+            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-800/50">
+                  <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">연도별 데이터</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">PER 차트와 연말 기준 상세 데이터를 확인합니다</p>
+                </div>
+              </div>
+              {annualCsvData.length > 0 && (
+                <CsvDownloadButton
+                  data={annualCsvData}
+                  filename={annualDownloadFilename}
+                  className="self-start border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-100 dark:hover:bg-red-900/30"
+                />
+              )}
+            </header>
+
+            <div className="space-y-5 sm:space-y-8">
+              <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                 {result && result.length > 0 ? (
-                  <div className="bg-background rounded-xl border p-2 sm:p-4 shadow-sm">
-                    <ChartPEREnhanced data={result} />
-                  </div>
+                  <ChartPEREnhanced data={result} />
                 ) : (
                   <NoDataDisplay
                     title="PER 차트 데이터 없음"
@@ -816,23 +793,13 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
                 )}
               </div>
 
-              {/* 데이터 테이블 */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-semibold">연도별 PER 데이터</h3>
+              <div className="space-y-4 sm:space-y-6">
                 <p className="sr-only">연말 기준 PER 추이를 통해 밸류에이션 변화를 분석합니다</p>
 
-                {result && result.length > 0 ? (
-                  <ListPEREnhanced data={result} />
-                ) : (
-                  <NoDataDisplay
-                    title="연도별 PER 데이터 없음"
-                    description="시계열 데이터를 불러올 수 없습니다"
-                    iconType="table"
-                  />
-                )}
+                <ListPERMarketcap data={result.map(item => ({ date: item.date, value: item.value }))} />
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
@@ -842,69 +809,24 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           {/* 페이지 네비게이션 */}
           <div className="rounded-xl border bg-background p-4">
             <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <nav className="space-y-2">
-              <a
-                href="#security-overview"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <Building2 className="h-3 w-3" />
-                종목 개요
-              </a>
-              <a
-                href="#chart-analysis"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <BarChart3 className="h-3 w-3" />
-                차트 분석
-              </a>
-              {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && (
-                <a
-                  href="#securities-summary"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-                >
-                  <ArrowLeftRight className="h-3 w-3" />
-                  종목 비교
-                </a>
-              )}
-              <a
-                href="#indicators"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <TrendingUp className="h-3 w-3" />
-                핵심 지표
-              </a>
-              <a
-                href="#annual-data"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                <FileText className="h-3 w-3" />
-                연도별 데이터
-              </a>
-            </nav>
+            <PageNavigation sections={navigationSections} />
           </div>
 
-          {/* 빠른 요약 사이드바 카드 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">빠른 요약</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">현재 PER</span>
-                <span className="font-medium text-foreground">{periodAnalysis?.latestPER ? `${periodAnalysis.latestPER.toFixed(2)}배` : "—"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">PER 랭킹</span>
-                <span className="font-medium text-foreground">{perRank ? `${perRank}위` : "—"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">현재 주가</span>
-                <span className="font-medium text-foreground">{security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}원` : "—"}</span>
-              </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="text-muted-foreground">데이터 기간</span>
-                <span className="font-medium text-foreground">{result.length > 0 ? `${result.length}년` : "—"}</span>
-              </div>
-            </div>
-          </div>
+          {/* 핵심 지표 사이드바 */}
+          {periodAnalysis && (
+            <KeyMetricsSidebarPER
+              perRank={perRank}
+              latestPER={periodAnalysis.latestPER}
+              per12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
+              per3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
+              per5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
+              per10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
+              per20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
+              rangeMin={periodAnalysis.minMax.min}
+              rangeMax={periodAnalysis.minMax.max}
+              currentPrice={security.prices?.[0]?.close || null}
+            />
+          )}
 
           {/* 종목별 PER 비교 */}
           {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && companyMarketcapData && (
