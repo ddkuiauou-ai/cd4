@@ -95,14 +95,39 @@ export function InteractiveSecuritiesSection({
     );
 
     // 유효한 증권 목록 추출 및 정렬
+    const resolveTypeLabel = (security: any) => {
+        const type = (security?.type || "").trim();
+
+        if (!type) {
+            return security?.korName || security?.name || "종목";
+        }
+
+        if (type.includes("보통주")) {
+            return "보통주";
+        }
+
+        if (type.includes("우선주")) {
+            return type;
+        }
+
+        return type;
+    };
+
     const validSecurities = hasValidData
         ? companyMarketcapData.securities?.filter((sec: any) =>
             sec && sec.type && (sec.type.includes("보통주") || sec.type.includes("우선주"))
         ).sort((a: any, b: any) => {
-            // 보통주를 먼저, 그 다음 우선주를 순서대로
-            if (a.type.includes("보통주") && !b.type.includes("보통주")) return -1;
-            if (!a.type.includes("보통주") && b.type.includes("보통주")) return 1;
-            return a.type.localeCompare(b.type);
+            const aTypeLabel = resolveTypeLabel(a);
+            const bTypeLabel = resolveTypeLabel(b);
+
+            if (aTypeLabel === "보통주" && bTypeLabel !== "보통주") return -1;
+            if (aTypeLabel !== "보통주" && bTypeLabel === "보통주") return 1;
+
+            if (aTypeLabel === bTypeLabel) {
+                return (a.type || "").localeCompare(b.type || "");
+            }
+
+            return aTypeLabel.localeCompare(bTypeLabel);
         }) || []
         : [];
 

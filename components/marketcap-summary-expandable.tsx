@@ -55,32 +55,175 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
     const getDisplayData = () => {
         // MSE-1-1A-1: 기본 데이터 추출
         const allSecurities = data.securities || [];
-        const totalMarketcap = data.totalMarketcap || 0; // 항상 전체 시가총액 (보통주 + 우선주)
 
-        // MSE-1-1A-2: 종목별 데이터 분리
-        const commonStock = allSecurities.find(sec => sec.type?.includes("보통주"));
-        const preferredStock = allSecurities.find(sec => sec.type?.includes("우선주"));
+        const parseNumeric = (value: unknown) => {
+            if (value === null || value === undefined) {
+                return 0;
+            }
+
+            if (typeof value === "number" && Number.isFinite(value)) {
+                return value;
+            }
+
+            if (typeof value === "bigint") {
+                const numeric = Number(value);
+                return Number.isFinite(numeric) ? numeric : 0;
+            }
+
+            if (typeof value === "string") {
+                const numeric = Number.parseFloat(value.replace(/,/g, ""));
+                return Number.isFinite(numeric) ? numeric : 0;
+            }
+
+            return 0;
+        };
+
+        const aggregatedTotal = parseNumeric(data.totalMarketcap);
+
+        // 개별 종목 합계를 기반으로 한 보정값 계산 (데이터 누락 대비)
+        const computedTotal = (data.securities || []).reduce(
+            (sum: number, sec: any) => sum + parseNumeric(sec?.marketcap),
+            0
+        );
+
+        // 항상 전체 시가총액 (보통주 + 우선주 + 기타)
+        const totalMarketcap = aggregatedTotal > 0 ? aggregatedTotal : computedTotal;
+
+        // MSE-1-1A-2: 종목별 데이터 분리 (다중 우선주 지원)
+        const grouped = allSecurities.reduce(
+            (acc: { common: any[]; preferred: any[]; others: any[] }, sec: any) => {
+                const type = sec?.type ?? "";
+
+                if (type.includes("보통주")) {
+                    acc.common.push(sec);
+                } else if (type.includes("우선주")) {
+                    acc.preferred.push(sec);
+                } else {
+                    acc.others.push(sec);
+                }
+
+                return acc;
+            },
+            { common: [], preferred: [], others: [] }
+        );
+
+        const resolveTypeLabel = (sec: any) => {
+            const type = (sec?.type ?? "").trim();
+
+            if (!type) {
+                return sec?.korName || sec?.name || "기타";
+            }
+
+            if (type.includes("보통주")) {
+                return "보통주";
+            }
+
+            if (type.includes("우선주")) {
+                return type;
+            }
+
+            return type;
+        };
+
+        const typeLabels = allSecurities.map(resolveTypeLabel).filter(Boolean);
+
+        const sumMarketcap = (securities: any[]) =>
+            securities.reduce((sum, sec) => sum + parseNumeric(sec?.marketcap), 0);
 
         // MSE-1-1A-3: 비중 계산 (전체 대비 %)
-        const commonStockRatio = commonStock ? (commonStock.marketcap || 0) / totalMarketcap * 100 : 0;
-        const preferredStockRatio = preferredStock ? (preferredStock.marketcap || 0) / totalMarketcap * 100 : 0;
+        const commonMarketcap = sumMarketcap(grouped.common);
+        const preferredMarketcap = sumMarketcap(grouped.preferred);
+        const totalMarketcapSafe = totalMarketcap > 0 ? totalMarketcap : 0;
+
+        const getRatio = (value: number) => (totalMarketcapSafe > 0 ? (value / totalMarketcapSafe) * 100 : 0);
+
+        const commonStockRatio = getRatio(commonMarketcap);
+        const preferredStockRatio = getRatio(preferredMarketcap);
+
+        const resolveFilterRatio = () => {
+            if (filterType === "보통주") {
+                return commonStockRatio;
+            }
+
+            if (filterType === "우선주") {
+                return preferredStockRatio;
+            }
+
+            if (filterType === "all" || filterType === "시가총액 구성") {
+                if (grouped.common.length > 0) {
+                    return commonStockRatio;
+                }
+
+                if (grouped.preferred.length > 0) {
+                    return preferredStockRatio;
+                }
+
+                if (grouped.others.length > 0) {
+                    return getRatio(sumMarketcap(grouped.others));
+                }
+
+                return 0;
+            }
+
+            const matchingExact = allSecurities.filter(sec => sec.type === filterType);
+            if (matchingExact.length > 0) {
+                return getRatio(sumMarketcap(matchingExact));
+            }
+
+            const matchingIncludes = allSecurities.filter(sec => sec.type?.includes(filterType));
+            if (matchingIncludes.length > 0) {
+                return getRatio(sumMarketcap(matchingIncludes));
+            }
+
+            if (grouped.common.length > 0) {
+                return commonStockRatio;
+            }
+
+            if (grouped.preferred.length > 0) {
+                return preferredStockRatio;
+            }
+
+            return 0;
+        };
+
+        const resolveFilterLabel = () => {
+            if (filterType === "보통주" || filterType === "우선주") {
+                return `${filterType} 비중`;
+            }
+
+            if (filterType === "all" || filterType === "시가총액 구성") {
+                if (grouped.common.length > 0) {
+                    return "보통주 비중";
+                }
+
+                if (grouped.preferred.length > 0) {
+                    return "우선주 비중";
+                }
+
+                const otherType = grouped.others[0]?.type || typeLabels[0];
+                return otherType ? `${otherType} 비중` : "비중";
+            }
+
+            return `${filterType} 비중`;
+        };
+
+        const typeSummaryLabel = typeLabels.length > 0
+            ? typeLabels.join(" + ")
+            : "종목 정보 없음";
 
         // MSE-1-1A-4: 최종 데이터 객체 반환
         return {
             securities: allSecurities,           // 항상 전체 종목 표시
-            totalMarketcap: totalMarketcap,     // 항상 전체 시가총액
-            totalCount: allSecurities.length,   // 항상 전체 종목 수 (2개)
+            totalMarketcap: totalMarketcapSafe,  // 항상 전체 시가총액
+            totalCount: allSecurities.length,    // 전체 종목 수
             // MSE-1-1A-4a: 필터별 포커스 비중 계산
-            focusedRatio: filterType === "보통주" ? commonStockRatio :
-                filterType === "우선주" ? preferredStockRatio :
-                    commonStockRatio, // 시가총액 구성이나 기타는 보통주 비중
+            focusedRatio: resolveFilterRatio(),
             // MSE-1-1A-4b: 필터별 라벨 설정
-            focusedLabel: filterType === "보통주" ? "보통주 비중" :
-                filterType === "우선주" ? "우선주 비중" :
-                    "보통주 비중", // 시가총액 구성이나 기타는 보통주 비중
+            focusedLabel: resolveFilterLabel(),
             // MSE-1-1A-4c: 추가 비중 정보 (레이아웃 안정성용)
             commonStockRatio: commonStockRatio,
-            preferredStockRatio: preferredStockRatio
+            preferredStockRatio: preferredStockRatio,
+            typeSummaryLabel
         };
     };
 
@@ -135,7 +278,7 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                                 시가총액 구성
                             </h3>
                             <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded" data-label="MSE-1-2A-1a-subtitle">
-                                보통주 + 우선주
+                                {displayData.typeSummaryLabel}
                             </span>
                             {/* MSE-1-2A-1a-selected: 선택됨 표시 (투명도로 공간 유지) */}
                             <span
@@ -229,7 +372,7 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                                     시가총액 구성
                                 </h3>
                                 <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded" data-label="MSE-1-2B-1a-subtitle">
-                                    보통주 + 우선주
+                                    {displayData.typeSummaryLabel}
                                 </span>
                                 {/* MSE-1-2B-1a-selected: 선택됨 표시 (전체 보기일 때) */}
                                 {filterType === "all" && (
