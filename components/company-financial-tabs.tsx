@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface CompanyFinancialTabsProps {
     secCode: string;
@@ -105,43 +106,46 @@ export function CompanyFinancialTabs({ secCode, className }: CompanyFinancialTab
             {/* Context indicator */}
 
             <Tabs value={currentTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 h-auto p-1 gap-1 bg-muted/30">
-                    {tabs.map((tab) => (
-                        <Link key={tab.id} href={tab.href} className="w-full">
-                            <TabsTrigger
-                                value={tab.id}
-                                className={cn(
-                                    "w-full text-xs sm:text-sm font-medium",
-                                    "data-[state=active]:bg-background data-[state=active]:text-foreground",
-                                    "data-[state=active]:border data-[state=active]:border-border",
-                                    "flex flex-col items-center justify-center p-2 sm:p-3",
-                                    "min-h-[3rem] sm:min-h-[3.5rem]",
-                                    "data-[state=active]:shadow-sm transition-all duration-200",
-                                    "hover:bg-muted/50 hover:text-foreground",
-                                    "rounded-md group relative"
-                                )}
-                            >
-                                {/* Icon with context indication */}
-                                <div className="flex items-center gap-1 mb-1">
-                                    <span className="text-lg">{tab.icon}</span>
-                                    {tab.id === "marketcap" && (
-                                        <span className="text-xs opacity-60">🏢</span>
+                <ScrollArea className="w-full" orientation="horizontal">
+                    <TabsList className="flex w-max gap-1 rounded-xl bg-muted/30 p-1 h-auto sm:grid sm:w-full sm:grid-cols-4 lg:grid-cols-7">
+                        {tabs.map((tab) => (
+                            <Link key={tab.id} href={tab.href} className="w-auto sm:w-full">
+                                <TabsTrigger
+                                    value={tab.id}
+                                    className={cn(
+                                        "flex-shrink-0 min-w-[6.5rem] text-xs sm:text-sm font-medium sm:min-w-0",
+                                        "data-[state=active]:bg-background data-[state=active]:text-foreground",
+                                        "data-[state=active]:border data-[state=active]:border-border",
+                                        "flex flex-col items-center justify-center p-2 sm:p-3",
+                                        "min-h-[3rem] sm:min-h-[3.5rem]",
+                                        "data-[state=active]:shadow-sm transition-all duration-200",
+                                        "hover:bg-muted/50 hover:text-foreground",
+                                        "rounded-md group relative"
                                     )}
-                                </div>
+                                >
+                                    {/* Icon with context indication */}
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <span className="text-lg">{tab.icon}</span>
+                                        {tab.id === "marketcap" && (
+                                            <span className="text-xs opacity-60">🏢</span>
+                                        )}
+                                    </div>
 
-                                <span className="font-semibold leading-tight">{tab.label}</span>
-                                <span className="text-xs text-muted-foreground font-normal opacity-70 leading-tight">
-                                    {tab.description}
-                                </span>
+                                    <span className="font-semibold leading-tight">{tab.label}</span>
+                                    <span className="text-xs text-muted-foreground font-normal opacity-70 leading-tight">
+                                        {tab.description}
+                                    </span>
 
-                                {/* Hover tooltip */}
-                                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                                    {tab.intent}
-                                </div>
-                            </TabsTrigger>
-                        </Link>
-                    ))}
-                </TabsList>
+                                    {/* Hover tooltip */}
+                                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                        {tab.intent}
+                                    </div>
+                                </TabsTrigger>
+                            </Link>
+                        ))}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" className="h-2 sm:hidden" />
+                </ScrollArea>
             </Tabs>
         </div>
     );

@@ -106,9 +106,6 @@ function MobileCompanyIdentity({
   titleBadge,
   detail,
 }: MobileCompanyIdentityProps) {
-  const headingSuffix = titleSuffix ?? "시가총액";
-  const headingText = headingSuffix ? `${displayName} ${headingSuffix}` : displayName;
-
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-lg px-2 py-1.5 sm:hidden">
       <CompanyLogo
@@ -119,8 +116,15 @@ function MobileCompanyIdentity({
       />
       <div className="min-w-0">
         <h1 className="font-heading text-lg font-bold leading-tight tracking-tight">
-          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <Balancer>{headingText}</Balancer>
+          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <Balancer>
+              <span className="block whitespace-nowrap">{displayName}</span>
+            </Balancer>
+            {titleSuffix ? (
+              <span className="text-xs font-medium text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                {titleSuffix}
+              </span>
+            ) : null}
             {titleBadge ? (
               <span className="text-xs font-medium text-muted-foreground">
                 {titleBadge}

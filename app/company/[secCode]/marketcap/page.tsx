@@ -22,6 +22,8 @@ import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
 import { PageNavigation } from "@/components/page-navigation";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import ShareButton from "@/components/share-button";
+import { siteConfig } from "@/config/site";
 
 type RgbTuple = [number, number, number];
 
@@ -400,8 +402,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     const latestHistoryItem = aggregatedHistory[aggregatedHistory.length - 1];
     const latestHistoryDate = latestHistoryItem
       ? (latestHistoryItem.date instanceof Date
-          ? latestHistoryItem.date.toISOString().split("T")[0]
-          : String(latestHistoryItem.date))
+        ? latestHistoryItem.date.toISOString().split("T")[0]
+        : String(latestHistoryItem.date))
       : undefined;
     const sanitizedSecCode = secCode.replace(/\./g, "-");
     const annualDownloadFilename = `${sanitizedSecCode}-annual-marketcap${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
@@ -480,14 +482,14 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             </div>
 
             <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE} lg:col-span-2`}>
-              <div className="flex items-start justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
+              <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-5 sm:pt-5">
                 <div>
                   <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 3개월 가격 차트</h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름
                   </p>
                 </div>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground">
+                <span className="inline-flex w-fit rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground sm:self-start">
                   최근 3개월
                 </span>
               </div>
@@ -634,102 +636,106 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   const renderEmptyState = () => (
     <div className="space-y-6 sm:space-y-12">
       {/* 🚨 데이터 없음 상태 UI 개선 */}
-        <section className="flex flex-col items-center justify-center gap-4 border border-border/60 bg-muted/40 px-4 py-8 text-center shadow-sm -mx-4 sm:mx-0 sm:rounded-3xl sm:px-8 sm:py-12">
-          {/* 아이콘 */}
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/60">
-            <svg className="h-10 w-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+      <section className="flex flex-col items-center justify-center gap-4 border border-border/60 bg-muted/40 px-4 py-8 text-center shadow-sm -mx-4 sm:mx-0 sm:rounded-3xl sm:px-8 sm:py-12">
+        {/* 아이콘 */}
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/60">
+          <svg className="h-10 w-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+
+        {/* 메시지 */}
+        <div className="max-w-md space-y-3">
+          <h3 className="text-xl font-semibold text-foreground">기업 시가총액 데이터 없음</h3>
+          <p className="leading-relaxed text-muted-foreground">
+            <strong className="font-semibold text-foreground">{displayName}</strong>의 통합 시가총액 데이터를 불러올 수 없습니다.
+            <br />개별 종목의 시가총액 정보를 대신 확인하실 수 있습니다.
+          </p>
+        </div>
+
+        {/* 대안 액션 */}
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:gap-3">
+          <Link
+            href={`/company/${secCode}`}
+            className="inline-flex items-center justify-center rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+          >
+            기업 홈으로 돌아가기
+          </Link>
+          <Link
+            href={`/security/${secCode}/marketcap`}
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            개별 종목 시가총액 보기
+          </Link>
+        </div>
+      </section>
+
+      {companySecs.length > 0 ? (
+        <section className="space-y-4 sm:space-y-6">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            관련 종목 ({companySecs.length}개)
+          </h2>
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {companySecs.map((sec) => (
+              <CardMarketcap
+                key={sec.securityId}
+                security={sec as any}
+                market={market}
+                isCompanyPage={true}
+                currentMetric="marketcap"
+              />
+            ))}
           </div>
 
-          {/* 메시지 */}
-          <div className="max-w-md space-y-3">
-            <h3 className="text-xl font-semibold text-foreground">기업 시가총액 데이터 없음</h3>
-            <p className="leading-relaxed text-muted-foreground">
-              <strong className="font-semibold text-foreground">{displayName}</strong>의 통합 시가총액 데이터를 불러올 수 없습니다.
-              <br />개별 종목의 시가총액 정보를 대신 확인하실 수 있습니다.
-            </p>
-          </div>
-
-          {/* 대안 액션 */}
-          <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:gap-3">
-            <Link
-              href={`/company/${secCode}`}
-              className="inline-flex items-center justify-center rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
-            >
-              기업 홈으로 돌아가기
-            </Link>
+          <div className="pt-4 text-center sm:pt-6">
             <Link
               href={`/security/${secCode}/marketcap`}
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-6 sm:py-3"
             >
-              개별 종목 시가총액 보기
+              {displayName} 종목 시가총액 상세보기
             </Link>
           </div>
         </section>
-
-        {companySecs.length > 0 ? (
-          <section className="space-y-4 sm:space-y-6">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              관련 종목 ({companySecs.length}개)
-            </h2>
-            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {companySecs.map((sec) => (
-                <CardMarketcap
-                  key={sec.securityId}
-                  security={sec as any}
-                  market={market}
-                  isCompanyPage={true}
-                  currentMetric="marketcap"
-                />
-              ))}
-            </div>
-
-            <div className="pt-4 text-center sm:pt-6">
-              <Link
-                href={`/security/${secCode}/marketcap`}
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-6 sm:py-3"
-              >
-                {displayName} 종목 시가총액 상세보기
-              </Link>
-            </div>
-          </section>
-        ) : (
-          <section className="space-y-4 text-center">
-            <h3 className="text-xl font-semibold text-foreground">종목 정보를 찾을 수 없습니다</h3>
-            <p className="text-muted-foreground">해당 종목의 시가총액 데이터가 없거나 접근할 수 없습니다.</p>
-            <div className="flex justify-center gap-3">
-              <Link
-                href="/company/marketcaps"
-                className="inline-flex items-center justify-center rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
-              >
-                기업 시가총액 랭킹
-              </Link>
-              <Link
-                href="/marketcap"
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                종목 시가총액 랭킹
-              </Link>
-            </div>
-          </section>
-        )}
-      </div>
-      );
+      ) : (
+        <section className="space-y-4 text-center">
+          <h3 className="text-xl font-semibold text-foreground">종목 정보를 찾을 수 없습니다</h3>
+          <p className="text-muted-foreground">해당 종목의 시가총액 데이터가 없거나 접근할 수 없습니다.</p>
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/company/marketcaps"
+              className="inline-flex items-center justify-center rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
+            >
+              기업 시가총액 랭킹
+            </Link>
+            <Link
+              href="/marketcap"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              종목 시가총액 랭킹
+            </Link>
+          </div>
+        </section>
+      )}
+    </div>
+  );
 
   const headerDetail = companyMarketcapData
     ? {
-        label: "시가총액",
-        value: formatNumber(companyMarketcapData.totalMarketcap ?? 0, "원"),
-        badge: companyMarketcapData.totalMarketcapDate
-          ? `${formatDate(companyMarketcapData.totalMarketcapDate, "ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })} 기준`
-          : undefined,
-      }
+      label: "시가총액",
+      value: formatNumber(companyMarketcapData.totalMarketcap ?? 0, "원"),
+      badge: companyMarketcapData.totalMarketcapDate
+        ? `${formatDate(companyMarketcapData.totalMarketcapDate, "ko-KR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })} 기준`
+        : undefined,
+    }
     : undefined;
+
+  const shareTitle = `${displayName} 시가총액 분석 | ${siteConfig.name}`;
+  const shareText = `${displayName} 기업의 시가총액 추이와 종목별 구성 데이터를 ${siteConfig.name}에서 확인하세요.`;
+  const shareUrl = `${siteConfig.url}/company/${secCode}/marketcap`;
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
@@ -759,12 +765,28 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           companyName={security.company?.korName || security.company?.name}
           logoUrl={security.company?.logo}
           detail={headerDetail}
+          actions={
+            <ShareButton
+              title={shareTitle}
+              text={shareText}
+              url={shareUrl}
+            />
+          }
         />
 
         <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
-          <p className="text-base text-muted-foreground md:text-lg">
-            기업 전체 가치와 종목별 시가총액 구성을 분석합니다
-          </p>
+          <div className="space-y-3">
+            <p className="text-base text-muted-foreground md:text-lg">
+              기업 전체 가치와 종목별 시가총액 구성을 분석합니다
+            </p>
+            <div className="sm:hidden">
+              <ShareButton
+                title={shareTitle}
+                text={shareText}
+                url={shareUrl}
+              />
+            </div>
+          </div>
 
           {/* 시가총액 설명 알림 */}
           <div

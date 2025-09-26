@@ -38,6 +38,8 @@ import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
 import { PageNavigation } from "@/components/page-navigation";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import ShareButton from "@/components/share-button";
+import { siteConfig } from "@/config/site";
 import { SecMarketcapPager } from "@/components/pager-marketcap-security";
 import ChartMarketcap from "@/components/chart-marketcap";
 import { Card, CardContent } from "@/components/ui/card";
@@ -199,8 +201,8 @@ export default async function SecurityMarketcapPage({
   const currentTicker = security.ticker
     ? security.ticker
     : secCode.includes(".")
-    ? secCode.split(".")[1]
-    : secCode;
+      ? secCode.split(".")[1]
+      : secCode;
 
   const companySecs = security.companyId
     ? await getCompanySecurities(security.companyId)
@@ -322,8 +324,8 @@ export default async function SecurityMarketcapPage({
     const yearChange =
       twelveMonthAverage && twelveMonthAverage !== 0
         ? ((latestMarketcapValue - twelveMonthAverage) /
-            twelveMonthAverage) *
-          100
+          twelveMonthAverage) *
+        100
         : null;
 
     return {
@@ -423,7 +425,7 @@ export default async function SecurityMarketcapPage({
 
   const hasCompanyMarketcapData = Boolean(
     companyMarketcapData?.aggregatedHistory?.length &&
-      companyMarketcapData?.securities?.length,
+    companyMarketcapData?.securities?.length,
   );
 
   const selectedType = resolveSelectedType(security.type);
@@ -533,7 +535,7 @@ export default async function SecurityMarketcapPage({
               isCompanyLevel={false}
             />
 
-            <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}> 
+            <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
               <dl className="space-y-2 p-4">
                 <div className="flex items-center justify-between text-sm">
                   <dt className="text-muted-foreground">종목명</dt>
@@ -589,8 +591,8 @@ export default async function SecurityMarketcapPage({
                     {representativeSecurity?.type?.includes("보통주")
                       ? "보통주"
                       : representativeSecurity
-                      ? representativeSecurity.type
-                      : "-"}
+                        ? representativeSecurity.type
+                        : "-"}
                   </dd>
                 </div>
               </dl>
@@ -819,6 +821,10 @@ export default async function SecurityMarketcapPage({
 
   const titleSuffix = "시가총액";
 
+  const shareTitle = `${displayName} ${securityType} 시가총액 분석 | ${siteConfig.name}`;
+  const shareText = `${displayName} ${securityType}의 시가총액 추이와 구성 데이터를 ${siteConfig.name}에서 확인하세요.`;
+  const shareUrl = `${siteConfig.url}/security/${secCode}/marketcap`;
+
   const navigationSections = [
     {
       id: "security-overview",
@@ -832,12 +838,12 @@ export default async function SecurityMarketcapPage({
     },
     ...(hasCompanyMarketcapData && companySecs.length > 0
       ? [
-          {
-            id: "securities-summary",
-            label: "종목 비교",
-            icon: <ArrowLeftRight className="h-3 w-3" />,
-          },
-        ]
+        {
+          id: "securities-summary",
+          label: "종목 비교",
+          icon: <ArrowLeftRight className="h-3 w-3" />,
+        },
+      ]
       : []),
     {
       id: "indicators",
@@ -891,12 +897,28 @@ export default async function SecurityMarketcapPage({
           titleSuffix={titleSuffix}
           titleBadge={security.type ?? null}
           detail={headerDetail}
+          actions={
+            <ShareButton
+              title={shareTitle}
+              text={shareText}
+              url={shareUrl}
+            />
+          }
         />
 
         <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
-          <p className="text-base text-muted-foreground md:text-lg">
-            종목 가치를 중심으로 동일 기업 내 다른 종목과의 시가총액 구성을 분석합니다.
-          </p>
+          <div className="space-y-3">
+            <p className="text-base text-muted-foreground md:text-lg">
+              종목 가치를 중심으로 동일 기업 내 다른 종목과의 시가총액 구성을 분석합니다.
+            </p>
+            <div className="sm:hidden">
+              <ShareButton
+                title={shareTitle}
+                text={shareText}
+                url={shareUrl}
+              />
+            </div>
+          </div>
 
           <div
             data-slot="alert"

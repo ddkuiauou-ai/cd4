@@ -167,6 +167,7 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
 }
 
 const VOLUME_ACCENT_RGB = "38, 166, 154";
+const VOLUME_UNIT_DIVISOR = 10_000;
 
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 0,
@@ -175,10 +176,27 @@ const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
 
 const volumeAccent = (alpha: number) => `rgba(${VOLUME_ACCENT_RGB}, ${alpha})`;
 
-const koreanVolumeFormatter = new Intl.NumberFormat("ko-KR", {
-  notation: "compact",
+const koreanVolumeTenThousandsFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 1,
+  minimumFractionDigits: 0,
 });
+
+function convertVolumeToTenThousands(value?: number | null): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.max(value, 0) / VOLUME_UNIT_DIVISOR;
+}
+
+function formatTenThousandsLabel(value?: number | null): string | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const formatted = koreanVolumeTenThousandsFormatter.format(Math.max(value, 0));
+  return `${formatted}만주`;
+}
 
 function coerceTimeToDate(time: Time): Date | null {
   if (typeof time === "number") {
@@ -376,13 +394,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const normalizedVolume = normalizeVolumeValue(point.volume);
 
       if (normalizedVolume !== null) {
-        volumePoints.push({
-          time: timeValue,
-          value: normalizedVolume,
-        });
+        const scaledVolume = convertVolumeToTenThousands(normalizedVolume);
 
-        if (timeKey) {
-          rawVolumeByTime.set(timeKey, normalizedVolume);
+        if (scaledVolume !== null) {
+          volumePoints.push({
+            time: timeValue,
+            value: scaledVolume,
+          });
+
+          if (timeKey) {
+            rawVolumeByTime.set(timeKey, normalizedVolume);
+          }
         }
       }
     }
@@ -531,12 +553,12 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         rightOffset: 0,
         fixLeftEdge: true,
         fixRightEdge: true,
-        tickMarkFormatter: (time) => formatAxisDate(time) || "",
+        tickMarkFormatter: (time: Time) => formatAxisDate(time) || "",
       },
       localization: {
         locale: "ko-KR",
-        priceFormatter: (price) => koreanPriceFormatter.format(price),
-        timeFormatter: (time) => formatTooltipDate(time) || "",
+        priceFormatter: (price: number) => koreanPriceFormatter.format(price),
+        timeFormatter: (time: Time) => formatTooltipDate(time) || "",
       },
       crosshair: { mode: CrosshairMode.Normal },
       autoSize: true,
@@ -581,7 +603,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           top: 0.1,
           bottom: priceScaleBottomMargin,
         },
-        position: "right",
       });
 
     chartRef.current = chart;
@@ -595,7 +616,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     tooltip.style.left = "0px";
     tooltip.style.top = "0px";
     tooltip.style.visibility = "hidden";
-    tooltip.style.transform = "translateX(-50%)";
     tooltipRef.current = tooltip;
     container.appendChild(tooltip);
 
@@ -666,7 +686,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const volumeValue = volumeMap?.get(volumeKey);
       const volumeText =
         volumeValue !== undefined
-          ? `${koreanVolumeFormatter.format(volumeValue)}주`
+          ? formatTenThousandsLabel(convertVolumeToTenThousands(volumeValue))
           : null;
 
       tooltipEl.innerHTML = `
@@ -690,35 +710,111 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
               <span class="font-semibold text-foreground">${closeText}</span>
             </div>
             ${movingAverageData
-              .filter((item) => item.text)
-              .map(
-                (item) =>
-                  `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">${item.label}</span><span class="font-semibold" style="color:${item.color}">${item.text}</span></div>`
-              )
-              .join("")
-            }
-            ${
-              volumeText
-                ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">거래량</span><span class="font-semibold text-foreground">${volumeText}</span></div>`
-                : ""
-            }
+          .filter((item) => item.text)
+          .map(
+            (item) =>
+              `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">${item.label}</span><span class="font-semibold" style="color:${item.color}">${item.text}</span></div>`
+          )
+          .join("")
+        }
+            ${volumeText
+          ? `<div class="flex items-center justify-between gap-6"><span class="text-muted-foreground">거래량</span><span class="font-semibold text-foreground">${volumeText}</span></div>`
+          : ""
+        }
           </div>
         </div>
       `;
 
       tooltipEl.style.visibility = "visible";
+      tooltipEl.style.transform = "none";
 
-      const horizontalPadding = 12;
+      const padding = 8;
+      const horizontalOffset = 16;
+      const verticalOffset = 14;
       const tooltipWidth = tooltipEl.offsetWidth;
       const tooltipHeight = tooltipEl.offsetHeight;
-      const clampedX = Math.min(
-        Math.max(point.x, horizontalPadding + tooltipWidth / 2),
-        width - horizontalPadding - tooltipWidth / 2
-      );
-      const clampedY = Math.max(point.y - tooltipHeight - 12, 0);
 
-      tooltipEl.style.left = `${clampedX}px`;
-      tooltipEl.style.top = `${clampedY}px`;
+      const spaceLeft = point.x - padding;
+      const spaceRight = width - point.x - padding;
+      const spaceTop = point.y - padding;
+      const spaceBottom = height - point.y - padding;
+
+      const fitsLeft = spaceLeft >= tooltipWidth + horizontalOffset;
+      const fitsRight = spaceRight >= tooltipWidth + horizontalOffset;
+      const fitsTop = spaceTop >= tooltipHeight + verticalOffset;
+      const fitsBottom = spaceBottom >= tooltipHeight + verticalOffset;
+
+      let placeLeft: boolean;
+      if (!fitsRight && fitsLeft) {
+        placeLeft = true;
+      } else if (!fitsLeft && fitsRight) {
+        placeLeft = false;
+      } else {
+        placeLeft = spaceLeft > spaceRight;
+      }
+
+      let placeAbove: boolean;
+      if (!fitsBottom && fitsTop) {
+        placeAbove = true;
+      } else if (!fitsTop && fitsBottom) {
+        placeAbove = false;
+      } else {
+        placeAbove = spaceTop > spaceBottom;
+      }
+
+      const computeHorizontalPosition = (leftSide: boolean) => {
+        const proposed = leftSide
+          ? point.x - horizontalOffset - tooltipWidth
+          : point.x + horizontalOffset;
+        return clamp(proposed, padding, width - tooltipWidth - padding);
+      };
+
+      const computeVerticalPosition = (above: boolean) => {
+        const proposed = above
+          ? point.y - verticalOffset - tooltipHeight
+          : point.y + verticalOffset;
+        return clamp(proposed, padding, height - tooltipHeight - padding);
+      };
+
+      let tooltipLeft = computeHorizontalPosition(placeLeft);
+
+      if (placeLeft && tooltipLeft > point.x - horizontalOffset - tooltipWidth + 0.5 && fitsRight) {
+        tooltipLeft = computeHorizontalPosition(false);
+        placeLeft = false;
+      } else if (
+        !placeLeft &&
+        tooltipLeft < point.x + horizontalOffset - 0.5 &&
+        fitsLeft
+      ) {
+        const recalculated = computeHorizontalPosition(true);
+        if (recalculated <= point.x - horizontalOffset - 0.5) {
+          tooltipLeft = recalculated;
+          placeLeft = true;
+        }
+      }
+
+      let tooltipTop = computeVerticalPosition(placeAbove);
+
+      if (placeAbove && tooltipTop > point.y - verticalOffset - tooltipHeight + 0.5 && fitsBottom) {
+        tooltipTop = computeVerticalPosition(false);
+        placeAbove = false;
+      } else if (
+        !placeAbove &&
+        tooltipTop < point.y + verticalOffset - 0.5 &&
+        fitsTop
+      ) {
+        const recalculated = computeVerticalPosition(true);
+        if (recalculated <= point.y - verticalOffset - 0.5) {
+          tooltipTop = recalculated;
+          placeAbove = true;
+        }
+      }
+
+      tooltipEl.dataset.positionX = placeLeft ? "left" : "right";
+      tooltipEl.dataset.positionY = placeAbove ? "top" : "bottom";
+
+      tooltipEl.style.left = `${tooltipLeft}px`;
+      tooltipEl.style.top = `${tooltipTop}px`;
     };
 
     chart.subscribeCrosshairMove(handleCrosshairMove);
@@ -777,7 +873,6 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       borderColor,
       mode: PriceScaleMode.Normal,
       autoScale: true,
-      position: "right",
       scaleMargins: {
         top: 0.1,
         bottom: priceScaleBottomMargin,
@@ -810,7 +905,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
             type: "custom",
             minMove: 1,
             formatter: (value: number) =>
-              koreanVolumeFormatter.format(Math.max(value, 0)),
+              formatTenThousandsLabel(value) ?? "0만주",
           },
           priceLineVisible: false,
           lastValueVisible: true,
@@ -830,11 +925,11 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
       const paneIndex = volumePane.paneIndex();
 
-      chart.priceScale("volume", paneIndex).applyOptions({
+      const volumeScale = chart.priceScale("volume", paneIndex);
+      volumeScale?.applyOptions({
         borderColor,
         mode: PriceScaleMode.Normal,
         autoScale: true,
-        position: "right",
         scaleMargins: {
           top: 0.1,
           bottom: 0,
@@ -920,6 +1015,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   return (
     <div className="relative h-[320px] w-full overflow-hidden rounded-xl border border-border/60 bg-background/80 sm:h-[340px] md:h-[380px] lg:h-[420px]">
       <div ref={containerRef} className="absolute inset-0" />
+      <div className="pointer-events-none absolute bottom-1 right-0 w-max select-none rounded-full bg-background/85 px-2 py-0.5 text-right text-[11px] font-medium text-muted-foreground shadow-sm ring-1 ring-border/50">
+        거래량 단위: 만주
+      </div>
     </div>
   );
 }

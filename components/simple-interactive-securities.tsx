@@ -386,12 +386,16 @@ export function InteractiveSecuritiesSection({
             <div className="relative">
 
                 {/* 유연한 증권 그리드 */}
-                <div className={cn(
-                    "grid gap-4 relative z-10 min-h-0 mb-6",
-                    displaySecurities.length === 1 ? "grid-cols-1 max-w-sm mx-auto" :
-                        displaySecurities.length === 2 ? "grid-cols-1 sm:grid-cols-2 gap-x-6" :
-                            "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6"
-                )}>
+                <div
+                    className={cn(
+                        "relative z-10 mb-6 grid min-h-0 gap-4",
+                        displaySecurities.length === 1
+                            ? "mx-auto grid-cols-1 max-w-sm"
+                            : displaySecurities.length === 2
+                                ? "grid-cols-1 sm:grid-cols-2 sm:gap-x-5"
+                                : "grid-cols-1 sm:grid-cols-2 sm:gap-x-5 lg:grid-cols-3"
+                    )}
+                >
 
                     {displaySecurities.map((security: any, index: number) => (
                         <div
@@ -434,7 +438,7 @@ export function InteractiveSecuritiesSection({
                         <div
                             className={cn(
                                 getSummaryStyle().className,
-                                "group/summary relative z-10 focus:outline-none focus:ring-0 rounded-lg"
+                                "group/summary relative z-10 rounded-lg focus:outline-none focus:ring-0"
                             )}
                             onClick={getSummaryStyle().isClickable ? handleSummaryClick : undefined}
                             onKeyDown={(e) => {

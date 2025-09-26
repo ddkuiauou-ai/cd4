@@ -54,8 +54,8 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
     // MSE-1-1A: 표시 데이터 계산 함수 (필터 기반)
     const getDisplayData = () => {
         // MSE-1-1A-1: 기본 데이터 추출
-        const allSecurities = data.securities;
-        const totalMarketcap = data.totalMarketcap; // 항상 전체 시가총액 (보통주 + 우선주)
+        const allSecurities = data.securities || [];
+        const totalMarketcap = data.totalMarketcap || 0; // 항상 전체 시가총액 (보통주 + 우선주)
 
         // MSE-1-1A-2: 종목별 데이터 분리
         const commonStock = allSecurities.find(sec => sec.type?.includes("보통주"));
@@ -122,9 +122,15 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                 <div className="p-3 relative" data-label="MSE-1-2A-container">{/* 패딩 2->3 */}
 
                     {/* MSE-1-2A-1: 헤더 영역 (제목 + 확장 버튼) */}
-                    <div className="flex items-center justify-between mb-3 relative" data-label="MSE-1-2A-1">
+                    <div
+                        className="relative mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                        data-label="MSE-1-2A-1"
+                    >
                         {/* MSE-1-2A-1a: 제목 그룹 */}
-                        <div className="flex items-center gap-2" data-label="MSE-1-2A-1a">
+                        <div
+                            className="flex flex-wrap items-center gap-x-2 gap-y-1"
+                            data-label="MSE-1-2A-1a"
+                        >
                             <h3 className="text-sm font-semibold relative" data-label="MSE-1-2A-1a-title">
                                 시가총액 구성
                             </h3>
@@ -147,7 +153,7 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-xs text-muted-foreground hover:text-foreground relative"
+                            className="relative self-end text-xs text-muted-foreground hover:text-foreground sm:self-auto"
                             data-label="MSE-1-2A-1b"
                         >
                             자세히 보기
@@ -156,10 +162,10 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                     </div>
 
                     {/* MSE-1-2A-2: 요약 정보 그리드 (3열 레이아웃) */}
-                    <div className="grid gap-3 md:grid-cols-3 relative" data-label="MSE-1-2A-2">
+                    <div className="relative grid grid-cols-2 gap-3 text-left sm:grid-cols-3 sm:text-center" data-label="MSE-1-2A-2">
 
                         {/* MSE-1-2A-2a: 총 종목 수 박스 */}
-                        <div className="text-center relative" data-label="MSE-1-2A-2a">
+                        <div className="relative hidden text-center sm:block" data-label="MSE-1-2A-2a">
                             {/* MSE-1-2A-2a-value: 종목 수 값 - 회색 계열 */}
                             <div className="text-lg font-bold text-gray-800 dark:text-gray-200 leading-tight" data-label="MSE-1-2A-2a-value">
                                 {displayData.totalCount}개
@@ -171,25 +177,34 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                         </div>
 
                         {/* MSE-1-2A-2b: 전체 시가총액 박스 */}
-                        <div className="text-center relative" data-label="MSE-1-2A-2b">
+                        <div
+                            className="relative flex flex-col items-start justify-start text-left sm:items-center sm:text-center"
+                            data-label="MSE-1-2A-2b"
+                        >
                             {/* MSE-1-2A-2b-value: 시가총액 값 - 회색 계열 */}
-                            <div className="text-lg font-bold text-gray-800 dark:text-gray-200 leading-tight" data-label="MSE-1-2A-2b-value">
+                            <div className="text-lg font-bold leading-tight text-gray-800 dark:text-gray-200" data-label="MSE-1-2A-2b-value">
                                 {formatNumber(displayData.totalMarketcap)}원
                             </div>
                             {/* MSE-1-2A-2b-label: 시가총액 라벨 */}
-                            <div className="text-xs text-muted-foreground mt-1" data-label="MSE-1-2A-2b-label">
+                            <div className="mt-1 text-xs text-muted-foreground" data-label="MSE-1-2A-2b-label">
                                 전체 시가총액
                             </div>
                         </div>
 
                         {/* MSE-1-2A-2c: 포커스 비중 박스 (필터별) */}
-                        <div className="text-center relative" data-label="MSE-1-2A-2c">
+                        <div
+                            className="relative flex flex-col items-start justify-start text-left sm:items-center sm:text-center"
+                            data-label="MSE-1-2A-2c"
+                        >
                             {/* MSE-1-2A-2c-value: 비중 값 - 회색 계열 */}
-                            <div className="text-lg font-bold text-gray-800 dark:text-gray-200 leading-tight" data-label="MSE-1-2A-2c-value">
+                            <div className="text-lg font-bold leading-tight text-gray-800 dark:text-gray-200" data-label="MSE-1-2A-2c-value">
                                 {displayData.focusedRatio.toFixed(1)}%
                             </div>
                             {/* MSE-1-2A-2c-label: 비중 라벨 (고정 너비로 레이아웃 안정성 확보) */}
-                            <div className="text-xs text-muted-foreground w-20 mx-auto mt-1" data-label="MSE-1-2A-2c-label">
+                            <div
+                                className="mt-1 text-xs text-muted-foreground"
+                                data-label="MSE-1-2A-2c-label"
+                            >
                                 {displayData.focusedLabel}
                             </div>
                         </div>
@@ -203,7 +218,10 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                 <div className="overflow-hidden relative" data-label="MSE-1-2B-container">
 
                     {/* MSE-1-2B-1: 헤더 (제목 + 기준일자 + 축소 버튼) */}
-                    <div className="flex flex-row items-start px-3 pt-3 pb-2 relative" data-label="MSE-1-2B-1">
+                    <div
+                        className="relative flex flex-col gap-2 px-3 pt-3 pb-2 sm:flex-row sm:items-start sm:justify-between"
+                        data-label="MSE-1-2B-1"
+                    >
                         {/* MSE-1-2B-1a: 좌측 제목 그룹 */}
                         <div className="grid gap-0.5" data-label="MSE-1-2B-1a">
                             <div className="flex items-center gap-2" data-label="MSE-1-2B-1a-title-group">
@@ -226,12 +244,12 @@ export function MarketcapSummaryExpandable({ data, filterType = "all", isSelecte
                             <p className="text-xs text-muted-foreground" data-label="MSE-1-2B-1a-desc">{`기준일자: ${marketcapDate}`}</p>
                         </div>
                         {/* MSE-1-2B-1b: 우측 축소 버튼 */}
-                        <div className="ml-auto flex items-center gap-1" data-label="MSE-1-2B-1b">
+                        <div className="flex items-center gap-1 self-end sm:ml-auto" data-label="MSE-1-2B-1b">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setIsExpanded(!isExpanded)}
-                                className="text-xs text-muted-foreground hover:text-foreground"
+                                className="relative self-end text-xs text-muted-foreground hover:text-foreground sm:self-auto"
                                 data-label="MSE-1-2B-1b-btn"
                             >
                                 간단히 보기

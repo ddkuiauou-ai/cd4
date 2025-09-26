@@ -37,14 +37,8 @@ const DEFAULT_BACKGROUND: CSSProperties = {
 const EDGE_TO_EDGE_SECTION_CLASS =
     "relative -mx-4 space-y-4 border-y px-4 py-4 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
 
-const MARQUEE_CARD_STYLE: CSSProperties = {
-    width: "min(calc((100vw - 16px) / 5.5), 140px)",
-    height: "min(calc((100vw - 16px) / 5.5), 140px)",
-    minWidth: "96px",
-    minHeight: "96px",
-    maxWidth: "140px",
-    maxHeight: "140px",
-};
+const MARQUEE_CARD_CLASS =
+    "group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]";
 
 export function KeyMetricsSection({
     companyMarketcapData,
@@ -407,324 +401,324 @@ export function KeyMetricsSection({
                 contentClassName="flex gap-1 pb-2"
                 contentStyle={{ minWidth: "fit-content" }}
             >
-                    {/* 시총 랭킹 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                if (selectedSecurityType === "시가총액 구성") {
-                                    // 시가총액 구성 모드: 회사 랭킹 사용
-                                    const companyRank = security.company?.marketcapRank;
-                                    if (companyRank) {
-                                        return (
-                                            <>
-                                                <span className="text-xl sm:text-2xl md:text-3xl">{companyRank}</span>
-                                                <span className="text-sm sm:text-base ml-1">위</span>
-                                            </>
-                                        );
-                                    }
-                                } else {
-                                    // 개별 종목 모드: 종목 랭킹 사용
-                                    if (marketCapRanking) {
-                                        return (
-                                            <>
-                                                <span className="text-xl sm:text-2xl md:text-3xl">{marketCapRanking.currentRank}</span>
-                                                <span className="text-sm sm:text-base ml-1">위</span>
-                                            </>
-                                        );
-                                    }
+                {/* 시총 랭킹 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            if (selectedSecurityType === "시가총액 구성") {
+                                // 시가총액 구성 모드: 회사 랭킹 사용
+                                const companyRank = security.company?.marketcapRank;
+                                if (companyRank) {
+                                    return (
+                                        <>
+                                            <span className="text-xl sm:text-2xl md:text-3xl">{companyRank}</span>
+                                            <span className="text-sm sm:text-base ml-1">위</span>
+                                        </>
+                                    );
                                 }
-                                return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                            })()}
-                        </div>
-                        {/* 랭킹 변화 */}
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                if (selectedSecurityType === "시가총액 구성") {
-                                    // 시가총액 구성 모드: 회사 랭킹 변화 사용
-                                    const currentRank = security.company?.marketcapRank;
-                                    const priorRank = security.company?.marketcapPriorRank;
-                                    if (currentRank && priorRank) {
-                                        const rankChange = currentRank - priorRank;
-                                        return (
-                                            <span className={rankChange < 0 ? "text-red-600 dark:text-red-400" : rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
-                                                {rankChange === 0 ? "—" :
-                                                    rankChange < 0 ? `▲${Math.abs(rankChange)}` :
-                                                        `▼${rankChange}`}
-                                            </span>
-                                        );
-                                    }
-                                } else {
-                                    // 개별 종목 모드: 종목 랭킹 변화 사용
-                                    if (marketCapRanking && marketCapRanking.priorRank) {
-                                        return (
-                                            <span className={marketCapRanking.rankChange < 0 ? "text-red-600 dark:text-red-400" : marketCapRanking.rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
-                                                {marketCapRanking.rankChange === 0 ? "—" :
-                                                    marketCapRanking.rankChange < 0 ? `▲${Math.abs(marketCapRanking.rankChange)}` :
-                                                        `▼${marketCapRanking.rankChange}`}
-                                            </span>
-                                        );
-                                    }
+                            } else {
+                                // 개별 종목 모드: 종목 랭킹 사용
+                                if (marketCapRanking) {
+                                    return (
+                                        <>
+                                            <span className="text-xl sm:text-2xl md:text-3xl">{marketCapRanking.currentRank}</span>
+                                            <span className="text-sm sm:text-base ml-1">위</span>
+                                        </>
+                                    );
                                 }
-                                return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
-                            {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
-                        </div>
+                            }
+                            return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                        })()}
                     </div>
+                    {/* 랭킹 변화 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            if (selectedSecurityType === "시가총액 구성") {
+                                // 시가총액 구성 모드: 회사 랭킹 변화 사용
+                                const currentRank = security.company?.marketcapRank;
+                                const priorRank = security.company?.marketcapPriorRank;
+                                if (currentRank && priorRank) {
+                                    const rankChange = currentRank - priorRank;
+                                    return (
+                                        <span className={rankChange < 0 ? "text-red-600 dark:text-red-400" : rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
+                                            {rankChange === 0 ? "—" :
+                                                rankChange < 0 ? `▲${Math.abs(rankChange)}` :
+                                                    `▼${rankChange}`}
+                                        </span>
+                                    );
+                                }
+                            } else {
+                                // 개별 종목 모드: 종목 랭킹 변화 사용
+                                if (marketCapRanking && marketCapRanking.priorRank) {
+                                    return (
+                                        <span className={marketCapRanking.rankChange < 0 ? "text-red-600 dark:text-red-400" : marketCapRanking.rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
+                                            {marketCapRanking.rankChange === 0 ? "—" :
+                                                marketCapRanking.rankChange < 0 ? `▲${Math.abs(marketCapRanking.rankChange)}` :
+                                                    `▼${marketCapRanking.rankChange}`}
+                                        </span>
+                                    );
+                                }
+                            }
+                            return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                        {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
+                    </div>
+                </div>
 
-                    {/* 현재 시가총액 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('current');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        {/* 전일 대비 변화율 */}
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getYesterdayChange();
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
-                            {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
-                        </div>
+                {/* 현재 시가총액 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('current');
+                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    {/* 전일 대비 변화율 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getYesterdayChange();
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                        {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
+                    </div>
+                </div>
 
-                    {/* 현재 주가 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            <span className="text-xl sm:text-2xl md:text-3xl">{getCurrentPrice()}</span>
-                            <span className="text-sm sm:text-base ml-1">원</span>
-                        </div>
-                        {/* 전일 대비 주가 변화율 */}
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getYesterdayPriceChange();
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">현재 주가</div>
+                {/* 현재 주가 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        <span className="text-xl sm:text-2xl md:text-3xl">{getCurrentPrice()}</span>
+                        <span className="text-sm sm:text-base ml-1">원</span>
                     </div>
+                    {/* 전일 대비 주가 변화율 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getYesterdayPriceChange();
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">현재 주가</div>
+                </div>
 
-                    {/* 12개월 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('avg12m');
-                                if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        {/* 이전 12개월 대비 변화율 */}
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getPreviousPeriodAverage('avg12m');
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">12개월 평균</div>
+                {/* 12개월 평균 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('avg12m');
+                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    {/* 이전 12개월 대비 변화율 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getPreviousPeriodAverage('avg12m');
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">12개월 평균</div>
+                </div>
 
-                    {/* 3년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('avg3y');
-                                if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getPreviousPeriodAverage('avg3y');
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">3년 평균</div>
+                {/* 3년 평균 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('avg3y');
+                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getPreviousPeriodAverage('avg3y');
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">3년 평균</div>
+                </div>
 
-                    {/* 5년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('avg5y');
-                                if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getPreviousPeriodAverage('avg5y');
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">5년 평균</div>
+                {/* 5년 평균 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('avg5y');
+                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getPreviousPeriodAverage('avg5y');
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">5년 평균</div>
+                </div>
 
-                    {/* 10년 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('avg10y');
-                                if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs leading-none mb-1">
-                            {(() => {
-                                const change = getPreviousPeriodAverage('avg10y');
-                                if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const rate = getChangeRate(change.current, change.previous);
-                                return <span className={rate.color}>{rate.value}</span>;
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">10년 평균</div>
+                {/* 10년 평균 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('avg10y');
+                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const change = getPreviousPeriodAverage('avg10y');
+                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const rate = getChangeRate(change.current, change.previous);
+                            return <span className={rate.color}>{rate.value}</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">10년 평균</div>
+                </div>
 
-                    {/* 전체 평균 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('avgAll');
-                                if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">전체 평균</div>
+                {/* 전체 평균 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('avgAll');
+                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">전체 평균</div>
+                </div>
 
-                    {/* 최저 시총 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('min');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 시총</div>
+                {/* 최저 시총 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('min');
+                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 시총</div>
+                </div>
 
-                    {/* 최고 시총 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            {(() => {
-                                const value = getMetricValue('max');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return (
-                                    <>
-                                        <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                        <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 시총</div>
+                {/* 최고 시총 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        {(() => {
+                            const value = getMetricValue('max');
+                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            return (
+                                <>
+                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
+                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                </>
+                            );
+                        })()}
                     </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 시총</div>
+                </div>
 
-                    {/* 최고 보통주 비중 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            <span className="text-xl sm:text-2xl md:text-3xl">
-                                {(() => {
-                                    const ratio = getCommonStockRatio('max');
-                                    return ratio > 0 ? `${ratio.toFixed(1)}` : "—";
-                                })()}
-                            </span>
-                            <span className="text-sm sm:text-base ml-1">%</span>
-                        </div>
-                        {/* 현재 비중과의 차이 */}
-                        <div className="text-xs leading-none mb-1">
+                {/* 최고 보통주 비중 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        <span className="text-xl sm:text-2xl md:text-3xl">
                             {(() => {
-                                const currentRatio = getCurrentCommonStockRatio();
-                                const maxRatio = getCommonStockRatio('max');
-                                if (maxRatio === 0 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const diff = maxRatio - currentRatio;
-                                const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
-                                return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
+                                const ratio = getCommonStockRatio('max');
+                                return ratio > 0 ? `${ratio.toFixed(1)}` : "—";
                             })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 보통주 비중</div>
+                        </span>
+                        <span className="text-sm sm:text-base ml-1">%</span>
                     </div>
+                    {/* 현재 비중과의 차이 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const currentRatio = getCurrentCommonStockRatio();
+                            const maxRatio = getCommonStockRatio('max');
+                            if (maxRatio === 0 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const diff = maxRatio - currentRatio;
+                            const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
+                            return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 보통주 비중</div>
+                </div>
 
-                    {/* 최저 보통주 비중 */}
-                    <div className="rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer flex-shrink-0 snap-center" style={MARQUEE_CARD_STYLE}>
-                        <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                            <span className="text-xl sm:text-2xl md:text-3xl">
-                                {(() => {
-                                    const ratio = getCommonStockRatio('min');
-                                    return ratio < 100 ? `${ratio.toFixed(1)}` : "—";
-                                })()}
-                            </span>
-                            <span className="text-sm sm:text-base ml-1">%</span>
-                        </div>
-                        {/* 현재 비중과의 차이 */}
-                        <div className="text-xs leading-none mb-1">
+                {/* 최저 보통주 비중 */}
+                <div className={MARQUEE_CARD_CLASS}>
+                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                        <span className="text-xl sm:text-2xl md:text-3xl">
                             {(() => {
-                                const currentRatio = getCurrentCommonStockRatio();
-                                const minRatio = getCommonStockRatio('min');
-                                if (minRatio >= 100 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                                const diff = minRatio - currentRatio;
-                                const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
-                                return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
+                                const ratio = getCommonStockRatio('min');
+                                return ratio < 100 ? `${ratio.toFixed(1)}` : "—";
                             })()}
-                        </div>
-                        <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 보통주 비중</div>
+                        </span>
+                        <span className="text-sm sm:text-base ml-1">%</span>
                     </div>
+                    {/* 현재 비중과의 차이 */}
+                    <div className="text-xs leading-none mb-1">
+                        {(() => {
+                            const currentRatio = getCurrentCommonStockRatio();
+                            const minRatio = getCommonStockRatio('min');
+                            if (minRatio >= 100 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            const diff = minRatio - currentRatio;
+                            const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
+                            return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
+                        })()}
+                    </div>
+                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 보통주 비중</div>
+                </div>
             </Marquee>
         </section>
     );

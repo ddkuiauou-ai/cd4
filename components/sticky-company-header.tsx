@@ -5,6 +5,7 @@ import { Balancer } from "react-wrap-balancer";
 
 import CompanyLogo from "@/components/CompanyLogo";
 import { useMobileHeader } from "@/components/mobile-header-context";
+import { COMPANY_HEADER_PIN_EVENT } from "@/components/share-events";
 import { cn } from "@/lib/utils";
 
 interface StickyCompanyHeaderProps {
@@ -24,6 +25,8 @@ interface StickyCompanyHeaderProps {
     value?: string | null;
     badge?: string | null;
   } | null;
+  actions?: React.ReactNode;
+  onPinChange?: (pinned: boolean) => void;
 }
 
 const DEFAULT_STICKY_OFFSET = 80; // matches Tailwind's top-20 (5rem)
@@ -36,12 +39,15 @@ export function StickyCompanyHeader({
   titleSuffix = "시가총액",
   titleBadge = null,
   detail,
+  actions,
+  onPinChange,
 }: StickyCompanyHeaderProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [isPinned, setIsPinned] = useState(false);
   const [effectiveOffset, setEffectiveOffset] = useState(stickyOffset);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const { setContent: setMobileHeaderContent } = useMobileHeader();
+  const previousPinnedRef = useRef(isPinned);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -194,11 +200,30 @@ export function StickyCompanyHeader({
     setMobileHeaderContent,
   ]);
 
+  useEffect(() => {
+    if (previousPinnedRef.current !== isPinned) {
+      onPinChange?.(isPinned);
+      previousPinnedRef.current = isPinned;
+    }
+  }, [isPinned, onPinChange]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const event = new CustomEvent(COMPANY_HEADER_PIN_EVENT, {
+      detail: {
+        pinned: isPinned,
+        offset: effectiveOffset,
+      },
+    });
+
+    window.dispatchEvent(event);
+  }, [isPinned, effectiveOffset]);
+
   const logoSize = isPinned ? 40 : 56;
   const shouldHideForMobile = isPinned && isSmallScreen;
-
-  // Base heading text
-  const headingText = titleSuffix ? `${displayName} ${titleSuffix}` : displayName;
 
   return (
     <>
@@ -217,52 +242,81 @@ export function StickyCompanyHeader({
       >
         <div
           className={cn(
-            "flex items-center transition-all duration-200",
-            isPinned ? "gap-3" : "gap-4"
+            "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+            isPinned ? "sm:gap-4" : undefined
           )}
         >
-          <CompanyLogo
-            companyName={companyName ?? displayName}
-            logoUrl={logoUrl}
-            size={logoSize}
+          <div
             className={cn(
-              "flex-shrink-0 transition-all duration-200",
-              isPinned ? "shadow-sm" : undefined
+              "flex items-center transition-all duration-200",
+              isPinned ? "gap-3" : "gap-4"
             )}
-          />
-          <div className="min-w-0">
-            <h1
+          >
+            <CompanyLogo
+              companyName={companyName ?? displayName}
+              logoUrl={logoUrl}
+              size={logoSize}
               className={cn(
-                "font-heading font-bold tracking-tight transition-all duration-200",
-                isPinned ? "text-xl sm:text-2xl" : "text-3xl md:text-4xl lg:text-5xl"
+                "flex-shrink-0 transition-all duration-200",
+                isPinned ? "shadow-sm" : undefined
+              )}
+            />
+            <div className="min-w-0">
+              <h1
+                className={cn(
+                  "font-heading font-bold tracking-tight transition-all duration-200",
+                  isPinned ? "text-xl sm:text-2xl" : "text-3xl md:text-4xl lg:text-5xl"
+                )}
+              >
+                <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:gap-y-1">
+                  <Balancer>
+                    <span className="block whitespace-nowrap">{displayName}</span>
+                  </Balancer>
+                  {titleSuffix ? (
+                    <span
+                      className={cn(
+                        "text-sm font-medium text-muted-foreground",
+                        "sm:text-[1em] sm:font-bold sm:text-foreground",
+                        "flex-shrink-0 whitespace-nowrap"
+                      )}
+                    >
+                      {titleSuffix}
+                    </span>
+                  ) : null}
+                  {isPinned && !isSmallScreen && detail?.value && (
+                    <span
+                      className={cn(
+                        "font-semibold text-foreground",
+                        "text-sm"
+                      )}
+                    >
+                      {detail.value}
+                    </span>
+                  )}
+                  {isPinned && !isSmallScreen && detail?.badge && (
+                    <span
+                      className={cn(
+                        "font-medium text-muted-foreground",
+                        "text-xs"
+                      )}
+                    >
+                      {detail.badge}
+                    </span>
+                  )}
+                </span>
+              </h1>
+            </div>
+          </div>
+          {actions && !isSmallScreen ? (
+            <div
+              className={cn(
+                "flex w-full justify-end gap-2 sm:w-auto",
+                isPinned ? undefined : "sm:pt-2"
               )}
             >
-              <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <Balancer>{headingText}</Balancer>
-                {isPinned && !isSmallScreen && detail?.value && (
-                  <span
-                    className={cn(
-                      "font-semibold text-foreground",
-                      "text-sm" // smaller size when sticky
-                    )}
-                  >
-                    {detail.value}
-                  </span>
-                )}
-                {isPinned && !isSmallScreen && detail?.badge && (
-                  <span
-                    className={cn(
-                      "font-medium text-muted-foreground",
-                      "text-xs" // small and gray when sticky
-                    )}
-                  >
-                    {detail.badge}
-                  </span>
-                )}
-              </span>
-            </h1>
-            {/* Hide detail section in non-sticky state as requested */}
-          </div>
+              {actions}
+            </div>
+          ) : null}
         </div>
       </div>
     </>
