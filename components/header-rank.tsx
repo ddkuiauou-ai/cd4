@@ -10,13 +10,16 @@ function RankHeader({
   isCompanyLevel = false,
   name, // Adding name prop for legacy usage
 }: {
-  rank: number;
+  rank?: number | null;
   marketcap?: number;
   price?: number;
   exchange?: string;
   isCompanyLevel?: boolean;
   name?: string; // Optional name prop
 }) {
+  const hasValidRank = typeof rank === "number" && Number.isFinite(rank) && rank > 0;
+  const rankLabel = hasValidRank ? `${rank}위` : "—";
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* 순위 카드 */}
@@ -27,7 +30,7 @@ function RankHeader({
               <Target className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{rank}위</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{rankLabel}</p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {isCompanyLevel ? "기업 시가총액 랭킹" : "시가총액 랭킹"}
               </p>
