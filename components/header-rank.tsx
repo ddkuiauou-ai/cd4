@@ -9,6 +9,9 @@ function RankHeader({
   exchange,
   isCompanyLevel = false,
   name, // Adding name prop for legacy usage
+  rankLabel,
+  marketcapLabel,
+  marketcapUnit = "원",
 }: {
   rank?: number | null;
   marketcap?: number;
@@ -16,9 +19,12 @@ function RankHeader({
   exchange?: string;
   isCompanyLevel?: boolean;
   name?: string; // Optional name prop
+  rankLabel?: string;
+  marketcapLabel?: string;
+  marketcapUnit?: string;
 }) {
   const hasValidRank = typeof rank === "number" && Number.isFinite(rank) && rank > 0;
-  const rankLabel = hasValidRank ? `${rank}위` : "—";
+  const rankDisplay = hasValidRank ? `${rank}위` : "—";
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -30,9 +36,9 @@ function RankHeader({
               <Target className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{rankLabel}</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{rankDisplay}</p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {isCompanyLevel ? "기업 시가총액 랭킹" : "시가총액 랭킹"}
+                {rankLabel || (isCompanyLevel ? "기업 시가총액 랭킹" : "시가총액 랭킹")}
               </p>
             </div>
           </div>
@@ -49,10 +55,10 @@ function RankHeader({
               </div>
               <div>
                 <p className="text-lg font-bold text-red-900 dark:text-red-100 leading-tight">
-                  {formatNumber(marketcap)}원
+                  {marketcapUnit === "배" ? `${marketcap?.toFixed(2)}${marketcapUnit}` : `${formatNumber(marketcap)}${marketcapUnit}`}
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-300 font-medium">
-                  {isCompanyLevel ? "기업 총 시가총액" : "시가총액"}
+                  {marketcapLabel || (isCompanyLevel ? "기업 총 시가총액" : "시가총액")}
                 </p>
               </div>
             </div>
