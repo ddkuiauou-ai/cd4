@@ -18,14 +18,14 @@ const CHART_CONFIG = {
     tooltip: {
         width: 96,
         height: 80,
-        margin: 15,
+        margin: -720,
     },
     series: {
         topColor: '#2962FF',
         bottomColor: 'rgba(41, 98, 255, 0.28)',
         lineColor: '#2962FF',
         lineWidth: 2,
-        scaleMargins: { top: 0.3, bottom: 0.25 },
+        scaleMargins: { top: 0.1, bottom: 0.1 },
     },
 } as const;
 
@@ -84,7 +84,7 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
             bottomColor: CHART_CONFIG.series.bottomColor,
             lineColor: CHART_CONFIG.series.lineColor,
             lineWidth: CHART_CONFIG.series.lineWidth,
-            crosshairMarkerVisible: false,
+            crosshairMarkerVisible: true,
         });
 
         series.priceScale().applyOptions({
