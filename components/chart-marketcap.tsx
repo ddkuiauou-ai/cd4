@@ -8,6 +8,7 @@ import {
   formatNumberPercent,
   formatNumberForChart,
   formatNumberRawForChart,
+  formatDateKorean,
 } from "../lib/utils";
 import {
   LineChart,
@@ -211,7 +212,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             dataKey="date"
             tickFormatter={(value) => {
               const date = new Date(value);
-              return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+              return formatDateKorean(date, { year: 'numeric', month: 'short', day: 'numeric' });
             }}
             stroke="#666666"
             className="dark:stroke-gray-400"

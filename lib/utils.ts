@@ -188,6 +188,48 @@ export function getISODateString(
   }
 }
 
+/**
+ * Format date with proper Korean month names
+ * Handles the issue where toLocaleDateString('ko-KR', { month: 'short' }) returns English abbreviations
+ *
+ * @param dateInput - Date string, Date object, or null/undefined
+ * @param options - Date formatting options
+ * @returns Formatted date string with Korean month names
+ */
+export function formatDateKorean(
+  dateInput: Date | string | null | undefined,
+  options: {
+    year?: 'numeric' | '2-digit';
+    month?: 'long' | 'short' | 'narrow' | 'numeric' | '2-digit';
+    day?: 'numeric' | '2-digit';
+    includeDay?: boolean;
+  } = {}
+): string {
+  const date = safeDateConvert(dateInput);
+  if (!date) return "-";
+
+  try {
+    const { year = 'numeric', month = 'short', includeDay = true } = options;
+
+    // Korean month names
+    const koreanMonths = {
+      long: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      short: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      narrow: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+    };
+
+    const monthIndex = date.getMonth();
+    const monthName = koreanMonths[month]?.[monthIndex] || koreanMonths.short[monthIndex];
+
+    const yearStr = date.getFullYear();
+    const dayStr = includeDay ? `${date.getDate()}일` : '';
+
+    return `${yearStr}년 ${monthName}${dayStr}`.trim();
+  } catch {
+    return date.toISOString().split("T")[0];
+  }
+}
+
 // Date processing utilities for market data
 export function getLatestDateFromMarketData(data: any[]): string {
   if (

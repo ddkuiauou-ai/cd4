@@ -10,7 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatDateKorean } from "@/lib/utils";
 import {
     AreaChart,
     Area,
@@ -119,7 +119,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
     const data = payload[0].payload;
     const date = new Date(data.date);
-    const formattedDate = date.toLocaleDateString('ko-KR', {
+    const formattedDate = formatDateKorean(date, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'

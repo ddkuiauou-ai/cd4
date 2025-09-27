@@ -29,7 +29,8 @@ import {
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
-import { calculatePERPeriodAnalysis, processPERData, coerceVolumeValue, type PERData } from "@/lib/per-utils";
+import { calculatePERPeriodAnalysis, processPERData, coerceVolumeValue, type PERData, PeriodType } from "@/lib/per-utils";
+import PERChartWithPeriodSwitcher from "@/components/per-chart-with-period-switcher";
 
 /**
  * Props for Security PER Page
@@ -80,81 +81,81 @@ export async function generateStaticParams() {
  * Displays PER data and charts for a specific security
  */
 export default async function SecurityPERPage({ params }: SecurityPERPageProps) {
-   const { secCode } = await params;
+  const { secCode } = await params;
 
-   const security = await getSecurityByCode(secCode);
+  const security = await getSecurityByCode(secCode);
 
-   if (!security) {
-     notFound();
-   }
+  if (!security) {
+    notFound();
+  }
 
-   const displayName = security.korName || security.name;
-   const securityType = security.type || "종목";
+  const displayName = security.korName || security.name;
+  const securityType = security.type || "종목";
 
-   // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
-   const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
+  // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
+  const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
 
-   // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
-   const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
+  // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
+  const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
 
-   // Parallelize independent data fetching
-   const [
-     companySecs,
-     data,
-     perRank,
-     companyMarketcapData
-   ] = await Promise.all([
-     // Get company-related securities if this security has a company
-     security.companyId ? getCompanySecurities(security.companyId) : Promise.resolve([]),
-     // Get PER data
-     getSecurityMetricsHistory(security.securityId),
-     // Get PER rank
-     getPerRank(security.securityId),
-     // Get company marketcap data for Interactive Securities Section
-     security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
-   ]);
+  // Parallelize independent data fetching
+  const [
+    companySecs,
+    data,
+    perRank,
+    companyMarketcapData
+  ] = await Promise.all([
+    // Get company-related securities if this security has a company
+    security.companyId ? getCompanySecurities(security.companyId) : Promise.resolve([]),
+    // Get PER data
+    getSecurityMetricsHistory(security.securityId),
+    // Get PER rank
+    getPerRank(security.securityId),
+    // Get company marketcap data for Interactive Securities Section
+    security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+  ]);
 
-   // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
-   if (!data || data.length === 0) {
-     notFound();
-   }
+  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
+  if (!data || data.length === 0) {
+    notFound();
+  }
 
-   // Find representative security (보통주)
-   const representativeSecurity = companySecs.find((sec) =>
-     sec.type?.includes("보통주"),
-   );
+  // Find representative security (보통주)
+  const representativeSecurity = companySecs.find((sec) =>
+    sec.type?.includes("보통주"),
+  );
 
-   const companySecCode =
-     representativeSecurity?.exchange && representativeSecurity?.ticker
-       ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
-       : null;
+  const companySecCode =
+    representativeSecurity?.exchange && representativeSecurity?.ticker
+      ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
+      : null;
 
-   // 종목 비교용 필터링: 보통주와 우선주만 표시
-   const comparableSecurities = companySecs.filter((sec) =>
-     sec.type === "보통주" || sec.type === "우선주"
-   );
+  // 종목 비교용 필터링: 보통주와 우선주만 표시
+  const comparableSecurities = companySecs.filter((sec) =>
+    sec.type === "보통주" || sec.type === "우선주"
+  );
 
-   // 🔥 종목별 PER 데이터 추가 - 종목 비교를 위해 현재 PER 값을 포함
-   const comparableSecuritiesWithPER = await Promise.all(
-     comparableSecurities.map(async (sec) => {
-       try {
-         // 각 종목의 최신 PER 데이터 가져오기
-         const securityWithPER = await getSecurityByCode(`${sec.exchange}.${sec.ticker}`);
-         return {
-           ...sec,
-           per: securityWithPER?.per || null,
-           perDate: securityWithPER?.perDate || null,
-         };
-       } catch (error) {
-         console.error(`Failed to get PER data for ${sec.ticker}:`, error);
-         return {
-           ...sec,
-           per: null,
-           perDate: null,
-         };
-       }
-     })
-   );
+  // 🔥 종목별 PER 데이터 추가 - 종목 비교를 위해 현재 PER 값을 포함
+  const comparableSecuritiesWithPER = await Promise.all(
+    comparableSecurities.map(async (sec) => {
+      try {
+        // 각 종목의 최신 PER 데이터 가져오기
+        const securityWithPER = await getSecurityByCode(`${sec.exchange}.${sec.ticker}`);
+        return {
+          ...sec,
+          per: securityWithPER?.per || null,
+          perDate: securityWithPER?.perDate || null,
+        };
+      } catch (error) {
+        console.error(`Failed to get PER data for ${sec.ticker}:`, error);
+        return {
+          ...sec,
+          per: null,
+          perDate: null,
+        };
+      }
+    })
+  );
 
   // Transform data to match expected format for PER
   const result = processPERData(data);
@@ -781,17 +782,17 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
             </header>
 
             <div className="space-y-5 sm:space-y-8">
-              <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
-                {result && result.length > 0 ? (
-                  <ChartPEREnhanced data={result} />
-                ) : (
+              {result && result.length > 0 ? (
+                <PERChartWithPeriodSwitcher initialData={result} />
+              ) : (
+                <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                   <NoDataDisplay
                     title="PER 차트 데이터 없음"
                     description="연간 PER 데이터를 불러올 수 없습니다"
                     iconType="chart"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="space-y-4 sm:space-y-6">
                 <p className="sr-only">연말 기준 PER 추이를 통해 밸류에이션 변화를 분석합니다</p>
