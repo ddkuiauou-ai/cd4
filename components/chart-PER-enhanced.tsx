@@ -46,7 +46,7 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
 
         const aggregatedData = aggregatePERDataByPeriod(data, period);
         return aggregatedData.map(item => ({
-            time: item.time as any,
+            time: new Date(item.time).getTime() / 1000, // Convert to Unix timestamp in seconds
             value: item.value,
         }));
     }, [data, period]);
@@ -57,7 +57,11 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
 
         // 기존 차트 정리
         if (chartRef.current) {
-            chartRef.current.remove();
+            try {
+                chartRef.current.remove();
+            } catch (error) {
+                console.warn('Error removing chart:', error);
+            }
             chartRef.current = null;
         }
 
@@ -142,13 +146,14 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
 
             // 툴팁 표시 및 내용 설정
             tooltip.style.display = 'block';
+            const timeString = param.time ? new Date(param.time * 1000).toISOString().split('T')[0] : '';
             tooltip.innerHTML = `
                 <div style="color: ${CHART_CONFIG.colors.primary}; font-weight: 600; margin-bottom: 4px;">PER</div>
                 <div style="font-size: 20px; margin: 4px 0px; color: ${CHART_CONFIG.colors.text}; font-weight: 600;">
                     ${Math.round(price * 100) / 100}
                 </div>
                 <div style="color: ${CHART_CONFIG.colors.subText}; font-size: 11px;">
-                    ${String(param.time || '')}
+                    ${timeString}
                 </div>
             `;
 
@@ -186,10 +191,14 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
         return () => {
             clearTimeout(resizeTimeout);
             window.removeEventListener('resize', handleResize);
-            if (tooltip.parentNode) {
-                tooltip.parentNode.removeChild(tooltip);
+            try {
+                if (tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+                chart.remove();
+            } catch (error) {
+                console.warn('Error cleaning up chart:', error);
             }
-            chart.remove();
         };
     }, [chartData]);
 

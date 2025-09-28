@@ -246,27 +246,39 @@ function aggregateMonthlyData(data: PERData[]): PeriodData[] {
 }
 
 /**
- * Aggregate data as yearly averages (12-month rolling averages)
+ * Aggregate data as yearly averages
  */
 function aggregateYearlyData(data: PERData[]): PeriodData[] {
-  if (data.length < 12) return [];
-
   const sortedData = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  const result: PeriodData[] = [];
+  const yearlyMap = new Map<string, { values: number[], dates: string[] }>();
 
-  // 12개월 롤링 윈도우로 평균 계산
-  for (let i = 11; i < sortedData.length; i++) {
-    const window = sortedData.slice(i - 11, i + 1);
-    const average = window.reduce((sum, item) => sum + item.value, 0) / 12;
-    const middleDate = window[Math.floor(window.length / 2)].date;
+  // 연도별로 데이터 그룹화
+  data.forEach(item => {
+    const date = new Date(item.date);
+    const year = date.getFullYear().toString();
+    const yearKey = year;
 
-    result.push({
-      time: middleDate,
-      value: average
-    });
-  }
+    if (!yearlyMap.has(yearKey)) {
+      yearlyMap.set(yearKey, { values: [], dates: [] });
+    }
 
-  return result;
+    const yearData = yearlyMap.get(yearKey)!;
+    yearData.values.push(item.value);
+    yearData.dates.push(item.date);
+  });
+
+  // 연도별 평균 계산
+  return Array.from(yearlyMap.entries())
+    .map(([yearKey, yearData]) => {
+      const average = yearData.values.reduce((sum, val) => sum + val, 0) / yearData.values.length;
+      // 해당 연도의 중간 날짜를 사용 (예: 2023년이면 2023-06-15 같은 날짜)
+      const middleDate = yearData.dates[Math.floor(yearData.dates.length / 2)];
+      return {
+        time: middleDate,
+        value: average
+      };
+    })
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 }
 
 /**
