@@ -81,7 +81,7 @@ function cardMarketcap({
         return {
           label: "배당수익률",
           value: sec.div ? `${sec.div.toFixed(2)}%` : "—",
-          subtitle: "Dividend Yield"
+          subtitle: "배당수익률"
         };
       // CM-1-1A-4: DPS (주당배당금)
       case "dps":
