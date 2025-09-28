@@ -1,203 +1,219 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-    formatNumberRaw,
-    formatNumberTooltip,
-    formatNumberRatio,
-    formatNumberPercent,
-    formatNumberForChart,
-    formatNumberRawForChart,
-    formatNumberCompactForChart,
-} from "../lib/utils";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-    ReferenceLine,
-} from "recharts";
+import { useEffect, useRef, useMemo } from "react";
+import { createChart, ColorType, LineSeries } from "lightweight-charts";
+import { PBRData, PeriodType, aggregatePBRDataByPeriod } from "@/lib/pbr-utils";
 
-type Props = {
-    data: {
-        date: string;
-        value: number;
-    }[];
-    format: string;
-    formatTooltip: string;
-};
+// 차트 설정 상수들
+const CHART_CONFIG = {
+    width: 0,
+    height: 400,
+    colors: {
+        primary: '#2962FF',
+        background: 'white',
+        text: 'black',
+        border: '#2962FF',
+        subText: '#666',
+    },
+    tooltip: {
+        width: 96,
+        height: 80,
+        margin: -720,
+    },
+    series: {
+        topColor: '#2962FF',
+        bottomColor: 'rgba(41, 98, 255, 0.28)',
+        lineColor: '#2962FF',
+        lineWidth: 2,
+        scaleMargins: { top: 0.1, bottom: 0.1 },
+    },
+} as const;
 
-export default function ChartPBREnhanced({ data, format, formatTooltip }: Props) {
-    const [mounted, setMounted] = useState(false);
+interface ChartPBREnhancedProps {
+    data: PBRData[];
+    period?: PeriodType;
+    className?: string;
+}
+
+export default function ChartPBREnhanced({ data, period = '1M', className }: ChartPBREnhancedProps) {
+    const chartContainerRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<any>(null);
+    const tooltipRef = useRef<HTMLDivElement | null>(null);
+
+    // 데이터 메모이제이션으로 불필요한 재계산 방지
+    const chartData = useMemo(() => {
+        if (!data?.length) return [];
+
+        const aggregatedData = aggregatePBRDataByPeriod(data, period);
+        return aggregatedData.map(item => ({
+            time: new Date(item.time).getTime() / 1000, // Convert to Unix timestamp in seconds
+            value: item.value,
+        }));
+    }, [data, period]);
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
+        const container = chartContainerRef.current;
+        if (!container || !chartData.length) return;
 
-    const chartData = useMemo(() => {
-        if (!data || data.length === 0) return [];
+        // 기존 차트 정리
+        if (chartRef.current) {
+            try {
+                chartRef.current.remove();
+            } catch (error) {
+                console.warn('Error removing chart:', error);
+            }
+            chartRef.current = null;
+        }
 
-        // 🔥 중복 날짜 데이터 제거 (같은 연도의 경우 최신 값 유지)
-        const dateMap = new Map<string, { date: string; value: number }>();
+        // 최적화된 차트 옵션
+        const chart = createChart(container, {
+            layout: {
+                textColor: CHART_CONFIG.colors.text,
+                background: { type: ColorType.Solid, color: CHART_CONFIG.colors.background },
+            },
+            width: container.clientWidth || CHART_CONFIG.width,
+            height: CHART_CONFIG.height,
+            grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+            rightPriceScale: { borderVisible: false },
+            timeScale: { borderVisible: false },
+            crosshair: {
+                horzLine: { visible: false, labelVisible: false },
+                vertLine: { labelVisible: false },
+            },
+        });
 
-        data
-            .filter(item =>
-                item.value !== null &&
-                item.value !== undefined &&
-                !isNaN(item.value) &&
-                item.value > 0 &&
-                item.value < 1000
-            )
-            .forEach(item => {
-                const year = new Date(item.date).getFullYear().toString();
-                const existingItem = dateMap.get(year);
-                if (!existingItem || new Date(item.date) > new Date(existingItem.date)) {
-                    dateMap.set(year, item);
+        // 시리즈 생성 및 설정
+        const series = chart.addSeries(LineSeries, {
+            color: CHART_CONFIG.series.lineColor,
+            lineWidth: CHART_CONFIG.series.lineWidth,
+            crosshairMarkerVisible: true,
+        });
+
+        series.priceScale().applyOptions({
+            scaleMargins: CHART_CONFIG.series.scaleMargins,
+        });
+
+        // 데이터 설정
+        series.setData(chartData);
+        chart.timeScale().fitContent();
+
+        // 툴팁 생성 (최적화된 스타일)
+        const tooltip = document.createElement('div');
+        Object.assign(tooltip.style, {
+            width: `${CHART_CONFIG.tooltip.width}px`,
+            height: `${CHART_CONFIG.tooltip.height}px`,
+            position: 'absolute',
+            display: 'none',
+            padding: '8px',
+            boxSizing: 'border-box',
+            fontSize: '12px',
+            textAlign: 'left',
+            zIndex: '1000',
+            pointerEvents: 'none',
+            border: `1px solid ${CHART_CONFIG.colors.border}`,
+            borderRadius: '2px',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+            background: CHART_CONFIG.colors.background,
+            color: CHART_CONFIG.colors.text,
+        });
+
+        container.appendChild(tooltip);
+        tooltipRef.current = tooltip;
+
+        // 최적화된 이벤트 핸들러
+        const handleCrosshairMove = (param: any) => {
+            const point = param.point;
+            if (!point || point.x < 0 || point.x > container.clientWidth || point.y < 0 || point.y > container.clientHeight) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            const seriesData = param.seriesData.get(series);
+            if (!seriesData) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            const price = (seriesData as any).value;
+            if (price == null) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            // 툴팁 표시 및 내용 설정
+            tooltip.style.display = 'block';
+            const timeString = param.time ? new Date(param.time * 1000).toISOString().split('T')[0] : '';
+            tooltip.innerHTML = `
+                <div style="color: ${CHART_CONFIG.colors.primary}; font-weight: 600; margin-bottom: 4px;">PBR</div>
+                <div style="font-size: 20px; margin: 4px 0px; color: ${CHART_CONFIG.colors.text}; font-weight: 600;">
+                    ${Math.round(price * 100) / 100}
+                </div>
+                <div style="color: ${CHART_CONFIG.colors.subText}; font-size: 11px;">
+                    ${timeString}
+                </div>
+            `;
+
+            // 최적화된 위치 계산
+            const coordinate = series.priceToCoordinate(price);
+            if (coordinate === null) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            const tooltipX = Math.max(0, Math.min(container.clientWidth - CHART_CONFIG.tooltip.width, point.x - 48));
+            const tooltipY = Math.max(0, Math.min(container.clientHeight - CHART_CONFIG.tooltip.height, coordinate - CHART_CONFIG.tooltip.height - CHART_CONFIG.tooltip.margin));
+
+            tooltip.style.left = `${tooltipX}px`;
+            tooltip.style.top = `${tooltipY}px`;
+        };
+
+        chart.subscribeCrosshairMove(handleCrosshairMove);
+
+        // 최적화된 리사이즈 핸들러 (throttle 적용)
+        let resizeTimeout: NodeJS.Timeout;
+        const handleResize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (container) {
+                    chart.applyOptions({ width: container.clientWidth });
                 }
-            });
+            }, 100);
+        };
 
-        return Array.from(dateMap.values())
-            .map((item, index) => ({
-                date: item.date,
-                year: new Date(item.date).getFullYear().toString(),
-                totalValue: item.value,
-                uniqueKey: `pbr-chart-${item.date}-${index}`, // 고유 키 생성
-            }))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [data]);
+        window.addEventListener('resize', handleResize, { passive: true });
 
-    const stats = useMemo(() => {
-        if (!chartData || chartData.length === 0) {
-            return { latest: 0, average: 0, min: 0, max: 0 };
-        }
-
-        const values = chartData.map(item => item.totalValue).filter(val => val > 0);
-
-        if (values.length === 0) {
-            return { latest: 0, average: 0, min: 0, max: 0 };
-        }
-
-        return {
-            latest: values[values.length - 1],
-            average: values.reduce((sum, val) => sum + val, 0) / values.length,
-            min: Math.min(...values),
-            max: Math.max(...values)
+        // 정리 함수 최적화
+        chartRef.current = chart;
+        return () => {
+            clearTimeout(resizeTimeout);
+            window.removeEventListener('resize', handleResize);
+            try {
+                if (tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+                chart.remove();
+            } catch (error) {
+                console.warn('Error cleaning up chart:', error);
+            }
         };
     }, [chartData]);
 
-    const formatValue = (value: number | string) => {
-        if (typeof value === 'string') return value;
-        if (format === "formatRaw") return formatNumberRaw(value);
-        if (format === "formatRatio") return formatNumberRatio(value);
-        if (format === "formatPercent") return formatNumberPercent(value);
-        return formatNumberRaw(value);
-    };
-
-    const formatTooltipValue = (value: number | string) => {
-        if (typeof value === 'string') return value;
-        if (formatTooltip === "formatNumberRatio") return formatNumberRatio(value);
-        if (formatTooltip === "formatNumberTooltip") return formatNumberTooltip(value);
-        return formatNumberRaw(value);
-    };
-
-    if (!mounted) {
+    if (!chartData.length) {
         return (
-            <div className="w-full h-[400px] bg-muted/20 animate-pulse rounded-lg border" />
-        );
-    }
-
-    if (!chartData || chartData.length === 0) {
-        return (
-            <div className="w-full p-8 text-center bg-muted/20 rounded-lg border">
-                <p className="text-muted-foreground">차트 데이터가 없습니다.</p>
+            <div className="h-[400px] flex items-center justify-center border border-dashed border-muted-foreground/25 rounded-lg">
+                <div className="text-center space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">PBR 차트 데이터 없음</p>
+                    <p className="text-xs text-muted-foreground">표시할 데이터가 없습니다</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="w-full space-y-4">
-            {/* 핵심 지표 요약 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg">
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">최신</p>
-                    <p className="text-lg font-bold">{formatValue(stats.latest)}배</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">평균</p>
-                    <p className="text-lg font-bold">{formatValue(stats.average)}배</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">최소</p>
-                    <p className="text-lg font-bold">{formatValue(stats.min)}배</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">최대</p>
-                    <p className="text-lg font-bold">{formatValue(stats.max)}배</p>
-                </div>
-            </div>
-
-            {/* 차트 */}
-            <div className="w-full h-[400px] border rounded-lg p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                        data={chartData}
-                        margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 20,
-                        }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
-                        <XAxis
-                            dataKey="year"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                            interval="preserveStartEnd"
-                        />
-                        <YAxis
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                            tickFormatter={(value) => formatNumberForChart(value)}
-                        />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: "hsl(var(--background))",
-                                border: "1px solid hsl(var(--border))",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                            }}
-                            formatter={(value: any) => [
-                                `PBR ${formatTooltipValue(value)}배`,
-                                "주가순자산비율"
-                            ]}
-                            labelFormatter={(label) => `${label}년`}
-                        />
-                        <Line
-                            type="monotone"
-                            dataKey="totalValue"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={2}
-                            dot={{
-                                fill: "hsl(var(--primary))",
-                                strokeWidth: 2,
-                                r: 4,
-                            }}
-                            activeDot={{
-                                r: 6,
-                                strokeWidth: 2,
-                                fill: "hsl(var(--primary))",
-                            }}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
+        <div className={className}>
+            <div ref={chartContainerRef} className="w-full" />
         </div>
     );
 }

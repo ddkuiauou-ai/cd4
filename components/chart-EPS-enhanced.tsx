@@ -25,36 +25,36 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card";
+import { EPSData, PeriodType, aggregateEPSDataByPeriod } from "@/lib/eps-utils";
 
-interface Props {
-    data: Item[];
-    format: string;
-    formatTooltip: string;
+interface ChartEPSEnhancedProps {
+    data: EPSData[];
+    format?: string;
+    formatTooltip?: string;
+    period?: PeriodType;
 }
 
-interface Item {
-    date: string;
-    value: number;
-}
-
-function getLatestDecemberDates(data: Item[]): string[] {
-    const lastDecDates: Record<string, string> = {};
-    data.forEach(({ date }) => {
-        const [year, month] = date.split("-");
-        if (month === "12") {
-            if (!lastDecDates[year] || date > lastDecDates[year]) {
-                lastDecDates[year] = date;
-            }
-        }
-    });
-    return Object.values(lastDecDates);
+// Helper function to get period description
+function getPeriodDescription(period: PeriodType): string {
+    switch (period) {
+        case '1D':
+            return 'EPS 일별 추이';
+        case '1W':
+            return 'EPS 주별 추이';
+        case '1M':
+            return 'EPS 월별 추이';
+        case '1Y':
+            return 'EPS 연별 추이';
+        default:
+            return 'EPS 추이';
+    }
 }
 
 interface FormatFunctionMap {
     [key: string]: (value: number, index?: number) => string;
 }
 
-export default function ChartEPSEnhanced({ data, format, formatTooltip }: Props) {
+export default function ChartEPSEnhanced({ data, format = "formatNumber", formatTooltip = "formatNumberTooltip", period = '1M' }: ChartEPSEnhancedProps) {
     const [windowWidth, setWindowWidth] = useState(0);
 
     useEffect(() => {
@@ -72,24 +72,29 @@ export default function ChartEPSEnhanced({ data, format, formatTooltip }: Props)
     const processedData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        const lastDatesOfDec = getLatestDecemberDates(data);
-        return data
-            .filter((item) => lastDatesOfDec.includes(item.date))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map((item) => ({
-                ...item,
-                displayDate: new Date(item.date).getFullYear().toString(),
-                value: Number(item.value) || 0,
-            }));
-    }, [data]);
+        // 기간별 데이터 집계
+        const aggregatedData = aggregateEPSDataByPeriod(data, period);
+
+        return aggregatedData.map((item) => ({
+            ...item,
+            displayDate: period === '1Y'
+                ? new Date(item.time).getFullYear().toString()
+                : new Date(item.time).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'short',
+                    ...(period === '1D' && { day: 'numeric' })
+                }),
+            value: Number(item.value) || 0,
+        }));
+    }, [data, period]);
 
     if (!processedData || processedData.length === 0) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>주당순이익 EPS 연도별 추이</CardTitle>
+                    <CardTitle>{getPeriodDescription(period)}</CardTitle>
                     <CardDescription>
-                        Earnings Per Share - 기업의 연간 주당순이익 변화를 나타냅니다.
+                        Earnings Per Share - 기업의 주당순이익 변화를 나타냅니다.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -114,9 +119,9 @@ export default function ChartEPSEnhanced({ data, format, formatTooltip }: Props)
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>주당순이익 EPS 연도별 추이</CardTitle>
+                <CardTitle>{getPeriodDescription(period)}</CardTitle>
                 <CardDescription>
-                    Earnings Per Share - 기업의 연간 주당순이익 변화를 나타냅니다.
+                    Earnings Per Share - 기업의 주당순이익 변화를 나타냅니다.
                     높은 값일수록 주주에게 더 많은 이익을 제공합니다.
                 </CardDescription>
             </CardHeader>
@@ -190,5 +195,52 @@ export default function ChartEPSEnhanced({ data, format, formatTooltip }: Props)
                 )}
             </CardContent>
         </Card>
+    );
+}
+
+// EPS Chart with Period Switcher Component
+interface EPSChartWithPeriodSwitcherProps {
+    initialData: EPSData[];
+}
+
+export function EPSChartWithPeriodSwitcher({ initialData }: EPSChartWithPeriodSwitcherProps) {
+    const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('1M');
+
+    const periods: { key: PeriodType; label: string; description: string }[] = [
+        { key: '1M', label: '월간', description: '월별 데이터' },
+        { key: '1Y', label: '년간', description: '년별 평균' },
+    ];
+
+    return (
+        <div className="space-y-4">
+            {/* Period Switcher */}
+            <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <span>기간 선택:</span>
+                </div>
+                <div className="flex gap-1">
+                    {periods.map((period) => (
+                        <button
+                            key={period.key}
+                            onClick={() => setSelectedPeriod(period.key)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${selectedPeriod === period.key
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-border'
+                                }`}
+                        >
+                            {period.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Chart with selected period */}
+            <div className="bg-background rounded-xl border p-2 sm:p-4 shadow-sm">
+                <ChartEPSEnhanced
+                    data={initialData}
+                    period={selectedPeriod}
+                />
+            </div>
+        </div>
     );
 }

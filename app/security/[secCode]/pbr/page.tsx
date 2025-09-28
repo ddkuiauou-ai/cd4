@@ -1,45 +1,37 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { Balancer } from "react-wrap-balancer";
-import { Scale, TrendingUp, BarChart3, FileText, Target, DollarSign, BookOpen } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getPbrRank } from "@/lib/data/security";
-import { getSecuritySearchNames } from "@/lib/getSearch";
 import { getAllSecurityCodes } from "@/lib/select";
 import ChartPBREnhanced from "@/components/chart-PBR-enhanced";
-import ListPBREnhanced from "@/components/list-PBR-enhanced";
-import CardMarketcap from "@/components/card-marketcap";
+import ListPBRMarketcap from "@/components/list-pbr-marketcap";
 import RankHeader from "@/components/header-rank";
-import { MarketcapPager } from "@/components/pager-marketcap";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
-import CompanyLogo from "@/components/CompanyLogo";
-import { LayoutWrapper } from "@/components/layout-wrapper";
-import { Security } from "@/typings";
+import { KeyMetricsSectionPBR } from "@/components/key-metrics-section-pbr";
+import { KeyMetricsSidebarPBR } from "@/components/key-metrics-sidebar-pbr";
+import { StickyCompanyHeader } from "@/components/sticky-company-header";
+import ShareButton from "@/components/share-button";
+import { siteConfig } from "@/config/site";
+import { CandlestickChart } from "@/components/chart-candlestick";
+import type { Price } from "@/typings";
+import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { PageNavigation } from "@/components/page-navigation";
+import {
+  ACTIVE_METRIC,
+  EDGE_TO_EDGE_CARD_BASE,
+  EDGE_TO_EDGE_SECTION_BASE,
+  SECTION_GRADIENTS,
+} from "@/components/marketcap/layout";
+import { processPBRData, calculatePBRPeriodAnalysis, coerceVolumeValue, type PBRData } from "@/lib/pbr-utils";
+import PBRChartWithPeriodSwitcher from "@/components/pbr-chart-with-period-switcher";
 
 /**
  * Props for Security PBR Page
  */
-/**
- * Generate static params for all security pages (SSG)
- */
-export async function generateStaticParams() {
-  try {
-    const securityCodes = await getAllSecurityCodes();
-    
-    return securityCodes.map((secCode) => ({
-      secCode: secCode,
-    }));
-  } catch (error) {
-    console.error("[GENERATE_STATIC_PARAMS] Error generating security params:", error);
-    return [];
-  }
-}
-
-
 interface SecurityPBRPageProps {
   params: Promise<{ secCode: string }>;
 }
@@ -65,6 +57,22 @@ export async function generateMetadata({ params }: SecurityPBRPageProps) {
 }
 
 /**
+ * Generate static params for all PBR pages (SSG)
+ */
+export async function generateStaticParams() {
+  try {
+    const securityCodes = await getAllSecurityCodes();
+
+    return securityCodes.map((secCode) => ({
+      secCode: secCode,
+    }));
+  } catch (error) {
+    console.error('[GENERATE_STATIC_PARAMS] Error generating PBR params:', error);
+    return [];
+  }
+}
+
+/**
  * Security PBR Page
  * Displays PBR data and charts for a specific security
  */
@@ -77,15 +85,49 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
     notFound();
   }
 
+  const displayName = security.korName || security.name;
+  const securityType = security.type || "종목";
+
+  // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
+  const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
+
   // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
   const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
 
-  // Get related securities for company navigation
-  const securities = security.companyId ? await getCompanySecurities(security.companyId) : [];
-  const commonSecurities = securities.filter((sec) => sec.type === "보통주");
+  // Parallelize independent data fetching
+  const [
+    companySecs,
+    data,
+    pbrRank,
+    companyMarketcapData
+  ] = await Promise.all([
+    // Get company-related securities if this security has a company
+    security.companyId ? getCompanySecurities(security.companyId) : Promise.resolve([]),
+    // Get PBR data
+    getSecurityMetricsHistory(security.securityId),
+    // Get PBR rank
+    getPbrRank(security.securityId),
+    // Get company marketcap data for Interactive Securities Section
+    security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+  ]);
+
+  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
+  if (!data || data.length === 0) {
+    notFound();
+  }
+
+  // Find representative security (보통주)
+  const representativeSecurity = companySecs.find((sec) =>
+    sec.type?.includes("보통주"),
+  );
+
+  const companySecCode =
+    representativeSecurity?.exchange && representativeSecurity?.ticker
+      ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
+      : null;
 
   // 종목 비교용 필터링: 보통주와 우선주만 표시
-  const comparableSecurities = securities.filter((sec) =>
+  const comparableSecurities = companySecs.filter((sec) =>
     sec.type === "보통주" || sec.type === "우선주"
   );
 
@@ -111,61 +153,27 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
     })
   );
 
-  // Get PBR data
-  const data = await getSecurityMetricsHistory(security.securityId);
+  // Transform data to match expected format for PBR
+  const result = processPBRData(data);
 
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
-  if (!data || data.length === 0) {
-    notFound();
-  }
+  const annualCsvData = result.map((item) => ({
+    date: item.date,
+    pbr: item.value,
+    bps: item.bps || 0,
+  }));
 
-  // Get PBR rank
-  const pbrRank = await getPbrRank(security.securityId);
+  const latestHistoryDate = annualCsvData.at(-1)?.date;
+  const sanitizedSecCode = secCode.replace(/\./g, "-");
+  const annualDownloadFilename = `${sanitizedSecCode}-pbr${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
 
-  // Get company marketcap data for Interactive Securities Section
-  let companyMarketcapData = null;
-  if (security.companyId) {
-    try {
-      companyMarketcapData = await getCompanyAggregatedMarketcap(security.companyId);
-    } catch (error) {
-      // Error is silently handled - fallback to null
-    }
-  }
+  // Calculate period analysis for PBR
+  const periodAnalysis = calculatePBRPeriodAnalysis(result, displayName, market);
 
-  // 🔥 중복 날짜 데이터 제거 및 고유 키 생성으로 React key 오류 방지
-  const processedData = data.map((item) => ({
-    date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date),
-    value: item.pbr,
-  })).filter((item): item is { date: string; value: number } =>
-    item.value !== null &&
-    item.value !== undefined &&
-    !isNaN(item.value) &&
-    item.value > 0 &&
-    item.value < 1000 // PBR이 1000배를 넘는 경우는 이상치로 간주
-  );
-
-  // 🔥 같은 날짜의 중복 데이터 제거 (최신 값 유지)
-  const dateMap = new Map<string, { date: string; value: number }>();
-  processedData.forEach(item => {
-    const existingItem = dateMap.get(item.date);
-    if (!existingItem || item.value > existingItem.value) {
-      dateMap.set(item.date, item);
-    }
-  });
-
-  const result = Array.from(dateMap.values())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map((item, index) => ({
-      ...item,
-      uniqueKey: `pbr-${item.date}-${index}` // 고유 키 생성
-    }));
-
-  // Calculate range for chart
   const pbrValues = result.map(item => item.value).filter(val => val != null && val > 0);
   const rangeMin = pbrValues.length > 0 ? Math.min(...pbrValues) : 0;
   const rangeMax = pbrValues.length > 0 ? Math.max(...pbrValues) : 0;
 
-  // 🔥 기간별 PBR 통계 계산
+  // 기간별 평균 PBR 계산 (기존 호환성을 위해 유지)
   const now = new Date();
   const getDateYearsAgo = (years: number) => {
     const date = new Date(now);
@@ -195,397 +203,620 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
   // 최신 PBR 값
   const latestPBR = result.length > 0 ? result[result.length - 1].value : null;
 
-  // Get search data for header
-  const searchData = await getSecuritySearchNames();
+  // Process price data for candlestick chart
+  const rawPrices: Price[] = Array.isArray(security.prices)
+    ? (security.prices as Price[])
+    : [];
+  const parsedPricePoints = rawPrices
+    .map((price) => {
+      const sourceDate = price?.date;
+      const date =
+        sourceDate instanceof Date ? sourceDate : new Date(sourceDate ?? "");
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return null;
+      }
+
+      const closeValue =
+        typeof price?.close === "number" ? price.close : undefined;
+      const openValue = typeof price?.open === "number" ? price.open : undefined;
+      const highValue = typeof price?.high === "number" ? price.high : undefined;
+      const lowValue = typeof price?.low === "number" ? price.low : undefined;
+
+      const resolvedClose = closeValue ?? openValue ?? null;
+      const resolvedOpen = openValue ?? closeValue ?? null;
+
+      if (resolvedClose === null || resolvedOpen === null) {
+        return null;
+      }
+
+      const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
+      const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
+      const volumeValue = coerceVolumeValue(price?.volume, price?.fvolume);
+
+      return {
+        date,
+        time: date.toISOString().split("T")[0],
+        open: Number(resolvedOpen),
+        high: Number(resolvedHigh),
+        low: Number(resolvedLow),
+        close: Number(resolvedClose),
+        volume: Number.isFinite(volumeValue) ? Number(volumeValue) : null,
+      };
+    })
+    .filter((point): point is {
+      date: Date;
+      time: string;
+      open: number;
+      high: number;
+      low: number;
+      close: number;
+      volume: number | null;
+    } =>
+      !!point &&
+      Number.isFinite(point.open) &&
+      Number.isFinite(point.high) &&
+      Number.isFinite(point.low) &&
+      Number.isFinite(point.close));
+
+  const sortedPricePoints = parsedPricePoints.sort(
+    (a, b) => a.date.getTime() - b.date.getTime(),
+  );
+
+  const latestPricePoint = sortedPricePoints.at(-1);
+  const referenceDate = latestPricePoint
+    ? new Date(latestPricePoint.date.getTime())
+    : new Date();
+  const priceStartDate = new Date(referenceDate.getTime());
+  priceStartDate.setDate(priceStartDate.getDate() - 90);
+
+  let candlestickSeriesData = sortedPricePoints.filter(
+    (point) => point.date >= priceStartDate && point.date <= referenceDate,
+  );
+
+  if (!candlestickSeriesData.length) {
+    candlestickSeriesData = sortedPricePoints.slice(-90);
+  }
+
+  const candlestickData = candlestickSeriesData.map(
+    ({ time, open, high, low, close, volume }) => ({
+      time,
+      open,
+      high,
+      low,
+      close,
+      volume: Number.isFinite(volume ?? undefined)
+        ? Number(volume)
+        : undefined,
+    }),
+  );
+
+  const headerDetail = {
+    label: "PBR",
+    value: latestPBR ? `${latestPBR.toFixed(2)}배` : "—",
+    badge: securityType,
+  } as const;
+
+  const titleSuffix = "PBR";
+
+  const shareTitle = `${displayName} ${securityType} PBR 분석 | ${siteConfig.name}`;
+  const shareText = `${displayName}의 주가순자산비율(PBR) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
+  const shareUrl = `${siteConfig.url}/security/${secCode}/pbr`;
+
+  const navigationSections = [
+    {
+      id: "security-overview",
+      label: "종목 개요",
+      icon: <Building2 className="h-3 w-3" />,
+    },
+    {
+      id: "chart-analysis",
+      label: "차트 분석",
+      icon: <BarChart3 className="h-3 w-3" />,
+    },
+    ...(comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData
+      ? [
+        {
+          id: "securities-summary",
+          label: "종목 비교",
+          icon: <ArrowLeftRight className="h-3 w-3" />,
+        },
+      ]
+      : []),
+    {
+      id: "indicators",
+      label: "핵심 지표",
+      icon: <TrendingUp className="h-3 w-3" />,
+    },
+    {
+      id: "annual-data",
+      label: "연도별 데이터",
+      icon: <FileText className="h-3 w-3" />,
+    },
+  ];
+
+  // 공통 NoData 컴포넌트
+  const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+    title: string;
+    description: string;
+    iconType?: "chart" | "table";
+  }) => (
+    <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
+      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+        {iconType === "chart" ? (
+          <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        )}
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <LayoutWrapper searchData={searchData}>
-      <main className="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
-        <div className="mx-auto w-full min-w-0">
-          {/* 🔥 브레드크럼 */}
-          <div className="mb-4 flex items-center space-x-1 text-sm text-muted-foreground">
-            <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-              {security.companyId ? "기업" : "증권"}
+    <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      <div className="mx-auto w-full min-w-0">
+        {/* 브레드크럼 네비게이션 */}
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+        >
+          <Link href="/" className="transition-colors hover:text-foreground">
+            홈
+          </Link>
+          <ChevronRightIcon className="h-4 w-4" />
+          <Link href="/company" className="transition-colors hover:text-foreground">
+            기업
+          </Link>
+          <ChevronRightIcon className="h-4 w-4" />
+          {companySecCode ? (
+            <Link
+              href={`/company/${companySecCode}/pbr`}
+              className="transition-colors hover:text-foreground"
+            >
+              {security.company?.korName || displayName}
+            </Link>
+          ) : (
+            <span className="truncate text-foreground">
+              {security.company?.korName || displayName}
+            </span>
+          )}
+          <ChevronRightIcon className="h-4 w-4" />
+          <span className="text-foreground">{securityType}</span>
+          <ChevronRightIcon className="h-4 w-4" />
+          <span className="font-medium text-foreground">PBR</span>
+        </nav>
+
+        <StickyCompanyHeader
+          displayName={displayName}
+          companyName={security.company?.korName || security.company?.name}
+          logoUrl={security.company?.logo}
+          titleSuffix={titleSuffix}
+          titleBadge={security.type ?? null}
+          detail={headerDetail}
+          actions={
+            <ShareButton
+              title={shareTitle}
+              text={shareText}
+              url={shareUrl}
+            />
+          }
+        />
+
+        <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
+          <div className="space-y-3">
+            <p className="text-base text-muted-foreground md:text-lg">
+              <strong>{displayName}의 PBR(주가순자산비율, Price to Book Ratio)</strong>은 기업의 주가가 순자산에 비해 고평가 또는 저평가되어 있는지를 보여주는 중요한 투자 지표입니다. 낮은 PBR은 청산가치 대비 저평가 가능성을, 높은 PBR은 시장의 성장 기대감을 시사할 수 있습니다.
+            </p>
+            <div className="sm:hidden">
+              <ShareButton
+                title={shareTitle}
+                text={shareText}
+                url={shareUrl}
+              />
             </div>
-            <ChevronRightIcon className="h-4 w-4" />
-            <div className="font-medium text-muted-foreground">
-              {securities.length > 0 ? (
-                <Link
-                  href={`/company/marketcaps?search=${encodeURIComponent(securities[0].company?.korName || securities[0].korName || securities[0].name)}`}
-                  className="hover:text-primary underline underline-offset-4"
-                >
-                  {securities[0].company?.korName || securities[0].korName || securities[0].name}
-                </Link>
-              ) : (
-                security.korName || security.name
-              )}
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-            <div className="font-medium text-muted-foreground">
-              {security.type}
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-            <div className="font-medium text-foreground">주가순자산비율</div>
           </div>
 
-          {/* 🔥 제목 영역 */}
-          <div className="space-y-8 relative">
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <CompanyLogo
-                  companyName={security.company?.korName || security.korName || security.name}
-                  size={64}
-                />
-                <div className="flex-1 min-w-0">
-                  <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-                    <Balancer>
-                      {security.company?.korName || security.korName || security.name} {security.type} PBR
-                    </Balancer>
-                  </h1>
-                </div>
-              </div>
-              <p className="text-lg md:text-xl text-muted-foreground mt-2">
-                {security.korName || security.name}의 주가순자산비율 Price to Book Ratio 분석
-              </p>
-            </div>
-
-            {/* PBR 설명 알림 */}
-            <div data-slot="alert" role="alert" className="relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current bg-card text-card-foreground">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info h-4 w-4" aria-hidden="true">
+          <div data-slot="alert" role="alert" className="relative -mx-4 w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground shadow-sm sm:mx-0 sm:rounded-2xl sm:px-5">
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mt-0.5 h-5 w-5" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M12 16v-4"></path>
                 <path d="M12 8h.01"></path>
               </svg>
-              <div data-slot="alert-description" className="text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed">
-                주가순자산비율(PBR)은 주가를 주당순자산으로 나눈 값으로, 기업의 자산가치 대비 주가 수준을 나타내는 핵심 밸류에이션 지표입니다.
-                낮은 PBR은 상대적으로 저평가된 상태를 의미할 수 있습니다.
+              <div data-slot="alert-description" className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <p className="font-medium">계산식: PBR = 주가 ÷ 주당순자산(BPS)</p>
+                <div className="space-y-1">
+                  <p className="font-medium">해석 방법</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>PBR이 1배 미만:</strong> 현재 주가가 청산가치보다 낮아 저평가된 상태일 수 있습니다. (가치투자 관점에서 매력적일 수 있음)</li>
+                    <li><strong>PBR이 1배 이상:</strong> 현재 주가가 청산가치보다 높아 고평가된 상태일 수 있습니다. 미래 성장에 대한 기대가 반영된 경우가 많습니다.</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground/70 mt-2">
+                  자세한 내용은 <a href="https://www.investopedia.com/terms/p/price-to-bookratio.asp" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">Investopedia PBR 설명</a>을 참고하세요.
+                </p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* PBR 개요 섹션 */}
-          <div id="pbr-overview" className="space-y-8 relative border-t border-blue-100 dark:border-blue-800/50 pt-8 pb-8 bg-blue-50/20 dark:bg-blue-900/20 rounded-xl -mx-4 px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800/50">
-                <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="mt-6 space-y-6 sm:mt-14 sm:space-y-16">
+          {/* 종목 개요 섹션 */}
+          <section
+            id="security-overview"
+            className={`${EDGE_TO_EDGE_SECTION_BASE} border-blue-200/70 dark:border-blue-900/40 dark:bg-blue-950/20`}
+            style={SECTION_GRADIENTS.overview}
+          >
+            <header className="flex flex-wrap items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-800/50">
+                <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">PBR 개요</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">주가순자산비율 순위와 기본 정보</p>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">종목 개요</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">PBR 순위와 기본 정보를 확인합니다</p>
+              </div>
+            </header>
+
+            <div className="space-y-6">
+              <RankHeader
+                rank={pbrRank}
+                marketcap={latestPBR || undefined}
+                price={security.prices?.[0]?.close}
+                exchange={security.exchange || market}
+                isCompanyLevel={false}
+                rankLabel="PBR 랭킹"
+                marketcapLabel="현재 PBR"
+                marketcapUnit="배"
+              />
+
+              <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
+                <dl className="space-y-2 p-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">종목명</dt>
+                    <dd className="font-medium text-right">{displayName}</dd>
+                  </div>
+                  {security.name && security.korName && security.name !== security.korName && (
+                    <div className="flex items-center justify-between text-sm">
+                      <dt className="text-muted-foreground">영문명</dt>
+                      <dd className="font-medium text-right">{security.name}</dd>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">구분</dt>
+                    <dd className="font-medium text-right">{securityType}</dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">거래소</dt>
+                    <dd className="font-medium text-right">{security.exchange || market}</dd>
+                  </div>
+                </dl>
+                <dl className="space-y-2 border-t border-border/60 p-4 sm:border-t-0 sm:border-l">
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">티커</dt>
+                    <dd className="font-medium text-right">{currentTicker}</dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">현재 PBR</dt>
+                    <dd className="font-medium text-right">{latestPBR ? `${latestPBR.toFixed(2)}배` : "—"}</dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">기준일</dt>
+                    <dd className="font-medium text-right">
+                      {security.pbrDate ? new Date(security.pbrDate).toLocaleDateString('ko-KR') : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <dl className="space-y-2 border-t border-border/60 p-4 sm:col-span-2 sm:border-t-0 lg:col-span-1 lg:border-l">
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">소속 기업</dt>
+                    <dd className="text-right font-medium">
+                      {security.company?.korName || security.company?.name || "—"}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">PBR 순위</dt>
+                    <dd className="text-right font-medium">
+                      {pbrRank ? `${pbrRank}위` : "—"}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="text-muted-foreground">대표 종목</dt>
+                    <dd className="text-right font-medium">
+                      {representativeSecurity?.type?.includes("보통주")
+                        ? "보통주"
+                        : representativeSecurity
+                          ? representativeSecurity.type
+                          : "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </div>
+          </section>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* PBR 순위 카드 */}
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-700 dark:bg-slate-600 text-white">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{pbrRank ? `${pbrRank}위` : "—"}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">PBR 랭킹</p>
+          {/* 차트 분석 섹션 */}
+          <section
+            id="chart-analysis"
+            className={`${EDGE_TO_EDGE_SECTION_BASE} border-green-200/70 dark:border-green-900/40 dark:bg-green-950/20`}
+            style={SECTION_GRADIENTS.charts}
+          >
+            <header className="flex flex-wrap items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-800/50">
+                <BarChart3 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">차트 분석</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">{displayName}의 PBR 변동 패턴과 분포를 다양한 차트로 분석합니다</p>
+              </div>
+            </header>
+
+            <div className={`grid gap-4 sm:gap-6 lg:auto-rows-max lg:items-stretch lg:gap-6 xl:gap-8`}>
+              {/* PBR 히트맵 */}
+              <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
+                <div className="px-3 pt-3 sm:px-5 sm:pt-5">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    PBR 히트맵
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {displayName}의 연도별 월간 PBR 변동을 히트맵으로 분석합니다.
+                  </p>
+                </div>
+                <div className="flex flex-1 flex-col px-2 pb-3 pt-2 sm:px-5 sm:pb-5 sm:pt-3">
+                  <div className="min-h-[200px] sm:min-h-[260px] flex-1">
+                    {result && result.length > 0 ? (
+                      <div className="mb-2 sm:mb-4">
+                        <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">📌 보는 법</p>
+                        <ul className="text-xs sm:text-sm text-muted-foreground space-y-0.5 sm:space-y-1 ml-3 sm:ml-4 list-disc list-inside">
+                          <li>짙은 색: PBR이 높은 고평가 구간</li>
+                          <li>옅은 색: PBR이 낮은 저평가 구간</li>
+                          <li>연도별 월간 변동 패턴으로 시장 흐름 파악</li>
+                        </ul>
+                      </div>
+                    ) : null}
+                    <NoDataDisplay
+                      title="PBR 히트맵 데이터 없음"
+                      description="히트맵 데이터를 불러올 수 없습니다"
+                      iconType="chart"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* 최근 PBR 카드 */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-800/50 dark:to-blue-900/50 border border-blue-200 dark:border-blue-700 hover:shadow-md transition-shadow rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 dark:bg-blue-700 text-white">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
-                      {latestPBR ? `${latestPBR.toFixed(2)}배` : "—"}
-                    </p>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">최근 PBR</p>
+              {/* PBR 히스토그램 / KDE 분포 */}
+              <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
+                <div className="px-3 pt-3 sm:px-5 sm:pt-5">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    PBR 히스토그램 / KDE 분포
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {displayName}의 전체 기간 PBR 분포를 히스토그램과 KDE 곡선으로 분석합니다.
+                  </p>
+                </div>
+                <div className="flex flex-1 flex-col px-2 pb-3 pt-2 sm:px-5 sm:pb-5 sm:pt-3">
+                  <div className="min-h-[200px] sm:min-h-[260px] flex-1">
+                    {result && result.length > 0 ? (
+                      <div className="mb-2 sm:mb-4">
+                        <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">📌 분석 포인트</p>
+                        <ul className="text-xs sm:text-sm text-muted-foreground space-y-0.5 sm:space-y-1 ml-3 sm:ml-4 list-disc list-inside">
+                          <li>막대: PBR 구간별 빈도 분포</li>
+                          <li>곡선: KDE로 나타낸 연속 분포</li>
+                          <li>평균과 중앙값으로 분포 중심 파악</li>
+                        </ul>
+                      </div>
+                    ) : null}
+                    <NoDataDisplay
+                      title="PBR 분포 데이터 없음"
+                      description="분포 데이터를 불러올 수 없습니다"
+                      iconType="chart"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* 3년 평균 PBR 카드 */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-800/50 dark:to-green-900/50 border border-green-200 dark:border-green-700 hover:shadow-md transition-shadow rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-600 dark:bg-green-700 text-white">
-                    <Target className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-green-900 dark:text-green-100">
-                      {pbr3Year ? `${pbr3Year.toFixed(2)}배` : "—"}
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-400">3년 평균</p>
+              {/* 최근 3개월 가격 차트 */}
+              <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
+                <div className="px-3 pt-3 sm:px-5 sm:pt-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 3개월 가격 차트</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름을 확인합니다.
+                      </p>
+                    </div>
+                    <span className="self-start sm:self-center rounded-full bg-muted px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.08em] text-muted-foreground whitespace-nowrap">
+                      최근 3개월
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              {/* 데이터 기간 카드 */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-600 dark:bg-gray-700 text-white">
-                    <BarChart3 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{result.length}년</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">데이터 기간</p>
-                  </div>
+                <div className="px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
+                  <CandlestickChart data={candlestickData} />
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* 🔥 Interactive Section - 종목 비교 */}
-          {companyMarketcapData && comparableSecuritiesWithPBR.length > 1 && (
-            <div id="securities-comparison" className="space-y-8 relative border-t border-teal-100 dark:border-teal-800/50 pt-8 pb-8 bg-teal-50/20 dark:bg-teal-900/20 rounded-xl -mx-4 px-4">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-800/50">
-                  <Scale className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+          {/* 종목 비교 섹션 */}
+          {comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData && (
+            <section
+              id="securities-summary"
+              className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
+              style={SECTION_GRADIENTS.securities}
+            >
+              <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-800/50">
+                  <ArrowLeftRight className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">종목 비교</h2>
-                  <p className="text-base text-gray-600 dark:text-gray-400 mt-1">보통주 및 우선주 간 PBR 비교 분석</p>
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">종목 비교</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">해당 기업 내 다른 종목과 PBR을 비교합니다</p>
                 </div>
-              </div>
+              </header>
 
               <InteractiveSecuritiesSection
                 companyMarketcapData={companyMarketcapData}
                 companySecs={comparableSecuritiesWithPBR}
+                market={market}
                 currentTicker={currentTicker}
-                market={security.exchange || ""}
                 baseUrl="security"
                 currentMetric="pbr"
+                highlightActiveTicker
               />
-            </div>
+            </section>
           )}
 
-          {/* CompanyFinancialTabs */}
-          <div id="financial" className="mb-8">
-            <CompanyFinancialTabs secCode={secCode} />
+          <div className="space-y-4 sm:space-y-8">
+            <CompanyFinancialTabs secCode={secCode} className="-mx-4 sm:mx-0" />
+
+            <div
+              className="relative -mx-4 overflow-hidden border border-orange-200/60 bg-orange-50/60 px-4 py-4 text-sm shadow-sm sm:mx-0 sm:rounded-3xl sm:px-6 sm:py-5 dark:border-orange-900/40 dark:bg-orange-950/10"
+              style={SECTION_GRADIENTS.indicators}
+            >
+              <div className="flex flex-col gap-3 text-orange-800/80 dark:text-orange-200/80">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold tracking-tight text-orange-900 dark:text-orange-200">
+                    선택한 지표가 아래 분석 카드에 바로 반영됩니다
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-700 shadow-sm dark:bg-orange-900/40 dark:text-orange-200/90">
+                    Tab Sync
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed text-orange-700/90 dark:text-orange-100/80 md:text-sm">
+                  <strong className="font-semibold text-orange-900 dark:text-orange-100">PBR</strong>을 포함한 탭을 선택하면 <strong className="font-semibold text-orange-900 dark:text-orange-50">핵심 지표</strong>와 <strong className="font-semibold text-orange-900 dark:text-orange-50">연도별 데이터</strong> 모듈이 함께 갱신되어, 한 화면에서 흐름을 비교할 수 있습니다.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 핵심 지표 섹션 */}
-          <div id="key-metrics" className="border-t border-indigo-100 dark:border-indigo-800/50 pt-8 pb-8 bg-indigo-50/20 dark:bg-indigo-900/20 rounded-xl -mx-4 px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-800/50">
-                <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">PBR 핵심 지표</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">기간별 주가순자산비율 평균과 추이 분석</p>
-              </div>
+          {periodAnalysis && (
+            <KeyMetricsSectionPBR
+              security={security}
+              pbrRank={pbrRank}
+              latestPBR={periodAnalysis.latestPBR}
+              pbr12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
+              pbr3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
+              pbr5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
+              pbr10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
+              pbr20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
+              rangeMin={periodAnalysis.minMax.min}
+              rangeMax={periodAnalysis.minMax.max}
+              result={result}
+            />
+          )}
+
+          {/* 연도별 데이터 섹션 */}
+          <section
+            id="annual-data"
+            className={`${EDGE_TO_EDGE_SECTION_BASE} border-red-200/70 dark:border-red-900/40 dark:bg-red-950/20`}
+            style={SECTION_GRADIENTS.annual}
+          >
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-red-700/80 dark:text-red-200/80">
+              <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-red-700 shadow-sm dark:bg-red-900/40 dark:text-red-200">
+                탭 연동
+              </span>
+              <span className="text-sm font-semibold text-red-800/90 dark:text-red-100/90">
+                PBR 연도별 데이터 흐름
+              </span>
             </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {latestPBR ? `${latestPBR.toFixed(2)}배` : "—"}
+            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-800/50">
+                  <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">현재 PBR</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {pbr12Month ? `${pbr12Month.toFixed(2)}배` : "—"}
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">연도별 데이터</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">PBR 차트와 연말 기준 상세 데이터를 확인합니다</p>
                 </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">1년 평균</div>
               </div>
+              {annualCsvData.length > 0 && (
+                <CsvDownloadButton
+                  data={annualCsvData}
+                  filename={annualDownloadFilename}
+                  className="self-start border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-100 dark:hover:bg-red-900/30"
+                />
+              )}
+            </header>
 
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {pbr3Year ? `${pbr3Year.toFixed(2)}배` : "—"}
+            <div className="space-y-5 sm:space-y-8">
+              {result && result.length > 0 ? (
+                <PBRChartWithPeriodSwitcher initialData={result} />
+              ) : (
+                <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+                  <NoDataDisplay
+                    title="PBR 차트 데이터 없음"
+                    description="연간 PBR 데이터를 불러올 수 없습니다"
+                    iconType="chart"
+                  />
                 </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">3년 평균</div>
-              </div>
+              )}
 
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {pbr5Year ? `${pbr5Year.toFixed(2)}배` : "—"}
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">5년 평균</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {pbr10Year ? `${pbr10Year.toFixed(2)}배` : "—"}
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">10년 평균</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-                <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {pbr20Year ? `${pbr20Year.toFixed(2)}배` : "—"}
-                </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">20년 평균</div>
-              </div>
-            </div>
-          </div>
-
-          {/* 연도별 PBR 데이터 섹션 */}
-          <div id="pbr-data" className="border-t border-red-100 dark:border-red-800/50 pt-8 pb-8 bg-red-50/20 dark:bg-red-900/20 rounded-xl -mx-4 px-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 dark:bg-red-800/50">
-                <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">연도별 데이터</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">PBR 차트와 연말 기준 상세 데이터</p>
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              {/* 차트 부분 */}
-              <div>
-                {result && result.length > 0 ? (
-                  <div className="bg-background rounded-xl border p-2 sm:p-4 shadow-sm">
-                    <ChartPBREnhanced
-                      data={result}
-                      format="formatRatio"
-                      formatTooltip="formatNumberRatio"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">PBR 차트 데이터 없음</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">연간 PBR 데이터를 불러올 수 없습니다</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 테이블 부분 */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <p className="sr-only">연말 기준 PBR 추이를 통해 밸류에이션 변화를 분석합니다</p>
 
                 {result && result.length > 0 ? (
-                  <ListPBREnhanced data={result} />
+                  <ListPBRMarketcap data={result} />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">연도별 PBR 데이터 없음</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">시계열 데이터를 불러올 수 없습니다</p>
-                    </div>
-                  </div>
+                  <NoDataDisplay
+                    title="연도별 PBR 데이터 없음"
+                    description="시계열 데이터를 불러올 수 없습니다"
+                    iconType="table"
+                  />
                 )}
               </div>
             </div>
-          </div>
-
-          {/* MarketcapPager */}
-          <div id="ranking">
-            <MarketcapPager rank={security.company?.marketcapRank || 1} />
-          </div>
+          </section>
         </div>
+      </div>
 
-        {/* 🔥 사이드바 네비게이션 (데스크톱) */}
-        <div className="hidden xl:sticky xl:top-[100px] xl:block xl:h-[calc(100vh-120px)] xl:overflow-y-auto">
-          <div className="space-y-6">
-            {/* 페이지 네비게이션 */}
-            <div className="rounded-xl border bg-background p-4">
-              <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-              <nav className="space-y-2">
-                <a
-                  href="#pbr-overview"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-                >
-                  <BookOpen className="h-3 w-3" />
-                  PBR 개요
-                </a>
-                {companyMarketcapData && comparableSecuritiesWithPBR.length > 1 && (
-                  <a
-                    href="#securities-comparison"
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-                  >
-                    <Scale className="h-3 w-3" />
-                    종목 비교
-                  </a>
-                )}
-                <a
-                  href="#key-metrics"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-                >
-                  <BarChart3 className="h-3 w-3" />
-                  PBR 핵심 지표
-                </a>
-                <a
-                  href="#pbr-data"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-                >
-                  <FileText className="h-3 w-3" />
-                  연도별 데이터
-                </a>
-              </nav>
-            </div>
-
-            {/* 핵심 지표 카드 */}
-            <div className="rounded-xl border bg-background p-4">
-              <h3 className="text-sm font-semibold mb-3">핵심 지표</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">현재 PBR</span>
-                  <span className="font-medium text-foreground">{latestPBR ? `${latestPBR.toFixed(2)}배` : "—"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">PBR 랭킹</span>
-                  <span className="font-medium text-foreground">{pbrRank ? `${pbrRank}위` : "—"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">현재 주가</span>
-                  <span className="font-medium text-foreground">{security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}원` : "—"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">5년 평균</span>
-                  <span className="font-medium text-foreground">{pbr5Year ? `${pbr5Year.toFixed(2)}배` : "—"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">최저 PBR</span>
-                  <span className="font-medium text-foreground">{pbrValues.length > 0 ? `${rangeMin.toFixed(2)}배` : "—"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">최고 PBR</span>
-                  <span className="font-medium text-foreground">{pbrValues.length > 0 ? `${rangeMax.toFixed(2)}배` : "—"}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 종목별 PBR 비교 */}
-            {comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 0 && (
-              <InteractiveSecuritiesSection
-                companyMarketcapData={{
-                  securities: comparableSecuritiesWithPBR.map(sec => ({
-                    securityId: sec.securityId,
-                    type: sec.type,
-                    ticker: sec.ticker,
-                    name: sec.korName || sec.name,
-                    exchange: sec.exchange,
-                    pbr: sec.pbr,
-                    pbrDate: sec.pbrDate
-                  }))
-                }}
-                companySecs={comparableSecuritiesWithPBR}
-                currentTicker={currentTicker}
-                market={secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI'}
-                layout="sidebar"
-                maxItems={4}
-                showSummaryCard={false}
-                compactMode={false}
-                baseUrl="security"
-                currentMetric="pbr"
-              />
-            )}
+      {/* 사이드바 네비게이션 (데스크톱) */}
+      <div className="hidden xl:block">
+        <div className="sticky top-20 space-y-6">
+          {/* 페이지 네비게이션 */}
+          <div className="rounded-xl border bg-background p-4">
+            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
+            <PageNavigation sections={navigationSections} />
           </div>
+
+          {/* 핵심 지표 사이드바 */}
+          {periodAnalysis && (
+            <KeyMetricsSidebarPBR
+              pbrRank={pbrRank}
+              latestPBR={periodAnalysis.latestPBR}
+              pbr12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
+              pbr3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
+              pbr5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
+              pbr10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
+              pbr20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
+              rangeMin={periodAnalysis.minMax.min}
+              rangeMax={periodAnalysis.minMax.max}
+              currentPrice={security.prices?.[0]?.close || null}
+            />
+          )}
+
+          {/* 종목별 PBR 비교 */}
+          {comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData && (
+            <InteractiveSecuritiesSection
+              companyMarketcapData={companyMarketcapData}
+              companySecs={comparableSecuritiesWithPBR}
+              currentTicker={currentTicker}
+              market={market}
+              layout="sidebar"
+              maxItems={4}
+              showSummaryCard={true}
+              compactMode={false}
+              baseUrl="security"
+              currentMetric="pbr"
+            />
+          )}
         </div>
-      </main>
-    </LayoutWrapper>
+      </div>
+    </main>
   );
 }

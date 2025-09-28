@@ -34,7 +34,7 @@ interface Props {
   className?: string;
 }
 
-export default function PbrCompactList({ items, limit, className }: Props) {
+export default function PBRCompactList({ items, limit, className }: Props) {
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (
@@ -92,10 +92,10 @@ export default function PbrCompactList({ items, limit, className }: Props) {
 
                 {prices && prices.length > 1 ? (
                   <div className="relative shrink-0">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 hidden sm:block md:hidden">
+                    <div className="absolute top-[-12px] left-1/2 -translate-x-1/2 hidden sm:block md:hidden">
                       {rate != null ? <Rate rate={rate as number} size="xs" /> : null}
                     </div>
-                    <div className="absolute top-[-8px] left-0 sm:hidden">
+                    <div className="absolute top-[-12px] left-0 sm:hidden">
                       {rate != null ? <Rate rate={rate as number} size="xs" /> : null}
                     </div>
                     <div className="sm:hidden">
@@ -104,7 +104,7 @@ export default function PbrCompactList({ items, limit, className }: Props) {
                     <div className="hidden sm:block">
                       <SpikeChart prices={prices.slice(-30) as any} rate={rate as number | undefined} width={150} height={40} />
                     </div>
-                    <div className="absolute bottom-[-8px] right-0 sm:hidden text-xs font-semibold">
+                    <div className="absolute bottom-[-12px] right-0 sm:hidden text-xs font-semibold">
                       {close != null ? `${close.toLocaleString()}원` : ""}
                     </div>
                   </div>
