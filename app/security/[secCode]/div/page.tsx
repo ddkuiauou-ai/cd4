@@ -78,11 +78,7 @@ export async function generateMetadata({ params }: SecurityDIVPageProps) {
 export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) {
   const { secCode } = await params;
 
-  console.log('=== SECURITY DIV PAGE DEBUG ===');
-  console.log('secCode:', secCode);
-
   const security = await getSecurityByCode(secCode);
-  console.log('Found security:', security?.securityId);
 
   if (!security) {
     console.log('Security not found');
@@ -105,12 +101,8 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     // Get company marketcap data for Interactive Securities Section
     security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
   ]);
-  console.log('companyMarketcapData check:', !!companyMarketcapData);
 
   const commonSecurities = securities.filter((sec) => sec.type === "보통주");
-  console.log('Common securities found:', commonSecurities?.length || 0);
-  console.log('DIV data found:', data?.length || 0);
-  console.log('DIV rank found:', divRank);
 
   // 종목 비교용 필터링: 보통주와 우선주만 표시
   const comparableSecurities = securities.filter((sec) =>
@@ -138,11 +130,9 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
       }
     })
   );
-  console.log('comparableSecuritiesWithDIV:', comparableSecuritiesWithDIV?.length || 0, comparableSecuritiesWithDIV);
 
   // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
   if (!data || data.length === 0) {
-    console.log('No DIV data found');
     notFound();
   }
 
@@ -262,7 +252,6 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   };
 
   const dividendYieldAnalysis = calculateDividendYieldPeriodAnalysis(result);
-  console.log('dividendYieldAnalysis result:', dividendYieldAnalysis);
 
   const annualCsvData = result.map((item) => ({
     date: item.date,
@@ -383,8 +372,10 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     },
   ];
 
+  const hasSidebarContent = dividendYieldAnalysis || (comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData);
+
   return (
-    <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+    <main className={`relative py-4 sm:py-6 lg:gap-10 lg:py-8 ${hasSidebarContent ? 'xl:grid xl:grid-cols-[1fr_300px]' : ''}`}>
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -864,47 +855,49 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
         </div>
 
         {/* 사이드바 네비게이션 (데스크톱) */}
-        <div className="hidden xl:block">
-          <div className="sticky top-20 space-y-6">
-            {/* 페이지 네비게이션 */}
-            <div className="rounded-xl border bg-background p-4">
-              <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-              <PageNavigation sections={navigationSections} />
+        {(dividendYieldAnalysis || (comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData)) && (
+          <div className="hidden xl:block">
+            <div className="sticky top-20 space-y-6">
+              {/* 페이지 네비게이션 */}
+              <div className="rounded-xl border bg-background p-4">
+                <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
+                <PageNavigation sections={navigationSections} />
+              </div>
+
+              {/* 핵심 지표 사이드바 */}
+              {dividendYieldAnalysis && (
+                <KeyMetricsSidebarPER
+                  perRank={divRank}
+                  latestPER={dividendYieldAnalysis.latest}
+                  per12Month={dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
+                  per3Year={dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
+                  per5Year={dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
+                  per10Year={dividendYieldAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
+                  per20Year={dividendYieldAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
+                  rangeMin={dividendYieldAnalysis.minMax.min}
+                  rangeMax={dividendYieldAnalysis.minMax.max}
+                  currentPrice={security.prices?.[0]?.close || null}
+                />
+              )}
+
+              {/* 종목별 배당수익률 비교 */}
+              {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
+                <InteractiveSecuritiesSection
+                  companyMarketcapData={companyMarketcapData}
+                  companySecs={comparableSecuritiesWithDIV}
+                  currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
+                  market={security.exchange || 'KOSPI'}
+                  layout="sidebar"
+                  maxItems={4}
+                  showSummaryCard={true}
+                  compactMode={false}
+                  baseUrl="security"
+                  currentMetric="div"
+                />
+              )}
             </div>
-
-            {/* 핵심 지표 사이드바 */}
-            {dividendYieldAnalysis && (
-              <KeyMetricsSidebarPER
-                perRank={divRank}
-                latestPER={dividendYieldAnalysis.latest}
-                per12Month={dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-                per3Year={dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-                per5Year={dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-                per10Year={dividendYieldAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-                per20Year={dividendYieldAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-                rangeMin={dividendYieldAnalysis.minMax.min}
-                rangeMax={dividendYieldAnalysis.minMax.max}
-                currentPrice={security.prices?.[0]?.close || null}
-              />
-            )}
-
-            {/* 종목별 배당수익률 비교 */}
-            {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
-              <InteractiveSecuritiesSection
-                companyMarketcapData={companyMarketcapData}
-                companySecs={comparableSecuritiesWithDIV}
-                currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
-                market={security.exchange || 'KOSPI'}
-                layout="sidebar"
-                maxItems={4}
-                showSummaryCard={true}
-                compactMode={false}
-                baseUrl="security"
-                currentMetric="div"
-              />
-            )}
           </div>
-        </div>
+        )}
       </div>
     </main>
   );
