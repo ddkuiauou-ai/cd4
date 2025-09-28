@@ -90,8 +90,8 @@ const calculateChangeRates = (data: Item[], lastDatesOfDec: string[]) => {
     // 변경률 계산
     const dataWithRate = sortedData.map((data, index, array) => {
         const prevData = array[index - 1];
-            return {
-                ...data,
+        return {
+            ...data,
             changeRate: prevData
                 ? ((data.value - prevData.value) / Math.abs(prevData.value)) * 100
                 : undefined,
@@ -146,19 +146,19 @@ export default function ListEPSEnhanced({ data }: Props) {
     if (!data || data.length === 0) {
         return (
             <div className="space-y-6 relative">
-            <Card>
-                <CardHeader>
-                    <CardTitle>주당순이익 EPS 연도별 데이터</CardTitle>
-                    <CardDescription>
-                        기업의 연간 주당순이익 상세 데이터와 전년 대비 변화율을 확인하세요.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex h-[200px] items-center justify-center text-muted-foreground">
-                        데이터가 없습니다.
-                    </div>
-                </CardContent>
-            </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>주당순이익 EPS 연도별 데이터</CardTitle>
+                        <CardDescription>
+                            기업의 연간 주당순이익 상세 데이터와 전년 대비 변화율을 확인하세요.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex h-[200px] items-center justify-center text-muted-foreground">
+                            데이터가 없습니다.
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
@@ -226,15 +226,15 @@ export default function ListEPSEnhanced({ data }: Props) {
                                         <caption className="sr-only">
                                             연도별 EPS 변동 데이터 테이블입니다. 각 연도의 EPS, 전년 대비 증감률, 특이사항을 포함합니다.
                                         </caption>
-                    <TableHeader>
+                                        <TableHeader>
                                             <TableRow className="hover:bg-transparent border-b bg-gray-50 dark:bg-gray-800">
                                                 <TableHead className="font-semibold text-gray-800 dark:text-gray-200 pl-6 w-[15%]">연도</TableHead>
                                                 <TableHead className="text-right font-semibold text-gray-800 dark:text-gray-200 w-[40%]">EPS</TableHead>
                                                 <TableHead className="text-center font-semibold text-gray-800 dark:text-gray-200 w-[25%]">전년대비</TableHead>
                                                 <TableHead className="text-center font-semibold text-gray-800 dark:text-gray-200 w-[20%]">비고</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {valueWithRate.map(({ date, value, changeRate }, index) => {
                                                 const isMinRate = changeRate === minRate && changeRate !== undefined;
                                                 const isMaxRate = changeRate === maxRate && changeRate !== undefined;
@@ -243,7 +243,7 @@ export default function ListEPSEnhanced({ data }: Props) {
                                                 const isHighest = value === maxValue;
                                                 const isLowest = value === minValue;
 
-                            return (
+                                                return (
                                                     <TableRow
                                                         key={date}
                                                         className={cn(
@@ -303,7 +303,7 @@ export default function ListEPSEnhanced({ data }: Props) {
                                                                     )}
                                                                 </div>
                                                             )}
-                                    </TableCell>
+                                                        </TableCell>
 
                                                         <TableCell className="text-center py-4 w-[20%]">
                                                             {(isHighest || isLowest) ? (
@@ -312,13 +312,13 @@ export default function ListEPSEnhanced({ data }: Props) {
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-gray-500 dark:text-gray-400 text-sm">—</span>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </div>
 
@@ -429,10 +429,10 @@ export default function ListEPSEnhanced({ data }: Props) {
                                                     : averageGrowth > 0
                                                         ? "안정적 성장 패턴 유지"
                                                         : "성장 정체 또는 조정 구간"}
-                            </div>
-                        </div>
-                            </div>
-                        </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
