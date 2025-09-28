@@ -144,15 +144,9 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
   return (
     <div className="flex flex-col items-center justify-end">
       <div className="text-gray-500">{data.date}</div>
-      {Object.entries(data).map(
-        ([key, value]) =>
-          key !== "date" && (
-            <div key={key} className="font-sm text-muted-foreground">
-              {key === "value" ? "배당금수익율" : key}:
-              {formatTooltipFunction(value as number, formatTooltip)}
-            </div>
-          )
-      )}
+      <div className="font-sm text-muted-foreground">
+        배당수익률: {formatTooltipFunction(data.totalValue, formatTooltip)}
+      </div>
     </div>
   );
 }

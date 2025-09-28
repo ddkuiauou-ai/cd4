@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { TrendingUp, Building2, FileText, Target, Percent, BarChart, Globe, ArrowLeftRight } from "lucide-react";
+import { TrendingUp, Building2, FileText, Target, Percent, BarChart, Globe, ArrowLeftRight, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory, getDivRank } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
@@ -8,6 +8,8 @@ import { getAllSecurityCodes } from "@/lib/select";
 import { coerceVolumeValue } from "@/lib/per-utils";
 import ChartDIV from "@/components/chart-DIV";
 import ListDIV from "@/components/list-DIV";
+import ListDIVMarketcap from "@/components/list-div-marketcap";
+import DIVChartWithPeriodSwitcher from "@/components/div-chart-with-period-switcher";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
@@ -17,7 +19,9 @@ import { InteractiveSecuritiesSection } from "@/components/simple-interactive-se
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { KeyMetricsSectionPER } from "@/components/key-metrics-section-per";
 import { KeyMetricsSidebarPER } from "@/components/key-metrics-sidebar-per";
+import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { Marquee } from "@/registry/magicui/marquee";
 import type { Price } from "@/typings";
 
 import {
@@ -358,8 +362,17 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     {
       id: "chart-analysis",
       label: "차트 분석",
-      icon: <TrendingUp className="h-3 w-3" />,
+      icon: <BarChart3 className="h-3 w-3" />,
     },
+    ...(comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData
+      ? [
+        {
+          id: "securities-summary",
+          label: "종목 비교",
+          icon: <ArrowLeftRight className="h-3 w-3" />,
+        },
+      ]
+      : []),
     {
       id: "indicators",
       label: "핵심 지표",
@@ -375,7 +388,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   const hasSidebarContent = dividendYieldAnalysis || (comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData);
 
   return (
-    <main className={`relative py-4 sm:py-6 lg:gap-10 lg:py-8 ${hasSidebarContent ? 'xl:grid xl:grid-cols-[1fr_300px]' : ''}`}>
+    <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -485,75 +498,16 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             </header>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* 배당수익률 랭킹 카드 */}
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-700 dark:bg-slate-600 text-white">
-                      <Target className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                        {divRank ? `${divRank}위` : "—"}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">배당수익률 랭킹</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 현재 배당수익률 카드 */}
-                {security.div && (
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-600 dark:bg-red-600 text-white">
-                        <Percent className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-red-900 dark:text-red-100 leading-tight">
-                          {security.div.toFixed(2)}%
-                        </p>
-                        <p className="text-sm text-red-700 dark:text-red-300 font-medium">
-                          현재 배당수익률
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 주가 카드 */}
-                {security.prices?.[0]?.close && (
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 dark:bg-blue-600 text-white">
-                        <BarChart className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                          {security.prices[0].close.toLocaleString()}원
-                        </p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">주가</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 거래소 카드 */}
-                {(security.exchange || 'KOSPI') && (
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-600 dark:bg-amber-600 text-white">
-                        <Globe className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-amber-900 dark:text-amber-100">
-                          {security.exchange || 'KOSPI'}
-                        </p>
-                        <p className="text-sm text-amber-700 dark:text-amber-300">거래소</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <RankHeader
+                rank={divRank}
+                marketcap={security.div || undefined}
+                price={security.prices?.[0]?.close}
+                exchange={security.exchange || 'KOSPI'}
+                isCompanyLevel={false}
+                rankLabel="배당수익률 랭킹"
+                marketcapLabel="현재 배당수익률"
+                marketcapUnit="%"
+              />
 
               <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
                 <dl className="space-y-2 p-4">
@@ -628,37 +582,30 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
 
             <div className={`grid gap-4 sm:gap-6 lg:auto-rows-max lg:items-stretch lg:gap-6 xl:gap-8`}>
               {/* 배당수익률 히스토그램 및 분포 차트 */}
-              {histogramData && histogramData.length > 0 ? (
-                <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
-                  <div className="px-3 pt-3 sm:px-5 sm:pt-5">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                      배당수익률 히스토그램 및 분포 차트
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      일정 기간 동안의 배당수익률이 어떤 구간에 가장 많이 분포했는지를 보여주는 차트입니다.
-                    </p>
-                  </div>
-                  <div className="px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
-                    {/* 히스토그램 인사이트 */}
-                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <p className="text-xs font-medium text-blue-900 dark:text-blue-100">💡 얻을 수 있는 인사이트:</p>
+              <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
+                <div className="px-3 pt-3 sm:px-5 sm:pt-5">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    배당수익률 히스토그램 및 분포 차트
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    일정 기간 동안의 배당수익률이 어떤 구간에 가장 많이 분포했는지를 보여주는 차트입니다.
+                  </p>
+                </div>
+                <div className="flex flex-1 flex-col px-2 pb-3 pt-2 sm:px-5 sm:pb-5 sm:pt-3">
+                  <div className="min-h-[200px] sm:min-h-[260px] flex-1">
+                    {histogramData && histogramData.length > 0 ? (
+                      <>
+                        {/* 히스토그램 인사이트 */}
+                        <div className="mb-2 sm:mb-4">
+                          <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">💡 분석 포인트</p>
+                          <ul className="text-xs sm:text-sm text-muted-foreground space-y-0.5 sm:space-y-1 ml-3 sm:ml-4 list-disc list-inside">
+                            <li>평균적인 배당수익률 수준 파악</li>
+                            <li>변동성 확인 및 안정성 분석</li>
+                            <li>역사적 수준 비교 및 투자 판단</li>
+                          </ul>
                         </div>
-                        <div className="space-y-1 text-xs text-blue-800 dark:text-blue-200 ml-4">
-                          <p><strong>평균적인 배당수익률 수준 파악:</strong> 해당 종목이 통상적으로 어느 정도의 배당수익률을 유지해왔는지 쉽게 파악할 수 있습니다.</p>
-                          <p><strong>변동성 확인:</strong> 분포가 넓게 퍼져있다면 배당수익률의 변동성이 크다는 의미이며, 특정 구간에 집중되어 있다면 안정적인 흐름을 보여왔음을 알 수 있습니다.</p>
-                        </div>
-                        <p className="text-[10px] text-blue-700 dark:text-blue-300 mt-2">
-                          이러한 차트들을 활용하시면 단순히 매일의 배당수익률을 확인하는 것을 넘어, 주가와의 관계, 역사적 수준 비교, 변동성 등을 종합적으로 분석하여 훨씬 더 깊이 있는 투자 판단을 내리실 수 있을 것입니다.
-                        </p>
-                      </div>
-                    </div>
 
-                    {/* 히스토그램 차트 */}
-                    <div className="min-h-[250px] sm:min-h-[300px] flex-1">
-                      <div className="w-full h-full" style={{ minHeight: '300px' }}>
+                        {/* 히스토그램 차트 */}
                         <div className="space-y-2">
                           {histogramData.map((bin, index) => (
                             <div key={index} className="flex items-center gap-3">
@@ -691,31 +638,21 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                           <span>x축: 배당수익률 구간</span>
                           <span>y축: 빈도 (일수)</span>
                         </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 sm:p-8 space-y-2 sm:space-y-4 text-center">
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                          <BarChart className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 dark:text-gray-500" />
+                        </div>
+                        <div className="space-y-1 sm:space-y-2">
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">히스토그램 데이터 없음</p>
+                          <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">히스토그램 데이터를 생성할 수 없습니다</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
-                  <div className="px-3 pt-3 sm:px-5 sm:pt-5">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                      배당수익률 히스토그램 및 분포 차트
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      일정 기간 동안의 배당수익률이 어떤 구간에 가장 많이 분포했는지를 보여주는 차트입니다.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center">
-                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <BarChart className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">히스토그램 데이터 없음</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">히스토그램 데이터를 생성할 수 없습니다</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
 
               {/* 최근 3개월 가격 차트 */}
               <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
@@ -739,6 +676,34 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             </div>
           </section>
 
+          {/* 종목 비교 섹션 */}
+          {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
+            <section
+              id="securities-summary"
+              className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
+              style={SECTION_GRADIENTS.securities}
+            >
+              <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-800/50">
+                  <ArrowLeftRight className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">종목 비교</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">해당 기업 내 다른 종목과 배당수익률을 비교합니다</p>
+                </div>
+              </header>
+
+              <InteractiveSecuritiesSection
+                companyMarketcapData={companyMarketcapData}
+                companySecs={comparableSecuritiesWithDIV}
+                market={security.exchange || 'KOSPI'}
+                currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
+                baseUrl="security"
+                currentMetric="div"
+                highlightActiveTicker
+              />
+            </section>
+          )}
 
           <div className="space-y-4 sm:space-y-8">
             <CompanyFinancialTabs secCode={secCode} className="-mx-4 sm:mx-0" />
@@ -765,19 +730,115 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
 
           {/* 핵심 지표 섹션 */}
           {dividendYieldAnalysis && (
-            <KeyMetricsSectionPER
-              security={security}
-              perRank={divRank}
-              latestPER={dividendYieldAnalysis.latest}
-              per12Month={dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-              per3Year={dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-              per5Year={dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-              per10Year={dividendYieldAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-              per20Year={dividendYieldAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-              rangeMin={dividendYieldAnalysis.minMax.min}
-              rangeMax={dividendYieldAnalysis.minMax.max}
-              result={result}
-            />
+            <section
+              id="indicators"
+              className={`${EDGE_TO_EDGE_SECTION_BASE} border-yellow-200/70 dark:border-yellow-900/40 dark:bg-yellow-950/20`}
+              style={SECTION_GRADIENTS.indicators}
+            >
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-yellow-700/80 dark:text-yellow-200/80">
+                <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-yellow-700 shadow-sm dark:bg-yellow-900/40 dark:text-yellow-200">
+                  탭 연동
+                </span>
+                <span className="text-sm font-semibold text-yellow-800/90 dark:text-yellow-100/90">
+                  배당수익률 기준 핵심 지표
+                </span>
+              </div>
+              <header className="flex flex-wrap items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-100 dark:bg-yellow-900/40">
+                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">핵심 지표</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
+                    배당수익률 분석과 주요 투자 지표
+                  </p>
+                </div>
+              </header>
+
+              <Marquee
+                pauseOnHover
+                className="[--duration:36s]"
+                contentClassName="flex gap-1 pb-2"
+                contentStyle={{ minWidth: "fit-content" }}
+              >
+                {/* 배당수익률 랭킹 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{divRank || "—"}</span>
+                    {divRank && <span className="text-sm sm:text-base ml-1">위</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    배당수익률 랭킹
+                  </div>
+                </div>
+
+                {/* 현재 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.latest ? dividendYieldAnalysis.latest.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.latest && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    현재 배당수익률
+                  </div>
+                </div>
+
+                {/* 12개월 평균 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    12개월 평균
+                  </div>
+                </div>
+
+                {/* 3년 평균 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    3년 평균
+                  </div>
+                </div>
+
+                {/* 5년 평균 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    5년 평균
+                  </div>
+                </div>
+
+                {/* 최저 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.minMax.min ? dividendYieldAnalysis.minMax.min.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.minMax.min && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    최저 배당수익률
+                  </div>
+                </div>
+
+                {/* 최고 배당수익률 */}
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                  <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.minMax.max ? dividendYieldAnalysis.minMax.max.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.minMax.max && <span className="text-sm sm:text-base ml-1">%</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    최고 배당수익률
+                  </div>
+                </div>
+              </Marquee>
+            </section>
           )}
 
           {/* 연도별 데이터 섹션 */}
@@ -820,13 +881,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
 
             <div className="space-y-5 sm:space-y-8">
               {result && result.length > 0 ? (
-                <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
-                  <ChartDIV
-                    data={result}
-                    format="formatNumberPercent"
-                    formatTooltip="formatNumberPercent"
-                  />
-                </div>
+                <DIVChartWithPeriodSwitcher initialData={result} />
               ) : (
                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                   <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
@@ -846,59 +901,77 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
               <div className="space-y-4 sm:space-y-6">
                 <p className="sr-only">연말 기준 배당수익률 추이를 통해 배당 정책 변화를 분석합니다</p>
 
-                {result && result.length > 0 ? (
-                  <ListDIV data={result} />
-                ) : null}
+                <ListDIVMarketcap data={result.map(item => ({ date: item.date, value: item.value }))} />
               </div>
             </div>
           </section>
         </div>
 
-        {/* 사이드바 네비게이션 (데스크톱) */}
-        {(dividendYieldAnalysis || (comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData)) && (
-          <div className="hidden xl:block">
-            <div className="sticky top-20 space-y-6">
-              {/* 페이지 네비게이션 */}
-              <div className="rounded-xl border bg-background p-4">
-                <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-                <PageNavigation sections={navigationSections} />
-              </div>
-
-              {/* 핵심 지표 사이드바 */}
-              {dividendYieldAnalysis && (
-                <KeyMetricsSidebarPER
-                  perRank={divRank}
-                  latestPER={dividendYieldAnalysis.latest}
-                  per12Month={dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-                  per3Year={dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-                  per5Year={dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-                  per10Year={dividendYieldAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-                  per20Year={dividendYieldAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-                  rangeMin={dividendYieldAnalysis.minMax.min}
-                  rangeMax={dividendYieldAnalysis.minMax.max}
-                  currentPrice={security.prices?.[0]?.close || null}
-                />
-              )}
-
-              {/* 종목별 배당수익률 비교 */}
-              {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
-                <InteractiveSecuritiesSection
-                  companyMarketcapData={companyMarketcapData}
-                  companySecs={comparableSecuritiesWithDIV}
-                  currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
-                  market={security.exchange || 'KOSPI'}
-                  layout="sidebar"
-                  maxItems={4}
-                  showSummaryCard={true}
-                  compactMode={false}
-                  baseUrl="security"
-                  currentMetric="div"
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+        {/* 사이드바 네비게이션 (데스크톱) */}
+        <div className="hidden xl:block">
+          <div className="sticky top-20 space-y-6">
+            {/* 페이지 네비게이션 */}
+            <div className="rounded-xl border bg-background p-4">
+              <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
+              <PageNavigation sections={navigationSections} />
+            </div>
+
+            {/* 핵심 지표 사이드바 */}
+            {dividendYieldAnalysis && (
+              <div className="rounded-xl border bg-background p-4">
+                <h3 className="text-sm font-semibold mb-3">핵심 지표</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">배당수익률 랭킹</span>
+                    <span className="font-medium">{divRank || "—"}위</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">현재 배당수익률</span>
+                    <span className="font-medium">{dividendYieldAnalysis.latest ? `${dividendYieldAnalysis.latest.toFixed(1)}%` : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">12개월 평균</span>
+                    <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">3년 평균</span>
+                    <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">5년 평균</span>
+                    <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">최저 배당수익률</span>
+                    <span className="font-medium">{dividendYieldAnalysis.minMax.min ? `${dividendYieldAnalysis.minMax.min.toFixed(1)}%` : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">최고 배당수익률</span>
+                    <span className="font-medium">{dividendYieldAnalysis.minMax.max ? `${dividendYieldAnalysis.minMax.max.toFixed(1)}%` : "—"}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 종목별 배당수익률 비교 */}
+            {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
+              <InteractiveSecuritiesSection
+                companyMarketcapData={companyMarketcapData}
+                companySecs={comparableSecuritiesWithDIV}
+                currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
+                market={security.exchange || 'KOSPI'}
+                layout="sidebar"
+                maxItems={4}
+                showSummaryCard={true}
+                compactMode={false}
+                baseUrl="security"
+                currentMetric="div"
+              />
+            )}
+          </div>
+        </div>
     </main>
   );
 }

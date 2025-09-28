@@ -55,7 +55,7 @@ function RankHeader({
               </div>
               <div>
                 <p className="text-lg font-bold text-red-900 dark:text-red-100 leading-tight">
-                  {marketcapUnit === "배" ? `${marketcap?.toFixed(2)}${marketcapUnit}` : `${formatNumber(marketcap)}${marketcapUnit}`}
+                  {marketcapUnit === "배" ? `${marketcap?.toFixed(2)}${marketcapUnit}` : marketcapUnit === "%" ? `${marketcap?.toFixed(2)}${marketcapUnit}` : `${formatNumber(marketcap)}${marketcapUnit}`}
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-300 font-medium">
                   {marketcapLabel || (isCompanyLevel ? "기업 총 시가총액" : "시가총액")}
