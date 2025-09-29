@@ -37,13 +37,13 @@ export function calculateDPSPeriodAnalysis(
 
     const latestDPS = result.length > 0 ? result[result.length - 1].value : null;
 
-    // 기간별 데이터 필터링 함수
+    // 기간별 데이터 필터링 함수 (배당금이 0인 기간 제외)
     const getDataForPeriod = (months: number) => {
         const cutoffDate = new Date();
         cutoffDate.setMonth(cutoffDate.getMonth() - months);
         return result.filter(item => {
             const itemDate = new Date(item.date);
-            return itemDate >= cutoffDate;
+            return itemDate >= cutoffDate && item.value !== 0;
         });
     };
 
@@ -96,7 +96,7 @@ export function calculateDPSPeriodAnalysis(
  */
 export function processDPSData(data: Array<{ date: Date; dps: number | null }>): DPSData[] {
     return data
-        .filter((item) => item.dps !== null && item.dps !== undefined)
+        .filter((item) => item.dps !== null && item.dps !== undefined && item.dps !== 0)
         .map((item) => ({
             date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
             value: Number(item.dps),
