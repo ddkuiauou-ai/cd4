@@ -315,6 +315,11 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
   const shareText = `${displayName}의 주당순자산가치(BPS) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/bps`;
 
+  const hasCompanyMarketcapData = Boolean(
+    companyMarketcapData?.aggregatedHistory?.length &&
+    companyMarketcapData?.securities?.length,
+  );
+
   const navigationSections = [
     {
       id: "security-overview",
@@ -326,7 +331,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
       label: "차트 분석",
       icon: <BarChart3 className="h-3 w-3" />,
     },
-    ...(comparableSecuritiesWithBPS && comparableSecuritiesWithBPS.length > 1 && companyMarketcapData
+    ...(hasCompanyMarketcapData && companySecs.length > 0
       ? [
         {
           id: "securities-summary",
@@ -673,7 +678,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithBPS && comparableSecuritiesWithBPS.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <section
               id="securities-summary"
               className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
@@ -832,7 +837,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
           )}
 
           {/* 종목별 BPS 비교 */}
-          {comparableSecuritiesWithBPS && comparableSecuritiesWithBPS.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={comparableSecuritiesWithBPS}

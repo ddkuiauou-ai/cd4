@@ -277,6 +277,11 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
   const shareText = `${displayName}의 주당순이익(EPS) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/eps`;
 
+  const hasCompanyMarketcapData = Boolean(
+    companyMarketcapData?.aggregatedHistory?.length &&
+    companyMarketcapData?.securities?.length,
+  );
+
   const navigationSections = [
     {
       id: "security-overview",
@@ -288,7 +293,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
       label: "차트 분석",
       icon: <BarChart3 className="h-3 w-3" />,
     },
-    ...(comparableSecuritiesWithEPS && comparableSecuritiesWithEPS.length > 1 && companyMarketcapData
+    ...(hasCompanyMarketcapData && companySecs.length > 0
       ? [
         {
           id: "securities-summary",
@@ -597,7 +602,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithEPS && comparableSecuritiesWithEPS.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <section
               id="securities-summary"
               className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
@@ -764,7 +769,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
           )}
 
           {/* 종목별 EPS 비교 */}
-          {comparableSecuritiesWithEPS && comparableSecuritiesWithEPS.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={comparableSecuritiesWithEPS}

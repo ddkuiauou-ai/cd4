@@ -361,6 +361,11 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     }),
   );
 
+  const hasCompanyMarketcapData = Boolean(
+    companyMarketcapData?.aggregatedHistory?.length &&
+    companyMarketcapData?.securities?.length,
+  );
+
   const navigationSections = [
     {
       id: "security-overview",
@@ -372,7 +377,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
       label: "차트 분석",
       icon: <BarChart3 className="h-3 w-3" />,
     },
-    ...(comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData
+    ...(hasCompanyMarketcapData && securities.length > 0
       ? [
         {
           id: "securities-summary",
@@ -393,7 +398,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     },
   ];
 
-  const hasSidebarContent = dividendYieldAnalysis || (comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData);
+  const hasSidebarContent = dividendYieldAnalysis || (hasCompanyMarketcapData && securities.length > 0);
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
@@ -685,7 +690,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && securities.length > 0 && (
             <section
               id="securities-summary"
               className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
@@ -968,7 +973,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           )}
 
           {/* 종목별 배당수익률 비교 */}
-          {comparableSecuritiesWithDIV && comparableSecuritiesWithDIV.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && securities.length > 0 && (
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={comparableSecuritiesWithDIV}

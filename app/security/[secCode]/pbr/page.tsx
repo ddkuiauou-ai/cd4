@@ -308,6 +308,11 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
   const shareText = `${displayName}의 주가순자산비율(PBR) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/pbr`;
 
+  const hasCompanyMarketcapData = Boolean(
+    companyMarketcapData?.aggregatedHistory?.length &&
+    companyMarketcapData?.securities?.length,
+  );
+
   const navigationSections = [
     {
       id: "security-overview",
@@ -319,7 +324,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
       label: "차트 분석",
       icon: <BarChart3 className="h-3 w-3" />,
     },
-    ...(comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData
+    ...(hasCompanyMarketcapData && companySecs.length > 0
       ? [
         {
           id: "securities-summary",
@@ -649,7 +654,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <section
               id="securities-summary"
               className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
@@ -811,7 +816,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
           )}
 
           {/* 종목별 PBR 비교 */}
-          {comparableSecuritiesWithPBR && comparableSecuritiesWithPBR.length > 1 && companyMarketcapData && (
+          {hasCompanyMarketcapData && companySecs.length > 0 && (
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={comparableSecuritiesWithPBR}
