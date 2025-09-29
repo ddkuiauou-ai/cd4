@@ -219,7 +219,13 @@ export function formatDateKorean(
     };
 
     const monthIndex = date.getMonth();
-    const monthName = koreanMonths[month]?.[monthIndex] || koreanMonths.short[monthIndex];
+    let monthName: string;
+
+    if (month === 'numeric') {
+      monthName = `${monthIndex + 1}월`;
+    } else {
+      monthName = koreanMonths[month as keyof typeof koreanMonths]?.[monthIndex] || koreanMonths.short[monthIndex];
+    }
 
     const yearStr = date.getFullYear();
     const dayStr = includeDay ? `${date.getDate()}일` : '';

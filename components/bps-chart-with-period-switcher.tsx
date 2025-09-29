@@ -46,6 +46,8 @@ export default function BPSChartWithPeriodSwitcher({ initialData }: BPSChartWith
             <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                 <ChartBPSEnhanced
                     data={initialData}
+                    format="formatNumber"
+                    formatTooltip="formatNumberTooltip"
                     period={selectedPeriod}
                 />
             </div>

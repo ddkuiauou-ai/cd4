@@ -183,7 +183,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         volume: Number.isFinite(volumeValue) ? Number(volumeValue) : null,
       };
     })
-    .filter((point): point is {
+    .filter((point: any): point is {
       date: Date;
       time: string;
       open: number;
@@ -199,7 +199,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       Number.isFinite(point.close));
 
   const sortedPricePoints = parsedPricePoints.sort(
-    (a, b) => a.date.getTime() - b.date.getTime()
+    (a: any, b: any) => a.date.getTime() - b.date.getTime()
   );
 
   const latestPricePoint = sortedPricePoints.at(-1);
@@ -210,21 +210,24 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   periodStartDate.setDate(periodStartDate.getDate() - 90);
 
   let candlestickSeriesData = sortedPricePoints.filter(
-    (point) => point.date >= periodStartDate && point.date <= periodReferenceDate
+    (point: any) => point.date >= periodStartDate && point.date <= periodReferenceDate
   );
 
   if (!candlestickSeriesData.length) {
     candlestickSeriesData = sortedPricePoints.slice(-90);
   }
 
-  const candlestickData = candlestickSeriesData.map(({ time, open, high, low, close, volume }) => ({
-    time,
-    open,
-    high,
-    low,
-    close,
-    volume: Number.isFinite(volume ?? undefined) ? Number(volume) : undefined,
-  }));
+  const candlestickData = candlestickSeriesData.map((point: any) => {
+    const { time, open, high, low, close, volume } = point;
+    return ({
+      time,
+      open,
+      high,
+      low,
+      close,
+      volume: Number.isFinite(volume ?? undefined) ? Number(volume) : undefined,
+    });
+  });
 
   // 🔥 기간별 시가총액 분석 계산 함수
   function calculatePeriodAnalysis() {

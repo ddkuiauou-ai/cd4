@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         dpsRank: security.currentRank,
         dpsPriorRank: security.priorRank,
-        dps: security.dps,
+        dps: security.value,
         // Nest security data to match the expected structure of ServerTable and DpsCompactList
         securities: [
             {
@@ -91,7 +91,7 @@ async function DpsRankPage() {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '주당 배당금': s.dps,
+            '주당 배당금': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

@@ -10,11 +10,14 @@ interface DPSChartWithPeriodSwitcherProps {
 }
 
 export default function DPSChartWithPeriodSwitcher({ initialData }: DPSChartWithPeriodSwitcherProps) {
-    const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('1Y');
+    const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('12M');
 
     const periods: { key: PeriodType; label: string; description: string }[] = [
-        { key: '1M', label: '월간', description: '월별 데이터' },
-        { key: '1Y', label: '년간', description: '년별 평균' },
+        { key: '12M', label: '12개월', description: '최근 1년' },
+        { key: '3Y', label: '3년', description: '최근 3년' },
+        { key: '5Y', label: '5년', description: '최근 5년' },
+        { key: '10Y', label: '10년', description: '최근 10년' },
+        { key: '20Y', label: '20년', description: '최근 20년' },
     ];
 
     return (

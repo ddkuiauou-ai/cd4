@@ -141,7 +141,7 @@ export const getSecurityMarketCapRanking = unstable_cache(
     async (securityId: string) => {
         try {
             const latestRankDateResult = await db
-                .select({ maxDate: sql<Date>`max(${schema.securityRank.rankDate})` })
+                .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
                 .from(schema.securityRank)
                 .where(eq(schema.securityRank.metricType, 'marketcap'))
                 .limit(1);

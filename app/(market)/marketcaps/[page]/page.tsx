@@ -18,13 +18,14 @@ export async function generateStaticParams() {
 }
 
 type Props = {
-    params: { page: string };
+    params: Promise<{ page: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const pageNumber = parseInt(params.page, 10) || 1;
+    const { page: pageParam } = await params;
+    const pageNumber = parseInt(pageParam, 10) || 1;
     const { items: companies } = await getCompanyMarketcapsPage(pageNumber);
-    const topCompanyNames = companies.slice(0, 5).map(c => c.korName || c.name);
+    const topCompanyNames = companies.slice(0, 5).map(c => c.korName || c.name).filter((name): name is string => name !== null && name !== undefined);
     const latestDate = getLatestDateFromMarketData(companies);
 
     const title = `기업 시가총액 순위 ${pageNumber}페이지 | ${siteConfig.name}`;
@@ -67,7 +68,7 @@ async function MarketcapsPage({ params }: Props) {
     const temp = await params
     const pageNumber = parseInt(temp.page, 10) || 1;
 
-    if (params.page === "1") {
+    if (temp.page === "1") {
         return (
             <>
                 <meta httpEquiv="refresh" content="0;url=/marketcaps" />

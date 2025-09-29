@@ -23,9 +23,9 @@ export async function generateStaticParams() {
 }
 
 interface MarketcapRankPageProps {
-    params: {
+    params: Promise<{
         page: string;
-    };
+    }>;
 }
 
 export async function generateMetadata({ params }: MarketcapRankPageProps): Promise<Metadata> {
@@ -93,7 +93,8 @@ const transformDataForUI = (securityData: any[]) => {
 };
 
 async function MarketcapRankPage({ params }: MarketcapRankPageProps) {
-    const page = parseInt(params.page, 10);
+    const { page: pageParam } = await params;
+    const page = parseInt(pageParam, 10);
     if (isNaN(page) || page < 1) {
         notFound();
     }

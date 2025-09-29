@@ -12,7 +12,7 @@ export const countSecurityRanks = unstable_cache(
         .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
         .from(schema.securityRank)
         .where(eq(schema.securityRank.metricType, metricType));
-      
+
       const latestRankDate = latestRankDateResult[0]?.maxDate;
 
       if (!latestRankDate) return 0;
@@ -27,7 +27,7 @@ export const countSecurityRanks = unstable_cache(
           isNull(schema.security.delistingDate),
           isNotNull(schema.securityRank.currentRank)
         ));
-      
+
       return Number(totalResult[0].count);
     } catch (e) {
       console.error(`[countSecurityRanks] ERROR for ${metricType}:`, e);
@@ -48,7 +48,7 @@ export const getSecurityRanksPage = unstable_cache(
         .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
         .from(schema.securityRank)
         .where(eq(schema.securityRank.metricType, metricType));
-      
+
       const latestRankDate = latestRankDateResult[0]?.maxDate;
 
       if (!latestRankDate) {
@@ -114,9 +114,24 @@ export const getSecurityRanksPage = unstable_cache(
           limit: securityIds.length * 60,
         });
         for (const p of rawPrices) {
-          const key = p.securityId as string;
+          // Skip records with null securityId
+          if (!p.securityId) continue;
+          const key = p.securityId;
           if (!pricesBySec[key]) pricesBySec[key] = [];
-          if (pricesBySec[key].length < 60) pricesBySec[key].push(p);
+          if (pricesBySec[key].length < 60) {
+            // Create properly typed object
+            pricesBySec[key].push({
+              securityId: p.securityId,
+              exchange: p.exchange,
+              open: p.open,
+              high: p.high,
+              low: p.low,
+              close: p.close,
+              rate: p.rate,
+              date: p.date,
+              updatedAt: p.updatedAt,
+            });
+          }
         }
         for (const key of Object.keys(pricesBySec)) {
           const group = pricesBySec[key];
@@ -162,7 +177,7 @@ export const getPricesBySecurityIds = unstable_cache(
         },
         orderBy: [desc(schema.price.date)],
         // Fetch a bit more than 30 to be safe, then slice
-        limit: securityIds.length * 30, 
+        limit: securityIds.length * 30,
       });
 
       const grouped: Record<string, any[]> = {};
@@ -173,7 +188,7 @@ export const getPricesBySecurityIds = unstable_cache(
         }
         // Only take the last 30 prices for each security
         if (grouped[p.securityId].length < 30) {
-            grouped[p.securityId].push(p);
+          grouped[p.securityId].push(p);
         }
       });
 
@@ -197,7 +212,7 @@ export const getPricesBySecurityIds = unstable_cache(
 export const getMarketCapHistoryBySecurityId = unstable_cache(
   async (securityId: string) => {
     try {
-      if (!securityId) return [] as Array<{ 
+      if (!securityId) return [] as Array<{
         date: Date; marketcap: number; ticker: string | null; name: string | null; korName: string | null; exchange: string | null
       }>;
       const marketcaps = await db.query.marketcap.findMany({
@@ -262,11 +277,61 @@ export const getMarketCapHistoryBySecurityIds = unstable_cache(
   { tags: ["getMarketCapHistoryBySecurityIds"] }
 );
 
-// Neighbor navigation for security marketcap (placeholder, not implemented)
-export const getSecurityMarketCapPageData = async (_rank: number) => {
-  console.warn("[getSecurityMarketCapPageData] Not implemented");
-  return [] as any[];
-};
+// Neighbor navigation for security marketcap
+export const getSecurityMarketCapPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Find the most recent date in security_rank for marketcap
+      const latestRankDateResult = await db
+        .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
+        .from(schema.securityRank)
+        .where(eq(schema.securityRank.metricType, 'marketcap'));
+
+      const latestRankDate = latestRankDateResult[0]?.maxDate;
+
+      if (!latestRankDate) {
+        return [];
+      }
+
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          marketcapRank: schema.securityRank.currentRank,
+        })
+        .from(schema.security)
+        .innerJoin(
+          schema.securityRank,
+          and(
+            eq(schema.securityRank.securityId, schema.security.securityId),
+            eq(schema.securityRank.metricType, 'marketcap'),
+            eq(schema.securityRank.rankDate, latestRankDate),
+            inArray(schema.securityRank.currentRank, [rank - 1, rank, rank + 1])
+          )
+        )
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.securityRank.currentRank)
+          )
+        )
+        .orderBy(asc(schema.securityRank.currentRank));
+
+      return rows.filter((item) => item.marketcapRank !== null);
+    } catch (e) {
+      console.error(`[getSecurityMarketCapPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityMarketCapPageData"],
+  { tags: ["getSecurityMarketCapPageData"] }
+);
 
 // ---------- Security lookup and metrics (migrated from getSecCode/getSecurities) ----------
 
@@ -460,7 +525,7 @@ export const getCompanySecurities = unstable_cache(
         },
         orderBy: [asc(schema.security.type)],
       });
-      return securities.filter(s => s.companyId !== null && s.marketcap !== null).map(s => ({...s, companyId: s.companyId!, marketcap: s.marketcap! }));
+      return securities.filter(s => s.companyId !== null && s.marketcap !== null).map(s => ({ ...s, companyId: s.companyId!, marketcap: s.marketcap! }));
     } catch (e) {
       console.error('[getCompanySecurities] ERROR:', e);
       return [];
@@ -473,7 +538,7 @@ export const getCompanySecurities = unstable_cache(
 export const getSecurityMetricsHistory = unstable_cache(
   async (securityId: string) => {
     try {
-      if (!securityId) return [] as Array<{ date: Date; bps: number|null; per: number|null; pbr: number|null; eps: number|null; div: number|null; dps: number|null }>;
+      if (!securityId) return [] as Array<{ date: Date; bps: number | null; per: number | null; pbr: number | null; eps: number | null; div: number | null; dps: number | null }>;
       const data = await db.query.bppedd.findMany({
         where: eq(schema.bppedd.securityId, securityId),
         columns: { date: true, bps: true, per: true, pbr: true, eps: true, div: true, dps: true },
@@ -744,6 +809,12 @@ export const countSecurityEps = unstable_cache(async () => {
     return Number(result[0]?.count) || 0;
   } catch { return 0; }
 }, ["countSecurityEps"], { tags: ["countSecurityEps"], revalidate: 3600 });
+
+export const countSecurityMarketcap = unstable_cache(async () => {
+  try {
+    return await countSecurityRanks('marketcap');
+  } catch { return 0; }
+}, ["countSecurityMarketcap"], { tags: ["countSecurityMarketcap"], revalidate: 3600 });
 
 // Rank helpers
 export const getPerRank = unstable_cache(async (securityId: string) => {

@@ -145,7 +145,7 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
     <div className="flex flex-col items-center justify-end">
       <div className="text-gray-500">{data.date}</div>
       <div className="font-sm text-muted-foreground">
-        배당수익률: {formatTooltipFunction(data.totalValue, formatTooltip)}
+        배당수익률: {data.totalValue ? formatTooltipFunction(Number(data.totalValue), formatTooltip) : 'N/A'}
       </div>
     </div>
   );

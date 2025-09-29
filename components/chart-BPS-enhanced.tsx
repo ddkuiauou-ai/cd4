@@ -30,6 +30,7 @@ interface Props {
     data: Item[];
     format: string;
     formatTooltip: string;
+    period?: '1Y' | '5Y' | '10Y' | '20Y';
 }
 
 interface Item {
@@ -54,7 +55,7 @@ interface FormatFunctionMap {
     [key: string]: (value: number, index?: number) => string;
 }
 
-export default function ChartBPSEnhanced({ data, format, formatTooltip }: Props) {
+export default function ChartBPSEnhanced({ data, format, formatTooltip, period = '1Y' }: Props) {
     const [windowWidth, setWindowWidth] = useState(0);
 
     useEffect(() => {
@@ -73,16 +74,27 @@ export default function ChartBPSEnhanced({ data, format, formatTooltip }: Props)
         if (!data || data.length === 0) return [];
 
         const lastDatesOfDec = getLatestDecemberDates(data);
-        return data
+        let filteredData = data
             .filter((item) => lastDatesOfDec.includes(item.date))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map((item, index) => ({
-                ...item,
-                displayDate: new Date(item.date).getFullYear().toString(),
-                value: Number(item.value) || 0,
-                uniqueKey: `${item.date}-${index}`, // 고유 키 추가
-            }));
-    }, [data]);
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        // Apply period filtering
+        const periodYears = period === '1Y' ? 1 : period === '5Y' ? 5 : period === '10Y' ? 10 : 20;
+        const currentYear = new Date().getFullYear();
+        const startYear = currentYear - periodYears + 1;
+
+        filteredData = filteredData.filter((item) => {
+            const itemYear = new Date(item.date).getFullYear();
+            return itemYear >= startYear;
+        });
+
+        return filteredData.map((item, index) => ({
+            ...item,
+            displayDate: new Date(item.date).getFullYear().toString(),
+            value: Number(item.value) || 0,
+            uniqueKey: `${item.date}-${index}`, // 고유 키 추가
+        }));
+    }, [data, period]);
 
     if (!processedData || processedData.length === 0) {
         return (

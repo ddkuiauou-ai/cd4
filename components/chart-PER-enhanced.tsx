@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
-import { createChart, ColorType, AreaSeries } from "lightweight-charts";
+import { createChart, ColorType, AreaSeries, Time } from "lightweight-charts";
 import { PERData, PeriodType, aggregatePERDataByPeriod } from "@/lib/per-utils";
 
 // 차트 설정 상수들
@@ -46,7 +46,7 @@ export default function ChartPEREnhanced({ data, period = '1M', className }: Cha
 
         const aggregatedData = aggregatePERDataByPeriod(data, period);
         return aggregatedData.map(item => ({
-            time: new Date(item.time).getTime() / 1000, // Convert to Unix timestamp in seconds
+            time: (new Date(item.time).getTime() / 1000) as Time, // Convert to Unix timestamp in seconds and cast to Time
             value: item.value,
         }));
     }, [data, period]);

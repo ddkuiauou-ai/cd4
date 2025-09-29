@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         pbrRank: security.currentRank,
         pbrPriorRank: security.priorRank,
-        pbr: security.pbr,
+        pbr: security.value,
         // Nest security data to match the expected structure of ServerTable and PbrCompactList
         securities: [
             {
@@ -91,7 +91,7 @@ async function PbrRankPage() {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            'PBR': s.pbr,
+            'PBR': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

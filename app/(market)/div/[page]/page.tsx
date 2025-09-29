@@ -23,9 +23,9 @@ export async function generateStaticParams() {
 }
 
 interface DivRankPageProps {
-    params: {
+    params: Promise<{
         page: string;
-    };
+    }>;
 }
 
 export async function generateMetadata({ params }: DivRankPageProps): Promise<Metadata> {
@@ -80,7 +80,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         divRank: security.currentRank,
         divPriorRank: security.priorRank,
-        div: security.div,
+        div: security.value,
         // Nest security data to match the expected structure of ServerTable and DivCompactList
         securities: [
             {
@@ -93,7 +93,8 @@ const transformDataForUI = (securityData: any[]) => {
 };
 
 async function DivRankPage({ params }: DivRankPageProps) {
-    const page = parseInt(params.page, 10);
+    const { page: pageParam } = await params;
+    const page = parseInt(pageParam, 10);
     if (isNaN(page) || page < 1) {
         notFound();
     }
@@ -114,7 +115,7 @@ async function DivRankPage({ params }: DivRankPageProps) {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '배당수익률': s.div,
+            '배당수익률': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

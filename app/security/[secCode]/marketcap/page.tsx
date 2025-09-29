@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 
 import {
@@ -593,12 +594,14 @@ export default async function SecurityMarketcapPage({
               <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
                 <div className="min-h-[260px] flex-1">
                   {hasCompanyMarketcapData && companyMarketcapData ? (
-                    <InteractiveChartSection
-                      companyMarketcapData={companyMarketcapData}
-                      companySecs={companySecs}
-                      type="summary"
-                      selectedType={selectedType}
-                    />
+                    <Suspense fallback={<div className="min-h-[260px] flex items-center justify-center">차트 로딩 중...</div>}>
+                      <InteractiveChartSection
+                        companyMarketcapData={companyMarketcapData}
+                        companySecs={companySecs}
+                        type="summary"
+                        selectedType={selectedType}
+                      />
+                    </Suspense>
                   ) : (
                     <ChartMarketcap
                       data={marketcapChartData}
@@ -747,12 +750,14 @@ export default async function SecurityMarketcapPage({
           <div className="space-y-5 sm:space-y-8">
             <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
               {hasCompanyMarketcapData && companyMarketcapData ? (
-                <InteractiveChartSection
-                  companyMarketcapData={companyMarketcapData}
-                  companySecs={companySecs}
-                  type="detailed"
-                  selectedType={selectedType}
-                />
+                <Suspense fallback={<div className="min-h-[300px] flex items-center justify-center">차트 로딩 중...</div>}>
+                  <InteractiveChartSection
+                    companyMarketcapData={companyMarketcapData}
+                    companySecs={companySecs}
+                    type="detailed"
+                    selectedType={selectedType}
+                  />
+                </Suspense>
               ) : (
                 <ChartMarketcap
                   data={fullChartData}

@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         divRank: security.currentRank,
         divPriorRank: security.priorRank,
-        div: security.div,
+        div: security.value,
         // Nest security data to match the expected structure of ServerTable and DivCompactList
         securities: [
             {
@@ -91,7 +91,7 @@ async function DivRankPage() {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '배당수익률': s.div,
+            '배당수익률': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

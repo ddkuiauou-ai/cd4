@@ -115,7 +115,10 @@ export function StickyCompanyHeader({
       return;
     }
 
-    if ("IntersectionObserver" in window) {
+    // Ensure window is properly typed after the check
+    const win = window as Window;
+
+    if ("IntersectionObserver" in win) {
       const observer = new IntersectionObserver(
         ([entry]) => {
           const shouldPin = !entry.isIntersecting;
@@ -138,11 +141,11 @@ export function StickyCompanyHeader({
 
     const measure = () => {
       const rect = sentinel.getBoundingClientRect();
-      sentinelTop = rect.top + window.scrollY;
+      sentinelTop = rect.top + win.scrollY;
     };
 
     const updatePinnedState = () => {
-      const shouldPin = window.scrollY + effectiveOffset >= sentinelTop;
+      const shouldPin = win.scrollY + effectiveOffset >= sentinelTop;
       setIsPinned(prev => (prev === shouldPin ? prev : shouldPin));
     };
 
@@ -154,12 +157,12 @@ export function StickyCompanyHeader({
     measure();
     updatePinnedState();
 
-    window.addEventListener("scroll", updatePinnedState, { passive: true });
-    window.addEventListener("resize", handleResize);
+    win.addEventListener("scroll", updatePinnedState, { passive: true });
+    win.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("scroll", updatePinnedState);
-      window.removeEventListener("resize", handleResize);
+      win.removeEventListener("scroll", updatePinnedState);
+      win.removeEventListener("resize", handleResize);
     };
   }, [effectiveOffset]);
 

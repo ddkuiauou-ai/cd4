@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         perRank: security.currentRank,
         perPriorRank: security.priorRank,
-        per: security.per,
+        per: security.value,
         // Nest security data to match the expected structure of ServerTable and PerCompactList
         securities: [
             {
@@ -91,7 +91,7 @@ async function PerRankPage() {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            'PER': s.per,
+            'PER': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,

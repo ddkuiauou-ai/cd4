@@ -10,6 +10,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import CompanyLogo from "@/components/CompanyLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import MarketTrends from "@/app/components/common/MarketTrends";
+import NetworkStatus from "@/app/components/common/NetworkStatus";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
     title: "대시보드 - CD3 주식 시장 분석",
@@ -22,8 +25,11 @@ export const metadata: Metadata = {
 };
 
 async function DashboardPage() {
-    const searchData = await getSecuritySearchNames();
-    const { items: data } = await getCompanyMarketcapsPage(1);
+    // 데이터 로딩을 병렬로 처리하여 성능 최적화
+    const [searchData, { items: data },] = await Promise.all([
+        getSecuritySearchNames(),
+        getCompanyMarketcapsPage(1),
+    ]);
 
     // Default to dashboard1 for SSG
     const currentView = "dashboard1";
@@ -80,53 +86,121 @@ async function DashboardPage() {
         .sort((a, b) => (a.rate || 0) - (b.rate || 0))
         .slice(0, 5);
 
-    // Dashboard 2에서 사용할 데이터 포맷팅
-    const marketData = [
-        { name: "KOSPI", value: "2,500.00", change: "+1.5%" },
-        { name: "KOSDAQ", value: "850.00", change: "-0.8%" },
-        { name: "코스피200", value: "350.00", change: "+2.1%" }
-    ];
 
+    // Trending stocks data
     const trendingStocks = {
-        gainers: topGainers.map(item => ({
-            security: item.security,
-            price: item.security.prices[item.security.prices.length - 1],
-            marketcap: item.marketcap
+        gainers: topGainers.slice(0, 5).map((item, index) => ({
+            name: item.name || "",
+            korName: item.name || "",
+            securityId: item.securities?.[0]?.securityId || "",
+            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
+            change: item.rate || 0,
+            changePercent: item.rate || 0
         })),
-        losers: topLosers.map(item => ({
-            security: item.security,
-            price: item.security.prices[item.security.prices.length - 1],
-            marketcap: item.marketcap
+        losers: topLosers.slice(0, 5).map((item, index) => ({
+            name: item.name || "",
+            korName: item.name || "",
+            securityId: item.securities?.[0]?.securityId || "",
+            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
+            change: item.rate || 0,
+            changePercent: item.rate || 0
         })),
-        volume: data.slice(0, 5).map(item => ({
-            security: item.securities[0],
-            price: item.securities[0].prices[item.securities[0].prices.length - 1],
-            marketcap: item.marketcap
+        volume: data.slice(0, 5).map((item, index) => ({
+            name: item.name || "",
+            korName: item.name || "",
+            securityId: item.securities?.[0]?.securityId || "",
+            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
+            change: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.rate || 0,
+            changePercent: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.rate || 0
         }))
     };
 
     // Use dashboard1 for SSG
 
+    // 데이터가 없는 경우 로딩 상태 표시
+    if (!data || data.length === 0) {
+        return (
+            <>
+                <main className="flex-1">
+                    <div className="container px-4 sm:px-8 relative">
+                        {/* Dashboard Header Skeleton */}
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Skeleton className="h-8 w-32 mb-2" />
+                                    <Skeleton className="h-4 w-64" />
+                                    <Skeleton className="h-3 w-24 mt-1" />
+                                </div>
+                                <Skeleton className="h-6 w-20" />
+                            </div>
+                        </div>
+
+                        {/* Market Summary Skeleton */}
+                        <div className="mb-8">
+                            <Skeleton className="h-6 w-24 mb-4" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[1, 2, 3].map(i => (
+                                    <Card key={i}>
+                                        <CardHeader>
+                                            <Skeleton className="h-5 w-16" />
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Skeleton className="h-8 w-24 mb-2" />
+                                            <Skeleton className="h-4 w-20" />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Market Trends Skeleton */}
+                        <div className="mb-8">
+                            <Card>
+                                <CardHeader>
+                                    <Skeleton className="h-6 w-24" />
+                                </CardHeader>
+                                <CardContent>
+                                    <Skeleton className="h-10 w-full mb-4" />
+                                    <div className="space-y-2">
+                                        {[1, 2, 3, 4, 5].map(i => (
+                                            <Skeleton key={i} className="h-12 w-full" />
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </main>
+                <SiteFooter />
+            </>
+        );
+    }
+
     return (
         <>
-            
+
             <main className="flex-1">
                 <div className="container px-4 sm:px-8 relative">
                     {/* <MarketNav className="mt-5" /> */}
 
                     {/* Dashboard Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold tracking-tight">대시보드</h1>
-                        <p className="text-muted-foreground mt-2">
-                            주식 시장의 주요 지표와 랭킹을 한눈에 확인하세요
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            기준일: {latestDate}
-                        </p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold tracking-tight">대시보드</h1>
+                                <p className="text-muted-foreground mt-2">
+                                    주식 시장의 주요 지표와 랭킹을 한눈에 확인하세요
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    기준일: {latestDate}
+                                </p>
+                            </div>
+                            <NetworkStatus status="connected" lastUpdated={latestDate} message="실시간 데이터 업데이트 중" />
+                        </div>
                     </div>
 
                     {/* Quick Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">총 상장기업</CardTitle>
@@ -192,8 +266,18 @@ async function DashboardPage() {
                         </Card>
                     </div>
 
+                    {/* Market Trends Section */}
+                    <div className="mb-8">
+                        <MarketTrends
+                            gainers={trendingStocks.gainers}
+                            losers={trendingStocks.losers}
+                            volume={trendingStocks.volume}
+                            date={latestDate}
+                        />
+                    </div>
+
                     {/* Main Content Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mb-8">
                         {/* 시가총액 TOP 10 */}
                         <Card>
                             <CardHeader>
@@ -315,6 +399,119 @@ async function DashboardPage() {
                             </CardContent>                        </Card>
                     </div>
 
+                    {/* Market News Section */}
+                    <div className="mb-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>시장 뉴스 및 분석</span>
+                                    <Link href="/news" className="text-sm text-primary hover:underline">
+                                        전체보기 →
+                                    </Link>
+                                </CardTitle>
+                                <CardDescription>
+                                    최신 시장 동향과 주요 기업 뉴스
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    <div className="border-l-4 border-blue-500 pl-4 py-2">
+                                        <h4 className="font-medium text-sm mb-1">코스피, 외국인 매수세에 상승 마감</h4>
+                                        <p className="text-xs text-muted-foreground mb-2">오늘 코스피는 외국인 투자자들의 매수세에 힘입어 0.8% 상승하며 2,500선을 회복했습니다.</p>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <span>2024.01.15 16:30</span>
+                                            <Badge variant="outline" className="text-xs">시장동향</Badge>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-l-4 border-green-500 pl-4 py-2">
+                                        <h4 className="font-medium text-sm mb-1">삼성전자, AI 반도체 투자 확대 발표</h4>
+                                        <p className="text-xs text-muted-foreground mb-2">삼성전자가 AI 반도체 분야에 10조원 규모의 투자를 발표하며 기술주 랠리를 주도했습니다.</p>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <span>2024.01.15 14:20</span>
+                                            <Badge variant="outline" className="text-xs">기업뉴스</Badge>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-l-4 border-orange-500 pl-4 py-2">
+                                        <h4 className="font-medium text-sm mb-1">연준 금리 동결 기조 유지 전망</h4>
+                                        <p className="text-xs text-muted-foreground mb-2">미국 연준이 금리 동결 기조를 유지할 것으로 전망되며 글로벌 증시에 긍정적 영향을 미치고 있습니다.</p>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <span>2024.01.15 11:45</span>
+                                            <Badge variant="outline" className="text-xs">국제뉴스</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Watchlist Section */}
+                    <div className="mb-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>관심 종목</span>
+                                    <Link href="/watchlist" className="text-sm text-primary hover:underline">
+                                        관리 →
+                                    </Link>
+                                </CardTitle>
+                                <CardDescription>
+                                    즐겨찾기한 종목들의 실시간 시세를 확인하세요
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <div className="text-4xl mb-2">⭐</div>
+                                    <p className="mb-2">관심 종목이 없습니다</p>
+                                    <p className="text-sm">종목을 즐겨찾기에 추가하면 여기에 표시됩니다</p>
+                                    <Link href="/screener" className="text-primary hover:underline text-sm mt-2 inline-block">
+                                        종목 검색하기 →
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Quick Actions Section */}
+                    <div className="mb-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>빠른 실행</CardTitle>
+                                <CardDescription>
+                                    자주 사용하는 기능에 빠르게 접근하세요
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 lg:gap-4">
+                                    <Link href="/screener" className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors text-center">
+                                        <div className="text-2xl mb-2">🔍</div>
+                                        <div className="font-medium text-sm">종목 검색</div>
+                                        <div className="text-xs text-muted-foreground">조건에 맞는 종목 찾기</div>
+                                    </Link>
+
+                                    <Link href="/compare" className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors text-center">
+                                        <div className="text-2xl mb-2">⚖️</div>
+                                        <div className="font-medium text-sm">종목 비교</div>
+                                        <div className="text-xs text-muted-foreground">여러 종목 동시 분석</div>
+                                    </Link>
+
+                                    <Link href="/portfolio" className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors text-center">
+                                        <div className="text-2xl mb-2">📊</div>
+                                        <div className="font-medium text-sm">포트폴리오</div>
+                                        <div className="text-xs text-muted-foreground">보유 종목 관리</div>
+                                    </Link>
+
+                                    <Link href="/alerts" className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors text-center">
+                                        <div className="text-2xl mb-2">🔔</div>
+                                        <div className="font-medium text-sm">알림 설정</div>
+                                        <div className="text-xs text-muted-foreground">가격 알림 받기</div>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* 주요 지표 링크 섹션 */}
                     <Card className="mb-8">
                         <CardHeader>
@@ -324,7 +521,7 @@ async function DashboardPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 lg:gap-4">
                                 <Link href="/marketcaps" className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors">
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-primary mb-2">시총</div>

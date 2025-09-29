@@ -56,7 +56,7 @@ const transformDataForUI = (securityData: any[]) => {
         logo: security.company?.logo,
         epsRank: security.currentRank,
         epsPriorRank: security.priorRank,
-        eps: security.eps,
+        eps: security.value,
         // Nest security data to match the expected structure of ServerTable and EpsCompactList
         securities: [
             {
@@ -91,7 +91,7 @@ async function EpsRankPage() {
             '종목명': s.korName || s.name,
             '티커': `'${s.ticker}`,
             '거래소': s.exchange,
-            '주당 순이익': s.eps,
+            '주당 순이익': s.value,
             '시가': latestPrice?.open,
             '고가': latestPrice?.high,
             '저가': latestPrice?.low,
