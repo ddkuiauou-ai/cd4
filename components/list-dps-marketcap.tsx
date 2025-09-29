@@ -30,16 +30,16 @@ interface Props {
 
 interface Item {
     date: string;
-    value: number;
+    value: number | null;
     changeRate?: number;
 }
 
 /**
  * DPS을 간단하고 읽기 쉬운 형태로 포맷
  */
-function formatDPSSimple(num: number): { main: string; unit: string } {
+function formatDPSSimple(num: number | null): { main: string; unit: string } {
     if (num === null || num === undefined || Number.isNaN(num))
-        return { main: "-", unit: "" };
+        return { main: "배당금 없음", unit: "" };
     if (num === 0)
         return { main: "0", unit: "원" };
 
@@ -50,8 +50,8 @@ function formatDPSSimple(num: number): { main: string; unit: string } {
     };
 }
 
-function formatDetailValue(value: number): string {
-    return `${value.toFixed(2)}원`;
+function formatDetailValue(value: number | null): string {
+    return value === null ? "배당금 없음" : `${value.toFixed(2)}원`;
 }
 
 function getLatestDecemberDates(data: Item[]): string[] {
@@ -78,7 +78,7 @@ const calculateChangeRates = (data: Item[], lastDatesOfDec: string[]) => {
         const prevMarketcap = array[index - 1];
         return {
             ...data,
-            changeRate: prevMarketcap
+            changeRate: (prevMarketcap && data.value !== null && prevMarketcap.value !== null)
                 ? ((data.value - prevMarketcap.value) / prevMarketcap.value) * 100
                 : undefined,
         };
@@ -116,11 +116,11 @@ function ListDPSMarketcap({ data }: Props) {
         ? valueWithRate.reduce((sum, item) => sum + (item.changeRate || 0), 0) / valueWithRate.length
         : 0;
 
-    // 통계 분석 데이터
-    const values = valueWithRate.map(item => item.value);
-    const maxValue = values.length > 0 ? Math.max(...values) : 0;
-    const minValue = values.length > 0 ? Math.min(...values) : 0;
-    const avgValue = values.length > 0 ? values.reduce((sum, val) => sum + val, 0) / values.length : 0;
+    // 통계 분석 데이터 (null 값 제외)
+    const values = valueWithRate.map(item => item.value).filter(val => val !== null) as number[];
+    const maxValue = values.length > 0 ? Math.max(...values) : null;
+    const minValue = values.length > 0 ? Math.min(...values) : null;
+    const avgValue = values.length > 0 ? values.reduce((sum, val) => sum + val, 0) / values.length : null;
 
     const bestGrowthYear = valueWithRate.length > 0 ? valueWithRate.reduce((best, current) =>
         (current.changeRate || 0) > (best.changeRate || 0) ? current : best
