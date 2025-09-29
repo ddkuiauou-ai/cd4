@@ -5,7 +5,7 @@ import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "luci
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getBpsRank } from "@/lib/data/security";
-import { getAllSecurityCodes } from "@/lib/select";
+import { getAllSecuritiesWithType } from "@/lib/select";
 import ChartBPSEnhanced from "@/components/chart-BPS-enhanced";
 import ListBPSEnhanced from "@/components/list-BPS-enhanced";
 import BPSHeatmap from "@/components/chart-bps-heatmap";
@@ -44,17 +44,27 @@ import ListBPSMarketcap from "@/components/list-bps-marketcap";
  * Props for Security BPS Page
  */
 /**
- * Generate static params for all security pages (SSG)
+ * Generate static params for all BPS pages (SSG)
+ * Only generates representative securities (보통주)
  */
 export async function generateStaticParams() {
   try {
-    const securityCodes = await getAllSecurityCodes();
+    const securities = await getAllSecuritiesWithType();
+
+    // Filter to only include 보통주 (common stocks)
+    const commonStocks = securities.filter((sec) =>
+      sec.type?.includes("보통주")
+    );
+
+    const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
+
+    console.log(`[GENERATE_STATIC_PARAMS] Generating BPS pages for ${securityCodes.length} common stocks`);
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,
     }));
   } catch (error) {
-    console.error("[GENERATE_STATIC_PARAMS] Error generating security params:", error);
+    console.error("[GENERATE_STATIC_PARAMS] Error generating BPS params:", error);
     return [];
   }
 }

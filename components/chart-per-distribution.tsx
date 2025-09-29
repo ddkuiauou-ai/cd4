@@ -70,11 +70,24 @@ function calculateKDE(values: number[], bandwidth: number = 0.3) {
     const maxValue = Math.max(...values);
     const range = maxValue - minValue;
 
-    // KDE를 위한 x 값들 생성
+    // 범위가 너무 작거나 0인 경우 처리
+    if (range <= 0.01) {
+        // 모든 값이 동일한 경우 단일 포인트 반환
+        const density = 1 / (values.length * bandwidth * Math.max(range, 0.1));
+        return [{
+            x: minValue,
+            density: density
+        }];
+    }
+
+    // KDE를 위한 x 값들 생성 (최대 200 포인트로 제한)
     const xValues = [];
-    const step = range / 100;
+    const maxPoints = 200;
+    const step = Math.max(range / 100, range / maxPoints);
     for (let x = minValue; x <= maxValue; x += step) {
         xValues.push(x);
+        // 안전을 위해 최대 포인트 수 제한
+        if (xValues.length >= maxPoints) break;
     }
 
     // 각 x 값에 대한 KDE 계산 (Gaussian kernel)

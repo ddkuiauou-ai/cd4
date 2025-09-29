@@ -4,7 +4,7 @@
 export const dynamic = "force-static";
 
 export async function GET(): Promise<Response> {
-  const baseUrl = "https://www.chunhajeil.xyz"; // 실제 사이트 도메인으로 변경하세요.
+  const baseUrl = "https://www.chundan.xyz"; // 실제 사이트 도메인으로 변경하세요.
 
   // sitemap에 포함할 개별 sitemap URL 목록
   const sitemapUrls: string[] = [

@@ -5,7 +5,7 @@ import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "luci
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getPerRank } from "@/lib/data/security";
-import { getAllSecurityCodes } from "@/lib/select";
+import { getAllSecuritiesWithType } from "@/lib/select";
 import ChartPEREnhanced from "@/components/chart-PER-enhanced";
 import ListPERMarketcap from "@/components/list-per-marketcap";
 import PERHeatmap from "@/components/chart-per-heatmap";
@@ -68,10 +68,20 @@ export async function generateMetadata({ params }: SecurityPERPageProps) {
 
 /**
  * Generate static params for all PER pages (SSG)
+ * Only generates representative securities (보통주)
  */
 export async function generateStaticParams() {
   try {
-    const securityCodes = await getAllSecurityCodes();
+    const securities = await getAllSecuritiesWithType();
+
+    // Filter to only include 보통주 (common stocks)
+    const commonStocks = securities.filter((sec) =>
+      sec.type?.includes("보통주")
+    );
+
+    const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
+
+    console.log(`[GENERATE_STATIC_PARAMS] Generating PER pages for ${securityCodes.length} common stocks`);
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,

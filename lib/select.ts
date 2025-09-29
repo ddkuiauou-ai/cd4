@@ -187,9 +187,46 @@ export const getSecurityMarketCapRanking = unstable_cache(
 );
 
 /**
+ * Get all security codes with type information for SSG (Static Site Generation)
+ * Returns security objects with exchange, ticker, and type for filtering
+ *
+ * @returns Array of security objects
+ */
+export const getAllSecuritiesWithType = unstable_cache(
+    async (): Promise<{ exchange: string; ticker: string; type: string | null }[]> => {
+        return await withRetry(async () => {
+            console.log('[GET_ALL_SECURITIES_WITH_TYPE] Attempting to fetch securities from DB');
+
+            const securities = await db.query.security.findMany({
+                columns: {
+                    exchange: true,
+                    ticker: true,
+                    type: true,
+                },
+                where: and(
+                    isNotNull(security.exchange),
+                    isNotNull(security.ticker),
+                    ne(security.exchange, ''),
+                    ne(security.ticker, ''),
+                    isNotNull(security.marketcap),
+                    isNull(security.delistingDate)
+                ),
+                orderBy: [desc(security.marketcap)], // 시가총액 상위부터
+            });
+
+            console.log(`[GET_ALL_SECURITIES_WITH_TYPE] Successfully fetched ${securities.length} securities from DB`);
+
+            return securities;
+        }, 'getAllSecuritiesWithType');
+    },
+    ['getAllSecuritiesWithType'],
+    { tags: ['getAllSecuritiesWithType'], revalidate: 86400 } // 24시간 캐시
+);
+
+/**
  * Get all security codes for SSG (Static Site Generation)
  * Returns all security codes in the format "EXCHANGE.TICKER" for generateStaticParams
- * 
+ *
  * @returns Array of security codes
  */
 export const getAllSecurityCodes = unstable_cache(
@@ -207,7 +244,8 @@ export const getAllSecurityCodes = unstable_cache(
                     isNotNull(security.ticker),
                     ne(security.exchange, ''),
                     ne(security.ticker, ''),
-                    isNotNull(security.marketcap)
+                    isNotNull(security.marketcap),
+                    isNull(security.delistingDate)
                 ),
                 orderBy: [desc(security.marketcap)], // 시가총액 상위부터
                 // 청크 빌드 시에는 제한 없이 모든 데이터 가져오기

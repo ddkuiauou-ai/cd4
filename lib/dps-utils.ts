@@ -69,7 +69,9 @@ export function calculateDPSPeriodAnalysis(
         const periodData = getDataForPeriod(period.months);
         if (periodData.length === 0) return null;
 
-        const average = periodData.reduce((sum, item) => sum + item.value, 0) / periodData.length;
+        const validPeriodData = periodData.filter(item => item.value !== null);
+        if (validPeriodData.length === 0) return null;
+        const average = validPeriodData.reduce((sum, item) => sum + (item.value as number), 0) / validPeriodData.length;
         return {
             label: period.label,
             value: average,
@@ -78,7 +80,7 @@ export function calculateDPSPeriodAnalysis(
     }).filter((item): item is NonNullable<typeof item> => item !== null);
 
     // 최저/최고 계산
-    const allValues = result.map(item => item.value);
+    const allValues = result.map(item => item.value).filter(value => value !== null) as number[];
     const minValue = Math.min(...allValues);
     const maxValue = Math.max(...allValues);
 

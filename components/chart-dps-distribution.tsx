@@ -170,7 +170,7 @@ export default function ChartDPSDistribution({ data, className }: ChartDPSDistri
         .map(item => item.value)
         .filter(value => value !== null && !isNaN(value) && value > 0 && value < 10000);
 
-    const kdeData = calculateKDE(validValues, 0.2);
+    const kdeData = calculateKDE(validValues as number[], 0.2);
 
     // KDE 데이터를 히스토그램과 같은 스케일로 조정
     const maxCount = Math.max(...histogramData.map(d => d.count));

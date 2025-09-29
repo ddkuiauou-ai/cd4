@@ -748,7 +748,7 @@ export default async function SecurityDPSPage({ params }: SecurityDPSPageProps) 
               dps20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
               rangeMin={periodAnalysis.minMax.min}
               rangeMax={periodAnalysis.minMax.max}
-              result={result}
+              result={result.filter(item => item.value !== null).map(item => ({ date: item.date, value: item.value as number }))}
             />
           )}
 
