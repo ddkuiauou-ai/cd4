@@ -30,6 +30,51 @@ import {
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
 
+// Constants
+const CANDLESTICK_PERIOD_DAYS = 90;
+const SECTION_HEADING_CLASSES = "text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl";
+
+// Utility functions
+const coerceVolumeValue = (primary: unknown, secondary?: unknown): number | null => {
+  const candidates = [primary, secondary];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) {
+      continue;
+    }
+
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return candidate;
+    }
+
+    if (typeof candidate === "bigint") {
+      const numeric = Number(candidate);
+      if (Number.isFinite(numeric)) {
+        return numeric;
+      }
+    }
+
+    if (typeof candidate === "string") {
+      const numeric = Number.parseFloat(candidate.replace(/,/g, ""));
+      if (Number.isFinite(numeric)) {
+        return numeric;
+      }
+    }
+  }
+
+  return null;
+};
+
+// Period analysis configuration
+const PERIOD_ANALYSIS_CONFIG = [
+  { label: '최근 시총', months: 0, desc: '현재 기준' },
+  { label: '12개월 평균', months: 12, desc: '직전 1년' },
+  { label: '3년 평균', months: 36, desc: '최근 3년' },
+  { label: '5년 평균', months: 60, desc: '최근 5년' },
+  { label: '10년 평균', months: 120, desc: '최근 10년' },
+  { label: '30년 평균', months: 360, desc: '최근 30년' }
+] as const;
+
 type CompanySecuritySummary = {
   securityId: string;
   korName?: string | null;
@@ -80,7 +125,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     : [];
 
   // Determine representative (보통주) security for the company when available
-  let resolvedSecCode = initialSecCode;
+  let secCode = initialSecCode;
 
   if (!security.type?.includes("보통주")) {
     const representativeSecurity = companySecs.find(
@@ -93,23 +138,19 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
       if (canonicalSecurity) {
         security = canonicalSecurity;
-        resolvedSecCode = candidateSecCode;
+        secCode = candidateSecCode;
       }
     }
   }
-
-  const secCode = resolvedSecCode;
   const displayName = security.korName || security.name;
 
-  // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
-  const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
+  // Extract market and ticker from secCode (e.g., "KOSPI.005930")
+  const secCodeParts = secCode.split('.');
+  const market = secCodeParts.length > 1 ? secCodeParts[0] : 'KOSPI';
+  const tickerFromSecCode = secCodeParts.length > 1 ? secCodeParts[1] : secCode;
 
   // Extract ticker from resolved security information
-  const currentTicker = security.ticker
-    ? security.ticker
-    : secCode.includes('.')
-      ? secCode.split('.')[1]
-      : secCode;
+  const currentTicker = security.ticker || tickerFromSecCode;
 
   // Get aggregated company marketcap data
   const companyMarketcapData = security.companyId
@@ -118,36 +159,6 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
   // Get market cap ranking for the security
   const marketCapRanking = await getSecurityMarketCapRanking(security.securityId);
-
-  const coerceVolumeValue = (primary: unknown, secondary?: unknown) => {
-    const candidates = [primary, secondary];
-
-    for (const candidate of candidates) {
-      if (candidate === null || candidate === undefined) {
-        continue;
-      }
-
-      if (typeof candidate === "number" && Number.isFinite(candidate)) {
-        return candidate;
-      }
-
-      if (typeof candidate === "bigint") {
-        const numeric = Number(candidate);
-        if (Number.isFinite(numeric)) {
-          return numeric;
-        }
-      }
-
-      if (typeof candidate === "string") {
-        const numeric = Number.parseFloat(candidate.replace(/,/g, ""));
-        if (Number.isFinite(numeric)) {
-          return numeric;
-        }
-      }
-    }
-
-    return null;
-  };
 
   const rawPrices = Array.isArray(security.prices) ? security.prices : [];
   const parsedPricePoints = rawPrices
@@ -198,7 +209,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       Number.isFinite(point.low) &&
       Number.isFinite(point.close));
 
-  const sortedPricePoints = parsedPricePoints.sort(
+  const sortedPricePoints = [...parsedPricePoints].sort(
     (a: any, b: any) => a.date.getTime() - b.date.getTime()
   );
 
@@ -207,26 +218,27 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     ? new Date(latestPricePoint.date.getTime())
     : new Date();
   const periodStartDate = new Date(periodReferenceDate.getTime());
-  periodStartDate.setDate(periodStartDate.getDate() - 90);
+  periodStartDate.setDate(periodStartDate.getDate() - CANDLESTICK_PERIOD_DAYS);
 
   let candlestickSeriesData = sortedPricePoints.filter(
     (point: any) => point.date >= periodStartDate && point.date <= periodReferenceDate
   );
 
   if (!candlestickSeriesData.length) {
-    candlestickSeriesData = sortedPricePoints.slice(-90);
+    candlestickSeriesData = sortedPricePoints.slice(-CANDLESTICK_PERIOD_DAYS);
   }
 
   const candlestickData = candlestickSeriesData.map((point: any) => {
     const { time, open, high, low, close, volume } = point;
-    return ({
+    const volumeValue = Number.isFinite(volume) ? volume : undefined;
+    return {
       time,
       open,
       high,
       low,
       close,
-      volume: Number.isFinite(volume ?? undefined) ? Number(volume) : undefined,
-    });
+      volume: volumeValue,
+    };
   });
 
   // 🔥 기간별 시가총액 분석 계산 함수
@@ -252,16 +264,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     const latestData = history[history.length - 1];
 
     // 기간별 평균 계산
-    const periods = [
-      { label: '최근 시총', months: 0, desc: '현재 기준' },
-      { label: '12개월 평균', months: 12, desc: '직전 1년' },
-      { label: '3년 평균', months: 36, desc: '최근 3년' },
-      { label: '5년 평균', months: 60, desc: '최근 5년' },
-      { label: '10년 평균', months: 120, desc: '최근 10년' },
-      { label: '30년 평균', months: 360, desc: '최근 30년' }
-    ];
 
-    const analysis = periods.map(period => {
+    const analysis = PERIOD_ANALYSIS_CONFIG.map(period => {
       if (period.months === 0) {
         return {
           label: period.label,
@@ -282,9 +286,12 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     }).filter((item): item is NonNullable<typeof item> => item !== null);
 
     // 최저/최고 계산
-    const allValues = history.map(item => item.totalMarketcap);
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
+    const allValues = history
+      .map(item => item.totalMarketcap)
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+
+    const minValue = allValues.length > 0 ? Math.min(...allValues) : 0;
+    const maxValue = allValues.length > 0 ? Math.max(...allValues) : 0;
 
     // 종목별 구성 분석 (최신 데이터 기준)
     const latestBreakdown = latestData?.securitiesBreakdown || {};
@@ -393,7 +400,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">기업 개요</h2>
+              <h2 className={SECTION_HEADING_CLASSES}>기업 개요</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">기업 시가총액 순위와 기본 정보</p>
             </div>
           </header>
@@ -418,7 +425,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               <BarChart3 className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">차트 분석</h2>
+              <h2 className={SECTION_HEADING_CLASSES}>차트 분석</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 추이와 종목별 구성 현황</p>
             </div>
           </header>
@@ -483,7 +490,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               <ArrowLeftRight className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">종목 비교</h2>
+              <h2 className={SECTION_HEADING_CLASSES}>종목 비교</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">동일 기업 내 각 종목 간 비교 분석</p>
             </div>
           </header>
@@ -560,7 +567,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                 <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">연도별 데이터</h2>
+                <h2 className={SECTION_HEADING_CLASSES}>연도별 데이터</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
               </div>
             </div>
