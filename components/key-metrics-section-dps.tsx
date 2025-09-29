@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import { useMemo, memo } from "react";
 import { TrendingUp } from "lucide-react";
-import { Marquee } from "@/registry/magicui/marquee";
+import { Marquee } from "@/components/ui/marquee"
 
 interface KeyMetricsSectionDPSProps {
     security: {
@@ -31,7 +31,7 @@ const EDGE_TO_EDGE_SECTION_CLASS =
     "relative -mx-4 space-y-4 border-y px-4 py-4 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
 
 const MARQUEE_CARD_CLASS =
-    "group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]";
+    "group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px] gap-1 pb-2";
 
 const KeyMetricsSectionDPSComponent = ({
     security,
@@ -88,8 +88,6 @@ const KeyMetricsSectionDPSComponent = ({
             <Marquee
                 pauseOnHover
                 className="[--duration:36s]"
-                contentClassName="flex gap-1 pb-2"
-                contentStyle={{ minWidth: "fit-content" }}
             >
 
                 {/* DPS 랭킹 */}

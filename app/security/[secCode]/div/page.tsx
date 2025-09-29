@@ -21,7 +21,7 @@ import { KeyMetricsSectionPER } from "@/components/key-metrics-section-per";
 import { KeyMetricsSidebarPER } from "@/components/key-metrics-sidebar-per";
 import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
-import { Marquee } from "@/registry/magicui/marquee";
+import { Marquee } from "@/components/ui/marquee";
 import { SecDivPager } from "@/components/pager-marketcap-security";
 import { Suspense } from "react";
 import type { Price } from "@/typings";
@@ -771,11 +771,9 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
               <Marquee
                 pauseOnHover
                 className="[--duration:36s]"
-                contentClassName="flex gap-1 pb-2"
-                contentStyle={{ minWidth: "fit-content" }}
               >
                 {/* 배당수익률 랭킹 */}
-                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
+                <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px] gap-1 pb-2" style={{ minWidth: "fit-content" }}>
                   <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
                     <span className="text-xl sm:text-2xl md:text-3xl">{divRank || "—"}</span>
                     {divRank && <span className="text-sm sm:text-base ml-1">위</span>}
