@@ -106,7 +106,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 현재 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{latestEPS ? latestEPS.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{latestEPS ? Math.round(latestEPS).toLocaleString() : "—"}</span>
                         {latestEPS && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     {/* 전일 대비 변화율 */}
@@ -143,7 +143,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 12개월 평균 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{eps12Month ? eps12Month.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{eps12Month ? Math.round(eps12Month).toLocaleString() : "—"}</span>
                         {eps12Month && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     {/* 이전 12개월 대비 변화율 */}
@@ -159,7 +159,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 3년 평균 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{eps3Year ? eps3Year.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{eps3Year ? Math.round(eps3Year).toLocaleString() : "—"}</span>
                         {eps3Year && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs leading-none mb-1">
@@ -174,7 +174,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 5년 평균 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{eps5Year ? eps5Year.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{eps5Year ? Math.round(eps5Year).toLocaleString() : "—"}</span>
                         {eps5Year && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs leading-none mb-1">
@@ -189,7 +189,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 10년 평균 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{eps10Year ? eps10Year.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{eps10Year ? Math.round(eps10Year).toLocaleString() : "—"}</span>
                         {eps10Year && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs leading-none mb-1">
@@ -204,7 +204,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 20년 평균 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{eps20Year ? eps20Year.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{eps20Year ? Math.round(eps20Year).toLocaleString() : "—"}</span>
                         {eps20Year && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">20년 평균</div>
@@ -213,7 +213,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 최저 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{rangeMin ? rangeMin.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{rangeMin ? Math.round(rangeMin).toLocaleString() : "—"}</span>
                         {rangeMin && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 EPS</div>
@@ -222,7 +222,7 @@ const KeyMetricsSectionEPSComponent = ({
                 {/* 최고 EPS */}
                 <div className={MARQUEE_CARD_CLASS}>
                     <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{rangeMax ? rangeMax.toLocaleString() : "—"}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl">{rangeMax ? Math.round(rangeMax).toLocaleString() : "—"}</span>
                         {rangeMax && <span className="text-sm sm:text-base ml-1">원</span>}
                     </div>
                     <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 EPS</div>

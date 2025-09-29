@@ -22,7 +22,7 @@ interface Props {
 
 interface DPSGrowthItem {
     date: string;
-    value: number;
+    value: number | null;
     growthRate?: number | null;
 }
 
@@ -137,7 +137,7 @@ interface CustomTooltipProps {
     active?: boolean;
     payload?: Array<{
         dataKey: string;
-        value: number;
+        value: number | null;
         name: string;
         payload: DPSGrowthItem;
     }>;
@@ -163,7 +163,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                             />
                             <span className="text-gray-600 dark:text-gray-400">DPS:</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100">
-                                {formatNumberTooltip(entry.value)}원
+                                {entry.value === null ? "배당금 없음" : `${formatNumberTooltip(entry.value)}원`}
                             </span>
                         </div>
                     );

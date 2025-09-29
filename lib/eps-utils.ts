@@ -90,7 +90,7 @@ export function calculateEPSPeriodAnalysis(
  */
 export function processEPSData(data: Array<{ date: Date; eps: number | null }>): EPSData[] {
     return data
-        .filter((item) => item.eps !== null && item.eps !== undefined)
+        .filter((item) => item.eps !== null && item.eps !== undefined && item.eps > 0)
         .map((item) => ({
             date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
             value: Number(item.eps),

@@ -4,7 +4,7 @@
 
 export interface DPSData {
     date: string;
-    value: number;
+    value: number | null;
 }
 
 export interface DPSGrowthData extends DPSData {
@@ -96,10 +96,9 @@ export function calculateDPSPeriodAnalysis(
  */
 export function processDPSData(data: Array<{ date: Date; dps: number | null }>): DPSData[] {
     return data
-        .filter((item) => item.dps !== null && item.dps !== undefined && item.dps !== 0)
         .map((item) => ({
             date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
-            value: Number(item.dps),
+            value: item.dps === null || item.dps === undefined ? null : item.dps === 0 ? null : Number(item.dps),
         }))
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

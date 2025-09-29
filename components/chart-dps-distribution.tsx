@@ -4,18 +4,18 @@ import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { useTheme } from "next-themes";
 
 interface ChartDPSDistributionProps {
-    data: { date: string; value: number }[];
+    data: { date: string; value: number | null }[];
     className?: string;
 }
 
 // 간단한 히스토그램 데이터 생성
-function createHistogramData(data: { date: string; value: number }[]) {
+function createHistogramData(data: { date: string; value: number | null }[]) {
     if (!data || data.length === 0) return { histogramData: [], stats: null };
 
     // 유효한 DPS 값만 필터링 (양수 DPS만, 상위 1% 클리핑)
     let validValues = data
         .map(item => item.value)
-        .filter(value => value !== null && !isNaN(value) && value > 0 && value < 10000); // 합리적인 범위 제한
+        .filter((value): value is number => value !== null && !isNaN(value) && value > 0 && value < 10000); // 합리적인 범위 제한
 
     if (validValues.length === 0) return { histogramData: [], stats: null };
 

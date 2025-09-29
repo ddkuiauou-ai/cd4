@@ -19,7 +19,7 @@ interface Props {
 
 interface Item {
     date: string;
-    value: number;
+    value: number | null;
 }
 
 function getLatestDecemberDates(data: Item[]): string[] {
@@ -101,7 +101,7 @@ export default function ListDPSEnhanced({ data }: Props) {
                                         {item.displayDate}
                                     </TableCell>
                                     <TableCell className="text-right font-mono">
-                                        {formatNumber(item.value)}원
+                                        {item.value === null ? "배당금 없음" : `${formatNumber(item.value)}원`}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         {item.hasPrevData ? (
