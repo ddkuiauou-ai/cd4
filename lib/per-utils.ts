@@ -30,13 +30,18 @@ export function calculatePERPeriodAnalysis(
 ): PERPeriodAnalysis | null {
   if (!result || result.length === 0) return null;
 
-  const latestPER = result.length > 0 ? result[result.length - 1].value : null;
+  // PER이 유효한 값만 필터링 (추가 안전장치)
+  const validResult = result.filter(item => item.value > 0);
+
+  if (validResult.length === 0) return null;
+
+  const latestPER = validResult.length > 0 ? validResult[validResult.length - 1].value : null;
 
   // 기간별 데이터 필터링 함수
   const getDataForPeriod = (months: number) => {
     const cutoffDate = new Date();
     cutoffDate.setMonth(cutoffDate.getMonth() - months);
-    return result.filter(item => {
+    return validResult.filter(item => {
       const itemDate = new Date(item.date);
       return itemDate >= cutoffDate;
     });
@@ -73,7 +78,7 @@ export function calculatePERPeriodAnalysis(
   }).filter((item): item is NonNullable<typeof item> => item !== null);
 
   // 최저/최고 계산
-  const allValues = result.map(item => item.value);
+  const allValues = validResult.map(item => item.value);
   const minValue = Math.min(...allValues);
   const maxValue = Math.max(...allValues);
 
@@ -91,7 +96,7 @@ export function calculatePERPeriodAnalysis(
  */
 export function processPERData(data: Array<{ date: Date; per: number | null; eps: number | null }>): PERData[] {
   return data
-    .filter((item) => item.per !== null && item.per !== undefined)
+    .filter((item) => item.per !== null && item.per !== undefined && item.per > 0 && item.eps !== null && item.eps !== undefined && item.eps > 0)
     .map((item) => ({
       date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
       value: Number(item.per),

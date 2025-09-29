@@ -23,6 +23,7 @@ import { CandlestickChart } from "@/components/chart-candlestick";
 import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
+import { SecPerPager } from "@/components/pager-marketcap-security";
 import {
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
@@ -680,7 +681,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           </section>
 
           {/* 종목 비교 섹션 */}
-          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && companyMarketcapData && (
+          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length >= 1 && companyMarketcapData && (
             <section
               id="securities-summary"
               className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
@@ -806,6 +807,10 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
               </div>
             </div>
           </section>
+
+          <div className="pt-1 sm:pt-2">
+            <SecPerPager rank={perRank || 1} />
+          </div>
         </div>
       </div>
 
@@ -835,7 +840,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           )}
 
           {/* 종목별 PER 비교 */}
-          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length > 1 && companyMarketcapData && (
+          {comparableSecuritiesWithPER && comparableSecuritiesWithPER.length >= 1 && companyMarketcapData && (
             <InteractiveSecuritiesSection
               companyMarketcapData={companyMarketcapData}
               companySecs={comparableSecuritiesWithPER}
@@ -847,6 +852,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
               compactMode={false}
               baseUrl="security"
               currentMetric="per"
+              highlightActiveTicker={true}
             />
           )}
         </div>

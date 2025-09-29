@@ -25,6 +25,7 @@ import { CandlestickChart } from "@/components/chart-candlestick";
 import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
+import { SecDpsPager } from "@/components/pager-marketcap-security";
 import {
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
@@ -804,6 +805,10 @@ export default async function SecurityDPSPage({ params }: SecurityDPSPageProps) 
               </div>
             </div>
           </section>
+
+          <div className="pt-1 sm:pt-2">
+            <SecDpsPager rank={dpsRank || 1} />
+          </div>
         </div>
       </div>
 

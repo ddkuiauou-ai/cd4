@@ -22,9 +22,7 @@ import { KeyMetricsSidebarPER } from "@/components/key-metrics-sidebar-per";
 import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { Marquee } from "@/registry/magicui/marquee";
-import { Pager } from "@/components/pager";
-import { countSecurityRanks } from "@/lib/data/security";
-import { computeTotalPagesMixed } from "@/lib/data/pagination";
+import { SecDivPager } from "@/components/pager-marketcap-security";
 import { Suspense } from "react";
 import type { Price } from "@/typings";
 
@@ -103,7 +101,6 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     securities,
     data,
     divRank,
-    totalDivCount,
     companyMarketcapData
   ] = await Promise.all([
     // Get company-related securities if this security has a company
@@ -112,8 +109,6 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     getSecurityMetricsHistory(security.securityId),
     // Get DIV rank
     getDivRank(security.securityId),
-    // Get total count for DIV rankings
-    countSecurityRanks("div"),
     // Get company marketcap data for Interactive Securities Section
     security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
   ]);
@@ -278,15 +273,6 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   const sanitizedSecCode = secCode.replace(/\./g, "-");
   const annualDownloadFilename = `${sanitizedSecCode}-div${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
 
-  // Calculate current page based on divRank
-  const calculateCurrentPageFromDivRank = (rank: number | null, totalCount: number) => {
-    if (!rank || rank <= 0) return 1;
-    if (rank <= 20) return 1;
-    return 1 + Math.ceil((rank - 20) / 100);
-  };
-
-  const totalDivPages = computeTotalPagesMixed(totalDivCount);
-  const currentDivPage = calculateCurrentPageFromDivRank(divRank, totalDivCount);
 
   // Process price data for candlestick chart
   const rawPrices: Price[] = Array.isArray(security.prices)
@@ -928,39 +914,9 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             </div>
           </section>
 
-          {/* DIV 랭킹 페이저 */}
-          {divRank && (
-            <section className="mt-8">
-              <div className="flex justify-center">
-                <div className="bg-gradient-to-br from-card to-card/80 border border-border/60 rounded-2xl p-6 shadow-lg backdrop-blur-sm max-w-lg w-full">
-                  <div className="text-center mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-xl">📊</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-foreground">배당수익률 순위에서 보기</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      <span className="font-semibold text-primary">{displayName}</span>의 배당수익률 {divRank}위 성적을 전체 순위에서 확인하세요
-                    </p>
-                  </div>
-                  <Suspense fallback={
-                    <div className="flex justify-center">
-                      <div className="bg-card border rounded-xl p-3 shadow-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
-                          <div className="space-y-1">
-                            <div className="animate-pulse bg-muted h-3 w-20 rounded"></div>
-                            <div className="animate-pulse bg-muted h-3 w-24 rounded"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }>
-                    <Pager basePath="/div" currentPage={currentDivPage} totalPages={totalDivPages} />
-                  </Suspense>
-                </div>
-              </div>
-            </section>
-          )}
+          <div className="pt-1 sm:pt-2">
+            <SecDivPager rank={divRank || 1} />
+          </div>
         </div>
 
       </div>

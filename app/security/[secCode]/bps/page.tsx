@@ -21,6 +21,7 @@ import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
 import { PageNavigation } from "@/components/page-navigation";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { SecBpsPager } from "@/components/pager-marketcap-security";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import type { Price } from "@/typings";
 import {
@@ -798,6 +799,10 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
               </div>
             </div>
           </section>
+
+          <div className="pt-1 sm:pt-2">
+            <SecBpsPager rank={bpsRank || 1} />
+          </div>
         </div>
       </div>
 

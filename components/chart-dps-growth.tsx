@@ -159,8 +159,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                     return (
                         <div key={index} className="flex items-center gap-2 text-sm">
                             <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: entry.color }}
+                                className="w-3 h-3 rounded-full bg-blue-500"
                             />
                             <span className="text-gray-600 dark:text-gray-400">DPS:</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -173,8 +172,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                     return (
                         <div key={index} className="flex items-center gap-2 text-sm">
                             <div
-                                className="w-3 h-3 rounded-full border-2 border-dashed"
-                                style={{ backgroundColor: entry.color }}
+                                className="w-3 h-3 rounded-full border-2 border-dashed border-orange-400 bg-orange-100"
                             />
                             <span className="text-gray-600 dark:text-gray-400">성장률:</span>
                             <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>

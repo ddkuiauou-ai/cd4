@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { unstable_cache } from "next/cache";
-import { and, asc, desc, eq, inArray, isNull, isNotNull, ne, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, isNotNull, ne, lt, gt, sql } from "drizzle-orm";
 import { computeMixedPagination } from "./pagination";
 
 // Count ranked securities for a given metric
@@ -829,6 +829,299 @@ export const getPerRank = unstable_cache(async (securityId: string) => {
     return (Number(result[0]?.count) || 0) + 1;
   } catch { return null; }
 }, ["getPerRank"], { tags: ["getPerRank"] });
+
+// Neighbor navigation for security PER
+export const getSecurityPerPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with PER data, ordered by PER ascending (lower PER = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          per: schema.security.per,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.per),
+            ne(schema.security.per, 0),
+            gt(schema.security.per, 0) // PER must be positive
+          )
+        )
+        .orderBy(asc(schema.security.per));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        perRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.perRank >= rank - 1 && item.perRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityPerPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityPerPageData"],
+  { tags: ["getSecurityPerPageData"] }
+);
+
+// Neighbor navigation for security PBR
+export const getSecurityPbrPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with PBR data, ordered by PBR ascending (lower PBR = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          pbr: schema.security.pbr,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.pbr),
+            ne(schema.security.pbr, 0),
+            gt(schema.security.pbr, 0) // PBR must be positive
+          )
+        )
+        .orderBy(asc(schema.security.pbr));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        pbrRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.pbrRank >= rank - 1 && item.pbrRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityPbrPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityPbrPageData"],
+  { tags: ["getSecurityPbrPageData"] }
+);
+
+// Neighbor navigation for security DIV
+export const getSecurityDivPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with DIV data, ordered by DIV descending (higher DIV = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          div: schema.security.div,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.div),
+            ne(schema.security.div, 0),
+            gt(schema.security.div, 0) // DIV must be positive
+          )
+        )
+        .orderBy(desc(schema.security.div));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        divRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.divRank >= rank - 1 && item.divRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityDivPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityDivPageData"],
+  { tags: ["getSecurityDivPageData"] }
+);
+
+// Neighbor navigation for security EPS
+export const getSecurityEpsPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with EPS data, ordered by EPS descending (higher EPS = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          eps: schema.security.eps,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.eps),
+            ne(schema.security.eps, 0)
+          )
+        )
+        .orderBy(desc(schema.security.eps));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        epsRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.epsRank >= rank - 1 && item.epsRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityEpsPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityEpsPageData"],
+  { tags: ["getSecurityEpsPageData"] }
+);
+
+// Neighbor navigation for security DPS
+export const getSecurityDpsPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with DPS data, ordered by DPS descending (higher DPS = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          dps: schema.security.dps,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.dps),
+            ne(schema.security.dps, 0),
+            gt(schema.security.dps, 0) // DPS must be positive
+          )
+        )
+        .orderBy(desc(schema.security.dps));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        dpsRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.dpsRank >= rank - 1 && item.dpsRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityDpsPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityDpsPageData"],
+  { tags: ["getSecurityDpsPageData"] }
+);
+
+// Neighbor navigation for security BPS
+export const getSecurityBpsPageData = unstable_cache(
+  async (rank: number) => {
+    try {
+      // Get securities with BPS data, ordered by BPS descending (higher BPS = higher rank)
+      const rows = await db
+        .select({
+          securityId: schema.security.securityId,
+          name: schema.security.name,
+          korName: schema.security.korName,
+          exchange: schema.security.exchange,
+          ticker: schema.security.ticker,
+          type: schema.security.type,
+          companyId: schema.security.companyId,
+          bps: schema.security.bps,
+        })
+        .from(schema.security)
+        .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
+        .where(
+          and(
+            isNull(schema.security.delistingDate),
+            isNotNull(schema.security.bps),
+            ne(schema.security.bps, 0),
+            gt(schema.security.bps, 0) // BPS must be positive
+          )
+        )
+        .orderBy(desc(schema.security.bps));
+
+      // Add rank to each item
+      const rankedItems = rows.map((item, index) => ({
+        ...item,
+        bpsRank: index + 1,
+      }));
+
+      // Find items around the target rank
+      const targetItems = rankedItems.filter(item =>
+        item.bpsRank >= rank - 1 && item.bpsRank <= rank + 1
+      );
+
+      return targetItems;
+    } catch (e) {
+      console.error(`[getSecurityBpsPageData] ERROR for rank ${rank}:`, e);
+      return [];
+    }
+  },
+  ["getSecurityBpsPageData"],
+  { tags: ["getSecurityBpsPageData"] }
+);
 
 export const getPbrRank = unstable_cache(async (securityId: string) => {
   try {
