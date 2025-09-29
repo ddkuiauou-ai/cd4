@@ -1,13 +1,11 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { TrendingUp, Building2, FileText, Target, Percent, BarChart, Globe, ArrowLeftRight, BarChart3 } from "lucide-react";
+import { TrendingUp, Building2, FileText, BarChart, ArrowLeftRight, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory, getDivRank } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getAllSecurityCodes } from "@/lib/select";
 import { coerceVolumeValue } from "@/lib/per-utils";
-import ChartDIV from "@/components/chart-DIV";
-import ListDIV from "@/components/list-DIV";
 import ListDIVMarketcap from "@/components/list-div-marketcap";
 import DIVChartWithPeriodSwitcher from "@/components/div-chart-with-period-switcher";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
@@ -17,13 +15,10 @@ import { PageNavigation } from "@/components/page-navigation";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
-import { KeyMetricsSectionPER } from "@/components/key-metrics-section-per";
-import { KeyMetricsSidebarPER } from "@/components/key-metrics-sidebar-per";
 import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { Marquee } from "@/components/ui/marquee";
 import { SecDivPager } from "@/components/pager-marketcap-security";
-import { Suspense } from "react";
 import type { Price } from "@/typings";
 
 import {
@@ -92,7 +87,6 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   const security = await getSecurityByCode(secCode);
 
   if (!security) {
-    console.log('Security not found');
     notFound();
   }
 

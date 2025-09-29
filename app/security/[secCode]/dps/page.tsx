@@ -6,8 +6,6 @@ import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } fr
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getDpsRank } from "@/lib/data/security";
 import { getAllSecurityCodes } from "@/lib/select";
-import ChartDPSGrowth from "@/components/chart-dps-growth";
-import ListDPS from "@/components/list-DPS";
 import DPSChartWithPeriodSwitcher from "@/components/dps-chart-with-period-switcher";
 import ListDPSMarketcap from "@/components/list-dps-marketcap";
 import DPSHeatmap from "@/components/chart-dps-heatmap";

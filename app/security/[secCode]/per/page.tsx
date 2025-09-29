@@ -6,7 +6,6 @@ import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } fr
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getPerRank } from "@/lib/data/security";
 import { getAllSecuritiesWithType } from "@/lib/select";
-import ChartPEREnhanced from "@/components/chart-PER-enhanced";
 import ListPERMarketcap from "@/components/list-per-marketcap";
 import PERHeatmap from "@/components/chart-per-heatmap";
 import ChartPERDistribution from "@/components/chart-per-distribution";
@@ -81,7 +80,6 @@ export async function generateStaticParams() {
 
     const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
 
-    console.log(`[GENERATE_STATIC_PARAMS] Generating PER pages for ${securityCodes.length} common stocks`);
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,

@@ -1,14 +1,13 @@
 import { notFound } from "next/navigation";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText, Calculator } from "lucide-react";
+import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getEpsRank } from "@/lib/data/security";
 import { getAllSecuritiesWithType } from "@/lib/select";
 import ChartEPSEnhanced, { EPSChartWithPeriodSwitcher } from "@/components/chart-EPS-enhanced";
 import ListEPSEnhanced from "@/components/list-EPS-enhanced";
-import { formatNumber, formatDate, formatNumberWithSeparateUnit, formatChangeRate, formatDifference } from "@/lib/utils";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import RankHeader from "@/components/header-rank";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
@@ -77,7 +76,6 @@ export async function generateStaticParams() {
 
     const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
 
-    console.log(`[GENERATE_STATIC_PARAMS] Generating EPS pages for ${securityCodes.length} common stocks`);
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,

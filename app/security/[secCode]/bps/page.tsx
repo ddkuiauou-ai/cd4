@@ -6,8 +6,6 @@ import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } fr
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getBpsRank } from "@/lib/data/security";
 import { getAllSecuritiesWithType } from "@/lib/select";
-import ChartBPSEnhanced from "@/components/chart-BPS-enhanced";
-import ListBPSEnhanced from "@/components/list-BPS-enhanced";
 import BPSHeatmap from "@/components/chart-bps-heatmap";
 import ChartBPSDistribution from "@/components/chart-bps-distribution";
 import type { HeatMapSerie } from '@nivo/heatmap';
@@ -58,7 +56,6 @@ export async function generateStaticParams() {
 
     const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
 
-    console.log(`[GENERATE_STATIC_PARAMS] Generating BPS pages for ${securityCodes.length} common stocks`);
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,
