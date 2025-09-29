@@ -26,11 +26,16 @@ import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
 import {
-  ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+
+const ACTIVE_METRIC = {
+  id: "dps",
+  label: "주당배당금",
+  description: "DPS",
+} as const;
 import { calculateDPSPeriodAnalysis, processDPSDataWithGrowth, coerceVolumeValue } from "@/lib/dps-utils";
 
 /**

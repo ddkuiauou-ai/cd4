@@ -24,11 +24,16 @@ import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import type { Price } from "@/typings";
 import {
-  ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+
+const ACTIVE_METRIC = {
+  id: "bps",
+  label: "주당순자산가치",
+  description: "BPS",
+} as const;
 import { calculateBPSPeriodAnalysis, processBPSData } from "@/lib/bps-utils";
 import { coerceVolumeValue } from "@/lib/per-utils";
 import BPSChartWithPeriodSwitcher from "@/components/bps-chart-with-period-switcher";

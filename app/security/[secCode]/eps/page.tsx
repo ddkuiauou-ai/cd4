@@ -22,11 +22,16 @@ import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
 import {
-  ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+
+const ACTIVE_METRIC = {
+  id: "eps",
+  label: "주당순이익",
+  description: "EPS",
+} as const;
 import { calculateEPSPeriodAnalysis, processEPSData, coerceVolumeValue, type EPSData, PeriodType } from "@/lib/eps-utils";
 
 /**

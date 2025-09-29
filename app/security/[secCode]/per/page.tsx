@@ -24,11 +24,16 @@ import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
 import {
-  ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+
+const ACTIVE_METRIC = {
+  id: "per",
+  label: "주가수익비율",
+  description: "PER",
+} as const;
 import { calculatePERPeriodAnalysis, processPERData, coerceVolumeValue, type PERData, PeriodType } from "@/lib/per-utils";
 import PERChartWithPeriodSwitcher from "@/components/per-chart-with-period-switcher";
 

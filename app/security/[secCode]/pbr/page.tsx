@@ -21,11 +21,16 @@ import type { Price } from "@/typings";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { PageNavigation } from "@/components/page-navigation";
 import {
-  ACTIVE_METRIC,
   EDGE_TO_EDGE_CARD_BASE,
   EDGE_TO_EDGE_SECTION_BASE,
   SECTION_GRADIENTS,
 } from "@/components/marketcap/layout";
+
+const ACTIVE_METRIC = {
+  id: "pbr",
+  label: "주가순자산비율",
+  description: "PBR",
+} as const;
 import { processPBRData, calculatePBRPeriodAnalysis, coerceVolumeValue, type PBRData } from "@/lib/pbr-utils";
 import PBRChartWithPeriodSwitcher from "@/components/pbr-chart-with-period-switcher";
 
