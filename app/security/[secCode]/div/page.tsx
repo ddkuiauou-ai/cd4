@@ -141,117 +141,123 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     notFound();
   }
 
-  // DIV 데이터 처리 및 중복 제거
-  const rawResult = data.map((item, index) => ({
-    date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date),
-    value: item.div,
-    originalIndex: index,
-  })).filter((item) => item.value !== null);
+  // DIV 데이터 처리 및 중복 제거 최적화
+  const processDIVData = (rawData: any[]) => {
+    const dataMap = new Map<string, { value: number; index: number }>();
 
-  // 같은 날짜의 중복 데이터 제거 (최신 데이터 우선)
-  const uniqueDataMap = new Map();
-  rawResult.forEach((item) => {
-    const key = item.date;
-    if (!uniqueDataMap.has(key) || uniqueDataMap.get(key).originalIndex < item.originalIndex) {
-      uniqueDataMap.set(key, item);
-    }
-  });
+    // 단일 패스로 데이터 처리 및 중복 제거
+    rawData.forEach((item, index) => {
+      if (item.div !== null) {
+        const dateKey = item.date instanceof Date
+          ? item.date.toISOString().split('T')[0]
+          : String(item.date);
 
-  const result = Array.from(uniqueDataMap.values()).map((item, index) => ({
-    date: item.date,
-    value: item.value,
-    uniqueKey: `${item.date}-${index}`,
-  })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const existing = dataMap.get(dateKey);
+        if (!existing || existing.index < index) {
+          dataMap.set(dateKey, { value: item.div, index });
+        }
+      }
+    });
+
+    // 정렬된 결과 반환
+    return Array.from(dataMap.entries())
+      .map(([date, { value }], arrayIndex) => ({
+        date,
+        value,
+        uniqueKey: `${date}-${arrayIndex}`,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const result = processDIVData(data);
 
   const displayName = security.korName || security.name;
 
-  // 배당수익률 히스토그램 데이터 생성 함수
+  // 배당수익률 히스토그램 데이터 생성 함수 최적화
   const createDividendYieldHistogram = (data: Array<{ value: number }>) => {
-    if (!data || data.length === 0) return [];
+    if (!data?.length) return [];
 
-    // 배당수익률 값들을 추출
-    const values = data.map(item => item.value).filter(val => val !== null && val !== undefined);
+    const values = data.map(item => item.value).filter((val): val is number =>
+      val !== null && val !== undefined && !Number.isNaN(val)
+    );
 
     if (values.length === 0) return [];
 
-    // 최소값과 최대값 계산
     const min = Math.min(...values);
     const max = Math.max(...values);
-
-    // 구간 크기 계산 (0.5% 단위로)
     const binSize = 0.5;
     const binCount = Math.ceil((max - min) / binSize);
 
-    // 히스토그램 데이터 생성
-    const histogramData = [];
+    // 빈도 계산을 위한 맵 사용으로 효율성 향상
+    const frequencyMap = new Map<number, number>();
 
-    for (let i = 0; i < binCount; i++) {
-      const binStart = min + (i * binSize);
-      const binEnd = binStart + binSize;
-      const count = values.filter(val => val >= binStart && val < binEnd).length;
+    values.forEach(val => {
+      const binIndex = Math.floor((val - min) / binSize);
+      frequencyMap.set(binIndex, (frequencyMap.get(binIndex) || 0) + 1);
+    });
 
-      if (count > 0) {
-        histogramData.push({
+    return Array.from(frequencyMap.entries())
+      .map(([binIndex, frequency]) => {
+        const binStart = min + (binIndex * binSize);
+        const binEnd = binStart + binSize;
+        return {
           range: `${binStart.toFixed(1)}-${binEnd.toFixed(1)}%`,
-          frequency: count,
+          frequency,
           binStart,
           binEnd
-        });
-      }
-    }
-
-    return histogramData;
+        };
+      })
+      .sort((a, b) => a.binStart - b.binStart);
   };
 
   const histogramData = createDividendYieldHistogram(result);
 
-  // 배당수익률 기간별 분석 계산
+  // 배당수익률 기간별 분석 계산 최적화
   const calculateDividendYieldPeriodAnalysis = (data: Array<{ date: string; value: number }>) => {
-    if (!data || data.length === 0) return null;
+    if (!data?.length) return null;
 
-    const values = data.map(item => item.value).filter(val => val !== null && val !== undefined);
-    if (values.length === 0) return null;
+    const validData = data.filter(item => item.value !== null && item.value !== undefined);
+    if (!validData.length) return null;
 
+    const values = validData.map(item => item.value);
     const latest = values[values.length - 1];
-    const sortedValues = values.sort((a, b) => a - b);
-    const min = sortedValues[0];
-    const max = sortedValues[sortedValues.length - 1];
+    const sortedValues = [...values].sort((a, b) => a - b);
 
-    // 기간별 평균 계산
-    const periods = [];
-    const now = new Date();
-    const dataWithDates = data.map(item => ({
-      ...item,
-      dateObj: new Date(item.date)
+    // 기간별 평균 계산을 위한 헬퍼 함수
+    const calculatePeriodAverage = (months: number, dataWithDates: Array<{ dateObj: Date; value: number }>) => {
+      const cutoffDate = new Date(Date.now() - months * 30 * 24 * 60 * 60 * 1000);
+      const filteredData = dataWithDates.filter(item => item.dateObj >= cutoffDate);
+      return filteredData.length > 0
+        ? filteredData.reduce((sum, item) => sum + item.value, 0) / filteredData.length
+        : null;
+    };
+
+    // 날짜 객체와 함께 데이터 준비 (한 번만 수행)
+    const dataWithDates = validData.map(item => ({
+      dateObj: new Date(item.date),
+      value: item.value
     }));
 
-    // 12개월 평균
-    const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-    const last12Months = dataWithDates.filter(item => item.dateObj >= oneYearAgo);
-    if (last12Months.length > 0) {
-      const avg12Month = last12Months.reduce((sum, item) => sum + item.value, 0) / last12Months.length;
-      periods.push({ label: '12개월 평균', value: avg12Month });
-    }
+    // 기간별 평균 계산
+    const periodConfigs = [
+      { months: 12, label: '12개월 평균' },
+      { months: 36, label: '3년 평균' },
+      { months: 60, label: '5년 평균' }
+    ];
 
-    // 3년 평균
-    const threeYearsAgo = new Date(now.getTime() - 3 * 365 * 24 * 60 * 60 * 1000);
-    const last3Years = dataWithDates.filter(item => item.dateObj >= threeYearsAgo);
-    if (last3Years.length > 0) {
-      const avg3Year = last3Years.reduce((sum, item) => sum + item.value, 0) / last3Years.length;
-      periods.push({ label: '3년 평균', value: avg3Year });
-    }
-
-    // 5년 평균
-    const fiveYearsAgo = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
-    const last5Years = dataWithDates.filter(item => item.dateObj >= fiveYearsAgo);
-    if (last5Years.length > 0) {
-      const avg5Year = last5Years.reduce((sum, item) => sum + item.value, 0) / last5Years.length;
-      periods.push({ label: '5년 평균', value: avg5Year });
-    }
+    const periods = periodConfigs
+      .map(({ months, label }) => {
+        const avg = calculatePeriodAverage(months, dataWithDates);
+        return avg !== null ? { label, value: avg } : null;
+      })
+      .filter(Boolean);
 
     return {
-      latest: latest,
-      minMax: { min, max },
+      latest,
+      minMax: {
+        min: sortedValues[0],
+        max: sortedValues[sortedValues.length - 1]
+      },
       periods
     };
   };
@@ -268,92 +274,73 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   const annualDownloadFilename = `${sanitizedSecCode}-div${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
 
 
-  // Process price data for candlestick chart
-  const rawPrices: Price[] = Array.isArray(security.prices)
-    ? (security.prices as Price[])
-    : [];
-  const parsedPricePoints = rawPrices
-    .map((price) => {
-      const sourceDate = price?.date;
-      const date =
-        sourceDate instanceof Date ? sourceDate : new Date(sourceDate ?? "");
-      if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
-        return null;
-      }
+  // Process price data for candlestick chart 최적화
+  const processPriceData = (prices: any[], daysLimit = 90) => {
+    if (!Array.isArray(prices)) return { sortedPoints: [], candlestickData: [] };
 
-      const closeValue =
-        typeof price?.close === "number" ? price.close : undefined;
-      const openValue = typeof price?.open === "number" ? price.open : undefined;
-      const highValue = typeof price?.high === "number" ? price.high : undefined;
-      const lowValue = typeof price?.low === "number" ? price.low : undefined;
+    const validPoints = prices
+      .map((price) => {
+        // 날짜 파싱
+        const date = price?.date instanceof Date
+          ? price.date
+          : new Date(price?.date ?? "");
 
-      const resolvedClose = closeValue ?? openValue ?? null;
-      const resolvedOpen = openValue ?? closeValue ?? null;
+        if (!date || Number.isNaN(date.getTime())) return null;
 
-      if (resolvedClose === null || resolvedOpen === null) {
-        return null;
-      }
+        // OHLC 값 검증 및 기본값 설정
+        const close = price?.close ?? price?.open ?? null;
+        const open = price?.open ?? price?.close ?? null;
 
-      const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
-      const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
-      const volumeValue = coerceVolumeValue(price?.volume, price?.fvolume);
+        if (close === null || open === null) return null;
 
-      return {
-        date,
-        time: date.toISOString().split("T")[0],
-        open: Number(resolvedOpen),
-        high: Number(resolvedHigh),
-        low: Number(resolvedLow),
-        close: Number(resolvedClose),
-        volume: Number.isFinite(volumeValue) ? Number(volumeValue) : null,
-      };
-    })
-    .filter((point): point is {
-      date: Date;
-      time: string;
-      open: number;
-      high: number;
-      low: number;
-      close: number;
-      volume: number | null;
-    } =>
-      !!point &&
-      Number.isFinite(point.open) &&
-      Number.isFinite(point.high) &&
-      Number.isFinite(point.low) &&
-      Number.isFinite(point.close));
+        const high = price?.high ?? Math.max(open, close);
+        const low = price?.low ?? Math.min(open, close);
+        const volume = coerceVolumeValue(price?.volume, price?.fvolume);
 
-  const sortedPricePoints = parsedPricePoints.sort(
-    (a, b) => a.date.getTime() - b.date.getTime(),
-  );
+        // 유효성 검증
+        if (!Number.isFinite(open) || !Number.isFinite(high) ||
+          !Number.isFinite(low) || !Number.isFinite(close)) {
+          return null;
+        }
 
-  const latestPricePoint = sortedPricePoints.at(-1);
-  const referenceDate = latestPricePoint
-    ? new Date(latestPricePoint.date.getTime())
-    : new Date();
-  const priceStartDate = new Date(referenceDate.getTime());
-  priceStartDate.setDate(priceStartDate.getDate() - 90);
+        return {
+          date,
+          time: Math.floor(date.getTime() / 1000) as any, // Unix timestamp (초 단위)
+          open: Number(open),
+          high: Number(high),
+          low: Number(low),
+          close: Number(close),
+          volume: Number.isFinite(volume) ? Number(volume) : null,
+        } as const;
+      })
+      .filter((point) => point !== null)
+      .sort((a, b) => a.date.getTime() - b.date.getTime()); // 시간순 정렬 필수
 
-  let candlestickSeriesData = sortedPricePoints.filter(
-    (point) => point.date >= priceStartDate && point.date <= referenceDate,
-  );
+    if (!validPoints.length) return { sortedPoints: [], candlestickData: [] };
 
-  if (!candlestickSeriesData.length) {
-    candlestickSeriesData = sortedPricePoints.slice(-90);
-  }
+    // 최근 데이터 필터링 (최적화)
+    const latestPoint = validPoints[validPoints.length - 1];
+    const referenceDate = new Date(latestPoint.date.getTime());
+    const startDate = new Date(referenceDate.getTime() - daysLimit * 24 * 60 * 60 * 1000);
 
-  const candlestickData = candlestickSeriesData.map(
-    ({ time, open, high, low, close, volume }) => ({
-      time,
-      open,
-      high,
-      low,
-      close,
-      volume: Number.isFinite(volume ?? undefined)
-        ? Number(volume)
-        : undefined,
-    }),
-  );
+    let recentData = validPoints.filter(point => point.date >= startDate);
+    if (!recentData.length) {
+      recentData = validPoints.slice(-daysLimit);
+    }
+
+    const candlestickData = recentData.map((point) => ({
+      time: point.time,
+      open: point.open,
+      high: point.high,
+      low: point.low,
+      close: point.close,
+      volume: Number.isFinite(point.volume) ? point.volume : undefined,
+    }));
+
+    return { sortedPoints: validPoints, candlestickData };
+  };
+
+  const { sortedPoints: sortedPricePoints, candlestickData } = processPriceData(security.prices);
 
   const hasCompanyMarketcapData = Boolean(
     companyMarketcapData?.aggregatedHistory?.length &&
@@ -791,8 +778,14 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 {/* 12개월 평균 배당수익률 */}
                 <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
                   <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
+                      return period?.value ? period.value.toFixed(1) : "—";
+                    })()}</span>
+                    {(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
+                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                    })()}
                   </div>
                   <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
                     12개월 평균
@@ -802,8 +795,14 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 {/* 3년 평균 배당수익률 */}
                 <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
                   <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
+                      return period?.value ? period.value.toFixed(1) : "—";
+                    })()}</span>
+                    {(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
+                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                    })()}
                   </div>
                   <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
                     3년 평균
@@ -813,8 +812,14 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 {/* 5년 평균 배당수익률 */}
                 <div className="group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
                   <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value ? dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value && <span className="text-sm sm:text-base ml-1">%</span>}
+                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
+                      return period?.value ? period.value.toFixed(1) : "—";
+                    })()}</span>
+                    {(() => {
+                      const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
+                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                    })()}
                   </div>
                   <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
                     5년 평균
@@ -942,15 +947,24 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">12개월 평균</span>
-                  <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '12개월 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  <span className="font-medium">{(() => {
+                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
+                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
+                  })()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">3년 평균</span>
-                  <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '3년 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  <span className="font-medium">{(() => {
+                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
+                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
+                  })()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">5년 평균</span>
-                  <span className="font-medium">{dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value ? `${dividendYieldAnalysis.periods.find(p => p.label === '5년 평균')?.value.toFixed(1)}%` : "—"}</span>
+                  <span className="font-medium">{(() => {
+                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
+                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
+                  })()}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">최저 배당수익률</span>

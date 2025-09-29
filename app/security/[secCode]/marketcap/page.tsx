@@ -202,6 +202,7 @@ export default async function SecurityMarketcapPage({
     notFound();
   }
 
+  // 시가총액 데이터 처리 및 최적화
   const marketcapHistory = marketcapHistoryRaw
     .map((entry) =>
       formatHistoryEntry({
@@ -220,6 +221,13 @@ export default async function SecurityMarketcapPage({
   const latestMarketcapValue = latestHistoryPoint.value;
   const latestMarketcapDate = latestHistoryPoint.date;
 
+  // 차트 데이터 생성을 위한 헬퍼 함수 (중복 제거)
+  const createChartData = (data: typeof marketcapHistory) =>
+    data.map((item) => ({
+      date: item.date.toISOString().split("T")[0],
+      totalValue: item.value,
+    }));
+
   const threeMonthStart = new Date(latestHistoryPoint.date.getTime());
   threeMonthStart.setMonth(threeMonthStart.getMonth() - 3);
 
@@ -227,18 +235,11 @@ export default async function SecurityMarketcapPage({
     (item) => item.date >= threeMonthStart,
   );
 
-  const marketcapChartData = (recentHistory.length
-    ? recentHistory
-    : marketcapHistory.slice(-90)
-  ).map((item) => ({
-    date: item.date.toISOString().split("T")[0],
-    totalValue: item.value,
-  }));
+  const marketcapChartData = createChartData(
+    recentHistory.length ? recentHistory : marketcapHistory.slice(-90)
+  );
 
-  const fullChartData = marketcapHistory.map((item) => ({
-    date: item.date.toISOString().split("T")[0],
-    totalValue: item.value,
-  }));
+  const fullChartData = createChartData(marketcapHistory);
 
   const listData = marketcapHistory.map((item) => ({
     date: item.date.toISOString().split("T")[0],

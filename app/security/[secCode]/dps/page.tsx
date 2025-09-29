@@ -176,126 +176,114 @@ export default async function SecurityDPSPage({ params }: SecurityDPSPageProps) 
   // Calculate period analysis for DPS
   const periodAnalysis = calculateDPSPeriodAnalysis(result, displayName, market);
 
-  // Process price data for candlestick chart
-  const rawPrices: Price[] = Array.isArray(security.prices)
-    ? (security.prices as Price[])
-    : [];
-  const parsedPricePoints = rawPrices
-    .map((price) => {
-      const sourceDate = price?.date;
-      const date =
-        sourceDate instanceof Date ? sourceDate : new Date(sourceDate ?? "");
-      if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
-        return null;
-      }
+  // Process price data for candlestick chart 최적화
+  const processPriceData = (prices: any[], daysLimit = 90) => {
+    if (!Array.isArray(prices)) return { sortedPoints: [], candlestickData: [] };
 
-      const closeValue =
-        typeof price?.close === "number" ? price.close : undefined;
-      const openValue = typeof price?.open === "number" ? price.open : undefined;
-      const highValue = typeof price?.high === "number" ? price.high : undefined;
-      const lowValue = typeof price?.low === "number" ? price.low : undefined;
+    const validPoints = prices
+      .map((price) => {
+        // 날짜 파싱
+        const date = price?.date instanceof Date
+          ? price.date
+          : new Date(price?.date ?? "");
 
-      const resolvedClose = closeValue ?? openValue ?? null;
-      const resolvedOpen = openValue ?? closeValue ?? null;
+        if (!date || Number.isNaN(date.getTime())) return null;
 
-      if (resolvedClose === null || resolvedOpen === null) {
-        return null;
-      }
+        // OHLC 값 검증 및 기본값 설정
+        const close = price?.close ?? price?.open ?? null;
+        const open = price?.open ?? price?.close ?? null;
 
-      const resolvedHigh = highValue ?? Math.max(resolvedOpen, resolvedClose);
-      const resolvedLow = lowValue ?? Math.min(resolvedOpen, resolvedClose);
-      const volumeValue = coerceVolumeValue(price?.volume, price?.fvolume);
+        if (close === null || open === null) return null;
 
-      return {
-        date,
-        time: date.toISOString().split("T")[0],
-        open: Number(resolvedOpen),
-        high: Number(resolvedHigh),
-        low: Number(resolvedLow),
-        close: Number(resolvedClose),
-        volume: Number.isFinite(volumeValue) ? Number(volumeValue) : null,
-      };
-    })
-    .filter((point): point is {
-      date: Date;
-      time: string;
-      open: number;
-      high: number;
-      low: number;
-      close: number;
-      volume: number | null;
-    } =>
-      !!point &&
-      Number.isFinite(point.open) &&
-      Number.isFinite(point.high) &&
-      Number.isFinite(point.low) &&
-      Number.isFinite(point.close));
+        const high = price?.high ?? Math.max(open, close);
+        const low = price?.low ?? Math.min(open, close);
+        const volume = coerceVolumeValue(price?.volume, price?.fvolume);
 
-  const sortedPricePoints = parsedPricePoints.sort(
-    (a, b) => a.date.getTime() - b.date.getTime(),
-  );
+        // 유효성 검증
+        if (!Number.isFinite(open) || !Number.isFinite(high) ||
+          !Number.isFinite(low) || !Number.isFinite(close)) {
+          return null;
+        }
 
-  const latestPricePoint = sortedPricePoints.at(-1);
-  const referenceDate = latestPricePoint
-    ? new Date(latestPricePoint.date.getTime())
-    : new Date();
-  const priceStartDate = new Date(referenceDate.getTime());
-  priceStartDate.setDate(priceStartDate.getDate() - 90);
+        return {
+          date,
+          time: Math.floor(date.getTime() / 1000) as any, // Unix timestamp (초 단위)
+          open: Number(open),
+          high: Number(high),
+          low: Number(low),
+          close: Number(close),
+          volume: Number.isFinite(volume) ? Number(volume) : null,
+        };
+      })
+      .filter((point) => point !== null)
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  let candlestickSeriesData = sortedPricePoints.filter(
-    (point) => point.date >= priceStartDate && point.date <= referenceDate,
-  );
+    if (!validPoints.length) return { sortedPoints: [], candlestickData: [] };
 
-  if (!candlestickSeriesData.length) {
-    candlestickSeriesData = sortedPricePoints.slice(-90);
-  }
+    // 최근 데이터 필터링 (최적화)
+    const latestPoint = validPoints[validPoints.length - 1];
+    const referenceDate = new Date(latestPoint.date.getTime());
+    const startDate = new Date(referenceDate.getTime() - daysLimit * 24 * 60 * 60 * 1000);
 
-  const candlestickData = candlestickSeriesData.map(
-    ({ time, open, high, low, close, volume }) => ({
-      time,
-      open,
-      high,
-      low,
-      close,
-      volume: Number.isFinite(volume ?? undefined)
-        ? Number(volume)
-        : undefined,
-    }),
-  );
+    let recentData = validPoints.filter(point => point.date >= startDate);
+    if (!recentData.length) {
+      recentData = validPoints.slice(-daysLimit);
+    }
 
-  // Prepare heatmap data
-  function prepareHeatmapData(result: any[]) {
+    const candlestickData = recentData.map((point) => ({
+      time: point.time,
+      open: point.open,
+      high: point.high,
+      low: point.low,
+      close: point.close,
+      volume: Number.isFinite(point.volume) ? point.volume : undefined,
+    }));
+
+    return { sortedPoints: validPoints, candlestickData };
+  };
+
+  const { sortedPoints: sortedPricePoints, candlestickData } = processPriceData(security.prices);
+
+  // Prepare heatmap data 최적화
+  const prepareHeatmapData = (result: any[]) => {
+    if (!result?.length) return [];
+
     const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
-    // Group by month and year
+    // 단일 패스로 데이터 그룹화 및 연도 수집
     const grouped: Record<number, Record<string, number>> = {};
+    const yearSet = new Set<string>();
+
     result.forEach(item => {
       const date = new Date(item.date);
       const year = date.getFullYear().toString();
-      const month = date.getMonth(); // 0-11
+      const month = date.getMonth();
+
       if (!grouped[month]) grouped[month] = {};
       grouped[month][year] = item.value;
+      yearSet.add(year);
     });
 
-    // Get all years
-    const allYears = Array.from(new Set(result.map(item => new Date(item.date).getFullYear().toString()))).sort();
+    const allYears = Array.from(yearSet).sort();
 
-    // Create data
-    const data: HeatMapSerie<{ x: string, y: number }, object>[] = monthNames.map((monthName, index) => {
-      const monthData = grouped[index] || {};
-      const dataPoints = allYears.map(year => ({
-        x: year,
-        y: monthData[year] ?? null
-      })).filter((point): point is { x: string, y: number } => point.y !== null); // Only include points with data
+    // 효율적인 데이터 생성
+    return monthNames
+      .map((monthName, index) => {
+        const monthData = grouped[index] || {};
+        const dataPoints = allYears
+          .map(year => ({
+            x: year,
+            y: monthData[year] ?? null
+          }))
+          .filter((point): point is { x: string; y: number } => point.y !== null);
 
-      return {
-        id: monthName,
-        data: dataPoints
-      };
-    }).filter(item => item.data.length > 0); // Only include months with data
-
-    return data;
-  }
+        return dataPoints.length > 0 ? {
+          id: monthName,
+          data: dataPoints
+        } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  };
 
   const heatmapData = prepareHeatmapData(result);
 

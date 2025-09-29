@@ -23,7 +23,7 @@ import {
 } from "lightweight-charts";
 
 interface CandlestickPoint {
-  time: string;
+  time: number | string; // Unix timestamp 또는 ISO string 지원
   open: number;
   high: number;
   low: number;
