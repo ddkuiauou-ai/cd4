@@ -149,6 +149,30 @@ export function InteractiveSecuritiesSection({
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
+    // 메트릭별 데이터 유무 확인 함수
+    const hasMetricData = (security: any) => {
+        if (!security.data) return false;
+
+        switch (currentMetric) {
+            case "marketcap":
+                return security.data.marketcap != null;
+            case "per":
+                return security.data.per != null;
+            case "pbr":
+                return security.data.pbr != null;
+            case "div":
+                return security.data.div != null;
+            case "dps":
+                return security.data.dps != null;
+            case "bps":
+                return security.data.bps != null;
+            case "eps":
+                return security.data.eps != null;
+            default:
+                return false;
+        }
+    };
+
     // 카드 클릭 핸들러 - 애니메이션 효과 추가
     const handleCardClick = (security: any) => {
         console.log('🔥 Sidebar Card Click:', {
@@ -158,7 +182,7 @@ export function InteractiveSecuritiesSection({
             currentTicker: currentTicker
         });
 
-        if (!mounted || !hasValidData || isTransitioning || !security.data?.ticker) return;
+        if (!mounted || !hasValidData || isTransitioning || !security.data?.ticker || !hasMetricData(security)) return;
 
         // 클릭 애니메이션 트리거
         setClickedButton(security.type);
@@ -216,18 +240,20 @@ export function InteractiveSecuritiesSection({
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════    // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 
-    const getCardStyle = (secType: string) => {
+    const getCardStyle = (secType: string, security?: any) => {
         const isClicked = clickedButton === secType;
+        const hasData = security ? hasMetricData(security) : true;
+        const isClickable = !isTransitioning && hasData;
         return {
-            isClickable: !isTransitioning,
+            isClickable,
             className: cn(
                 "select-none transition-all duration-200",
-                !isTransitioning ? "cursor-pointer" : "cursor-default",
-                isTransitioning && "pointer-events-none",
+                isClickable ? "cursor-pointer hover:bg-muted/50" : "cursor-not-allowed opacity-50",
+                !isClickable && "pointer-events-none",
                 // 키보드 포커스 시 미묘한 배경 변화 (focus ring 대신)
-                "focus-visible:bg-muted/60 focus-visible:shadow-md",
+                isClickable ? "focus-visible:bg-muted/60 focus-visible:shadow-md" : "",
                 // 클릭 애니메이션 효과
-                isClicked && "scale-95 shadow-lg transform-gpu"
+                isClicked && isClickable && "scale-95 shadow-lg transform-gpu"
             )
         };
     };
@@ -323,19 +349,19 @@ export function InteractiveSecuritiesSection({
                         >
                             <div
                                 className={cn(
-                                    getCardStyle(security.type).className,
+                                    getCardStyle(security.type, security).className,
                                     "group/card relative h-full focus:outline-none focus:ring-0 rounded-lg"
                                 )}
-                                onClick={getCardStyle(security.type).isClickable ? () => handleCardClick(security) : undefined}
+                                onClick={getCardStyle(security.type, security).isClickable ? () => handleCardClick(security) : undefined}
                                 onKeyDown={(e) => {
-                                    if ((e.key === 'Enter' || e.key === ' ') && getCardStyle(security.type).isClickable) {
+                                    if ((e.key === 'Enter' || e.key === ' ') && getCardStyle(security.type, security).isClickable) {
                                         e.preventDefault();
                                         handleCardClick(security);
                                     }
                                 }}
                                 data-card-type={security.type}
-                                role={getCardStyle(security.type).isClickable ? "button" : "presentation"}
-                                tabIndex={getCardStyle(security.type).isClickable ? 0 : -1}
+                                role={getCardStyle(security.type, security).isClickable ? "button" : "presentation"}
+                                tabIndex={getCardStyle(security.type, security).isClickable ? 0 : -1}
                                 aria-label={`${security.type} - ${security.korName || security.name} 상세보기`}
                             >
                                 <CardMarketcap
@@ -429,19 +455,19 @@ export function InteractiveSecuritiesSection({
                         >
                             <div
                                 className={cn(
-                                    getCardStyle(security.type).className,
+                                    getCardStyle(security.type, security).className,
                                     "group/card relative h-full focus:outline-none focus:ring-0 rounded-lg"
                                 )}
-                                onClick={getCardStyle(security.type).isClickable ? () => handleCardClick(security) : undefined}
+                                onClick={getCardStyle(security.type, security).isClickable ? () => handleCardClick(security) : undefined}
                                 onKeyDown={(e) => {
-                                    if ((e.key === 'Enter' || e.key === ' ') && getCardStyle(security.type).isClickable) {
+                                    if ((e.key === 'Enter' || e.key === ' ') && getCardStyle(security.type, security).isClickable) {
                                         e.preventDefault();
                                         handleCardClick(security);
                                     }
                                 }}
                                 data-card-type={security.type}
-                                role={getCardStyle(security.type).isClickable ? "button" : "presentation"}
-                                tabIndex={getCardStyle(security.type).isClickable ? 0 : -1}
+                                role={getCardStyle(security.type, security).isClickable ? "button" : "presentation"}
+                                tabIndex={getCardStyle(security.type, security).isClickable ? 0 : -1}
                                 aria-label={`${security.type} - ${security.korName || security.name} 상세보기`}
                             >
                                 <CardMarketcap
