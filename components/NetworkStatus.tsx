@@ -2,14 +2,14 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/app/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from '@/app/components/ui/tooltip';
+} from '@/components/ui/tooltip';
 
 type NetworkStatus = 'connected' | 'disconnected' | 'updating' | 'delayed' | 'error';
 

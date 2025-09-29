@@ -10,8 +10,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import CompanyLogo from "@/components/CompanyLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import MarketTrends from "@/app/components/common/MarketTrends";
-import NetworkStatus from "@/app/components/common/NetworkStatus";
+import MarketTrends from "@/components/MarketTrends";
+import NetworkStatus from "@/components/NetworkStatus";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
