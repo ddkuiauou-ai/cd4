@@ -25,11 +25,15 @@ import ListMarketcap from "@/components/list-marketcap";
 import RankHeader from "@/components/header-rank";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
+import { SidebarManager } from "@/components/sidebar-manager";
 import { InteractiveChartSection } from "@/components/interactive-chart-section";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
+import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
+import { RecentSecurityTracker } from "@/components/recent-security-tracker";
 import { PageNavigation } from "@/components/page-navigation";
+import { NavigationCollapsible } from "@/components/navigation-collapsible";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import ShareButton from "@/components/share-button";
@@ -830,6 +834,17 @@ export default async function SecurityMarketcapPage({
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      {/* 최근 본 종목 추적 */}
+      <RecentSecurityTracker
+        secCode={secCode}
+        name={security.name || ""}
+        korName={security.korName}
+        ticker={currentTicker}
+        exchange={market}
+        metricType="marketcap"
+        metricValue={security.marketcap}
+      />
+
       <div className="mx-auto w-full min-w-0">
         <nav
           aria-label="Breadcrumb"
@@ -926,13 +941,14 @@ export default async function SecurityMarketcapPage({
       </div>
 
       <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="mb-3 text-sm font-semibold">페이지 내비게이션</h3>
-            <PageNavigation
-              sections={navigationSections}
-            />
-          </div>
+        <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+          <NavigationCollapsible
+            title="페이지 내비게이션"
+            defaultCollapsed={false}
+            storageKey="navigation-collapsed"
+          >
+            <PageNavigation sections={navigationSections} collapsible={false} />
+          </NavigationCollapsible>
 
           {hasCompanyMarketcapData && (
             <KeyMetricsSidebar
@@ -944,6 +960,9 @@ export default async function SecurityMarketcapPage({
               selectedSecurityTypeOverride={selectedType}
             />
           )}
+
+          {/* 최근 본 종목 사이드바 */}
+          <RecentSecuritiesSidebar currentSecCode={secCode} />
 
           {hasCompanyMarketcapData && companySecs.length > 0 && (
             <InteractiveSecuritiesSection

@@ -420,7 +420,7 @@ export function InteractiveSecuritiesSection({
     // 메인 그리드 레이아웃 (기존 로직)
     return (
         <div ref={containerRef} className={cn(
-            "relative w-full",
+            "relative w-full mb-6",
             "transition-all duration-500 ease-out",
             isTransitioning && "opacity-95"
         )}>

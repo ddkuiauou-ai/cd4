@@ -13,6 +13,9 @@ import RankHeader from "@/components/header-rank";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { KeyMetricsSectionEPS } from "@/components/key-metrics-section-eps";
 import { KeyMetricsSidebarEPS } from "@/components/key-metrics-sidebar-eps";
+import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
+import { RecentSecurityTracker } from "@/components/recent-security-tracker";
+import { SidebarManager } from "@/components/sidebar-manager";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
@@ -330,6 +333,17 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      {/* 최근 본 종목 추적 */}
+      <RecentSecurityTracker
+        secCode={secCode}
+        name={security.name || ""}
+        korName={security.korName}
+        ticker={currentTicker}
+        exchange={market}
+        metricType="eps"
+        metricValue={security.eps}
+      />
+
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -734,45 +748,20 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
 
       {/* 사이드바 네비게이션 (데스크톱) */}
       <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
-          {/* 페이지 네비게이션 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <PageNavigation sections={navigationSections} />
-          </div>
-
-          {/* 핵심 지표 사이드바 */}
-          {periodAnalysis && (
-            <KeyMetricsSidebarEPS
-              epsRank={epsRank}
-              latestEPS={periodAnalysis.latestEPS}
-              eps12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-              eps3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-              eps5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-              eps10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-              eps20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-              rangeMin={periodAnalysis.minMax.min}
-              rangeMax={periodAnalysis.minMax.max}
-              currentPrice={security.prices?.[0]?.close || null}
-            />
-          )}
-
-          {/* 종목별 EPS 비교 */}
-          {hasCompanyMarketcapData && companySecs.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={comparableSecuritiesWithEPS}
-              currentTicker={currentTicker}
-              market={market}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard={true}
-              compactMode={false}
-              baseUrl="security"
-              currentMetric="eps"
-            />
-          )}
-        </div>
+        <SidebarManager
+          navigationSections={navigationSections}
+          periodAnalysis={periodAnalysis}
+          perRank={epsRank}
+          security={security}
+          secCode={secCode}
+          hasCompanyMarketcapData={hasCompanyMarketcapData}
+          companySecs={companySecs}
+          comparableSecuritiesWithPER={comparableSecuritiesWithEPS}
+          currentTicker={currentTicker}
+          market={market}
+          companyMarketcapData={companyMarketcapData}
+          metricType="eps"
+        />
       </div>
     </main>
   );

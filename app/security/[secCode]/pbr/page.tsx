@@ -13,6 +13,9 @@ import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import { KeyMetricsSectionPBR } from "@/components/key-metrics-section-pbr";
 import { KeyMetricsSidebarPBR } from "@/components/key-metrics-sidebar-pbr";
+import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
+import { RecentSecurityTracker } from "@/components/recent-security-tracker";
+import { SidebarManager } from "@/components/sidebar-manager";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
@@ -363,6 +366,17 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      {/* 최근 본 종목 추적 */}
+      <RecentSecurityTracker
+        secCode={secCode}
+        name={security.name || ""}
+        korName={security.korName}
+        ticker={currentTicker}
+        exchange={market}
+        metricType="pbr"
+        metricValue={security.pbr}
+      />
+
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -783,45 +797,20 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
 
       {/* 사이드바 네비게이션 (데스크톱) */}
       <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
-          {/* 페이지 네비게이션 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <PageNavigation sections={navigationSections} />
-          </div>
-
-          {/* 핵심 지표 사이드바 */}
-          {periodAnalysis && (
-            <KeyMetricsSidebarPBR
-              pbrRank={pbrRank}
-              latestPBR={periodAnalysis.latestPBR}
-              pbr12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value || null}
-              pbr3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value || null}
-              pbr5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value || null}
-              pbr10Year={periodAnalysis.periods.find(p => p.label === '10년 평균')?.value || null}
-              pbr20Year={periodAnalysis.periods.find(p => p.label === '20년 평균')?.value || null}
-              rangeMin={periodAnalysis.minMax.min}
-              rangeMax={periodAnalysis.minMax.max}
-              currentPrice={security.prices?.[0]?.close || null}
-            />
-          )}
-
-          {/* 종목별 PBR 비교 */}
-          {hasCompanyMarketcapData && companySecs.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={comparableSecuritiesWithPBR}
-              currentTicker={currentTicker}
-              market={market}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard={true}
-              compactMode={false}
-              baseUrl="security"
-              currentMetric="pbr"
-            />
-          )}
-        </div>
+        <SidebarManager
+          navigationSections={navigationSections}
+          periodAnalysis={periodAnalysis}
+          perRank={pbrRank}
+          security={security}
+          secCode={secCode}
+          hasCompanyMarketcapData={hasCompanyMarketcapData}
+          companySecs={companySecs}
+          comparableSecuritiesWithPER={comparableSecuritiesWithPBR}
+          currentTicker={currentTicker}
+          market={market}
+          companyMarketcapData={companyMarketcapData}
+          metricType="pbr"
+        />
       </div>
     </main>
   );

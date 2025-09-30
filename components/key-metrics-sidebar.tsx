@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 import { formatNumberWithSeparateUnit } from "@/lib/utils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface KeyMetricsSidebarProps {
     companyMarketcapData: any;
@@ -27,6 +28,27 @@ export function KeyMetricsSidebar({
     selectedSecurityTypeOverride,
 }: KeyMetricsSidebarProps) {
     const pathname = usePathname();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
+    // 세션 스토리지에서 접기 상태 불러오기
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const stored = sessionStorage.getItem('key-metrics-collapsed');
+            if (stored !== null) {
+                setIsCollapsed(JSON.parse(stored));
+            }
+        }
+    }, []);
+
+    const handleToggle = () => {
+        const newCollapsed = !isCollapsed;
+        setIsCollapsed(newCollapsed);
+
+        // 세션 스토리지에 상태 저장
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('key-metrics-collapsed', JSON.stringify(newCollapsed));
+        }
+    };
 
     const pathTicker = useMemo(() => {
         const pathParts = pathname.split('/');
@@ -150,68 +172,80 @@ export function KeyMetricsSidebar({
     };
 
     return (
-        <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">핵심 지표</h3>
-            <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                        {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
-                    </span>
-                    <span className="font-medium">{getRanking()}위</span>
-                </div>
+        <div className={`${isCollapsed ? 'bg-background p-2 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
+            <button
+                onClick={handleToggle}
+                className={`flex items-center gap-2 text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full justify-between ${isCollapsed ? 'py-2' : 'py-2 mb-3'
+                    }`}
+            >
+                <span>핵심 지표</span>
+                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </button>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                        {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
-                    </span>
-                    <span className="font-medium">
-                        {(() => {
-                            const value = getMetricValue('current');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
-                            return `${formatted.number}${formatted.unit}원`;
-                        })()}
-                    </span>
-                </div>
+            {!isCollapsed && (
+                <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                            {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
+                        </span>
+                        <span className="font-medium">{getRanking()}위</span>
+                    </div>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">현재 주가</span>
-                    <span className="font-medium">{getCurrentPrice()}원</span>
-                </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                            {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
+                        </span>
+                        <span className="font-medium">
+                            {(() => {
+                                const value = getMetricValue('current');
+                                const formatted = formatNumberWithSeparateUnit(value || 0);
+                                return `${formatted.number}${formatted.unit}원`;
+                            })()}
+                        </span>
+                    </div>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">5년 평균</span>
-                    <span className="font-medium">
-                        {(() => {
-                            const value = getMetricValue('avg5y');
-                            if (!value) return "—";
-                            const formatted = formatNumberWithSeparateUnit(value);
-                            return `${formatted.number}${formatted.unit}원`;
-                        })()}
-                    </span>
-                </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">현재 주가</span>
+                        <span className="font-medium">{getCurrentPrice()}원</span>
+                    </div>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">최저 시총</span>
-                    <span className="font-medium">
-                        {(() => {
-                            const value = getMetricValue('min');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
-                            return `${formatted.number}${formatted.unit}원`;
-                        })()}
-                    </span>
-                </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">5년 평균</span>
+                        <span className="font-medium">
+                            {(() => {
+                                const value = getMetricValue('avg5y');
+                                if (!value) return "—";
+                                const formatted = formatNumberWithSeparateUnit(value);
+                                return `${formatted.number}${formatted.unit}원`;
+                            })()}
+                        </span>
+                    </div>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">최고 시총</span>
-                    <span className="font-medium">
-                        {(() => {
-                            const value = getMetricValue('max');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
-                            return `${formatted.number}${formatted.unit}원`;
-                        })()}
-                    </span>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">최저 시총</span>
+                        <span className="font-medium">
+                            {(() => {
+                                const value = getMetricValue('min');
+                                const formatted = formatNumberWithSeparateUnit(value || 0);
+                                return `${formatted.number}${formatted.unit}원`;
+                            })()}
+                        </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">최고 시총</span>
+                        <span className="font-medium">
+                            {(() => {
+                                const value = getMetricValue('max');
+                                const formatted = formatNumberWithSeparateUnit(value || 0);
+                                return `${formatted.number}${formatted.unit}원`;
+                            })()}
+                        </span>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
+
+export default memo(KeyMetricsSidebar);

@@ -12,11 +12,14 @@ import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
 import { PageNavigation } from "@/components/page-navigation";
+import { SidebarManager } from "@/components/sidebar-manager";
 import { CandlestickChart } from "@/components/chart-candlestick";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
 import { CompanyFinancialTabs } from "@/components/company-financial-tabs";
 import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
+import { RecentSecurityTracker } from "@/components/recent-security-tracker";
 import { Marquee } from "@/components/ui/marquee";
 import { SecDivPager } from "@/components/pager-marketcap-security";
 import type { Price } from "@/typings";
@@ -89,6 +92,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   if (!security) {
     notFound();
   }
+
+  // Extract market from secCode (e.g., "KOSPI.005930" -> "KOSPI")
+  const market = secCode.includes('.') ? secCode.split('.')[0] : 'KOSPI';
+
+  // Extract ticker from secCode (e.g., "KOSPI.005930" -> "005930")
+  const currentTicker = secCode.includes('.') ? secCode.split('.')[1] : secCode;
 
   // Parallelize independent data fetching
   const [
@@ -383,6 +392,17 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      {/* 최근 본 종목 추적 */}
+      <RecentSecurityTracker
+        secCode={secCode}
+        name={security.name || ""}
+        korName={security.korName}
+        ticker={currentTicker}
+        exchange={market}
+        metricType="div"
+        metricValue={security.div}
+      />
+
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -925,75 +945,24 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
 
       {/* 사이드바 네비게이션 (데스크톱) */}
       <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
-          {/* 페이지 네비게이션 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <PageNavigation sections={navigationSections} />
-          </div>
-
-          {/* 핵심 지표 사이드바 */}
-          {dividendYieldAnalysis && (
-            <div className="rounded-xl border bg-background p-4">
-              <h3 className="text-sm font-semibold mb-3">핵심 지표</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">배당수익률 랭킹</span>
-                  <span className="font-medium">{divRank || "—"}위</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">현재 배당수익률</span>
-                  <span className="font-medium">{dividendYieldAnalysis.latest ? `${dividendYieldAnalysis.latest.toFixed(1)}%` : "—"}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">12개월 평균</span>
-                  <span className="font-medium">{(() => {
-                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
-                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
-                  })()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">3년 평균</span>
-                  <span className="font-medium">{(() => {
-                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
-                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
-                  })()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">5년 평균</span>
-                  <span className="font-medium">{(() => {
-                    const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
-                    return period?.value ? `${period.value.toFixed(1)}%` : "—";
-                  })()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">최저 배당수익률</span>
-                  <span className="font-medium">{dividendYieldAnalysis.minMax.min ? `${dividendYieldAnalysis.minMax.min.toFixed(1)}%` : "—"}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">최고 배당수익률</span>
-                  <span className="font-medium">{dividendYieldAnalysis.minMax.max ? `${dividendYieldAnalysis.minMax.max.toFixed(1)}%` : "—"}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 종목별 배당수익률 비교 */}
-          {hasCompanyMarketcapData && securities.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={comparableSecuritiesWithDIV}
-              currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
-              market={security.exchange || 'KOSPI'}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard={true}
-              compactMode={false}
-              baseUrl="security"
-              currentMetric="div"
-            />
-          )}
-        </div>
+        <SidebarManager
+          navigationSections={navigationSections}
+          periodAnalysis={dividendYieldAnalysis ? {
+            latestDIV: dividendYieldAnalysis.latest,
+            periods: dividendYieldAnalysis.periods,
+            minMax: dividendYieldAnalysis.minMax
+          } : null}
+          perRank={divRank}
+          security={security}
+          secCode={secCode}
+          hasCompanyMarketcapData={hasCompanyMarketcapData}
+          companySecs={securities}
+          comparableSecuritiesWithPER={comparableSecuritiesWithDIV}
+          currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
+          market={security.exchange || 'KOSPI'}
+          companyMarketcapData={companyMarketcapData}
+          metricType="div"
+        />
       </div>
     </main>
   );

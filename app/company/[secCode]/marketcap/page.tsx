@@ -18,6 +18,8 @@ import { InteractiveChartSection } from "@/components/interactive-chart-section"
 import { CandlestickChart } from "@/components/chart-candlestick";
 import { KeyMetricsSection } from "@/components/key-metrics-section";
 import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
+import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
+import { RecentSecurityTracker } from "@/components/recent-security-tracker";
 import { PageNavigation } from "@/components/page-navigation";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
@@ -718,6 +720,17 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
   return (
     <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+      {/* 최근 본 종목 추적 */}
+      <RecentSecurityTracker
+        secCode={secCode}
+        name={security.name || ""}
+        korName={security.korName}
+        ticker={currentTicker}
+        exchange={market}
+        metricType="marketcap"
+        metricValue={security.marketcap}
+      />
+
       <div className="mx-auto w-full min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
@@ -803,7 +816,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       </div>
       {/* 사이드바 네비게이션 (데스크톱) */}
       <div className="hidden xl:block">
-        <div className="sticky top-20 space-y-6">
+        <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           {/* 페이지 네비게이션 */}
           <div className="rounded-xl border bg-background p-4">
             <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
@@ -848,6 +861,9 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               currentTickerOverride={currentTicker}
             />
           )}
+
+          {/* 최근 본 종목 사이드바 */}
+          <RecentSecuritiesSidebar currentSecCode={secCode} />
 
           {/* 종목별 시가총액 */}
           {companySecs && companySecs.length > 0 && (

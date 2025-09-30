@@ -26,7 +26,7 @@ const connectionString =
 
 // Postgres 클라이언트 초기화 (병렬 빌드 최적화)
 const sql = postgres(connectionString, {
-  max: 50, // 병렬 빌드 시 적은 연결 수 (chunk당 2개만 사용)
+  max: 4, // 병렬 빌드 시 적은 연결 수 (chunk당 2개만 사용)
   idle_timeout: 20, // 더 짧은 idle timeout (빠른 연결 반환)
   connect_timeout: 30, // connection timeout
   max_lifetime: 60 * 30, // 30분 후 연결 재사용

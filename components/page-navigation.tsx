@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface PageNavigationSection {
   id: string;
@@ -15,11 +16,16 @@ interface PageNavigationProps {
    * Additional offset to account for fixed headers when determining the active section.
    */
   offset?: number;
+  /**
+   * Whether the navigation should be collapsible
+   */
+  collapsible?: boolean;
 }
 
-export function PageNavigation({ sections, offset = 160 }: PageNavigationProps) {
+export function PageNavigation({ sections, offset = 160, collapsible = true }: PageNavigationProps) {
   const [activeSection, setActiveSection] = useState<string | null>(sections[0]?.id ?? null);
   const activeRef = useRef<string | null>(sections[0]?.id ?? null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     if (sections.length === 0) {
@@ -74,6 +80,30 @@ export function PageNavigation({ sections, offset = 160 }: PageNavigationProps) 
     setActiveSection(firstSection);
     activeRef.current = firstSection;
   }, [sections]);
+
+  if (!collapsible) {
+    return (
+      <nav className="space-y-2">
+        {sections.map((section) => {
+          const isActive = activeSection === section.id;
+          return (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className={cn(
+                "flex items-center gap-2 text-sm transition-colors py-1",
+                isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {section.icon}
+              {section.label}
+            </a>
+          );
+        })}
+      </nav>
+    );
+  }
 
   return (
     <nav className="space-y-2">

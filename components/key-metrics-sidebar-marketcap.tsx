@@ -2,34 +2,35 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { formatMetricValue } from "@/lib/recent-securities";
 
-interface KeyMetricsSidebarDPSProps {
-    dpsRank: number | null;
-    latestDPS: number | null;
-    dps12Month: number | null;
-    dps3Year: number | null;
-    dps5Year: number | null;
-    dps10Year: number | null;
-    dps20Year: number | null;
+interface KeyMetricsSidebarMARKETCAPProps {
+    marketcapRank: number | null;
+    latestMarketcap: number | null;
+    marketcap12Month: number | null;
+    marketcap3Year: number | null;
+    marketcap5Year: number | null;
+    marketcap10Year: number | null;
+    marketcap20Year: number | null;
     rangeMin: number;
     rangeMax: number;
     currentPrice: number | null;
     onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function KeyMetricsSidebarDPS({
-    dpsRank,
-    latestDPS,
-    dps12Month,
-    dps3Year,
-    dps5Year,
-    dps10Year,
-    dps20Year,
+export function KeyMetricsSidebarMARKETCAP({
+    marketcapRank,
+    latestMarketcap,
+    marketcap12Month,
+    marketcap3Year,
+    marketcap5Year,
+    marketcap10Year,
+    marketcap20Year,
     rangeMin,
     rangeMax,
     currentPrice,
     onCollapsedChange,
-}: KeyMetricsSidebarDPSProps) {
+}: KeyMetricsSidebarMARKETCAPProps) {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     // 세션 스토리지에서 접기 상태 불러오기
@@ -79,13 +80,13 @@ export function KeyMetricsSidebarDPS({
             {!isCollapsed && (
                 <div id="key-metrics-content" className="space-y-3">
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">DPS 랭킹</span>
-                        <span className="font-medium">{dpsRank ? `${dpsRank}위` : "—"}</span>
+                        <span className="text-muted-foreground">시가총액 랭킹</span>
+                        <span className="font-medium">{marketcapRank ? `${marketcapRank}위` : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">현재 DPS</span>
-                        <span className="font-medium">{latestDPS ? `${latestDPS.toFixed(0)}원` : "—"}</span>
+                        <span className="text-muted-foreground">현재 시가총액</span>
+                        <span className="font-medium">{latestMarketcap ? formatMetricValue('marketcap', latestMarketcap) : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
@@ -95,35 +96,35 @@ export function KeyMetricsSidebarDPS({
 
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">12개월 평균</span>
-                        <span className="font-medium">{dps12Month ? `${dps12Month.toFixed(0)}원` : "—"}</span>
+                        <span className="font-medium">{marketcap12Month ? formatMetricValue('marketcap', marketcap12Month) : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">3년 평균</span>
-                        <span className="font-medium">{dps3Year ? `${dps3Year.toFixed(0)}원` : "—"}</span>
+                        <span className="font-medium">{marketcap3Year ? formatMetricValue('marketcap', marketcap3Year) : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">5년 평균</span>
-                        <span className="font-medium">{dps5Year ? `${dps5Year.toFixed(0)}원` : "—"}</span>
+                        <span className="font-medium">{marketcap5Year ? formatMetricValue('marketcap', marketcap5Year) : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">10년 평균</span>
-                        <span className="font-medium">{dps10Year ? `${dps10Year.toFixed(0)}원` : "—"}</span>
+                        <span className="font-medium">{marketcap10Year ? formatMetricValue('marketcap', marketcap10Year) : "—"}</span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">20년 평균</span>
-                        <span className="font-medium">{dps20Year ? `${dps20Year.toFixed(0)}원` : "—"}</span>
+                        <span className="font-medium">{marketcap20Year ? formatMetricValue('marketcap', marketcap20Year) : "—"}</span>
                     </div>
 
                     <hr className="my-3" />
 
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">DPS 범위</span>
+                        <span className="text-muted-foreground">시가총액 범위</span>
                         <span className="font-medium text-xs">
-                            {rangeMin && rangeMax ? `${rangeMin.toFixed(0)}원 ~ ${rangeMax.toFixed(0)}원` : "—"}
+                            {rangeMin && rangeMax ? `${formatMetricValue('marketcap', rangeMin)} ~ ${formatMetricValue('marketcap', rangeMax)}` : "—"}
                         </span>
                     </div>
                 </div>
