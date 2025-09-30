@@ -4,14 +4,6 @@ const nextConfig: NextConfig = {
   // CD3 프로젝트 - SSG 최적화 설정
   output: 'export', // 정적 사이트 내보내기 활성화
   trailingSlash: true, // SEO 최적화를 위한 슬래시 추가
-  // 청크별 빌드 지원: 환경변수에 따라 출력 디렉토리 변경
-  distDir: process.env.NEXT_BUILD_DIR || '.next',
-  // 청크별 출력 디렉토리 (export 모드에서는 항상 out/ 사용됨)
-  ...(process.env.BUILD_OUTPUT_DIR && {
-    experimental: {
-      outputFileTracingRoot: process.cwd(),
-    }
-  }),
   images: {
     unoptimized: true, // 정적 내보내기에서 이미지 최적화 비활성화
   },

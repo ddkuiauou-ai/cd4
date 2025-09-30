@@ -3,34 +3,45 @@
 
 echo "🚀 Starting TRUE parallel SSG builds..."
 
-CHUNK_SIZE=${CHUNK_SIZE:-500}
-TOTAL_CHUNKS=${TOTAL_CHUNKS:-4}
+CHUNK_SIZE=${CHUNK_SIZE:-1000}
+TOTAL_CHUNKS=${TOTAL_CHUNKS:-2}
 
 echo "📊 Configuration:"
 echo "   - Chunk size: $CHUNK_SIZE securities per chunk"  
 echo "   - Total chunks: $TOTAL_CHUNKS"
 echo "   - Running $TOTAL_CHUNKS builds in parallel!"
 
-# Clean up any existing chunk outputs
+# Clean up any existing chunk outputs and cache directories
 rm -rf out-chunk-*
 rm -rf out
+rm -rf .next-chunk-*
 
 # Launch all chunks in parallel (background processes)
 pids=()
 for i in $(seq 0 $((TOTAL_CHUNKS-1))); do
     echo "🔨 Starting chunk $((i+1))/$TOTAL_CHUNKS in background..."
     (
+        # 각 청크에 독립적인 캐시 디렉토리 할당
         export BUILD_CHUNK_INDEX=$i
         export BUILD_CHUNK_TOTAL=$TOTAL_CHUNKS
         export BUILD_CHUNK_SIZE=$CHUNK_SIZE
-        export NEXT_BUILD_DIR="out-chunk-$i"
+        export NEXT_BUILD_DIR=".next-chunk-$i"
         export BUILD_OUTPUT_DIR="out-chunk-$i"
         
-        echo "  📦 Chunk $((i+1)) building to: out-chunk-$i"
-        pnpm build:ssg
+        # Webpack 캐시 경쟁 방지를 위한 환경 변수
+        export NEXT_PRIVATE_BUILD_ID="chunk-$i-$(date +%s)"
+        
+        echo "  📦 Chunk $((i+1)) building to: out-chunk-$i (cache: .next-chunk-$i)"
+        
+        # 청크별 캐시 디렉토리 초기화
+        rm -rf ".next-chunk-$i"
+        
+        pnpm next build
         
         if [ $? -eq 0 ]; then
             echo "  ✅ Chunk $((i+1)) completed!"
+            # 빌드 완료 후 캐시 디렉토리 정리
+            rm -rf ".next-chunk-$i"
         else
             echo "  ❌ Chunk $((i+1)) failed!"
             exit 1
