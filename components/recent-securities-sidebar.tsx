@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, memo } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Clock, X, TrendingUp, DollarSign, BarChart3, ArrowUpDown } from "lucide-react";
+import { Clock, X, TrendingUp, DollarSign, BarChart3, ArrowUpDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     RecentlyViewedSecurity,
@@ -185,25 +185,31 @@ export function RecentSecuritiesSidebar({ currentSecCode }: RecentSecuritiesSide
                 </h3>
                 <div className="flex items-center gap-2">
                     {recentSecurities.length > 1 && (
-                        <button
-                            onClick={handleSortToggle}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    handleSortToggle();
-                                }
-                            }}
-                            className={cn(
-                                "text-xs transition-colors flex items-center gap-1 px-2 py-1 rounded",
-                                isSortedByRanking
-                                    ? "bg-primary/10 text-primary hover:bg-primary/20"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                            )}
-                            aria-label={`정렬 방식: ${isSortedByRanking ? '랭킹순' : '최신순'}. 각 종목의 메트릭별 랭킹을 평균내어 순위를 매겨 정렬합니다. 낮은 PER/PBR은 좋은 점수, 높은 시가총액은 좋은 점수로 계산됩니다.`}
-                        >
-                            <ArrowUpDown className="h-3 w-3" />
-                            {isSortedByRanking ? '랭킹순' : '최신순'}
-                        </button>
+                        <div className="relative group">
+                            <button
+                                onClick={handleSortToggle}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        handleSortToggle();
+                                    }
+                                }}
+                                className={cn(
+                                    "text-xs transition-colors flex items-center gap-1 px-2 py-1 rounded pr-6 relative",
+                                    isSortedByRanking
+                                        ? "bg-primary/10 text-primary hover:bg-primary/20"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                )}
+                                aria-label={`정렬 방식: ${isSortedByRanking ? '랭킹순' : '최신순'}. 각 종목의 메트릭별 랭킹을 평균내어 순위를 매겨 정렬합니다. 낮은 PER/PBR은 좋은 점수, 높은 시가총액은 좋은 점수로 계산됩니다.`}
+                            >
+                                <ArrowUpDown className="h-3 w-3" />
+                                {isSortedByRanking ? '랭킹순' : '최신순'}
+                                <Info className="h-3 w-3 absolute right-1 top-1/2 transform -translate-y-1/2 text-current opacity-60 hover:opacity-100 transition-opacity cursor-help" />
+                            </button>
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover border rounded-md shadow-md text-xs text-popover-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-48 z-50 whitespace-normal text-center">
+                                시총 1등 + PER 3등 = 통합 2등 (랭킹 평균으로 정렬)
+                            </div>
+                        </div>
                     )}
                     {recentSecurities.length > 0 && (
                         <button

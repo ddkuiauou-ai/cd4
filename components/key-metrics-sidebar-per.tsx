@@ -39,7 +39,7 @@ export function KeyMetricsSidebarPER({
     }, [isCollapsed, onCollapsedChange]);
 
     return (
-        <div className={`${isCollapsed ? 'bg-background p-2' : 'rounded-xl border bg-background p-4'}`}>
+        <div className={`${isCollapsed ? 'bg-background px-2 py-0 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
             <button
                 onClick={handleToggle}
                 onKeyDown={(e) => {
@@ -48,8 +48,7 @@ export function KeyMetricsSidebarPER({
                         handleToggle();
                     }
                 }}
-                className={`flex items-center gap-2 text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full justify-between ${isCollapsed ? 'py-2' : 'py-2 mb-3'
-                    }`}
+                className={`flex items-center justify-between text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full ${isCollapsed ? 'py-2 px-0 gap-1' : 'py-2 mb-3 gap-2'}`}
                 aria-expanded={!isCollapsed}
                 aria-controls="key-metrics-content"
                 aria-label={`핵심 지표 ${isCollapsed ? '펼치기' : '접기'}`}

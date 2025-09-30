@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-xl
     env:
       NEXT_TELEMETRY_DISABLED: "1"
 
@@ -37,13 +37,29 @@ jobs:
 
       - name: Free up disk space
         run: |
+          echo "=== Initial disk usage ==="
+          df -h
+          echo "=== Cleaning up space ==="
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORIES"
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/hostedtoolcache/CodeQL
+          # Additional cleanup for GitHub Actions runner
+          sudo rm -rf /home/runner/.cache
+          sudo rm -rf /home/runner/work/_temp
+          sudo rm -rf /home/runner/work/_actions
+          sudo rm -rf /tmp/*
+          # Clean npm/yarn cache
+          sudo rm -rf ~/.npm
+          sudo rm -rf ~/.yarn
+          # Clean Docker if exists
+          docker system prune -af --volumes 2>/dev/null || true
+          echo "=== Final disk usage ==="
           df -h
+          echo "=== Largest directories ==="
+          du -h / | sort -hr | head -20
 
       - name: Build Next.js
         env:

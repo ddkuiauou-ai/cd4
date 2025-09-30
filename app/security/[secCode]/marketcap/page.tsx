@@ -41,6 +41,7 @@ import { siteConfig } from "@/config/site";
 import { SecMarketcapPager } from "@/components/pager-marketcap-security";
 import ChartMarketcap from "@/components/chart-marketcap";
 import { Card, CardContent } from "@/components/ui/card";
+import { MarketcapSidebarScrollSync } from "@/components/marketcap-sidebar-scroll-sync";
 import type { Price } from "@/typings";
 import {
   ACTIVE_METRIC,
@@ -475,6 +476,7 @@ export default async function SecurityMarketcapPage({
       </section>
     );
   };
+
 
   const renderPrimarySections = () => {
     const chartGridColumns = hasCompanyMarketcapData ? "lg:grid-cols-2" : "lg:grid-cols-1";
@@ -941,45 +943,18 @@ export default async function SecurityMarketcapPage({
       </div>
 
       <div className="hidden xl:block">
-        <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-          <NavigationCollapsible
-            title="페이지 내비게이션"
-            defaultCollapsed={false}
-            storageKey="navigation-collapsed"
-          >
-            <PageNavigation sections={navigationSections} collapsible={false} />
-          </NavigationCollapsible>
-
-          {hasCompanyMarketcapData && (
-            <KeyMetricsSidebar
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              security={security}
-              marketCapRanking={marketCapRanking}
-              currentTickerOverride={currentTicker}
-              selectedSecurityTypeOverride={selectedType}
-            />
-          )}
-
-          {/* 최근 본 종목 사이드바 */}
-          <RecentSecuritiesSidebar currentSecCode={secCode} />
-
-          {hasCompanyMarketcapData && companySecs.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              currentTicker={currentTicker}
-              market={market}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard
-              compactMode={false}
-              baseUrl="security"
-              currentMetric="marketcap"
-              highlightActiveTicker
-            />
-          )}
-        </div>
+        <MarketcapSidebarScrollSync
+          navigationSections={navigationSections}
+          hasCompanyMarketcapData={hasCompanyMarketcapData}
+          companyMarketcapData={companyMarketcapData}
+          companySecs={companySecs}
+          security={security}
+          marketCapRanking={marketCapRanking}
+          currentTicker={currentTicker}
+          selectedType={selectedType}
+          secCode={secCode}
+          market={market}
+        />
       </div>
     </main>
   );

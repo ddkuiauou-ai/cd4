@@ -58,7 +58,7 @@ export function KeyMetricsSidebarMARKETCAP({
     };
 
     return (
-        <div className={`${isCollapsed ? 'bg-background p-2' : 'rounded-xl border bg-background p-4'}`}>
+        <div className={`${isCollapsed ? 'bg-background px-2 py-0 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
             <button
                 onClick={handleToggle}
                 onKeyDown={(e) => {
