@@ -6,7 +6,7 @@
     "dev": "next dev -H 0.0.0.0 --turbopack",
     "build": "next build",
     "build:static": "next build && next export",
-    "build:ssg": "next build && node scripts/generate-sitemap.js",
+    "build:ssg": "next build",
     "build:parallel": "node scripts/parallel-build.js",
     "build:chunks": "./scripts/build-chunks.sh",
     "build:parallel-real": "./scripts/build-parallel-real.sh",
