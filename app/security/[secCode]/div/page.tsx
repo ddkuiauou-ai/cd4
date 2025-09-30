@@ -949,8 +949,15 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           navigationSections={navigationSections}
           periodAnalysis={dividendYieldAnalysis ? {
             latestDIV: dividendYieldAnalysis.latest,
-            periods: dividendYieldAnalysis.periods,
-            minMax: dividendYieldAnalysis.minMax
+            periods: dividendYieldAnalysis.periods
+              .filter((period): period is NonNullable<typeof period> => period !== null)
+              .map(period => ({
+                ...period,
+                desc: period.label // desc 속성 추가
+              })),
+            minMax: dividendYieldAnalysis.minMax,
+            currentSecurity: security.korName || security.name,
+            market: market
           } : null}
           perRank={divRank}
           security={security}
@@ -960,7 +967,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithDIV}
           currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
           market={security.exchange || 'KOSPI'}
-          companyMarketcapData={companyMarketcapData}
+          companyMarketcapData={undefined}
           metricType="div"
         />
       </div>

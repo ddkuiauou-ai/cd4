@@ -41,15 +41,20 @@ export interface MetricPeriodAnalysis {
 
 export interface SecurityData {
     securityId: string;
-    type: string;
-    ticker: string;
-    name: string;
-    korName?: string;
-    exchange: string;
+    type: string | null;
+    ticker: string | null;
+    name: string | null;
+    korName?: string | null;
+    exchange?: string;
     data?: any; // Keep as any for now, can be more specific later
+    marketcap?: number | null;
+    marketcapDate?: string | Date | null;
+    percentage?: number;
+    marketcapHistory?: any[];
 }
 
 export interface CompanyMarketcapData {
     securities?: SecurityData[];
     // Add other properties as needed
+    [key: string]: any; // Allow additional properties for flexibility
 }

@@ -244,58 +244,60 @@ export function RecentSecuritiesSidebar({ currentSecCode }: RecentSecuritiesSide
                                 )}
                             >
                                 {/* 종목명 행 + 삭제 버튼 */}
-                                <button
-                                    className="flex items-center gap-2 w-full text-left cursor-pointer hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
-                                    onClick={() => handleSecurityClick(security.secCode)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            handleSecurityClick(security.secCode);
-                                        }
-                                    }}
-                                    aria-label={`${security.korName || security.name} 종목 상세 페이지로 이동`}
-                                >
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <div className="text-sm font-medium text-foreground truncate">
-                                                {security.korName || security.name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-[10px] flex-shrink-0">
-                                                {security.ticker}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground flex-shrink-0">
-                                                {security.exchange}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        className="flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
+                                        onClick={() => handleSecurityClick(security.secCode)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleSecurityClick(security.secCode);
+                                            }
+                                        }}
+                                        aria-label={`${security.korName || security.name} 종목 상세 페이지로 이동`}
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-sm font-medium text-foreground truncate">
+                                                    {security.korName || security.name}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-[10px] flex-shrink-0">
+                                                    {security.ticker}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground flex-shrink-0">
+                                                    {security.exchange}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={(e) => handleRemoveSecurity(e, security.secCode)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            // KeyboardEvent를 MouseEvent로 변환
-                                            const mouseEvent = {
-                                                ...e,
-                                                button: 0,
-                                                buttons: 1,
-                                                clientX: 0,
-                                                clientY: 0,
-                                                pageX: 0,
-                                                pageY: 0,
-                                                screenX: 0,
-                                                screenY: 0,
-                                                stopPropagation: e.stopPropagation.bind(e),
-                                                preventDefault: e.preventDefault.bind(e),
-                                            } as any;
-                                            handleRemoveSecurity(mouseEvent, security.secCode);
-                                        }
-                                    }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded flex-shrink-0 focus:opacity-100 focus:ring-2 focus:ring-primary focus:ring-offset-1"
-                                    aria-label={`${security.korName || security.name} 종목 삭제`}
-                                >
-                                    <X className="h-3 w-3 text-muted-foreground" />
-                                </button>
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleRemoveSecurity(e, security.secCode)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                // KeyboardEvent를 MouseEvent로 변환
+                                                const mouseEvent = {
+                                                    ...e,
+                                                    button: 0,
+                                                    buttons: 1,
+                                                    clientX: 0,
+                                                    clientY: 0,
+                                                    pageX: 0,
+                                                    pageY: 0,
+                                                    screenX: 0,
+                                                    screenY: 0,
+                                                    stopPropagation: e.stopPropagation.bind(e),
+                                                    preventDefault: e.preventDefault.bind(e),
+                                                } as any;
+                                                handleRemoveSecurity(mouseEvent, security.secCode);
+                                            }
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded flex-shrink-0 focus:opacity-100 focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                                        aria-label={`${security.korName || security.name} 종목 삭제`}
+                                    >
+                                        <X className="h-3 w-3 text-muted-foreground" />
+                                    </button>
+                                </div>
 
                                 {/* 메트릭 라인 */}
                                 {metricLine && (

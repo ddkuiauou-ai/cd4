@@ -21,6 +21,7 @@ import { KeyMetricsSidebar } from "@/components/key-metrics-sidebar";
 import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
 import { RecentSecurityTracker } from "@/components/recent-security-tracker";
 import { PageNavigation } from "@/components/page-navigation";
+import { SidebarManager } from "@/components/sidebar-manager";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import ShareButton from "@/components/share-button";
@@ -816,73 +817,46 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
       </div>
       {/* 사이드바 네비게이션 (데스크톱) */}
       <div className="hidden xl:block">
-        <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-          {/* 페이지 네비게이션 */}
-          <div className="rounded-xl border bg-background p-4">
-            <h3 className="text-sm font-semibold mb-3">페이지 내비게이션</h3>
-            <PageNavigation
-              sections={[
-                {
-                  id: "company-overview",
-                  label: "기업 개요",
-                  icon: <Building2 className="h-3 w-3" />,
-                },
-                {
-                  id: "chart-analysis",
-                  label: "차트 분석",
-                  icon: <BarChart3 className="h-3 w-3" />,
-                },
-                {
-                  id: "securities-summary",
-                  label: "종목 비교",
-                  icon: <ArrowLeftRight className="h-3 w-3" />,
-                },
-                {
-                  id: "indicators",
-                  label: "핵심 지표",
-                  icon: <TrendingUp className="h-3 w-3" />,
-                },
-                {
-                  id: "annual-data",
-                  label: "연도별 데이터",
-                  icon: <FileText className="h-3 w-3" />,
-                },
-              ]}
-            />
-          </div>
-
-          {/* 핵심 지표 카드 */}
-          {companyMarketcapData && (
-            <KeyMetricsSidebar
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              security={security}
-              marketCapRanking={marketCapRanking}
-              currentTickerOverride={currentTicker}
-            />
-          )}
-
-          {/* 최근 본 종목 사이드바 */}
-          <RecentSecuritiesSidebar currentSecCode={secCode} />
-
-          {/* 종목별 시가총액 */}
-          {companySecs && companySecs.length > 0 && (
-            <InteractiveSecuritiesSection
-              companyMarketcapData={companyMarketcapData}
-              companySecs={companySecs}
-              currentTicker={currentTicker}
-              market={market}
-              layout="sidebar"
-              maxItems={4}
-              showSummaryCard={true}
-              compactMode={false}
-              baseUrl="security"
-              currentMetric="marketcap"
-              highlightActiveTicker={false}
-              defaultFilter="시가총액 구성"
-            />
-          )}
-        </div>
+        <SidebarManager
+          navigationSections={[
+            {
+              id: "company-overview",
+              label: "기업 개요",
+              icon: <Building2 className="h-3 w-3" />,
+            },
+            {
+              id: "chart-analysis",
+              label: "차트 분석",
+              icon: <BarChart3 className="h-3 w-3" />,
+            },
+            {
+              id: "securities-summary",
+              label: "종목 비교",
+              icon: <ArrowLeftRight className="h-3 w-3" />,
+            },
+            {
+              id: "indicators",
+              label: "핵심 지표",
+              icon: <TrendingUp className="h-3 w-3" />,
+            },
+            {
+              id: "annual-data",
+              label: "연도별 데이터",
+              icon: <FileText className="h-3 w-3" />,
+            },
+          ]}
+          periodAnalysis={null}
+          perRank={marketCapRanking?.currentRank || null}
+          security={security}
+          secCode={secCode}
+          hasCompanyMarketcapData={true}
+          companySecs={companySecs}
+          comparableSecuritiesWithPER={companySecs}
+          currentTicker={currentTicker}
+          market={market}
+          companyMarketcapData={companyMarketcapData || undefined}
+          metricType="marketcap"
+        />
       </div>
     </main>
   );

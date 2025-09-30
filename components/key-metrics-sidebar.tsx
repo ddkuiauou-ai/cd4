@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useEffect, memo } from "react";
+import { useCollapsedState } from "@/hooks/use-collapsed-state";
 import { formatNumberWithSeparateUnit } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -10,13 +11,14 @@ interface KeyMetricsSidebarProps {
     companySecs: any[];
     security: any;
     marketCapRanking: {
-        currentRank: number;
+        currentRank: number | null;
         priorRank: number | null;
         rankChange: number;
         value: number | null;
     } | null;
     currentTickerOverride?: string;
     selectedSecurityTypeOverride?: string;
+    onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export function KeyMetricsSidebar({
@@ -26,29 +28,15 @@ export function KeyMetricsSidebar({
     marketCapRanking,
     currentTickerOverride,
     selectedSecurityTypeOverride,
+    onCollapsedChange,
 }: KeyMetricsSidebarProps) {
     const pathname = usePathname();
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, handleToggle] = useCollapsedState('key-metrics-collapsed', false);
 
-    // 세션 스토리지에서 접기 상태 불러오기
+    // 상태 변경 시 부모 컴포넌트에 알림
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const stored = sessionStorage.getItem('key-metrics-collapsed');
-            if (stored !== null) {
-                setIsCollapsed(JSON.parse(stored));
-            }
-        }
-    }, []);
-
-    const handleToggle = () => {
-        const newCollapsed = !isCollapsed;
-        setIsCollapsed(newCollapsed);
-
-        // 세션 스토리지에 상태 저장
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem('key-metrics-collapsed', JSON.stringify(newCollapsed));
-        }
-    };
+        onCollapsedChange?.(isCollapsed);
+    }, [isCollapsed, onCollapsedChange]);
 
     const pathTicker = useMemo(() => {
         const pathParts = pathname.split('/');
@@ -175,15 +163,24 @@ export function KeyMetricsSidebar({
         <div className={`${isCollapsed ? 'bg-background p-2 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
             <button
                 onClick={handleToggle}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleToggle();
+                    }
+                }}
                 className={`flex items-center gap-2 text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full justify-between ${isCollapsed ? 'py-2' : 'py-2 mb-3'
                     }`}
+                aria-expanded={!isCollapsed}
+                aria-controls="key-metrics-content"
+                aria-label={`핵심 지표 ${isCollapsed ? '펼치기' : '접기'}`}
             >
                 <span>핵심 지표</span>
                 {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
             </button>
 
             {!isCollapsed && (
-                <div className="space-y-3">
+                <div id="key-metrics-content" className="space-y-3">
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
                             {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}

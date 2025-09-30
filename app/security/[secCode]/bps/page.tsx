@@ -829,7 +829,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithBPS}
           currentTicker={currentTicker}
           market={market}
-          companyMarketcapData={companyMarketcapData}
+          companyMarketcapData={undefined}
           metricType="bps"
         />
       </div>

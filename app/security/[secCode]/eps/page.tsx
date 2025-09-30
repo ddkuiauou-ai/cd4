@@ -759,7 +759,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithEPS}
           currentTicker={currentTicker}
           market={market}
-          companyMarketcapData={companyMarketcapData}
+          companyMarketcapData={undefined}
           metricType="eps"
         />
       </div>

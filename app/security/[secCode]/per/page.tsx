@@ -844,7 +844,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithPER}
           currentTicker={currentTicker}
           market={market}
-          companyMarketcapData={companyMarketcapData}
+          companyMarketcapData={undefined}
         />
       </div>
     </main>
