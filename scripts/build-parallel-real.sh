@@ -1,162 +1,161 @@
 #!/bin/bash
-# CD3 Project - TRUE Parallel Build Script with Memory Optimization
+# CD3 Project - Optimized Full Build Script with Disk Management
 
-echo "🚀 Starting TRUE parallel SSG builds with memory optimization..."
+set -e  # Exit on error
 
-CHUNK_SIZE=${CHUNK_SIZE:-400}  # 2코어 8GB 환경용 속도 최적화 청크 크기
-TOTAL_CHUNKS=${TOTAL_CHUNKS:-6}  # 적절한 수의 청크로 나누기
-MAX_PARALLEL=${MAX_PARALLEL:-2}  # 2코어 활용하여 속도 향상
+# Ensure we're in the project root
+cd "$(dirname "$0")/.."
+
+echo "🚀 Starting optimized SSG build..."
+
+# Configuration
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=6144}"
+export NEXT_TELEMETRY_DISABLED=1
 
 echo "📊 Configuration:"
-echo "   - Chunk size: $CHUNK_SIZE securities per chunk"
-echo "   - Total chunks: $TOTAL_CHUNKS"
-echo "   - Max parallel processes: $MAX_PARALLEL"
-echo "   - Running builds in batches for memory efficiency!"
+echo "   - Build mode: Full build"
+echo "   - Memory allocation: 6GB for Node.js"
+echo "   - Disk management: Aggressive cleanup enabled"
 
-# 디스크 사용량 확인
-echo "📊 Initial disk usage:"
-df -h
+# 디스크 사용량 확인 함수
+check_disk() {
+    echo "💾 Disk usage:"
+    df -h / | head -2
+}
 
-# Clean up any existing chunk outputs
-echo "🧹 Cleaning up previous build artifacts..."
-rm -rf out-chunk-*
-rm -rf out
-rm -rf .next 2>/dev/null || true
-
-# Ensure cache directories exist to prevent webpack warnings
-echo "📁 Ensuring cache directories exist..."
-mkdir -p .next/cache/webpack/client-production
-mkdir -p .next/cache/webpack/server-production
-
-# Launch chunks in batches for memory efficiency
-echo "📋 Processing chunks in batches of $MAX_PARALLEL..."
-
-for ((start_idx=0; start_idx<TOTAL_CHUNKS; start_idx+=MAX_PARALLEL)); do
-    end_idx=$((start_idx + MAX_PARALLEL))
-    if [ $end_idx -gt $TOTAL_CHUNKS ]; then
-        end_idx=$TOTAL_CHUNKS
-    fi
-
-    echo ""
-    echo "🔄 Processing batch: chunks $((start_idx+1))-$end_idx"
-
-    # Launch current batch in background
-    batch_pids=()
-    for i in $(seq $start_idx $((end_idx-1))); do
-        echo "🔨 Starting chunk $((i+1))/$TOTAL_CHUNKS..."
-        (
-            export BUILD_CHUNK_INDEX=$i
-            export BUILD_CHUNK_TOTAL=$TOTAL_CHUNKS
-            export BUILD_CHUNK_SIZE=$CHUNK_SIZE
-            export NEXT_BUILD_DIR="out-chunk-$i"
-            export BUILD_OUTPUT_DIR="out-chunk-$i"
-            export NODE_OPTIONS="--max-old-space-size=2048"  # 8GB 환경에서 2GB 할당으로 안정성 극대화
-
-            echo "  📦 Chunk $((i+1)) building to: out-chunk-$i"
-
-            # 디스크 사용량 모니터링
-            echo "  💾 Disk usage before build:"
-            df -h | grep -E "(Filesystem|overlay)"
-
-            pnpm build:ssg
-
-            if [ $? -eq 0 ]; then
-                echo "  ✅ Chunk $((i+1)) completed!"
-
-                # 완료된 청크의 캐시 정리 (메모리 절약)
-                rm -rf .next-${i} 2>/dev/null || true
-
-                echo "  💾 Disk usage after cleanup:"
-                df -h | grep -E "(Filesystem|overlay)"
-            else
-                echo "  ❌ Chunk $((i+1)) failed!"
-                exit 1
-            fi
-        ) &
-        batch_pids+=($!)
-    done
-
-    echo "⏳ Waiting for batch to complete..."
-    # Wait for current batch to complete
-    for pid in "${batch_pids[@]}"; do
-        if ! wait $pid; then
-            echo "💥 Batch failed! Exiting..."
-            exit 1
-        fi
-    done
-
-    echo "✅ Batch completed successfully!"
-
-    # 배치 완료 후 메모리 정리
-    echo "🧹 Cleaning up memory and temporary files..."
-    sync
-    echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
-done
+# 디스크 정리 함수
+cleanup_cache() {
+    echo "🧹 Cleaning up cache and temporary files..."
+    # 빌드 중에는 webpack 캐시만 정리 (다른 파일은 필요함)
+    rm -rf .next/cache/webpack 2>/dev/null || true
+    # 시스템 캐시 정리
+    rm -rf node_modules/.cache 2>/dev/null || true
+    rm -rf /tmp/next-* 2>/dev/null || true
+}
 
 echo ""
-echo "⏳ Waiting for all $TOTAL_CHUNKS parallel builds to complete..."
+check_disk
 
-# Wait for all background processes
-failed=0
-for i in "${!pids[@]}"; do
-    pid=${pids[$i]}
-    if wait $pid; then
-        echo "✅ Chunk $((i+1)) finished successfully"
-    else
-        echo "❌ Chunk $((i+1)) failed!"
-        failed=1
-    fi
-done
+# Clean up previous build artifacts
+echo ""
+echo "🧹 Cleaning up previous build artifacts..."
+rm -rf out
+rm -rf .next
+rm -rf build-*.log 2>/dev/null || true
+cleanup_cache
 
-if [ $failed -eq 1 ]; then
-    echo "💥 Some chunks failed! Exiting..."
+# Build with optimizations
+echo ""
+echo "🔨 Starting Next.js build..."
+echo "   ⚠️  This will take 30-45 minutes for ~28K pages"
+echo ""
+
+start_time=$(date +%s)
+
+# 빌드 중 디스크 모니터링 (더 자주 체크 및 정리)
+(
+    while true; do
+        sleep 180  # 3분마다 체크 (더 자주)
+        if ps aux | grep -q "[n]ext build"; then
+            echo ""
+            echo "⏳ Build in progress..."
+            check_disk
+            
+            # 더 적극적인 정리
+            echo "🧹 Aggressive cleanup during build..."
+            rm -rf .next/cache/webpack 2>/dev/null || true
+            rm -rf .next/cache/images 2>/dev/null || true
+            rm -rf node_modules/.cache 2>/dev/null || true
+            rm -rf /tmp/* 2>/dev/null || true
+            
+            # 디스크 사용량이 85% 이상이면 경고
+            usage=$(df -h / | tail -1 | awk '{print $5}' | sed 's/%//')
+            if [ "$usage" -gt 85 ]; then
+                echo "⚠️  WARNING: Disk usage at ${usage}%! Build may fail!"
+                echo "🧹 Emergency cleanup..."
+                rm -rf .next/standalone 2>/dev/null || true
+                rm -rf .next/types 2>/dev/null || true
+            fi
+        else
+            break
+        fi
+    done
+) &
+MONITOR_PID=$!
+
+if pnpm next build 2>&1 | tee build.log; then
+    end_time=$(date +%s)
+    build_time=$((end_time - start_time))
+    
+    # 모니터링 프로세스 종료
+    kill $MONITOR_PID 2>/dev/null || true
+    
+    echo ""
+    echo "✅ Build completed successfully!"
+    echo ""
+else
+    # 모니터링 프로세스 종료
+    kill $MONITOR_PID 2>/dev/null || true
+    
+    echo ""
+    echo "❌ Build failed!"
+    echo ""
+    check_disk
+    echo ""
+    echo "📋 Last 100 lines of build log:"
+    tail -100 build.log
     exit 1
 fi
 
+# Verify build output
 echo ""
-echo "🔗 Merging all chunk outputs into final 'out' directory..."
+echo "🔍 Verifying build output..."
+if [ ! -d "out" ]; then
+    echo "❌ Error: out directory not found!"
+    check_disk
+    exit 1
+fi
 
-# 디스크 사용량 확인
-echo "💾 Disk usage before merge:"
-df -h
+file_count=$(find out -type f | wc -l)
+echo "✅ Build output verified: $file_count files generated"
 
-# Create main output directory
-mkdir -p out
+if [ $file_count -lt 100 ]; then
+    echo "⚠️ Warning: File count seems low ($file_count files)"
+    exit 1
+fi
 
-# Merge all chunk directories (메모리 효율적으로)
-for i in $(seq 0 $((TOTAL_CHUNKS-1))); do
-    if [ -d "out-chunk-$i" ]; then
-        echo "  📁 Merging out-chunk-$i..."
+# Aggressive cleanup before sitemap generation
+echo ""
+echo "🧹 Cleaning up .next directory to free disk space..."
+rm -rf .next/cache 2>/dev/null || true
+rm -rf .next/server 2>/dev/null || true
+rm -rf .next/static 2>/dev/null || true
+echo ""
+check_disk
 
-        # 대용량 파일 복사를 위해 배치 처리
-        find "out-chunk-$i" -type f -name "*.html" -exec cp {} out/ \; 2>/dev/null
-        find "out-chunk-$i" -type f -name "*.json" -exec cp {} out/ \; 2>/dev/null
-        find "out-chunk-$i" -type f -name "*.xml" -exec cp {} out/ \; 2>/dev/null
-        find "out-chunk-$i" -type d -exec mkdir -p out/{} \; 2>/dev/null
-
-        # 완료된 청크 디렉토리 즉시 정리 (디스크 공간 절약)
-        rm -rf "out-chunk-$i"
-
-        echo "  💾 Disk usage after merging chunk $((i+1)):"
-        df -h | grep -E "(Filesystem|overlay)"
-    fi
-done
-
-# 중간 정리
-echo "🧹 Cleaning up temporary files..."
-sync
-echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
-
-echo "🗺️ Regenerating final sitemap from merged output..."
+# Generate sitemap
+echo ""
+echo "🗺️ Generating sitemap..."
 node scripts/generate-sitemap.js
 
-# 최종 정리
-echo "🧹 Final cleanup..."
-rm -rf .next 2>/dev/null || true
-rm -rf node_modules/.cache 2>/dev/null || true
-
+# Final cleanup
 echo ""
-echo "🎉 TRUE parallel build complete!"
-echo "📊 Final output in: ./out"
-echo "💾 Final disk usage:"
-df -h
+echo "🧹 Final cleanup..."
+rm -rf .next
+rm -rf build.log
+rm -rf node_modules/.cache 2>/dev/null || true
+rm -rf /tmp/next-* 2>/dev/null || true
+
+# Final disk usage
+echo ""
+check_disk
+
+# Build summary
+echo ""
+echo "📈 Build summary:"
+echo "   - Build time: $((build_time / 60))m $((build_time % 60))s"
+echo "   - Total output files: $file_count"
+echo "   - Output directory: ./out"
+echo "   - Avg time per page: $((build_time * 1000 / file_count))ms"
+echo ""
+echo "🎉 Build completed successfully!"

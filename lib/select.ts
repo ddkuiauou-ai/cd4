@@ -256,12 +256,9 @@ export const getAllSecurityCodes = unstable_cache(
 
             const allSecurityCodes = securities.map(sec => `${sec.exchange}.${sec.ticker}`);
 
-            // 청크 필터링 적용
-            const filteredCodes = filterByChunk(allSecurityCodes, (code) => code);
+            console.log(`[GET_ALL_SECURITY_CODES] Returning ${allSecurityCodes.length} securities`);
 
-            console.log(`[GET_ALL_SECURITY_CODES] After chunk filtering: ${filteredCodes.length} securities`);
-
-            return filteredCodes;
+            return allSecurityCodes;
         }, 'getAllSecurityCodes');
     },
     ['getAllSecurityCodes'],
@@ -301,12 +298,9 @@ export const getAllCompanyCodes = unstable_cache(
 
             const allCompanyCodes = securities.map(sec => `${sec.exchange}.${sec.ticker}`);
 
-            // 청크 필터링 적용
-            const filteredCodes = filterByChunk(allCompanyCodes, (code) => code);
+            console.log(`[GET_ALL_COMPANY_CODES] Returning ${allCompanyCodes.length} company codes`);
 
-            console.log(`[GET_ALL_COMPANY_CODES] After chunk filtering: ${filteredCodes.length} company codes`);
-
-            return filteredCodes;
+            return allCompanyCodes;
         }, 'getAllCompanyCodes');
     },
     ['getAllCompanyCodes'],
@@ -314,42 +308,3 @@ export const getAllCompanyCodes = unstable_cache(
 );
 
 //
-
-/**
- * 청크 빌드를 위한 유틸리티 함수들
- */
-
-/**
- * 환경변수에서 현재 빌드 청크 정보를 가져옵니다
- */
-function getCurrentBuildChunk() {
-    const chunkIndex = parseInt(process.env.BUILD_CHUNK_INDEX || '0');
-    const chunkTotal = parseInt(process.env.BUILD_CHUNK_TOTAL || '1');
-    const chunkSize = parseInt(process.env.BUILD_CHUNK_SIZE || '500');
-
-    return { chunkIndex, chunkTotal, chunkSize };
-}
-
-/**
- * 청크 정보에 따라 배열을 필터링합니다
- */
-function filterByChunk<T>(items: T[], getKey: (item: T) => string): T[] {
-    const { chunkIndex, chunkTotal, chunkSize } = getCurrentBuildChunk();
-
-    if (chunkTotal === 1) {
-        // 청크 빌드가 아닌 경우 모든 항목 반환
-        return items;
-    }
-
-    const startIndex = chunkIndex * chunkSize;
-    const endIndex = startIndex + chunkSize;
-
-    // 정렬을 위해 키 기준으로 정렬
-    const sortedItems = [...items].sort((a, b) => getKey(a).localeCompare(getKey(b)));
-
-    const chunk = sortedItems.slice(startIndex, endIndex);
-
-    console.log(`[Chunk ${chunkIndex + 1}/${chunkTotal}] Processing ${chunk.length} items (${startIndex}-${endIndex})`);
-
-    return chunk;
-}

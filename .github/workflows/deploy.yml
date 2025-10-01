@@ -13,8 +13,11 @@ concurrency:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      # GitHub Actions ubuntu-latest: 2 CPU cores, 8GB RAM
+      NODE_OPTIONS: "--max-old-space-size=6144"
 
     steps:
       - name: Checkout repository
@@ -33,7 +36,7 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --silent
+        run: pnpm install --frozen-lockfile
 
       - name: Free up disk space
         run: |
@@ -41,7 +44,7 @@ jobs:
           df -h
           echo "=== Cleaning up space ==="
 
-          # Remove unnecessary packages and caches
+          # Remove unnecessary packages
           sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' 2>/dev/null || true
           sudo apt-get autoremove -y 2>/dev/null || true
           sudo apt-get clean
@@ -49,33 +52,24 @@ jobs:
           # Remove unused tool caches
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf /usr/local/share/boost
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo rm -rf /opt/hostedtoolcache/PyPy
           sudo rm -rf /opt/hostedtoolcache/go
           sudo rm -rf /opt/hostedtoolcache/Ruby
 
-          # Clean up GitHub Actions caches
-          sudo rm -rf /home/runner/.cache
-          sudo rm -rf /home/runner/work/_temp
-          sudo rm -rf /home/runner/work/_actions
-
           # Clean package manager caches
           sudo rm -rf /tmp/*
           sudo rm -rf ~/.npm
-          sudo rm -rf ~/.cache/pnpm
-          sudo rm -rf /usr/local/share/.cache
 
-          # Clean Docker (if exists)
+          # Clean Docker
           docker system prune -af --volumes 2>/dev/null || true
 
           echo "=== Final disk usage ==="
           df -h
-          echo "=== Largest directories ==="
-          du -h /usr /home /opt 2>/dev/null | sort -hr | head -15 || true
 
-      - name: Build Next.js
+      - name: Build Next.js with parallel processing
         env:
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
@@ -83,45 +77,9 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         run: |
-          echo "=== Disk usage before build ==="
-          df -h
-
-          # Monitor disk usage during build
-          pnpm run build:fast 2>&1 | tee build.log &
-          BUILD_PID=$!
-
-          # Monitor disk usage every 30 seconds during build
-          while kill -0 $BUILD_PID 2>/dev/null; do
-            sleep 30
-            echo "=== Disk usage during build ($(date)) ==="
-            df -h
-            echo "=== Top 10 largest directories ==="
-            du -h /home/runner/work/cd4/cd4 /usr/local /opt 2>/dev/null | sort -hr | head -10 || true
-          done
-
-          wait $BUILD_PID
-
-          echo "=== Final disk usage after build ==="
-          df -h
-          echo "=== Build completed ==="
-
-      - name: Clean up build artifacts
-        run: |
-          echo "=== Cleaning up build artifacts ==="
-          df -h
-
-          # Remove Next.js build cache and temporary files
-          rm -rf .next
-          rm -rf node_modules/.cache
-          rm -rf ~/.cache/pnpm
-          rm -rf /tmp/*
-
-          # Remove unnecessary build artifacts
-          find out -name "*.map" -type f -delete 2>/dev/null || true
-          find out -name "*.txt" -type f -delete 2>/dev/null || true
-
-          echo "=== Disk usage after cleanup ==="
-          df -h
+          echo "=== Starting optimized build with parallel processing ==="
+          chmod +x scripts/build-parallel-real.sh
+          pnpm run build
 
       - name: Upload to R2
         env:

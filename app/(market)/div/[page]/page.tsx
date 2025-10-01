@@ -10,7 +10,7 @@ import { computeTotalPagesMixed } from "@/lib/data/pagination";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { siteConfig } from "@/config/site";
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ page: string }>> {
     const total = await countSecurityRanks("div");
     const totalPages = computeTotalPagesMixed(total);
 

@@ -1,0 +1,174 @@
+   ▲ Next.js 15.5.4
+   - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 5.7s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+[GENERATE_STATIC_PARAMS] Generating PBR pages for 2656 common stocks
+   Generating static pages (0/27945) ...
+   Generating static pages (4283/27945) 
+   Generating static pages (6986/27945) 
+   Generating static pages (11058/27945) 
+   Generating static pages (13972/27945) 
+   Generating static pages (18794/27945) 
+   Generating static pages (20958/27945) 
+   Generating static pages (25669/27945) 
+ ✓ Generating static pages (27945/27945)
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+Database connections closed successfully
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+Database connections closed successfully
+Database connections closed successfully
+   Finalizing page optimization ...
+   Collecting build traces ...
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+   Exporting (0/2) ...
+ ✓ Exporting (2/2)
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    1.56 kB         179 kB
+├ ○ /_not-found                            138 B         102 kB
+├ ○ /bps                                  1.4 kB         179 kB
+├ ● /bps/[page]                           1.4 kB         179 kB
+├   ├ /bps/2
+├   ├ /bps/3
+├   ├ /bps/4
+├   └ [+23 more paths]
+├ ● /company/[secCode]                   1.92 kB         120 kB
+├   ├ /company/KOSPI.005930
+├   ├ /company/KOSPI.000660
+├   ├ /company/KOSPI.373220
+├   └ [+2785 more paths]
+├ ● /company/[secCode]/marketcap           274 B         382 kB
+├   ├ /company/KOSPI.005930/marketcap
+├   ├ /company/KOSPI.000660/marketcap
+├   ├ /company/KOSPI.373220/marketcap
+├   └ [+2785 more paths]
+├ ○ /dashboard                           6.79 kB         146 kB
+├ ○ /div                                 1.41 kB         179 kB
+├ ● /div/[page]                          1.41 kB         179 kB
+├   ├ /div/2
+├   ├ /div/3
+├   ├ /div/4
+├   └ [+23 more paths]
+├ ○ /dps                                  1.4 kB         179 kB
+├ ● /dps/[page]                           1.4 kB         179 kB
+├   ├ /dps/2
+├   ├ /dps/3
+├   ├ /dps/4
+├   └ [+23 more paths]
+├ ○ /eps                                  1.4 kB         179 kB
+├ ● /eps/[page]                           1.4 kB         179 kB
+├   ├ /eps/2
+├   ├ /eps/3
+├   ├ /eps/4
+├   └ [+23 more paths]
+├ ○ /marketcap                           1.56 kB         179 kB
+├ ● /marketcap/[page]                    1.56 kB         179 kB
+├   ├ /marketcap/2
+├   ├ /marketcap/3
+├   ├ /marketcap/4
+├   └ [+26 more paths]
+├ ○ /marketcaps                          1.56 kB         179 kB
+├ ● /marketcaps/[page]                   1.56 kB         179 kB
+├   ├ /marketcaps/1
+├   ├ /marketcaps/2
+├   ├ /marketcaps/3
+├   └ [+25 more paths]
+├ ○ /opengraph-image.png                     0 B            0 B
+├ ○ /pbr                                 1.41 kB         179 kB
+├ ● /pbr/[page]                          1.41 kB         179 kB
+├   ├ /pbr/2
+├   ├ /pbr/3
+├   ├ /pbr/4
+├   └ [+23 more paths]
+├ ○ /per                                 1.41 kB         179 kB
+├ ● /per/[page]                          1.41 kB         179 kB
+├   ├ /per/2
+├   ├ /per/3
+├   ├ /per/4
+├   └ [+23 more paths]
+├ ● /security/[secCode]                  1.92 kB         120 kB
+├   ├ /security/KOSPI.005930
+├   ├ /security/KOSPI.000660
+├   ├ /security/KOSPI.373220
+├   └ [+2876 more paths]
+├ ● /security/[secCode]/bps              11.4 kB         436 kB
+├   ├ /security/KOSPI.005930/bps
+├   ├ /security/KOSPI.000660/bps
+├   ├ /security/KOSPI.373220/bps
+├   └ [+2653 more paths]
+├ ● /security/[secCode]/div              7.79 kB         364 kB
+├   ├ /security/KOSPI.005930/div
+├   ├ /security/KOSPI.000660/div
+├   ├ /security/KOSPI.373220/div
+├   └ [+2876 more paths]
+├ ● /security/[secCode]/dps                11 kB         436 kB
+├   ├ /security/KOSPI.005930/dps
+├   ├ /security/KOSPI.000660/dps
+├   ├ /security/KOSPI.373220/dps
+├   └ [+2876 more paths]
+├ ● /security/[secCode]/eps              9.58 kB         362 kB
+├   ├ /security/KOSPI.005930/eps
+├   ├ /security/KOSPI.000660/eps
+├   ├ /security/KOSPI.373220/eps
+├   └ [+2653 more paths]
+├ ● /security/[secCode]/marketcap        1.16 kB         380 kB
+├   ├ /security/KOSPI.005930/marketcap
+├   ├ /security/KOSPI.000660/marketcap
+├   ├ /security/KOSPI.373220/marketcap
+├   └ [+2876 more paths]
+├ ● /security/[secCode]/pbr              9.18 kB         259 kB
+├   ├ /security/KOSPI.005930/pbr
+├   ├ /security/KOSPI.000660/pbr
+├   ├ /security/KOSPI.373220/pbr
+├   └ [+2653 more paths]
+├ ● /security/[secCode]/per              9.67 kB         435 kB
+├   ├ /security/KOSPI.005930/per
+├   ├ /security/KOSPI.000660/per
+├   ├ /security/KOSPI.373220/per
+├   └ [+2653 more paths]
+└ ○ /sitemaps/sitemap.xml                  138 B         102 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/4609-20b225d71c2fe9e2.js      46.1 kB
+  ├ chunks/6d557b90-fe7d8dcd9494cbb1.js  54.2 kB
+  └ other shared chunks (total)          1.98 kB
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
