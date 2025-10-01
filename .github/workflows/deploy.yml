@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest-16xl
+    runs-on: ubuntu-latest-4xl
     env:
       NEXT_TELEMETRY_DISABLED: "1"
 
