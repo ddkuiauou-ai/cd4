@@ -96,62 +96,86 @@ export function calculateDPSPeriodAnalysis(
 /**
  * Process DPS data for charts and analysis
  */
-export function processDPSData(data: Array<{ date: Date; dps: number | null }>): DPSData[] {
+export function processDPSData(data: Array<{ date: Date | string; dps: number | null }>): DPSData[] {
+    if (!data || data.length === 0) {
+        return [];
+    }
+
     return data
-        .map((item) => ({
-            date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
-            value: item.dps === null || item.dps === undefined ? null : item.dps === 0 ? null : Number(item.dps),
-        }))
+        .map((item) => {
+            let dateStr: string;
+            const dateValue = item.date;
+
+            if (dateValue instanceof Date) {
+                dateStr = dateValue.toISOString().split('T')[0];
+            } else if (typeof dateValue === 'string') {
+                dateStr = dateValue.split('T')[0];
+            } else {
+                dateStr = String(dateValue).split('T')[0];
+            }
+
+            let value: number | null = null;
+            if (item.dps !== null && item.dps !== undefined) {
+                const numValue = Number(item.dps);
+                if (!isNaN(numValue) && numValue > 0) {
+                    value = numValue;
+                }
+            }
+
+            return {
+                date: dateStr,
+                value: value,
+            };
+        })
+        .filter(item => item.value !== null)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
 /**
  * Process DPS data with growth rate calculation for charts and analysis
+ * Growth rates are calculated for consecutive data points in chronological order
  */
-export function processDPSDataWithGrowth(data: Array<{ date: Date; dps: number | null }>): DPSGrowthData[] {
-    const dpsData = processDPSData(data);
-
-    // 12월 데이터만 필터링 (차트에서 사용하는 데이터와 동일)
-    const decemberData = dpsData.filter(item => item.date.endsWith('-12'));
-
-    if (decemberData.length === 0) {
-        console.log('No December data found, returning original data');
-        return dpsData;
+export function processDPSDataWithGrowth(data: Array<{ date: Date | string; dps: number | null }>): DPSGrowthData[] {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        return [];
     }
 
-    // 12월 데이터를 연도순으로 정렬
-    const sortedDecemberData = decemberData.sort((a, b) => {
-        const yearA = parseInt(a.date.split('-')[0]);
-        const yearB = parseInt(b.date.split('-')[0]);
-        return yearA - yearB;
-    });
+    const dpsData = processDPSData(data);
 
-    // 12월 데이터에 대해서만 성장률 계산
-    const decemberDataWithGrowth = sortedDecemberData.map((item, index) => {
+    if (dpsData.length === 0) {
+        return [];
+    }
+
+    // 데이터를 날짜순으로 정렬
+    const sortedData = dpsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // 전체 데이터를 대상으로 성장률 계산 (연속된 데이터 포인트 간 비교)
+    return sortedData.map((item, index) => {
         if (index === 0) {
             // 첫 번째 데이터는 성장률 계산 불가
             return { ...item, growthRate: null };
         }
 
-        const previousValue = sortedDecemberData[index - 1].value;
+        const previousValue = sortedData[index - 1].value;
         const currentValue = item.value;
 
-        if (previousValue === 0 || previousValue === null || currentValue === null) {
+        // 값 검증
+        if (previousValue === null || previousValue === undefined || currentValue === null || currentValue === undefined) {
+            return { ...item, growthRate: null };
+        }
+
+        if (typeof previousValue !== 'number' || typeof currentValue !== 'number') {
+            return { ...item, growthRate: null };
+        }
+
+        if (previousValue <= 0 || currentValue <= 0) {
             return { ...item, growthRate: null };
         }
 
         const growthRate = ((currentValue - previousValue) / previousValue) * 100;
-
-        // DPS 값이 같으면 0%, 다르면 계산된 값
         const finalGrowthRate = Math.abs(growthRate) < 0.01 ? 0 : Number(growthRate.toFixed(2));
 
         return { ...item, growthRate: finalGrowthRate };
-    });
-
-    // 원본 데이터에 성장률 정보를 추가
-    return dpsData.map(item => {
-        const decemberItem = decemberDataWithGrowth.find(dec => dec.date === item.date);
-        return decemberItem || { ...item, growthRate: null };
     });
 }
 

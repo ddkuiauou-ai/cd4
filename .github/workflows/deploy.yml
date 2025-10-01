@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-22.04-xl
+    runs-on: ubuntu-latest-16xl
     env:
       NEXT_TELEMETRY_DISABLED: "1"
 
@@ -40,26 +40,40 @@ jobs:
           echo "=== Initial disk usage ==="
           df -h
           echo "=== Cleaning up space ==="
+
+          # Remove unnecessary packages and caches
+          sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' 2>/dev/null || true
+          sudo apt-get autoremove -y 2>/dev/null || true
+          sudo apt-get clean
+
+          # Remove unused tool caches
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORIES"
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/hostedtoolcache/CodeQL
-          # Additional cleanup for GitHub Actions runner
+          sudo rm -rf /opt/hostedtoolcache/PyPy
+          sudo rm -rf /opt/hostedtoolcache/go
+          sudo rm -rf /opt/hostedtoolcache/Ruby
+
+          # Clean up GitHub Actions caches
           sudo rm -rf /home/runner/.cache
           sudo rm -rf /home/runner/work/_temp
           sudo rm -rf /home/runner/work/_actions
+
+          # Clean package manager caches
           sudo rm -rf /tmp/*
-          # Clean npm/yarn cache
           sudo rm -rf ~/.npm
-          sudo rm -rf ~/.yarn
-          # Clean Docker if exists
+          sudo rm -rf ~/.cache/pnpm
+          sudo rm -rf /usr/local/share/.cache
+
+          # Clean Docker (if exists)
           docker system prune -af --volumes 2>/dev/null || true
+
           echo "=== Final disk usage ==="
           df -h
           echo "=== Largest directories ==="
-          du -h / | sort -hr | head -20
+          du -h /usr /home /opt 2>/dev/null | sort -hr | head -15 || true
 
       - name: Build Next.js
         env:
@@ -68,7 +82,47 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        run: pnpm next build
+        run: |
+          echo "=== Disk usage before build ==="
+          df -h
+
+          # Monitor disk usage during build
+          pnpm next build 2>&1 | tee build.log &
+
+          BUILD_PID=$!
+
+          # Monitor disk usage every 30 seconds during build
+          while kill -0 $BUILD_PID 2>/dev/null; do
+            sleep 30
+            echo "=== Disk usage during build ($(date)) ==="
+            df -h
+            echo "=== Top 10 largest directories ==="
+            du -h /home/runner/work/cd4/cd4 /usr/local /opt 2>/dev/null | sort -hr | head -10 || true
+          done
+
+          wait $BUILD_PID
+
+          echo "=== Final disk usage after build ==="
+          df -h
+          echo "=== Build completed ==="
+
+      - name: Clean up build artifacts
+        run: |
+          echo "=== Cleaning up build artifacts ==="
+          df -h
+
+          # Remove Next.js build cache and temporary files
+          rm -rf .next
+          rm -rf node_modules/.cache
+          rm -rf ~/.cache/pnpm
+          rm -rf /tmp/*
+
+          # Remove unnecessary build artifacts
+          find out -name "*.map" -type f -delete 2>/dev/null || true
+          find out -name "*.txt" -type f -delete 2>/dev/null || true
+
+          echo "=== Disk usage after cleanup ==="
+          df -h
 
       - name: Upload to R2
         env:

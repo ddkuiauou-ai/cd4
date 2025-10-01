@@ -544,6 +544,7 @@ export const getSecurityMetricsHistory = unstable_cache(
         columns: { date: true, bps: true, per: true, pbr: true, eps: true, div: true, dps: true },
         orderBy: [asc(schema.bppedd.date)],
       });
+
       return data;
     } catch (e) {
       console.error('[getSecurityMetricsHistory] ERROR:', e);

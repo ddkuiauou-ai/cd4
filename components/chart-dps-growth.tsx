@@ -33,24 +33,18 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
         setIsClient(true);
     }, []);
 
-    // Filter data to show only December data (annual data)
-    const annualData = useMemo(() => {
-        const lastDecDates: Record<string, DPSGrowthItem> = {};
-        data.forEach((item) => {
-            const [year, month] = item.date.split("-");
-            if (month === "12" || item.date.includes("-12")) {
-                if (!lastDecDates[year] || item.date > lastDecDates[year].date) {
-                    lastDecDates[year] = item;
-                }
-            }
+    const chartData = useMemo(() => {
+        if (!data || data.length === 0) return [];
+
+        return data.filter((item, index) => {
+            if (index === 0) return true;
+            return item.growthRate !== null && item.growthRate !== 0;
         });
-        return Object.values(lastDecDates).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [data]);
 
-    // 🎨 차트 색상 팔레트 (DPS와 성장률 구분)
     const colors = useMemo(() => ({
-        dps: "#2563eb", // Blue for DPS
-        growth: "#dc2626", // Red for growth rate
+        dps: "#2563eb",
+        growth: "#dc2626",
         dpsLine: "#2563eb",
         growthLine: "#dc2626",
     }), []);
@@ -69,7 +63,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
         <div className="mt-5 w-full h-[200px] sm:h-[220px] md:h-[250px] lg:h-[280px] xl:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                    data={annualData}
+                    data={chartData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
