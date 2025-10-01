@@ -92,6 +92,13 @@ if pnpm next build 2>&1 | tee build.log; then
     
     echo ""
     echo "✅ Build completed successfully!"
+    
+    # IMMEDIATELY delete .next to free disk space before next steps
+    echo "🧹 Deleting .next directory to free disk space..."
+    rm -rf .next
+    
+    echo "💾 Disk after .next deletion:"
+    check_disk
     echo ""
 else
     # 모니터링 프로세스 종료
@@ -123,15 +130,6 @@ if [ $file_count -lt 100 ]; then
     echo "⚠️ Warning: File count seems low ($file_count files)"
     exit 1
 fi
-
-# Aggressive cleanup before sitemap generation
-echo ""
-echo "🧹 Cleaning up .next directory to free disk space..."
-rm -rf .next/cache 2>/dev/null || true
-rm -rf .next/server 2>/dev/null || true
-rm -rf .next/static 2>/dev/null || true
-echo ""
-check_disk
 
 # Generate sitemap
 echo ""
