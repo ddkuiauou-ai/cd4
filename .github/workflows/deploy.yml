@@ -87,8 +87,7 @@ jobs:
           df -h
 
           # Monitor disk usage during build
-          pnpm next build 2>&1 | tee build.log &
-
+          pnpm run build:fast 2>&1 | tee build.log &
           BUILD_PID=$!
 
           # Monitor disk usage every 30 seconds during build

@@ -9,8 +9,8 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE) || 500; // 한 청크당 종목 수
-const MAX_PARALLEL = parseInt(process.env.MAX_PARALLEL) || 4; // 동시 실행할 프로세스 수
+const CHUNK_SIZE = parseInt(process.env.CHUNK_SIZE) || 400; // 2코어 8GB 환경용 속도 최적화 한 청크당 종목 수
+const MAX_PARALLEL = parseInt(process.env.MAX_PARALLEL) || 2; // 2코어 활용하여 속도 향상
 
 console.log("🚀 Starting parallel SSG build...");
 console.log(`📊 Configuration:`);
@@ -98,9 +98,10 @@ async function runParallelBuild() {
     const chunks = Array.from({ length: totalChunks }, (_, i) => i);
     const results = [];
 
-    // 배치별로 병렬 실행
-    for (let i = 0; i < chunks.length; i += MAX_PARALLEL) {
-      const batch = chunks.slice(i, i + MAX_PARALLEL);
+    // 배치별로 병렬 실행 (메모리 효율적으로)
+    const BATCH_SIZE = Math.min(MAX_PARALLEL, 1); // 안정성을 위해 1개씩 배치 처리
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
       console.log(
         `\n🔄 Processing batch: chunks ${batch.map((c) => c + 1).join(", ")}`
       );
