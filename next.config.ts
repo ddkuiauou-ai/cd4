@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // CD3 프로젝트 - 정적 사이트 생성 설정
@@ -15,6 +16,12 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  // Turbopack 설정
+  turbopack: {
+    // 프로젝트 루트 명시 (경고 제거)
+    root: path.resolve(__dirname),
   },
 
   // 빌드 최적화
