@@ -408,7 +408,7 @@ export default async function SecurityPERPage({ params }: SecurityPERPageProps) 
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
             <Link
-              href={`/company/${companySecCode}/per`}
+              href={`/company/${companySecCode}`}
               className="transition-colors hover:text-foreground"
             >
               {security.company?.korName || displayName}

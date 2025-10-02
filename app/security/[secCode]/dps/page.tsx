@@ -393,7 +393,7 @@ export default async function SecurityDPSPage({ params }: SecurityDPSPageProps) 
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
             <Link
-              href={`/company/${companySecCode}/dps`}
+              href={`/company/${companySecCode}`}
               className="transition-colors hover:text-foreground"
             >
               {security.company?.korName || displayName}

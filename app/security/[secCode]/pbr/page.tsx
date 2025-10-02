@@ -393,7 +393,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
             <Link
-              href={`/company/${companySecCode}/pbr`}
+              href={`/company/${companySecCode}`}
               className="transition-colors hover:text-foreground"
             >
               {security.company?.korName || displayName}

@@ -397,7 +397,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
             <Link
-              href={`/company/${companySecCode}/bps`}
+              href={`/company/${companySecCode}`}
               className="transition-colors hover:text-foreground"
             >
               {security.company?.korName || displayName}

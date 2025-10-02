@@ -360,7 +360,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
             <Link
-              href={`/company/${companySecCode}/eps`}
+              href={`/company/${companySecCode}`}
               className="transition-colors hover:text-foreground"
             >
               {security.company?.korName || displayName}
