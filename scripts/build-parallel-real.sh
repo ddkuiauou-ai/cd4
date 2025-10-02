@@ -22,9 +22,10 @@ fi
 
 echo "📊 Configuration:"
 echo "   - Build mode: Full build with parallel processing"
-echo "   - CPU cores: $CPU_CORES"
+echo "   - CPU cores detected: $CPU_CORES"
 echo "   - Memory allocation: 12GB for Node.js"
-echo "   - Worker threads: 8 (configured in next.config.ts)"
+echo "   - Webpack parallelism: 8 workers"
+echo "   - Next.js cpus: 8 (for static generation)"
 
 # 디스크 사용량 확인 함수
 check_disk() {
