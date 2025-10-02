@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   // CD3 프로젝트 - 정적 사이트 생성 설정
@@ -35,23 +34,6 @@ const nextConfig: NextConfig = {
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-tooltip',
     ],
-  },
-  
-  // Webpack 최적화
-  webpack: (config, { isServer, dev }) => {
-    // 프로덕션 빌드에서만 최적화 적용
-    if (!dev) {
-      // 병렬 처리 최적화
-      config.parallelism = 8;
-      
-      // 파일시스템 캐시 최적화 (절대 경로 필요)
-      config.cache = {
-        type: 'filesystem',
-        cacheDirectory: path.resolve('.next/cache/webpack'),
-      };
-    }
-    
-    return config;
   },
 };
 

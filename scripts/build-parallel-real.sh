@@ -21,11 +21,11 @@ else
 fi
 
 echo "📊 Configuration:"
-echo "   - Build mode: Full build with parallel processing"
+echo "   - Build mode: Full build with Turbopack (beta)"
 echo "   - CPU cores detected: $CPU_CORES"
 echo "   - Memory allocation: 12GB for Node.js"
-echo "   - Webpack parallelism: 8 workers"
-echo "   - Next.js cpus: 8 (for static generation)"
+echo "   - Next.js cpus: 8 (parallel static generation)"
+echo "   - Turbopack: Rust-based bundler (2-5x faster)"
 
 # 디스크 사용량 확인 함수
 check_disk() {
@@ -56,8 +56,8 @@ cleanup_cache
 
 # Build with optimizations
 echo ""
-echo "🔨 Starting Next.js build..."
-echo "   ⚠️  This will take 30-45 minutes for ~28K pages"
+echo "🔨 Starting Next.js build with Turbopack (beta)..."
+echo "   ⚡ Expected: 10-20 minutes for ~28K pages (2-5x faster than Webpack)"
 echo ""
 
 start_time=$(date +%s)
@@ -77,7 +77,7 @@ start_time=$(date +%s)
 ) &
 MONITOR_PID=$!
 
-if pnpm next build 2>&1 | tee build.log; then
+if pnpm next build --turbopack 2>&1 | tee build.log; then
     end_time=$(date +%s)
     build_time=$((end_time - start_time))
     
