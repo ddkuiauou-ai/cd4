@@ -38,49 +38,33 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Clean previous build
-        run: |
-          echo "=== Initial disk usage ==="
-          df -h
-          echo "=== Cleaning previous builds ==="
-          rm -rf out .next build.log 2>/dev/null || true
-          echo "=== Disk space ready ==="
-          df -h
-
-      - name: Build Next.js with Turbopack
+      - name: Build Next.js
         env:
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        run: |
-          echo "=== Starting Turbopack build ==="
-          pnpm run build
+        run: pnpm run build
 
-      - name: Upload to R2 with parallel processing
+      - name: Upload to R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: apac
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ENDPOINT_URL: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
         run: |
-          echo "=== Starting high-speed upload to R2 ==="
-          
-          # Configure AWS CLI for maximum performance
+          # Configure AWS CLI for high-speed parallel uploads
           aws configure set default.s3.max_concurrent_requests 100
           aws configure set default.s3.max_queue_size 10000
           aws configure set default.s3.multipart_threshold 64MB
           aws configure set default.s3.multipart_chunksize 16MB
           aws configure set default.s3.max_bandwidth 200MB/s
           
-          # Upload with parallel processing
+          # Upload
           aws s3 sync ./out s3://${{ env.R2_BUCKET_NAME }}/ \
-            --endpoint-url ${{ env.R2_ENDPOINT_URL }} \
+            --endpoint-url https://${{ env.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com \
             --delete \
             --no-progress \
             --only-show-errors
-          
-          echo "=== Upload completed ==="

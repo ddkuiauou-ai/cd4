@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 --turbopack",
-    "build": "./scripts/build-parallel-real.sh",
+    "build": "next build --turbopack",
+    "postbuild": "node scripts/generate-sitemap.js",
     "start": "next start",
     "lint": "next lint",
     "sitemap": "node scripts/generate-sitemap.js"
