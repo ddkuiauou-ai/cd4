@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+build.log
+
+# Testing
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Local scripts
+scripts/build-parallel-real.sh
+scripts/build-simple.sh
+scripts/build-incremental.sh
+scripts/deploy-r2.sh
+
+# Development
+.env.local
+.env.development.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# GitHub Actions
+.github/workflows
+
+# Documentation
+*.md
+!README.md
