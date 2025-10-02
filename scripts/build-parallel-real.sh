@@ -62,14 +62,24 @@ echo ""
 
 start_time=$(date +%s)
 
-# Progress monitoring (less frequent on fast machines)
+# Progress monitoring with aggressive cleanup during export phase
 (
     while true; do
-        sleep 300  # 5분마다 체크
+        sleep 180  # 3분마다 체크
         if ps aux | grep -q "[n]ext build"; then
             echo ""
             echo "⏳ Build in progress..."
             check_disk
+            
+            # Export 단계에서 .next 캐시 삭제 (out 디렉토리가 생성되면)
+            if [ -d "out" ] && [ -d ".next" ]; then
+                echo "🧹 Emergency: Deleting .next cache during export..."
+                rm -rf .next/cache 2>/dev/null || true
+                rm -rf .next/server 2>/dev/null || true
+                rm -rf .next/static 2>/dev/null || true
+                echo "💾 After cleanup:"
+                check_disk
+            fi
         else
             break
         fi
@@ -86,6 +96,13 @@ if pnpm next build --turbopack 2>&1 | tee build.log; then
     
     echo ""
     echo "✅ Build completed successfully!"
+    
+    # Immediately delete .next to free disk space
+    echo "🧹 Cleaning up .next directory..."
+    rm -rf .next
+    
+    echo "💾 After cleanup:"
+    check_disk
     echo ""
 else
     # 모니터링 프로세스 종료
