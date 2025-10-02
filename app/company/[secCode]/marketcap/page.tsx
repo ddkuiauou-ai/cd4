@@ -505,6 +505,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
               market={market}
               currentTicker={currentTicker}
               baseUrl="security"
+              currentMetric="marketcap"
               highlightActiveTicker={false}
               defaultFilter="시가총액 구성"
             />

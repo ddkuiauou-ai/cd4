@@ -808,7 +808,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithPBR}
           currentTicker={currentTicker}
           market={market}
-          companyMarketcapData={undefined}
+          companyMarketcapData={companyMarketcapData}
           metricType="pbr"
         />
       </div>

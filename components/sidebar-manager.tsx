@@ -25,7 +25,7 @@ interface SidebarManagerProps {
     comparableSecuritiesWithPER?: SecurityData[];
     currentTicker?: string;
     market?: string;
-    companyMarketcapData?: CompanyMarketcapData;
+    companyMarketcapData?: CompanyMarketcapData | any;
     metricType?: 'per' | 'bps' | 'eps' | 'pbr' | 'dps' | 'div' | 'marketcap';
 }
 
@@ -247,7 +247,7 @@ export function SidebarManager({
                 <RecentSecuritiesSidebar currentSecCode={secCode} />
             </div>
 
-            {/* 종목별 PER 비교 */}
+            {/* 종목별 비교 */}
             {hasCompanyMarketcapData && companySecs.length > 0 && (
                 <div className="mb-0">
                     <InteractiveSecuritiesSection
@@ -260,8 +260,8 @@ export function SidebarManager({
                         showSummaryCard={true}
                         compactMode={false}
                         baseUrl="security"
-                        currentMetric="per"
-                        highlightActiveTicker={true}
+                        currentMetric={metricType}
+                        highlightActiveTicker={metricType === 'marketcap' ? false : true}
                     />
                 </div>
             )}

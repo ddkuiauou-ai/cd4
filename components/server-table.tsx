@@ -1,6 +1,4 @@
 "use client";
-
-import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Exchange from "@/components/exchange";
 import RankChange from "@/components/rank-change";
@@ -24,18 +22,18 @@ interface ServerTableProps {
     metric?: 'marketcap' | 'per' | 'div' | 'dps' | 'bps' | 'pbr' | 'eps';
 }
 
-export function ServerTable({ 
-    data, 
-    latestDate, 
-    updatedDate, 
-    title = "시가총액 기업 랭킹", 
+export function ServerTable({
+    data,
+    latestDate,
+    updatedDate,
+    title = "시가총액 기업 랭킹",
     subTitle = "코스피 · 코스닥 · 코넥스 상장 기업",
     infoColumnHeader = "기업 정보",
     headerActions,
     metric = 'marketcap'
 }: ServerTableProps) {
-    const pathname = usePathname();
-    const linkType = pathname.startsWith('/security') ? 'security' : 'company';
+    // Determine linkType based on data structure - if first item has securityId, it's security data
+    const linkType = data.length > 0 && data[0].securityId ? 'security' : 'company';
 
     return (
         <div className="border rounded-lg overflow-hidden bg-card mx-auto max-w-none">
@@ -223,7 +221,7 @@ export function ServerTable({
                                                     />
                                                 </div>
                                                 {/* Enhanced Tooltip */}
-                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-3 bg-popover text-popover-foreground text-sm rounded-lg shadow-xl border-2 border-border/50 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-20 backdrop-blur-sm bg-background/95">
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-3 bg-background/95 text-popover-foreground text-sm rounded-lg shadow-xl border-2 border-border/50 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-20 backdrop-blur-sm">
                                                     <div className="text-center space-y-1">
                                                         <div className="font-bold text-primary">현재가: {close?.toLocaleString()}원</div>
                                                         <div className="text-xs text-muted-foreground">30일 가격 추이</div>

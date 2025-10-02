@@ -95,7 +95,7 @@ async function HomePage() {
                     <h2 className="text-base font-semibold text-foreground">시가총액 기업 랭킹</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <MarketcapCompactList items={mobileData} />
+                <MarketcapCompactList items={mobileData} metric="marketcap" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={mobileCsvData} filename={`marketcap-top${HOME_PAGE_LIMITS.MOBILE_COMPANIES}-${latestDate}.csv`} />
                 </div>

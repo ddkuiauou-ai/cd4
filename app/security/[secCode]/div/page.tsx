@@ -967,7 +967,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           comparableSecuritiesWithPER={comparableSecuritiesWithDIV}
           currentTicker={secCode.includes('.') ? secCode.split('.')[1] : secCode}
           market={security.exchange || 'KOSPI'}
-          companyMarketcapData={undefined}
+          companyMarketcapData={companyMarketcapData}
           metricType="div"
         />
       </div>

@@ -143,7 +143,7 @@ async function PerRankPage({ params }: PerRankPageProps) {
                     <h2 className="text-base font-semibold text-foreground">주가수익비율(PER) 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <PerCompactList items={transformedData} />
+                <PerCompactList items={transformedData} metric="per" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`per-securities-page-${page}-${latestDate}.csv`} />
                 </div>

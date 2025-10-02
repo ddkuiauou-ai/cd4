@@ -143,7 +143,7 @@ async function BpsRankPage({ params }: BpsRankPageProps) {
                     <h2 className="text-base font-semibold text-foreground">주당 순자산(BPS) 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <BpsCompactList items={transformedData} />
+                <BpsCompactList items={transformedData} metric="bps" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`bps-securities-page-${page}-${latestDate}.csv`} />
                 </div>

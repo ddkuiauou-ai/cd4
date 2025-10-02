@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import CompanyLogo from "@/components/CompanyLogo";
 import Exchange from "@/components/exchange";
 import Rate from "@/components/rate";
@@ -35,6 +34,7 @@ interface Props {
   items: Item[];
   limit?: number;
   className?: string;
+  metric?: 'marketcap' | 'per' | 'div' | 'dps' | 'bps' | 'pbr' | 'eps';
 }
 
 /**
@@ -43,9 +43,9 @@ interface Props {
  * - Minimal color usage; primary only for subtle rate emphasis
  * - No nested cards; single-level list items with dividers
  */
-export default function MarketcapCompactList({ items, limit, className }: Props) {
-  const pathname = usePathname();
-  const linkType = pathname.startsWith('/security') ? 'security' : 'company';
+export default function MarketcapCompactList({ items, limit, className, metric = 'marketcap' }: Props) {
+  // Determine linkType based on data structure - if first item has securityId, it's security data
+  const linkType = items.length > 0 && items[0].securityId ? 'security' : 'company';
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (

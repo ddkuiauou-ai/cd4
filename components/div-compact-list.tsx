@@ -32,9 +32,12 @@ interface Props {
   items: Item[];
   limit?: number;
   className?: string;
+  metric?: 'marketcap' | 'per' | 'div' | 'dps' | 'bps' | 'pbr' | 'eps';
 }
 
-export default function DivCompactList({ items, limit, className }: Props) {
+export default function DivCompactList({ items, limit, className, metric = 'div' }: Props) {
+  // Determine linkType based on data structure - if first item has securityId, it's security data
+  const linkType = items.length > 0 && items[0].securityId ? 'security' : 'company';
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (
@@ -61,7 +64,7 @@ export default function DivCompactList({ items, limit, className }: Props) {
                 </div>
 
                 <Link
-                  href={ex && tk ? `/security/${ex}.${tk}/div` : "#"}
+                  href={ex && tk ? `/${linkType}/${ex}.${tk}/${metric}` : "#"}
                   className="flex items-center gap-3 group min-w-0"
                 >
                   <div className="shrink-0">

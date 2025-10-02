@@ -119,7 +119,7 @@ async function PbrRankPage() {
                     <h2 className="text-base font-semibold text-foreground">주가순자산비율(PBR) 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <PbrCompactList items={transformedData} />
+                <PbrCompactList items={transformedData} metric="pbr" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`pbr-securities-page-${page}-${latestDate}.csv`} />
                 </div>

@@ -119,7 +119,7 @@ async function EpsRankPage() {
                     <h2 className="text-base font-semibold text-foreground">주당 순이익(EPS) 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <EpsCompactList items={transformedData} />
+                <EpsCompactList items={transformedData} metric="eps" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`eps-securities-page-${page}-${latestDate}.csv`} />
                 </div>

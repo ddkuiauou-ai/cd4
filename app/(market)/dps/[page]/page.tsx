@@ -143,7 +143,7 @@ async function DpsRankPage({ params }: DpsRankPageProps) {
                     <h2 className="text-base font-semibold text-foreground">주당 배당금(DPS) 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <DpsCompactList items={transformedData} />
+                <DpsCompactList items={transformedData} metric="dps" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`dps-securities-page-${page}-${latestDate}.csv`} />
                 </div>

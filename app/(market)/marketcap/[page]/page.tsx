@@ -143,7 +143,7 @@ async function MarketcapRankPage({ params }: MarketcapRankPageProps) {
                     <h2 className="text-base font-semibold text-foreground">시가총액 종목 순위</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <MarketcapCompactList items={transformedData} />
+                <MarketcapCompactList items={transformedData} metric="marketcap" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`marketcap-securities-page-${page}-${latestDate}.csv`} />
                 </div>

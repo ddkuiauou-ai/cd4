@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import CompanyLogo from "@/components/CompanyLogo";
 import Exchange from "@/components/exchange";
 import Rate from "@/components/rate";
@@ -32,9 +33,12 @@ interface Props {
   items: Item[];
   limit?: number;
   className?: string;
+  metric?: 'marketcap' | 'per' | 'div' | 'dps' | 'bps' | 'pbr' | 'eps';
 }
 
-export default function DpsCompactList({ items, limit, className }: Props) {
+export default function DpsCompactList({ items, limit, className, metric = 'dps' }: Props) {
+  // Determine linkType based on data structure - if first item has securityId, it's security data
+  const linkType = items.length > 0 && items[0].securityId ? 'security' : 'company';
   const list = (limit ? items.slice(0, limit) : items).filter(Boolean);
 
   return (
@@ -61,7 +65,7 @@ export default function DpsCompactList({ items, limit, className }: Props) {
                 </div>
 
                 <Link
-                  href={ex && tk ? `/security/${ex}.${tk}/dps` : "#"}
+                  href={ex && tk ? `/${linkType}/${ex}.${tk}/${metric}` : "#"}
                   className="flex items-center gap-3 group min-w-0"
                 >
                   <div className="shrink-0">

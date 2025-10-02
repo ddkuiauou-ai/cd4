@@ -124,7 +124,7 @@ async function MarketcapsPage({ params }: Props) {
                     <h2 className="text-base font-semibold text-foreground">시가총액 랭킹</h2>
                     <div className="text-xs text-muted-foreground">기준일 {latestDate}</div>
                 </div>
-                <MarketcapCompactList items={companies as any[]} />
+                <MarketcapCompactList items={companies as any[]} metric="marketcap" />
                 <div className="flex justify-end pt-2">
                     <CsvDownloadButton data={csvData} filename={`marketcaps-page-${pageNumber}-${latestDate}.csv`} />
                 </div>
