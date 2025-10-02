@@ -16,8 +16,8 @@ jobs:
     timeout-minutes: 120
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      # GitHub Actions ubuntu-latest: 2 CPU cores, 8GB RAM
-      NODE_OPTIONS: "--max-old-space-size=6144"
+      # Self-hosted: 10 CPU cores, use more memory and parallel workers
+      NODE_OPTIONS: "--max-old-space-size=12288"
 
     steps:
       - name: Checkout repository
@@ -38,35 +38,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Free up disk space
+      - name: Clean previous build
         run: |
           echo "=== Initial disk usage ==="
           df -h
-          echo "=== Cleaning up space ==="
-
-          # Remove unnecessary packages
-          sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' 2>/dev/null || true
-          sudo apt-get autoremove -y 2>/dev/null || true
-          sudo apt-get clean
-
-          # Remove unused tool caches
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf /opt/hostedtoolcache/PyPy
-          sudo rm -rf /opt/hostedtoolcache/go
-          sudo rm -rf /opt/hostedtoolcache/Ruby
-
-          # Clean package manager caches
-          sudo rm -rf /tmp/*
-          sudo rm -rf ~/.npm
-
-          # Clean Docker
-          docker system prune -af --volumes 2>/dev/null || true
-
-          echo "=== Final disk usage ==="
+          echo "=== Cleaning previous builds ==="
+          rm -rf out .next build.log 2>/dev/null || true
+          echo "=== Disk space ready ==="
           df -h
 
       - name: Build Next.js with parallel processing

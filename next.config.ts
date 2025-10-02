@@ -17,8 +17,13 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // 빌드 최적화 (검증된 기능만 사용)
+  // 빌드 최적화 및 병렬 처리
   experimental: {
+    // 병렬 빌드 워커 (10 CPU 코어 활용)
+    workerThreads: true,
+    cpus: 8,  // 10코어 중 8개 사용 (2개는 시스템용)
+    
+    // 패키지 임포트 최적화
     optimizePackageImports: [
       '@radix-ui/react-icons',
       '@radix-ui/react-slot',

@@ -1,21 +1,30 @@
 #!/bin/bash
-# CD3 Project - Optimized Full Build Script with Disk Management
+# CD3 Project - High-Performance Build Script with Parallel Processing
 
 set -e  # Exit on error
 
 # Ensure we're in the project root
 cd "$(dirname "$0")/.."
 
-echo "🚀 Starting optimized SSG build..."
+echo "🚀 Starting high-performance SSG build..."
 
 # Configuration
-export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=6144}"
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=12288}"
 export NEXT_TELEMETRY_DISABLED=1
+export UV_THREADPOOL_SIZE=32  # Increase libuv thread pool
+
+# Detect CPU cores
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CPU_CORES=$(sysctl -n hw.ncpu)
+else
+    CPU_CORES=$(nproc)
+fi
 
 echo "📊 Configuration:"
-echo "   - Build mode: Full build"
-echo "   - Memory allocation: 6GB for Node.js"
-echo "   - Disk management: Aggressive cleanup enabled"
+echo "   - Build mode: Full build with parallel processing"
+echo "   - CPU cores: $CPU_CORES"
+echo "   - Memory allocation: 12GB for Node.js"
+echo "   - Worker threads: 8 (configured in next.config.ts)"
 
 # 디스크 사용량 확인 함수
 check_disk() {
@@ -52,30 +61,14 @@ echo ""
 
 start_time=$(date +%s)
 
-# 빌드 중 디스크 모니터링 (더 자주 체크 및 정리)
+# Progress monitoring (less frequent on fast machines)
 (
     while true; do
-        sleep 180  # 3분마다 체크 (더 자주)
+        sleep 300  # 5분마다 체크
         if ps aux | grep -q "[n]ext build"; then
             echo ""
             echo "⏳ Build in progress..."
             check_disk
-            
-            # 더 적극적인 정리
-            echo "🧹 Aggressive cleanup during build..."
-            rm -rf .next/cache/webpack 2>/dev/null || true
-            rm -rf .next/cache/images 2>/dev/null || true
-            rm -rf node_modules/.cache 2>/dev/null || true
-            rm -rf /tmp/* 2>/dev/null || true
-            
-            # 디스크 사용량이 85% 이상이면 경고
-            usage=$(df -h / | tail -1 | awk '{print $5}' | sed 's/%//')
-            if [ "$usage" -gt 85 ]; then
-                echo "⚠️  WARNING: Disk usage at ${usage}%! Build may fail!"
-                echo "🧹 Emergency cleanup..."
-                rm -rf .next/standalone 2>/dev/null || true
-                rm -rf .next/types 2>/dev/null || true
-            fi
         else
             break
         fi
@@ -87,18 +80,11 @@ if pnpm next build 2>&1 | tee build.log; then
     end_time=$(date +%s)
     build_time=$((end_time - start_time))
     
-    # 모니터링 프로세스 종료
+    # Stop monitoring
     kill $MONITOR_PID 2>/dev/null || true
     
     echo ""
     echo "✅ Build completed successfully!"
-    
-    # IMMEDIATELY delete .next to free disk space before next steps
-    echo "🧹 Deleting .next directory to free disk space..."
-    rm -rf .next
-    
-    echo "💾 Disk after .next deletion:"
-    check_disk
     echo ""
 else
     # 모니터링 프로세스 종료
@@ -132,28 +118,22 @@ if [ $file_count -lt 100 ]; then
 fi
 
 # Generate sitemap
-echo ""
 echo "🗺️ Generating sitemap..."
 node scripts/generate-sitemap.js
 
-# Final cleanup
+# Final cleanup - keep .next for incremental builds
 echo ""
-echo "🧹 Final cleanup..."
-rm -rf .next
+echo "🧹 Cleanup build artifacts..."
 rm -rf build.log
-rm -rf node_modules/.cache 2>/dev/null || true
-rm -rf /tmp/next-* 2>/dev/null || true
-
-# Final disk usage
-echo ""
-check_disk
 
 # Build summary
 echo ""
 echo "📈 Build summary:"
 echo "   - Build time: $((build_time / 60))m $((build_time % 60))s"
 echo "   - Total output files: $file_count"
-echo "   - Output directory: ./out"
+echo "   - Output size: $(du -sh out | cut -f1)"
 echo "   - Avg time per page: $((build_time * 1000 / file_count))ms"
+echo ""
+check_disk
 echo ""
 echo "🎉 Build completed successfully!"
