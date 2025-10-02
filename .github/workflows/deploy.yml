@@ -59,7 +59,7 @@ jobs:
           chmod +x scripts/build-parallel-real.sh
           pnpm run build
 
-      - name: Upload to R2
+      - name: Upload to R2 with parallel processing
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -68,6 +68,20 @@ jobs:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ENDPOINT_URL: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
         run: |
+          echo "=== Starting high-speed upload to R2 ==="
+          
+          # Configure AWS CLI for maximum performance
+          aws configure set default.s3.max_concurrent_requests 100
+          aws configure set default.s3.max_queue_size 10000
+          aws configure set default.s3.multipart_threshold 64MB
+          aws configure set default.s3.multipart_chunksize 16MB
+          aws configure set default.s3.max_bandwidth 200MB/s
+          
+          # Upload with parallel processing
           aws s3 sync ./out s3://${{ env.R2_BUCKET_NAME }}/ \
             --endpoint-url ${{ env.R2_ENDPOINT_URL }} \
-            --delete
+            --delete \
+            --no-progress \
+            --only-show-errors
+          
+          echo "=== Upload completed ==="
