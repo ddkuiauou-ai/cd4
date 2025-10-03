@@ -2,33 +2,8 @@ import type { MetadataRoute } from "next";
 import { notFound } from "next/navigation";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
-const isExportBuild = (process.env.NEXT_OUTPUT_MODE || "").toLowerCase() === "export";
-const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
-
-export const revalidate = 86400;
-
-export async function generateStaticParams() {
-  if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
-    return [];
-  }
-
-  const chunks = await getSitemapChunks();
-  const params: Array<{ segment: string }> = [];
-
-  if (chunks.core.length > 0) {
-    params.push({ segment: "core-0" });
-  }
-
-  chunks.securities.forEach((_, index) => {
-    params.push({ segment: `securities-${index}` });
-  });
-
-  chunks.companies.forEach((_, index) => {
-    params.push({ segment: `companies-${index}` });
-  });
-
-  return params;
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface SitemapContext {
   segment?: string;
@@ -42,9 +17,7 @@ export default async function sitemap(context: SitemapContext): Promise<Metadata
   if (!segment) {
     notFound();
   }
-  if (!isExportBuild && isBuildPhase) {
-    return [];
-  }
+
   let chunks;
   try {
     chunks = await getSitemapChunks();
