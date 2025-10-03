@@ -3,11 +3,15 @@ import { siteConfig } from "@/config/site";
 import { getSitemapChunks } from "@/lib/sitemap/utils";
 
 const isExportBuild = (process.env.NEXT_OUTPUT_MODE || "").toLowerCase() === "export";
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-export const dynamic = isExportBuild ? "force-static" : "force-dynamic";
-export const revalidate = isExportBuild ? 86400 : 0;
+export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (!isExportBuild && isBuildPhase) {
+    return [];
+  }
+
   const now = new Date();
   let chunks;
   try {

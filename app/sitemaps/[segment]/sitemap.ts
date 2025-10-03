@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
 const isExportBuild = (process.env.NEXT_OUTPUT_MODE || "").toLowerCase() === "export";
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-export const dynamic = isExportBuild ? "force-static" : "force-dynamic";
-export const revalidate = isExportBuild ? 86400 : 0;
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
@@ -41,6 +41,9 @@ export default async function sitemap(context: SitemapContext): Promise<Metadata
   const segment = context.segment ?? context.params?.segment;
   if (!segment) {
     notFound();
+  }
+  if (!isExportBuild && isBuildPhase) {
+    return [];
   }
   let chunks;
   try {
