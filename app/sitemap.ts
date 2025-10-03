@@ -2,11 +2,20 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getSitemapChunks } from "@/lib/sitemap/utils";
 
-export const revalidate = 86400;
+const isExportBuild = (process.env.NEXT_OUTPUT_MODE || "").toLowerCase() === "export";
+
+export const dynamic = isExportBuild ? "force-static" : "force-dynamic";
+export const revalidate = isExportBuild ? 86400 : 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const chunks = await getSitemapChunks();
+  let chunks;
+  try {
+    chunks = await getSitemapChunks();
+  } catch (error) {
+    console.error("[sitemap] Failed to load sitemap chunks:", error);
+    return [];
+  }
 
   const entries: MetadataRoute.Sitemap = [];
 

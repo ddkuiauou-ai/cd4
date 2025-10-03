@@ -2,7 +2,10 @@ import type { MetadataRoute } from "next";
 import { notFound } from "next/navigation";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
-export const revalidate = 86400;
+const isExportBuild = (process.env.NEXT_OUTPUT_MODE || "").toLowerCase() === "export";
+
+export const dynamic = isExportBuild ? "force-static" : "force-dynamic";
+export const revalidate = isExportBuild ? 86400 : 0;
 
 export async function generateStaticParams() {
   if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
@@ -39,14 +42,20 @@ export default async function sitemap(context: SitemapContext): Promise<Metadata
   if (!segment) {
     notFound();
   }
+  let chunks;
+  try {
+    chunks = await getSitemapChunks();
+  } catch (error) {
+    console.error(`[sitemaps/${segment}] Failed to load chunks:`, error);
+    return [];
+  }
+
   const [type, rawIndex] = segment.split("-");
   const index = rawIndex ? Number(rawIndex) : 0;
 
   if (Number.isNaN(index) || index < 0) {
     notFound();
   }
-
-  const chunks = await getSitemapChunks();
   const lastModified = new Date();
 
   switch (type) {
