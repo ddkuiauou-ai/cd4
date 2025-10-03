@@ -19,12 +19,12 @@ concurrency:
 
 jobs:
   build_and_deploy:
-    # GitHub 제공 가상 머신에서 실행
-    runs-on: ubuntu-latest
-    # 최대 실행 시간
-    timeout-minutes: 20
+    runs-on: self-hosted
+    timeout-minutes: 120
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      # Self-hosted: 10 CPU cores, use more memory and parallel workers
+      NODE_OPTIONS: "--max-old-space-size=12288"
 
     steps:
       # 1. 저장소 코드 체크아웃
