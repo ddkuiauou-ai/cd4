@@ -14,12 +14,9 @@ export async function generateStaticParams() {
     const total = await countSecurityRanks("marketcap");
     const totalPages = computeTotalPagesMixed(total);
 
-    // Generate paths for page 2 onwards
-    const paths = Array.from({ length: totalPages - 1 }, (_, i) => ({
+    return Array.from({ length: totalPages - 1 }, (_, i) => ({
         page: (i + 2).toString(),
     }));
-
-    return paths;
 }
 
 interface MarketcapRankPageProps {

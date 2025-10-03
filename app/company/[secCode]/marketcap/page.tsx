@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
-import { getSecurityMarketCapRanking, getAllCompanyCodes } from "@/lib/select";
+import { getSecurityMarketCapRanking, getTopCompanyCodesByMetric } from "@/lib/select";
 import { formatNumber, formatDate } from "@/lib/utils";
 
 import CardCompanyMarketcap from "@/components/card-company-marketcap";
@@ -96,7 +96,7 @@ type AggregatedHistoryEntry = {
  */
 export async function generateStaticParams() {
   try {
-    const companyCodes = await getAllCompanyCodes();
+    const companyCodes = await getTopCompanyCodesByMetric('marketcap');
 
     return companyCodes.map((secCode) => ({
       secCode: secCode,

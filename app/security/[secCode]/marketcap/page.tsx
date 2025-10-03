@@ -16,7 +16,7 @@ import {
 import { getSecurityRank } from "@/lib/data/ranking";
 import {
   getSecurityMarketCapRanking,
-  getAllSecurityCodes,
+  getTopSecurityCodesByMetric,
 } from "@/lib/select";
 import { formatNumber, formatDate } from "@/lib/utils";
 
@@ -55,7 +55,7 @@ interface SecurityMarketcapPageProps {
 }
 
 export async function generateStaticParams() {
-  const securityCodes = await getAllSecurityCodes();
+  const securityCodes = await getTopSecurityCodesByMetric('marketcap');
 
   return securityCodes.map((secCode) => ({
     secCode,

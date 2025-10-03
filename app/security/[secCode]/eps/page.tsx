@@ -5,7 +5,7 @@ import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "luci
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getEpsRank } from "@/lib/data/security";
-import { getAllSecuritiesWithType } from "@/lib/select";
+import { getTopSecuritiesWithTypeByMetric } from "@/lib/select";
 import ChartEPSEnhanced, { EPSChartWithPeriodSwitcher } from "@/components/chart-EPS-enhanced";
 import ListEPSEnhanced from "@/components/list-EPS-enhanced";
 import { InteractiveSecuritiesSection } from "@/components/simple-interactive-securities";
@@ -70,14 +70,14 @@ export async function generateMetadata({ params }: SecurityEPSPageProps) {
  */
 export async function generateStaticParams() {
   try {
-    const securities = await getAllSecuritiesWithType();
+    const securities = await getTopSecuritiesWithTypeByMetric('eps');
 
     // Filter to only include 보통주 (common stocks)
     const commonStocks = securities.filter((sec) =>
       sec.type?.includes("보통주")
     );
 
-    const securityCodes = commonStocks.map((sec) => `${sec.exchange}.${sec.ticker}`);
+    const securityCodes = commonStocks.map((sec) => sec.code);
 
 
     return securityCodes.map((secCode) => ({

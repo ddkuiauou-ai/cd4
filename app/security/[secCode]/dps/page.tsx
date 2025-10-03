@@ -5,7 +5,7 @@ import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "luci
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getDpsRank } from "@/lib/data/security";
-import { getAllSecurityCodes } from "@/lib/select";
+import { getTopSecurityCodesByMetric } from "@/lib/select";
 import DPSChartWithPeriodSwitcher from "@/components/dps-chart-with-period-switcher";
 import ListDPSMarketcap from "@/components/list-dps-marketcap";
 import DPSHeatmap from "@/components/chart-dps-heatmap";
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: SecurityDPSPageProps) {
  */
 export async function generateStaticParams() {
   try {
-    const securityCodes = await getAllSecurityCodes();
+    const securityCodes = await getTopSecurityCodesByMetric('dps');
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,

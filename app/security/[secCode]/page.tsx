@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSecurityByCode } from "@/lib/data/security";
-import { getAllSecurityCodes } from "@/lib/select";
+import { getTopSecurityCodesByMetric } from "@/lib/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BaseImage from "@/components/BaseImage";
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: SecurityDetailPageProps) {
  * This ensures all security pages are pre-rendered at build time
  */
 export async function generateStaticParams() {
-  const securityCodes = await getAllSecurityCodes();
+  const securityCodes = await getTopSecurityCodesByMetric('marketcap');
 
   return securityCodes.map((secCode) => ({
     secCode,

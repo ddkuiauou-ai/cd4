@@ -307,4 +307,143 @@ export const getAllCompanyCodes = unstable_cache(
     { tags: ['getAllCompanyCodes'], revalidate: 86400 } // 24시간 캐시
 );
 
+
+// ---- Targeted helpers for selective static generation ----
+
+const DEFAULT_STATIC_LIMIT = 500;
+
+type RankedSecurityMeta = {
+    code: string;
+    type: string | null;
+    companyId: string | null;
+};
+
+const isFullStaticExport = () => process.env.NEXT_OUTPUT_MODE?.toLowerCase() === 'export';
+
+async function fetchRankedSecurityMeta(
+    metric: schema.MetricType,
+    limit: number,
+) {
+    const latestRankDateResult = await db
+        .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
+        .from(schema.securityRank)
+        .where(eq(schema.securityRank.metricType, metric))
+        .limit(1);
+
+    const latestRankDate = latestRankDateResult[0]?.maxDate;
+
+    if (!latestRankDate) {
+        return [] as RankedSecurityMeta[];
+    }
+
+    const rows = await db
+        .select({
+            exchange: schema.security.exchange,
+            ticker: schema.security.ticker,
+            type: schema.security.type,
+            companyId: schema.security.companyId,
+            currentRank: schema.securityRank.currentRank,
+        })
+        .from(schema.securityRank)
+        .innerJoin(
+            schema.security,
+            eq(schema.securityRank.securityId, schema.security.securityId),
+        )
+        .where(
+            and(
+                eq(schema.securityRank.metricType, metric),
+                eq(schema.securityRank.rankDate, latestRankDate),
+                isNotNull(schema.securityRank.currentRank),
+                isNotNull(schema.security.exchange),
+                isNotNull(schema.security.ticker),
+                ne(schema.security.exchange, ''),
+                ne(schema.security.ticker, ''),
+                isNull(schema.security.delistingDate),
+            ),
+        )
+        .orderBy(asc(schema.securityRank.currentRank))
+        .limit(Math.max(limit * 2, limit));
+
+    const seen = new Set<string>();
+    const result: RankedSecurityMeta[] = [];
+
+    for (const row of rows) {
+        const exchange = row.exchange ?? '';
+        const ticker = row.ticker ?? '';
+
+        if (!exchange || !ticker) continue;
+
+        const code = `${exchange}.${ticker}`;
+        if (seen.has(code)) continue;
+
+        seen.add(code);
+        result.push({ code, type: row.type ?? null, companyId: row.companyId ?? null });
+
+        if (result.length >= limit) break;
+    }
+
+    return result;
+}
+
+export const getTopSecurityCodesByMetric = unstable_cache(
+    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
+        return await withRetry(async () => {
+            if (isFullStaticExport()) {
+                return await getAllSecurityCodes();
+            }
+            const meta = await fetchRankedSecurityMeta(metric, limit);
+            return meta.map((item) => item.code);
+        }, `getTopSecurityCodesByMetric-${metric}-${limit}`);
+    },
+    ['getTopSecurityCodesByMetric'],
+    { tags: ['getTopSecurityCodesByMetric'], revalidate: 3600 },
+);
+
+export const getTopCompanyCodesByMetric = unstable_cache(
+    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
+        return await withRetry(async () => {
+            if (isFullStaticExport()) {
+                return await getAllCompanyCodes();
+            }
+            const meta = await fetchRankedSecurityMeta(metric, limit * 2);
+            const seenCompanies = new Set<string>();
+            const codes: string[] = [];
+
+            for (const item of meta) {
+                if (!item.companyId) continue;
+                if (seenCompanies.has(item.companyId)) continue;
+
+                seenCompanies.add(item.companyId);
+                codes.push(item.code);
+
+                if (codes.length >= limit) break;
+            }
+
+            return codes;
+        }, `getTopCompanyCodesByMetric-${metric}-${limit}`);
+    },
+    ['getTopCompanyCodesByMetric'],
+    { tags: ['getTopCompanyCodesByMetric'], revalidate: 3600 },
+);
+
+export const getTopSecuritiesWithTypeByMetric = unstable_cache(
+    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
+        return await withRetry(async () => {
+            if (isFullStaticExport()) {
+                const securities = await getAllSecuritiesWithType();
+                return securities
+                    .filter((sec) => sec.exchange && sec.ticker)
+                    .map((sec) => ({
+                        code: `${sec.exchange}.${sec.ticker}`,
+                        type: sec.type ?? null,
+                        companyId: null,
+                    }));
+            }
+            return await fetchRankedSecurityMeta(metric, limit);
+        }, `getTopSecuritiesWithTypeByMetric-${metric}-${limit}`);
+    },
+    ['getTopSecuritiesWithTypeByMetric'],
+    { tags: ['getTopSecuritiesWithTypeByMetric'], revalidate: 3600 },
+);
+
 //

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSecurityByCode } from "@/lib/data/security";
-import { getAllCompanyCodes } from "@/lib/select";
+import { getTopCompanyCodesByMetric } from "@/lib/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BaseImage from "@/components/BaseImage";
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: CompanyDetailPageProps) {
  * This ensures all company pages are pre-rendered at build time
  */
 export async function generateStaticParams() {
-  const companyCodes = await getAllCompanyCodes();
+  const companyCodes = await getTopCompanyCodesByMetric('marketcap');
 
   return companyCodes.map((secCode) => ({
     secCode,

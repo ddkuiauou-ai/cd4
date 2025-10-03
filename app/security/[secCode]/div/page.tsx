@@ -4,7 +4,7 @@ import { TrendingUp, Building2, FileText, BarChart, ArrowLeftRight, BarChart3 } 
 import Link from "next/link";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory, getDivRank } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
-import { getAllSecurityCodes } from "@/lib/select";
+import { getTopSecurityCodesByMetric } from "@/lib/select";
 import { coerceVolumeValue } from "@/lib/per-utils";
 import ListDIVMarketcap from "@/components/list-div-marketcap";
 import DIVChartWithPeriodSwitcher from "@/components/div-chart-with-period-switcher";
@@ -44,7 +44,7 @@ const ACTIVE_METRIC = {
  */
 export async function generateStaticParams() {
   try {
-    const securityCodes = await getAllSecurityCodes();
+    const securityCodes = await getTopSecurityCodesByMetric('div');
 
     return securityCodes.map((secCode) => ({
       secCode: secCode,
