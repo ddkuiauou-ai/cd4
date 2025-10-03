@@ -1,11 +1,12 @@
-# Dependencies
-node_modules
+# Dependencies (reduce upload time)
+node_modules/.cache
 .pnpm-store
 
-# Build outputs
+# Build outputs (Vercel rebuilds)
 .next
 out
 build.log
+*.log
 
 # Testing
 coverage
@@ -13,8 +14,10 @@ coverage
 *.test.tsx
 *.spec.ts
 *.spec.tsx
+__tests__
+__mocks__
 
-# Local scripts
+# Local scripts (not needed on Vercel)
 scripts/build-parallel-real.sh
 scripts/build-simple.sh
 scripts/build-incremental.sh
@@ -23,6 +26,7 @@ scripts/deploy-r2.sh
 # Development
 .env.local
 .env.development.local
+.env.test
 
 # IDE
 .vscode
@@ -36,9 +40,17 @@ scripts/deploy-r2.sh
 .AppleDouble
 .LSOverride
 
-# GitHub Actions
-.github/workflows
+# GitHub Actions (not needed on Vercel)
+.github
 
-# Documentation
+# Documentation (reduce upload)
 *.md
 !README.md
+
+# Git
+.git
+.gitignore
+
+# Misc
+*.tsbuildinfo
+.turbo

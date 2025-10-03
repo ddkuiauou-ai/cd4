@@ -81,9 +81,40 @@ vercel --prod
 - Vercel의 글로벌 CDN 자동 활용
 - 한국 리전 사용 시 최적 성능
 
-## 7. 빌드 타임아웃
+## 7. 디스크 용량 최적화 (중요!)
 
-대규모 사이트 (27K+ 페이지)의 경우:
+### 문제: 27K+ 페이지 빌드 시 디스크 부족
+- `.next` 폴더: ~45GB
+- `out` 폴더: ~45GB
+- **총 ~90GB 필요** (Vercel 기본 제공량 초과)
+
+### 해결책:
+
+#### A. Pro 플랜 업그레이드 (권장)
+- 더 큰 빌드 인스턴스
+- 더 많은 메모리와 디스크
+- 45분 빌드 타임아웃
+
+#### B. 빌드 최적화 (현재 적용됨)
+```typescript
+// next.config.ts에 적용된 최적화
+experimental: {
+  cpus: process.env.VERCEL ? 4 : 8,  // Vercel에서 CPU 줄여 메모리 절약
+}
+// Turbopack 자체가 최적화되어 있음 (Rust 기반)
+```
+
+#### C. 대안: ISR (Incremental Static Regeneration)
+모든 페이지를 빌드 시 생성하지 않고 온디맨드 생성:
+```typescript
+// app/security/[secCode]/page.tsx
+export const dynamic = 'force-static'
+export const revalidate = 3600  // 1시간마다 재생성
+```
+
+## 8. 빌드 타임아웃
+
+대규모 사이트의 경우:
 1. Vercel 대시보드 > Settings > General
 2. "Build & Development Settings" 섹션
 3. "Maximum Build Duration" 증가 (Pro 플랜 필요)

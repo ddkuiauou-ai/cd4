@@ -5,7 +5,10 @@
   "trailingSlash": true,
   "cleanUrls": false,
   "framework": "nextjs",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install --frozen-lockfile --prefer-offline",
+  "github": {
+    "silent": true
+  },
   "headers": [
     {
       "source": "/sitemap.xml",
