@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const buildSitemap = (entries: ReturnType<typeof withBaseUrl>) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -49,7 +51,7 @@ export async function GET(
   const index = rawIndex ? Number(rawIndex) : 0;
 
   if (Number.isNaN(index) || index < 0) {
-    return NextResponse.json({ error: "Invalid segment" }, { status: 404 });
+    notFound();
   }
 
   let entries;
@@ -68,7 +70,7 @@ export async function GET(
   }
 
   if (!entries) {
-    return NextResponse.json({ error: "Segment not found" }, { status: 404 });
+    notFound();
   }
 
   const urls = withBaseUrl(entries, new Date());
