@@ -1,19 +1,10 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-const outputMode = process.env.NEXT_OUTPUT_MODE?.toLowerCase();
-let resolvedOutput: NextConfig['output'] | undefined;
-
-if (outputMode === 'export') {
-  resolvedOutput = 'export';
-} else if (outputMode === 'standalone') {
-  resolvedOutput = 'standalone';
-}
-
 const nextConfig: NextConfig = {
   // CD3 프로젝트 - 정적 사이트 생성 설정
   trailingSlash: true,
-  ...(resolvedOutput ? { output: resolvedOutput } : {}),
+  ...(process.env.NEXT_OUTPUT_MODE?.toLowerCase() === 'export' ? { output: 'export' as const } : {}),
 
   images: {
     unoptimized: true,
