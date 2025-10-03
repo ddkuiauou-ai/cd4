@@ -1,7 +1,6 @@
 {
   "regions": ["icn1"],
   "buildCommand": "pnpm run build",
-  "outputDirectory": "out",
   "trailingSlash": true,
   "cleanUrls": false,
   "framework": "nextjs",
