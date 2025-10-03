@@ -27,21 +27,21 @@ export async function GET() {
 
   chunks.core.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/core-${index}.xml`,
+      loc: `${siteConfig.url}/sitemaps/core-${index}/sitemap.xml`,
       lastmod,
     });
   });
 
   chunks.securities.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/securities-${index}.xml`,
+      loc: `${siteConfig.url}/sitemaps/securities-${index}/sitemap.xml`,
       lastmod,
     });
   });
 
   chunks.companies.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/companies-${index}.xml`,
+      loc: `${siteConfig.url}/sitemaps/companies-${index}/sitemap.xml`,
       lastmod,
     });
   });

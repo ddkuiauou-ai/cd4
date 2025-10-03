@@ -54,22 +54,22 @@ export async function GET(
     notFound();
   }
 
-  let entries;
+  let entries: string[] | undefined;
   switch (type) {
     case "core":
-      entries = chunks.core[index] ?? null;
+      entries = chunks.core[index];
       break;
     case "securities":
-      entries = chunks.securities[index] ?? null;
+      entries = chunks.securities[index];
       break;
     case "companies":
-      entries = chunks.companies[index] ?? null;
+      entries = chunks.companies[index];
       break;
     default:
-      entries = null;
+      entries = undefined;
   }
 
-  if (!entries) {
+  if (!entries || entries.length === 0) {
     notFound();
   }
 
