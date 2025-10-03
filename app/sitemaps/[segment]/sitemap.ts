@@ -12,19 +12,38 @@ interface SitemapContext {
   };
 }
 
+export async function generateStaticParams() {
+  if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
+    return [];
+  }
+
+  const chunks = await getSitemapChunks();
+  const params: Array<{ segment: string }> = [];
+
+  if (chunks.core.length > 0) {
+    chunks.core.forEach((_, index) => {
+      params.push({ segment: index === 0 ? "core" : `core-${index}` });
+    });
+  }
+
+  chunks.securities.forEach((_, index) => {
+    params.push({ segment: `securities-${index}` });
+  });
+
+  chunks.companies.forEach((_, index) => {
+    params.push({ segment: `companies-${index}` });
+  });
+
+  return params;
+}
+
 export default async function sitemap(context: SitemapContext): Promise<MetadataRoute.Sitemap> {
   const segment = context.segment ?? context.params?.segment;
   if (!segment) {
     notFound();
   }
 
-  let chunks;
-  try {
-    chunks = await getSitemapChunks();
-  } catch (error) {
-    console.error(`[sitemaps/${segment}] Failed to load chunks:`, error);
-    return [];
-  }
+  const chunks = await getSitemapChunks();
 
   const [type, rawIndex] = segment.split("-");
   const index = rawIndex ? Number(rawIndex) : 0;
@@ -36,8 +55,9 @@ export default async function sitemap(context: SitemapContext): Promise<Metadata
 
   switch (type) {
     case "core": {
-      if (index !== 0 || chunks.core.length === 0) notFound();
-      return withBaseUrl(chunks.core[0], lastModified);
+      const target = chunks.core[index] ?? chunks.core[0];
+      if (!target) notFound();
+      return withBaseUrl(target, lastModified);
     }
     case "securities": {
       if (!chunks.securities[index]) notFound();

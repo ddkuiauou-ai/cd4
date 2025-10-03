@@ -38,9 +38,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Remove SSR-only sitemap routes
-        run: rm -rf app/sitemap.ts app/sitemaps
-
       - name: Build Next.js
         env:
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}

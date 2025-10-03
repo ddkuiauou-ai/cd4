@@ -49,10 +49,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 5. SSR 전용 sitemap 라우트 제거 (정적 export에서는 불필요)
-      - name: Remove SSR-only sitemap routes
-        run: rm -rf app/sitemap.ts app/sitemaps
-
       # 5. Next.js 프로젝트 빌드 (정적 export)
       - name: Build Next.js
         env:

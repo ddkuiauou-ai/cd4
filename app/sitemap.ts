@@ -6,36 +6,30 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  try {
-    const now = new Date();
-    const chunks = await getSitemapChunks();
+  const now = new Date();
+  const chunks = await getSitemapChunks();
+  const entries: MetadataRoute.Sitemap = [];
 
-    const entries: MetadataRoute.Sitemap = [];
-
-    if (chunks.core.length > 0) {
-      entries.push({
-        url: `${siteConfig.url}/sitemaps/core/sitemap.xml`,
-        lastModified: now,
-      });
-    }
-
-    chunks.securities.forEach((_, index) => {
-      entries.push({
-        url: `${siteConfig.url}/sitemaps/securities-${index}/sitemap.xml`,
-        lastModified: now,
-      });
+  if (chunks.core.length > 0) {
+    entries.push({
+      url: `${siteConfig.url}/sitemaps/core/sitemap.xml`,
+      lastModified: now,
     });
-
-    chunks.companies.forEach((_, index) => {
-      entries.push({
-        url: `${siteConfig.url}/sitemaps/companies-${index}/sitemap.xml`,
-        lastModified: now,
-      });
-    });
-
-    return entries;
-  } catch (error) {
-    console.error("[sitemap] Failed to load sitemap chunks:", error);
-    return [];
   }
+
+  chunks.securities.forEach((_, index) => {
+    entries.push({
+      url: `${siteConfig.url}/sitemaps/securities-${index}/sitemap.xml`,
+      lastModified: now,
+    });
+  });
+
+  chunks.companies.forEach((_, index) => {
+    entries.push({
+      url: `${siteConfig.url}/sitemaps/companies-${index}/sitemap.xml`,
+      lastModified: now,
+    });
+  });
+
+  return entries;
 }
