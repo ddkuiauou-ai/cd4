@@ -10,6 +10,29 @@ interface SitemapParams {
   };
 }
 
+export async function generateStaticParams() {
+  if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
+    return [];
+  }
+
+  const chunks = await getSitemapChunks();
+  const params: Array<{ segment: string }> = [];
+
+  if (chunks.core.length > 0) {
+    params.push({ segment: "core-0" });
+  }
+
+  chunks.securities.forEach((_, index) => {
+    params.push({ segment: `securities-${index}` });
+  });
+
+  chunks.companies.forEach((_, index) => {
+    params.push({ segment: `companies-${index}` });
+  });
+
+  return params;
+}
+
 export default async function sitemap({ params }: SitemapParams): Promise<MetadataRoute.Sitemap> {
   const { segment } = params;
   const [type, rawIndex] = segment.split("-");
