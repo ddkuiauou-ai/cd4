@@ -164,6 +164,11 @@ function generateSitemap(urls) {
 
 // Main function
 function main() {
+  if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
+    console.log("ℹ️ Skipping sitemap generation (NEXT_OUTPUT_MODE !== 'export').");
+    return;
+  }
+
   console.log(
     "🚀 Starting dynamic sitemap generation for 천하제일 단타대회..."
   );

@@ -1,9 +1,9 @@
 name: Build and Deploy to R2
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 concurrency:
@@ -45,7 +45,14 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          NEXT_OUTPUT_MODE: export
         run: pnpm run build
+
+      - name: Generate sitemap
+        if: success()
+        env:
+          NEXT_OUTPUT_MODE: export
+        run: pnpm run sitemap
 
       - name: Upload to R2
         env:
@@ -61,7 +68,7 @@ jobs:
           aws configure set default.s3.multipart_threshold 64MB
           aws configure set default.s3.multipart_chunksize 16MB
           aws configure set default.s3.max_bandwidth 200MB/s
-          
+
           # Upload
           aws s3 sync ./out s3://${{ env.R2_BUCKET_NAME }}/ \
             --endpoint-url https://${{ env.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com \

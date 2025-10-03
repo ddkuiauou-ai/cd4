@@ -1,0 +1,76 @@
+# .github/workflows/deploy-netlify.yml
+
+# 워크플로우 이름
+name: Build and Deploy to Netlify
+
+# 워크플로우 트리거 조건
+on:
+  # main 브랜치에 push 될 때 실행되는 부분을 주석 처리하여 비활성화합니다.
+  # push:
+  #   branches:
+  #     - main
+  # GitHub Actions 탭에서 수동으로 실행 가능
+  workflow_dispatch:
+
+# 동시성 제어: 동일한 브랜치에서 워크플로우가 실행 중일 경우, 진행 중이던 작업을 취소하고 새로운 작업을 시작
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_deploy:
+    # GitHub 제공 가상 머신에서 실행
+    runs-on: ubuntu-latest
+    # 최대 실행 시간
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      # 1. 저장소 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. pnpm 설치 및 설정
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      # 3. Node.js 설치 및 pnpm 캐시 설정
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      # 4. 의존성 패키지 설치
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5. Next.js 프로젝트 빌드 (정적 export)
+      - name: Build Next.js
+        env:
+          # 빌드에 필요한 환경 변수가 있다면 여기에 추가합니다.
+          # 예: NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_OUTPUT_MODE: export
+        run: pnpm run build
+
+      # 6. 사이트맵 생성 (빌드 성공 시)
+      - name: Generate sitemap
+        if: success()
+        run: pnpm run sitemap
+
+      # 7. Netlify CLI 설치
+      - name: Install Netlify CLI
+        run: pnpm add -g netlify-cli
+
+      # 8. Netlify에 배포
+      - name: Deploy to Netlify
+        run: netlify deploy --prod --dir=out
+        env:
+          # Netlify 인증 토큰 (GitHub Secrets에 저장 필요)
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          # Netlify 사이트 ID (GitHub Secrets에 저장 필요)
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
