@@ -12,21 +12,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   if (chunks.core.length > 0) {
     entries.push({
-      url: `${siteConfig.url}/sitemaps/core/sitemap.xml`,
+      url: `${siteConfig.url}/sitemaps/core-0`,
       lastModified: now,
     });
   }
 
   chunks.securities.forEach((_, index) => {
     entries.push({
-      url: `${siteConfig.url}/sitemaps/securities-${index}/sitemap.xml`,
+      url: `${siteConfig.url}/sitemaps/securities-${index}`,
       lastModified: now,
     });
   });
 
   chunks.companies.forEach((_, index) => {
     entries.push({
-      url: `${siteConfig.url}/sitemaps/companies-${index}/sitemap.xml`,
+      url: `${siteConfig.url}/sitemaps/companies-${index}`,
       lastModified: now,
     });
   });

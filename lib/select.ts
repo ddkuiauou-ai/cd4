@@ -310,7 +310,7 @@ export const getAllCompanyCodes = unstable_cache(
 
 // ---- Targeted helpers for selective static generation ----
 
-const DEFAULT_STATIC_LIMIT = 50;
+const DEFAULT_STATIC_LIMIT = 500;
 
 type RankedSecurityMeta = {
     code: string;
