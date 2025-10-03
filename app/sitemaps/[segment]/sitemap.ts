@@ -4,12 +4,6 @@ import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
 export const revalidate = 86400;
 
-interface SitemapParams {
-  params: {
-    segment: string;
-  };
-}
-
 export async function generateStaticParams() {
   if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
     return [];
@@ -33,8 +27,18 @@ export async function generateStaticParams() {
   return params;
 }
 
-export default async function sitemap({ params }: SitemapParams): Promise<MetadataRoute.Sitemap> {
-  const { segment } = params;
+interface SitemapContext {
+  segment?: string;
+  params?: {
+    segment?: string;
+  };
+}
+
+export default async function sitemap(context: SitemapContext): Promise<MetadataRoute.Sitemap> {
+  const segment = context.segment ?? context.params?.segment;
+  if (!segment) {
+    notFound();
+  }
   const [type, rawIndex] = segment.split("-");
   const index = rawIndex ? Number(rawIndex) : 0;
 
