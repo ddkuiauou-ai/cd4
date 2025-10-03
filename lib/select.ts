@@ -396,7 +396,7 @@ export const getTopSecurityCodesByMetric = unstable_cache(
         }, `getTopSecurityCodesByMetric-${metric}-${limit}`);
     },
     ['getTopSecurityCodesByMetric'],
-    { tags: ['getTopSecurityCodesByMetric'], revalidate: 3600 },
+    { tags: ['getTopSecurityCodesByMetric'], revalidate: 86400 },
 );
 
 export const getTopCompanyCodesByMetric = unstable_cache(
@@ -423,7 +423,7 @@ export const getTopCompanyCodesByMetric = unstable_cache(
         }, `getTopCompanyCodesByMetric-${metric}-${limit}`);
     },
     ['getTopCompanyCodesByMetric'],
-    { tags: ['getTopCompanyCodesByMetric'], revalidate: 3600 },
+    { tags: ['getTopCompanyCodesByMetric'], revalidate: 86400 },
 );
 
 export const getTopSecuritiesWithTypeByMetric = unstable_cache(
@@ -443,7 +443,7 @@ export const getTopSecuritiesWithTypeByMetric = unstable_cache(
         }, `getTopSecuritiesWithTypeByMetric-${metric}-${limit}`);
     },
     ['getTopSecuritiesWithTypeByMetric'],
-    { tags: ['getTopSecuritiesWithTypeByMetric'], revalidate: 3600 },
+    { tags: ['getTopSecuritiesWithTypeByMetric'], revalidate: 86400 },
 );
 
 //

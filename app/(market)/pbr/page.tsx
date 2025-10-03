@@ -11,15 +11,36 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items, latestDate } = await getSecurityRanksPage("pbr", 1, 'asc');
-    const topSecurityNames = items.slice(0, 3).map(s => s.korName || s.name).join(', ');
+    const topSecurityNames = items.slice(0, 5).map(s => s.korName || s.name).join(', ');
+    const lowPbrCompanies = items.slice(0, 3).map(s => `${s.korName || s.name}(${s.value?.toFixed(2) || 'N/A'})`).join(', ');
 
-    const title = `종목별 주가순자산비율(PBR) 순위 - ${siteConfig.name}`;
-    const description = `${siteConfig.name}에서 제공하는 종목별 주가순자산비율(PBR) 순위. ${latestDate} 기준, ${topSecurityNames} 등 국내 상장 종목의 순위를 확인하세요.`;
+    const title = `주가순자산비율(PBR) 낮은 순위 - 저PBR 저평가 주식 분석`;
+    const description = `${latestDate} 기준 PBR 낮은 순위 TOP. ${lowPbrCompanies} 등 청산가치보다 저평가된 가치주 분석. PBR = 주가 ÷ BPS로 계산되는 투자 지표. ${topSecurityNames} 등 ${items.length}개 종목 PBR 순위 제공. 천하제일 단타대회에서 실시간 PBR 분석.`;
 
     return {
         title,
         description,
-        keywords: ['주식', '주가순자산비율', 'PBR', '순위', '종목', '랭킹', '투자', '천하제일 단타 대회'],
+        keywords: [
+            'PBR',
+            '주가순자산비율',
+            '저PBR주',
+            '저평가주',
+            '청산가치',
+            'BPS',
+            '주당순자산가치',
+            '가치 투자',
+            '주식 투자',
+            'PBR 순위',
+            'PBR 낮은 종목',
+            'PBR 분석',
+            '투자 지표',
+            '밸류에이션',
+            '주식 순위',
+            '천하제일 단타대회',
+            'PBR 랭킹',
+            latestDate,
+            ...items.slice(0, 10).map(s => s.korName || s.name),
+        ],
         openGraph: {
             title,
             description,
@@ -30,7 +51,8 @@ export async function generateMetadata(): Promise<Metadata> {
                     url: siteConfig.ogImage,
                     width: 1200,
                     height: 630,
-                    alt: `${siteConfig.name} - 종목별 주가순자산비율(PBR) 순위`,
+                    alt: `${latestDate} PBR 낮은 순위 - ${lowPbrCompanies} 등 청산가치 이하 주식 분석`,
+                    type: 'image/png',
                 },
             ],
             locale: 'ko_KR',
@@ -41,8 +63,23 @@ export async function generateMetadata(): Promise<Metadata> {
             title,
             description,
             images: [siteConfig.ogImage],
+            site: '@chundan_xyz',
+            creator: '@chundan_xyz',
         },
-        metadataBase: new URL(siteConfig.url),
+        alternates: {
+            canonical: `${siteConfig.url}/pbr`,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+                'max-video-preview': -1,
+            },
+        },
     };
 }
 

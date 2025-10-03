@@ -11,15 +11,35 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items, latestDate } = await getSecurityRanksPage("div", 1, 'desc');
-    const topSecurityNames = items.slice(0, 3).map(s => s.korName || s.name).join(', ');
+    const topSecurityNames = items.slice(0, 5).map(s => s.korName || s.name).join(', ');
+    const highDivCompanies = items.slice(0, 3).map(s => `${s.korName || s.name}(${s.value?.toFixed(2) || 'N/A'}%)`).join(', ');
 
-    const title = `종목별 배당수익률 순위 - ${siteConfig.name}`;
-    const description = `${siteConfig.name}에서 제공하는 종목별 배당수익률 순위. ${latestDate} 기준, ${topSecurityNames} 등 국내 상장 종목의 순위를 확인하세요.`;
+    const title = `배당수익률 높은 순위 - 고배당주 투자 분석`;
+    const description = `${latestDate} 기준 배당수익률 높은 순위 TOP. ${highDivCompanies} 등 고배당주 분석. 배당수익률 = 주당배당금 ÷ 주가 × 100으로 계산되는 지표. ${topSecurityNames} 등 ${items.length}개 종목 배당수익률 순위 제공. 천하제일 단타대회에서 실시간 배당주 분석.`;
 
     return {
         title,
         description,
-        keywords: ['주식', '배당수익률', '배당주', '순위', '종목', '랭킹', '투자', 'PER', 'PBR', '천하제일 단타 대회'],
+        keywords: [
+            '배당수익률',
+            '고배당주',
+            '배당주',
+            '주당배당금',
+            'DPS',
+            '배당 투자',
+            '인컴 투자',
+            '주식 투자',
+            '배당수익률 순위',
+            '배당 높은 종목',
+            '배당 분석',
+            '투자 지표',
+            '배당주 분석',
+            '주식 순위',
+            '천하제일 단타대회',
+            '배당 랭킹',
+            latestDate,
+            ...items.slice(0, 10).map(s => s.korName || s.name),
+        ],
         openGraph: {
             title,
             description,
@@ -30,7 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
                     url: siteConfig.ogImage,
                     width: 1200,
                     height: 630,
-                    alt: `${siteConfig.name} - 종목별 배당수익률 순위`,
+                    alt: `${latestDate} 배당수익률 높은 순위 - ${highDivCompanies} 등 고배당주 분석`,
+                    type: 'image/png',
                 },
             ],
             locale: 'ko_KR',
@@ -41,8 +62,23 @@ export async function generateMetadata(): Promise<Metadata> {
             title,
             description,
             images: [siteConfig.ogImage],
+            site: '@chundan_xyz',
+            creator: '@chundan_xyz',
         },
-        metadataBase: new URL(siteConfig.url),
+        alternates: {
+            canonical: `${siteConfig.url}/div`,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+                'max-video-preview': -1,
+            },
+        },
     };
 }
 

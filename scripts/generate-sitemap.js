@@ -12,7 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const BASE_URL = "https://cd3.kr";
+const BASE_URL = "https://www.chundan.xyz";
 const OUT_DIR = path.join(__dirname, "..", "out");
 const SITEMAP_PATH = path.join(OUT_DIR, "sitemap.xml");
 
@@ -20,17 +20,34 @@ const SITEMAP_PATH = path.join(OUT_DIR, "sitemap.xml");
 const PAGE_PRIORITIES = {
   "/": 1.0,
   "/dashboard": 0.9,
-  "/marketcap": 0.8,
   "/marketcaps": 0.8,
-  "/security": 0.7,
+  "/marketcap": 0.8,
+  "/per": 0.8,
+  "/pbr": 0.8,
+  "/eps": 0.8,
+  "/bps": 0.8,
+  "/div": 0.8,
+  "/dps": 0.8,
   "/company": 0.7,
-  "/per": 0.6,
-  "/pbr": 0.6,
-  "/div": 0.6,
-  "/eps": 0.6,
-  "/bps": 0.6,
-  "/dps": 0.6,
+  "/security": 0.6,
   "/screener": 0.5,
+};
+
+// Change frequency mapping
+const CHANGE_FREQUENCIES = {
+  "/": "daily",
+  "/dashboard": "daily",
+  "/marketcaps": "daily",
+  "/marketcap": "daily",
+  "/per": "daily",
+  "/pbr": "daily",
+  "/eps": "daily",
+  "/bps": "daily",
+  "/div": "daily",
+  "/dps": "daily",
+  "/company": "daily",
+  "/security": "daily",
+  "/screener": "weekly",
 };
 
 // Get priority for a URL path
@@ -49,6 +66,24 @@ function getPriority(urlPath) {
 
   // Default priority
   return 0.5;
+}
+
+// Get change frequency for a URL path
+function getChangeFrequency(urlPath) {
+  // Check for exact matches first
+  if (CHANGE_FREQUENCIES[urlPath]) {
+    return CHANGE_FREQUENCIES[urlPath];
+  }
+
+  // Check for pattern matches
+  for (const [pattern, frequency] of Object.entries(CHANGE_FREQUENCIES)) {
+    if (urlPath.startsWith(pattern + "/")) {
+      return frequency;
+    }
+  }
+
+  // Default frequency
+  return "monthly";
 }
 
 // Recursively find all HTML files
@@ -86,25 +121,39 @@ function findHtmlFiles(dir, baseDir = dir) {
   return files;
 }
 
-// Generate sitemap XML
+// Generate sitemap XML with image support
 function generateSitemap(urls) {
-  const now = new Date().toISOString().split("T")[0];
+  const now = new Date().toISOString();
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n';
+  xml +=
+    '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
   // Sort URLs for consistent output
   const sortedUrls = urls.sort();
 
   for (const url of sortedUrls) {
     const priority = getPriority(url);
+    const changefreq = getChangeFrequency(url);
     const fullUrl = BASE_URL + url;
 
     xml += "  <url>\n";
     xml += `    <loc>${fullUrl}</loc>\n`;
     xml += `    <lastmod>${now}</lastmod>\n`;
-    xml += `    <changefreq>daily</changefreq>\n`;
+    xml += `    <changefreq>${changefreq}</changefreq>\n`;
     xml += `    <priority>${priority.toFixed(1)}</priority>\n`;
+
+    // Add image information for main pages
+    if (url === "/") {
+      xml += "    <image:image>\n";
+      xml +=
+        "      <image:loc>https://www.chundan.xyz/opengraph-image.png</image:loc>\n";
+      xml +=
+        "      <image:title>천하제일 단타대회 - 한국 주식 시장 투자 정보</image:title>\n";
+      xml += "    </image:image>\n";
+    }
+
     xml += "  </url>\n";
   }
 
@@ -115,7 +164,9 @@ function generateSitemap(urls) {
 
 // Main function
 function main() {
-  console.log("🚀 Starting dynamic sitemap generation...");
+  console.log(
+    "🚀 Starting dynamic sitemap generation for 천하제일 단타대회..."
+  );
 
   // Check if out directory exists
   if (!fs.existsSync(OUT_DIR)) {

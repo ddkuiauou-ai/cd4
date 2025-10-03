@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-# 주요 페이지
+# 주요 페이지 허용
 Allow: /dashboard
 Allow: /marketcaps
 Allow: /per
@@ -10,11 +10,17 @@ Allow: /eps
 Allow: /bps
 Allow: /div
 Allow: /dps
-Allow: /security/*
-Allow: /company/*
+Allow: /security/
+Allow: /company/
 
-# Sitemap 위치 (동적 생성)
-Sitemap: https://cd3.kr/sitemap.xml
+# API 및 내부 경로 차단
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /*.json$
+
+# Sitemap 위치
+Sitemap: https://www.chundan.xyz/sitemap.xml
 
 # 크롤링 지연 (초)
 Crawl-delay: 1

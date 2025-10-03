@@ -13,16 +13,43 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items: companies } = await getCompanyMarketcapsPage(1);
-    const topCompanyNames = companies.slice(0, 3).map(c => c.korName || c.name).join(', ');
+    const topCompanyNames = companies.slice(0, 5).map(c => c.korName || c.name).join(', ');
     const latestDate = getLatestDateFromMarketData(companies);
 
-    const title = `실시간 기업 시가총액 순위 - ${siteConfig.name}`;
-    const description = `${siteConfig.name}에서 제공하는 실시간 국내 기업 시가총액 순위. ${latestDate} 기준, ${topCompanyNames} 등 국내 상장 기업의 순위를 확인하세요. 보통주, 우선주 등을 모두 포함한 기업 가치 순위 정보를 제공합니다.`;
+    const title = `실시간 시가총액 순위 - ${siteConfig.name}`;
+    const description = `${latestDate} 기준 실시간 국내 기업 시가총액 순위. ${topCompanyNames} 등 ${companies.length}개 기업의 가치 순위를 확인하세요. PER, PBR, EPS, BPS, 배당수익률 등 주요 투자지표 제공. 한국 주식 시장 전문 분석 플랫폼.`;
 
     return {
         title,
         description,
-        keywords: ['주식', '시가총액', '순위', '랭킹', '투자', '기업가치', 'PER', 'PBR', '천하제일 단타대회', '삼성전자', 'SK하이닉스', 'LG에너지솔루션'],
+        keywords: [
+            '시가총액 순위',
+            '기업 가치',
+            '주식 랭킹',
+            '시장 점유율',
+            '투자 분석',
+            '재무 지표',
+            'PER',
+            'PBR',
+            'EPS',
+            'BPS',
+            '배당수익률',
+            '한국 주식',
+            '주식 투자',
+            '기업 분석',
+            '실시간 데이터',
+            '주식 순위',
+            '시가총액 랭킹',
+            '삼성전자',
+            'SK하이닉스',
+            'LG에너지솔루션',
+            '현대자동차',
+            'POSCO',
+            '셀트리온',
+            '천하제일 단타대회',
+            '천단',
+            latestDate,
+        ],
         openGraph: {
             title,
             description,
@@ -33,7 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
                     url: siteConfig.ogImage,
                     width: 1200,
                     height: 630,
-                    alt: `${siteConfig.name} - 시가총액 순위`,
+                    alt: `${latestDate} 시가총액 순위 - ${topCompanyNames} 등 ${companies.length}개 기업 분석`,
+                    type: 'image/png',
                 },
             ],
             locale: 'ko_KR',
@@ -44,8 +72,23 @@ export async function generateMetadata(): Promise<Metadata> {
             title,
             description,
             images: [siteConfig.ogImage],
+            site: '@chundan_xyz',
+            creator: '@chundan_xyz',
         },
-        metadataBase: new URL(siteConfig.url),
+        alternates: {
+            canonical: siteConfig.url,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+                'max-video-preview': -1,
+            },
+        },
     };
 }
 

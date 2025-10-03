@@ -11,15 +11,35 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items, latestDate } = await getSecurityRanksPage("eps", 1, 'desc');
-    const topSecurityNames = items.slice(0, 3).map(s => s.korName || s.name).join(', ');
+    const topSecurityNames = items.slice(0, 5).map(s => s.korName || s.name).join(', ');
+    const highEpsCompanies = items.slice(0, 3).map(s => `${s.korName || s.name}(${s.value?.toLocaleString() || 'N/A'}원)`).join(', ');
 
-    const title = `종목별 주당 순이익(EPS) 순위 - ${siteConfig.name}`;
-    const description = `${siteConfig.name}에서 제공하는 종목별 주당 순이익(EPS) 순위. ${latestDate} 기준, ${topSecurityNames} 등 국내 상장 종목의 순위를 확인하세요.`;
+    const title = `주당순이익(EPS) 높은 순위 - 고EPS 수익성 우량주 분석`;
+    const description = `${latestDate} 기준 EPS 높은 순위 TOP. ${highEpsCompanies} 등 수익성이 높은 우량주 분석. EPS = 당기순이익 ÷ 발행주식수로 계산되는 지표. ${topSecurityNames} 등 ${items.length}개 종목 EPS 순위 제공. 천하제일 단타대회에서 실시간 EPS 분석.`;
 
     return {
         title,
         description,
-        keywords: ['주식', '주당 순이익', 'EPS', '순위', '종목', '랭킹', '투자', '천하제일 단타 대회'],
+        keywords: [
+            'EPS',
+            '주당순이익',
+            '고EPS주',
+            '수익성',
+            '이익률',
+            'PER',
+            '주가수익비율',
+            '주식 투자',
+            'EPS 순위',
+            'EPS 높은 종목',
+            'EPS 분석',
+            '투자 지표',
+            '수익성 분석',
+            '주식 순위',
+            '천하제일 단타대회',
+            'EPS 랭킹',
+            latestDate,
+            ...items.slice(0, 10).map(s => s.korName || s.name),
+        ],
         openGraph: {
             title,
             description,
@@ -30,7 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
                     url: siteConfig.ogImage,
                     width: 1200,
                     height: 630,
-                    alt: `${siteConfig.name} - 종목별 주당 순이익(EPS) 순위`,
+                    alt: `${latestDate} EPS 높은 순위 - ${highEpsCompanies} 등 수익성 높은 주식 분석`,
+                    type: 'image/png',
                 },
             ],
             locale: 'ko_KR',
@@ -41,8 +62,23 @@ export async function generateMetadata(): Promise<Metadata> {
             title,
             description,
             images: [siteConfig.ogImage],
+            site: '@chundan_xyz',
+            creator: '@chundan_xyz',
         },
-        metadataBase: new URL(siteConfig.url),
+        alternates: {
+            canonical: `${siteConfig.url}/eps`,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+                'max-video-preview': -1,
+            },
+        },
     };
 }
 

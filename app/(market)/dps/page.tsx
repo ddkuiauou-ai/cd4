@@ -11,15 +11,35 @@ import { siteConfig } from "@/config/site";
 
 export async function generateMetadata(): Promise<Metadata> {
     const { items, latestDate } = await getSecurityRanksPage("dps", 1, 'desc');
-    const topSecurityNames = items.slice(0, 3).map(s => s.korName || s.name).join(', ');
+    const topSecurityNames = items.slice(0, 5).map(s => s.korName || s.name).join(', ');
+    const highDpsCompanies = items.slice(0, 3).map(s => `${s.korName || s.name}(${s.value?.toLocaleString() || 'N/A'}원)`).join(', ');
 
-    const title = `종목별 주당 배당금(DPS) 순위 - ${siteConfig.name}`;
-    const description = `${siteConfig.name}에서 제공하는 종목별 주당 배당금(DPS) 순위. ${latestDate} 기준, ${topSecurityNames} 등 국내 상장 종목의 순위를 확인하세요.`;
+    const title = `주당배당금(DPS) 높은 순위 - 고DPS 배당주 분석`;
+    const description = `${latestDate} 기준 주당배당금 높은 순위 TOP. ${highDpsCompanies} 등 배당금이 높은 주식 분석. DPS = 총배당금 ÷ 발행주식수로 계산되는 지표. ${topSecurityNames} 등 ${items.length}개 종목 주당배당금 순위 제공. 천하제일 단타대회에서 실시간 배당금 분석.`;
 
     return {
         title,
         description,
-        keywords: ['주식', '주당 배당금', 'DPS', '배당주', '순위', '종목', '랭킹', '투자', '천하제일 단타 대회'],
+        keywords: [
+            '주당배당금',
+            'DPS',
+            '고DPS주',
+            '배당금',
+            '배당주',
+            '배당 투자',
+            '인컴 투자',
+            '주식 투자',
+            '주당배당금 순위',
+            '배당금 높은 종목',
+            'DPS 분석',
+            '투자 지표',
+            '배당금 분석',
+            '주식 순위',
+            '천하제일 단타대회',
+            'DPS 랭킹',
+            latestDate,
+            ...items.slice(0, 10).map(s => s.korName || s.name),
+        ],
         openGraph: {
             title,
             description,
@@ -30,7 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
                     url: siteConfig.ogImage,
                     width: 1200,
                     height: 630,
-                    alt: `${siteConfig.name} - 종목별 주당 배당금(DPS) 순위`,
+                    alt: `${latestDate} 주당배당금 높은 순위 - ${highDpsCompanies} 등 배당금 높은 주식 분석`,
+                    type: 'image/png',
                 },
             ],
             locale: 'ko_KR',
@@ -41,8 +62,23 @@ export async function generateMetadata(): Promise<Metadata> {
             title,
             description,
             images: [siteConfig.ogImage],
+            site: '@chundan_xyz',
+            creator: '@chundan_xyz',
         },
-        metadataBase: new URL(siteConfig.url),
+        alternates: {
+            canonical: `${siteConfig.url}/dps`,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+                'max-video-preview': -1,
+            },
+        },
     };
 }
 
