@@ -72,6 +72,9 @@ jobs:
       - name: Install Netlify CLI
         run: pnpm add -g netlify-cli
 
+      - name: Create temporary directory
+        run: mkdir -p ${{ runner.workspace }}/tmp
+
       # 8. Netlify에 배포
       - name: Deploy to Netlify
         run: netlify deploy --prod --dir=out
