@@ -72,7 +72,8 @@ export async function GET(
     notFound();
   }
 
-  const urls = withBaseUrl(entries, new Date());
+  const origin = new URL(request.url).origin;
+  const urls = withBaseUrl(entries, new Date(), origin);
   const xml = buildSitemap(urls);
 
   return new NextResponse(xml, {

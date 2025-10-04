@@ -17,7 +17,8 @@ ${urls
 
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request: Request) {
+  const origin = new URL(request.url).origin;
   const now = new Date();
   const lastmod = now.toISOString();
   const chunks = await getSitemapChunks();
@@ -26,21 +27,21 @@ export async function GET() {
 
   chunks.core.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/core-${index}/sitemap.xml`,
+      loc: `${origin}/sitemaps/core-${index}/sitemap.xml`,
       lastmod,
     });
   });
 
   chunks.securities.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/securities-${index}/sitemap.xml`,
+      loc: `${origin}/sitemaps/securities-${index}/sitemap.xml`,
       lastmod,
     });
   });
 
   chunks.companies.forEach((_, index) => {
     entries.push({
-      loc: `${siteConfig.url}/sitemaps/companies-${index}/sitemap.xml`,
+      loc: `${origin}/sitemaps/companies-${index}/sitemap.xml`,
       lastmod,
     });
   });
