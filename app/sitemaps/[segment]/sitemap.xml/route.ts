@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const buildSitemap = (entries: ReturnType<typeof withBaseUrl>) => `<?xml version="1.0" encoding="UTF-8"?>
