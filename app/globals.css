@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "../styles/dev-labels.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -54,51 +53,51 @@
   --animate-marquee: marquee var(--duration) infinite linear;
   --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
   @keyframes marquee {
-  from {
-    transform: translateX(0);
+    from {
+      transform: translateX(0);
     }
-  to {
-    transform: translateX(calc(-100% - var(--gap, 0px)));
+    to {
+      transform: translateX(calc(-100% - var(--gap, 0px)));
     }
   }
   @keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
+    from {
+      transform: translateY(0);
     }
-  to {
-    transform: translateY(calc(-100% - var(--gap, 0px)));
+    to {
+      transform: translateY(calc(-100% - var(--gap, 0px)));
     }
   }
   @keyframes marquee {
-  from {
-    transform: translateX(0);
+    from {
+      transform: translateX(0);
     }
-  to {
-    transform: translateX(calc(-100% - var(--gap)));
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
     }
   }
   @keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
+    from {
+      transform: translateY(0);
     }
-  to {
-    transform: translateY(calc(-100% - var(--gap)));
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
     }
   }
   @keyframes marquee {
-  from {
-    transform: translateX(0);
+    from {
+      transform: translateX(0);
     }
-  to {
-    transform: translateX(calc(-100% - var(--gap)));
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
     }
   }
   @keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
+    from {
+      transform: translateY(0);
     }
-  to {
-    transform: translateY(calc(-100% - var(--gap)));
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
     }
   }
 }
@@ -233,11 +232,19 @@
 
 /* Securities card surface backgrounds */
 .securities-card-surface {
-  background-color: color-mix(in oklch, var(--background) 70%, var(--muted) 30%);
+  background-color: color-mix(
+    in oklch,
+    var(--background) 70%,
+    var(--muted) 30%
+  );
 }
 
 .dark .securities-card-surface {
-  background-color: color-mix(in oklch, var(--background) 70%, var(--muted) 30%);
+  background-color: color-mix(
+    in oklch,
+    var(--background) 70%,
+    var(--muted) 30%
+  );
 }
 
 @supports not (color: color-mix(in oklch, black 50%, white 50%)) {
