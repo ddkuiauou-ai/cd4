@@ -20,7 +20,7 @@ concurrency:
 jobs:
   build_and_deploy:
     runs-on: self-hosted
-    timeout-minutes: 120
+    timeout-minutes: 240
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       # Self-hosted: 10 CPU cores, use more memory and parallel workers
