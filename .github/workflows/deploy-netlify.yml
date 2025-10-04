@@ -49,6 +49,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Remove SSR sitemap routes
+        run: rm -rf app/sitemap.xml app/sitemaps
+
       # 5. Next.js 프로젝트 빌드 (정적 export)
       - name: Build Next.js
         env:
