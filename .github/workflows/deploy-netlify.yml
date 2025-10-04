@@ -76,6 +76,7 @@ jobs:
       - name: Deploy to Netlify
         run: netlify deploy --prod --dir=out
         env:
+          TMPDIR: ${{ runner.workspace }}/tmp
           # Netlify 인증 토큰 (GitHub Secrets에 저장 필요)
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           # Netlify 사이트 ID (GitHub Secrets에 저장 필요)
