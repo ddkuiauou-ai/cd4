@@ -1,8 +1,6 @@
 {
   "regions": ["icn1"],
-  "buildCommand": "pnpm run build",
   "trailingSlash": true,
-  "cleanUrls": false,
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile --prefer-offline",
   "github": {
