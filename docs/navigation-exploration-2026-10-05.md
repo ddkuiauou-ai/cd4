@@ -38,3 +38,26 @@
 이전 최종 데스크톱 이미지의 좁은 편집으로 생성한다. 기존 실제 상세 캡처는 빠진 메인·랭킹과 종목 이동 기능의 근거로만 사용하며 과거의 카드 색과 그라디언트를 가져오지 않는다. 생성 이미지의 로고 영역은 비우고 실제 나눔명조800과 원본 별 SVG를 합성한다.
 
 파일·정확한 프롬프트·PNG 출처는 `.impeccable/mocks/navigation/`에 보존한다. 생성 시안의 승인 상태는 `approved:false`이며 앞선 구조의 사용자 긍정 평가를 이번 새 메뉴·이동 표현의 최종 승인으로 대신하지 않는다.
+
+최종 비교: `http://127.0.0.1:49673/navigation.html?theme=light`. 직전 `desktop-shell.html`과 연결해 메뉴·종목 이동의 수정 전후를 비교할 수 있다. 단일 화면 뷰어는 `navigation-preview.html?page=ranking&theme=light`이며 `page=detail`, `theme=dark`도 지원한다.
+
+| 화면 | 정확한 생성·편집 프롬프트 |
+|---|---|
+| 랭킹 라이트 | [ranking-light.prompt.txt](../.impeccable/mocks/navigation/ranking-light.prompt.txt) |
+| 랭킹 다크 | [ranking-dark.prompt.txt](../.impeccable/mocks/navigation/ranking-dark.prompt.txt) |
+| 상세 라이트 | [detail-light.prompt.txt](../.impeccable/mocks/navigation/detail-light.prompt.txt) |
+| 상세 다크 | [detail-dark.prompt.txt](../.impeccable/mocks/navigation/detail-dark.prompt.txt) |
+
+이전 라이트 두 화면을 각각 한 번 편집하고 두 결과를 검토했다. 메뉴 계층과 버튼형 링크가 반영되어 구조 재생성은 추가하지 않았다. 이어 각 라이트를 참조해 다크 색상 편집을 한 번씩 했다. 회사 합산 화면의 두 종목은 미선택이며 우측 기존4개 모듈과 모든 예시 차트를 유지했다.
+
+원본 크기는 랭킹 두 테마1491×1055, 상세 라이트1448×1086, 상세 다크1449×1086이다. 기존 이미지의 헤더 높이·패널 폭 차이는 남아 있다. 이번 편집은 두 요청에 한정했다. 랭킹의 메인 메뉴가 로고와 가까워 실제 폰트 합성은 데스크톱30px로 조정했다. 1440px에서 실제 로고의 오른쪽 끝은304.3px이고 메뉴와 겹치지 않는다. 브랜드 폰트·이름·가운데 원본 별은 유지했다.
+
+## 확인
+
+- 네 생성 PNG와 뷰어 복사본 총8개 PNG의 embedded prompt 검사: 누락0개.
+- 뷰어 JavaScript 구문 검사 통과.
+- 1440×1080에서 네 화면의 실제 폰트·이미지 로딩, 전체 이름, 메뉴와 로고의 간격, 가로 넘침 없음을 확인했다.
+- 비교 페이지의 테마 전환과 단일 화면 링크의 테마 변경을 확인했다. 390×844에서 비교 뷰어가 한 열로 재배치되고 가로 넘침이 없음을 실제 viewport 관찰과 DOM에서 확인했다.
+- 실제 로고가 합성된 네 개별 캡처와 라이트 비교 캡처는 `.impeccable/logo-review/review/navigation/`에 있다. 확인 값은 `render-validation.json`이다. 다크 비교 페이지의 별도 clip 캡처는 렌더 관찰과 다른 깨진 파일을 반환해 폐기했다. 네 개별 캡처는 각각 열어 정상 화면을 확인했다.
+
+모바일 제품 시안과 생산 앱 소스는 변경하지 않았다. 이미지 안의 메인·랭킹·지표·종목 링크는 제안된 UI이며 아직 실제 제품 동작을 구현한 것은 아니다. 비교 페이지의 테마·크게 보기·이전 시안 링크만 동작한다. 메인 메뉴의 `/dashboard`, 랭킹의 `/` 목적지는 기존대로 유지하는 제안이다.

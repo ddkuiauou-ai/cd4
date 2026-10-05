@@ -36,7 +36,7 @@ import {
 
 // Constants
 const CANDLESTICK_PERIOD_DAYS = 90;
-const SECTION_HEADING_CLASSES = "text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl";
+const SECTION_HEADING_CLASSES = "text-xl font-semibold tracking-tight text-foreground";
 
 // Utility functions
 const coerceVolumeValue = (primary: unknown, secondary?: unknown): number | null => {
@@ -400,52 +400,46 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
     const annualDownloadFilename = `${sanitizedSecCode}-annual-marketcap${latestHistoryDate ? `-${latestHistoryDate}` : ""}.csv`;
 
     return (
-      <div className="mt-6 space-y-6 sm:mt-14 sm:space-y-16">
+      <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-10">
         {/* 기업 개요 섹션 */}
         <section
           id="company-overview"
-          className={`${EDGE_TO_EDGE_SECTION_BASE} border-blue-200/70 dark:border-blue-900/40 dark:bg-blue-950/20`}
+          className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.overview}
         >
           <header className="flex flex-wrap items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-800/50">
-              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="hidden bg-background bg-background">
+              <Building2 className="h-6 w-6 text-foreground text-foreground" />
             </div>
             <div className="space-y-1">
               <h2 className={SECTION_HEADING_CLASSES}>기업 개요</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">기업 시가총액 순위와 기본 정보</p>
+              <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">기업 시가총액 순위와 기본 정보</p>
             </div>
           </header>
 
-          <RankHeader
-            rank={security.company?.marketcapRank}
-            marketcap={companyMarketcapData.totalMarketcap}
-            price={latestPricePoint?.close}
-            exchange={security.exchange || ""}
-            isCompanyLevel
-          />
+          
         </section>
 
         {/* 차트 분석 섹션 */}
         <section
           id="chart-analysis"
-          className={`${EDGE_TO_EDGE_SECTION_BASE} border-green-200/70 dark:border-green-900/40 dark:bg-green-950/20`}
+          className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.charts}
         >
           <header className="flex flex-wrap items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-800/50">
-              <BarChart3 className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="hidden bg-background bg-background">
+              <BarChart3 className="h-6 w-6 text-foreground text-foreground" />
             </div>
             <div className="space-y-1">
               <h2 className={SECTION_HEADING_CLASSES}>차트 분석</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 추이와 종목별 구성 현황</p>
+              <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">시가총액 추이와 종목별 구성 현황</p>
             </div>
           </header>
 
           <div className="grid gap-6 lg:auto-rows-max lg:grid-cols-2 lg:items-stretch lg:gap-8">
             <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
               <div className="px-4 pt-4 sm:px-5 sm:pt-5">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="text-base font-semibold text-foreground text-foreground">
                   {displayName} 시가총액 일간 추이
                 </h3>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -475,7 +469,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE} lg:col-span-2`}>
               <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-5 sm:pt-5">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 3개월 가격 차트</h3>
+                  <h3 className="text-base font-semibold text-foreground text-foreground">최근 3개월 가격 차트</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름
                   </p>
@@ -494,16 +488,16 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         {/* 종목 비교 섹션 */}
         <section
           id="securities-summary"
-          className={`${EDGE_TO_EDGE_SECTION_BASE} border-purple-200/70 dark:border-purple-900/40 dark:bg-purple-950/20`}
+          className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.securities}
         >
           <header className="flex flex-wrap items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-800/50">
-              <ArrowLeftRight className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="hidden bg-background bg-background">
+              <ArrowLeftRight className="h-6 w-6 text-foreground text-foreground" />
             </div>
             <div className="space-y-1">
               <h2 className={SECTION_HEADING_CLASSES}>종목 비교</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">동일 기업 내 각 종목 간 비교 분석</p>
+              <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">동일 기업 내 각 종목 간 비교 분석</p>
             </div>
           </header>
 
@@ -522,26 +516,8 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         </section>
 
         <div className="space-y-4 sm:space-y-8">
-          <CompanyFinancialTabs secCode={secCode} className="-mx-4 sm:mx-0" />
 
-          <div
-            className="relative -mx-4 overflow-hidden border border-orange-200/60 bg-orange-50/60 px-4 py-4 text-sm shadow-sm sm:mx-0 sm:rounded-3xl sm:px-6 sm:py-5 dark:border-orange-900/40 dark:bg-orange-950/10"
-            style={SECTION_GRADIENTS.indicators}
-          >
-            <div className="flex flex-col gap-3 text-orange-800/80 dark:text-orange-200/80">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-semibold tracking-tight text-orange-900 dark:text-orange-200">
-                  선택한 지표가 아래 분석 카드에 바로 반영됩니다
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-700 shadow-sm dark:bg-orange-900/40 dark:text-orange-200/90">
-                  Tab Sync
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-orange-700/90 dark:text-orange-100/80 md:text-sm">
-                <strong className="font-semibold text-orange-900 dark:text-orange-100">{ACTIVE_METRIC.label}</strong>을 포함한 탭을 선택하면 <strong className="font-semibold text-orange-900 dark:text-orange-50">핵심 지표</strong>와 <strong className="font-semibold text-orange-900 dark:text-orange-50">연도별 데이터</strong> 모듈이 함께 갱신되어, 한 화면에서 흐름을 비교할 수 있습니다.
-              </p>
-            </div>
-          </div>
+          
         </div>
 
         <KeyMetricsSection
@@ -558,37 +534,37 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         {/* 연도별 데이터 섹션 */}
         <section
           id="annual-data"
-          className={`${EDGE_TO_EDGE_SECTION_BASE} border-red-200/70 dark:border-red-900/40 dark:bg-red-950/20`}
+          className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.annual}
         >
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-red-700/80 dark:text-red-200/80">
-            <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-red-700 shadow-sm dark:bg-red-900/40 dark:text-red-200">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground text-foreground">
+            <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-foreground  bg-background text-foreground">
               탭 연동
             </span>
-            <span className="text-sm font-semibold text-red-800/90 dark:text-red-100/90">
+            <span className="text-sm font-semibold text-foreground text-foreground">
               {ACTIVE_METRIC.label} 연도별 데이터 흐름
             </span>
             {ACTIVE_METRIC.description && (
-              <span className="text-[11px] font-medium text-red-700/70 dark:text-red-100/70">
+              <span className="text-[11px] font-medium text-foreground text-foreground">
                 {ACTIVE_METRIC.description}
               </span>
             )}
           </div>
           <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-800/50">
-                <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="hidden bg-background bg-background">
+                <FileText className="h-6 w-6 text-foreground text-foreground" />
               </div>
               <div className="space-y-1">
                 <h2 className={SECTION_HEADING_CLASSES}>연도별 데이터</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
+                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">시가총액 차트와 연말 기준 상세 데이터</p>
               </div>
             </div>
             {annualCsvData.length > 0 && (
               <CsvDownloadButton
                 data={annualCsvData}
                 filename={annualDownloadFilename}
-                className="self-start border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-100 dark:hover:bg-red-900/30"
+                className="self-start border-border text-foreground bg-background border-border text-foreground bg-background"
               />
             )}
           </header>
@@ -628,7 +604,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   const renderEmptyState = () => (
     <div className="space-y-6 sm:space-y-12">
       {/* 🚨 데이터 없음 상태 UI 개선 */}
-      <section className="flex flex-col items-center justify-center gap-4 border border-border/60 bg-muted/40 px-4 py-8 text-center shadow-sm -mx-4 sm:mx-0 sm:rounded-3xl sm:px-8 sm:py-12">
+      <section className="flex flex-col items-center justify-center gap-4 border border-border/60 bg-muted/40 px-4 py-8 text-center   sm:mx-0 rounded-sm sm:px-8 sm:py-12">
         {/* 아이콘 */}
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/60">
           <svg className="h-10 w-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -655,7 +631,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </Link>
           <Link
             href={`/security/${secCode}/marketcap`}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground  transition-colors hover:bg-primary/90"
           >
             개별 종목 시가총액 보기
           </Link>
@@ -682,7 +658,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           <div className="pt-4 text-center sm:pt-6">
             <Link
               href={`/security/${secCode}/marketcap`}
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-6 sm:py-3"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground  transition-colors hover:bg-primary/90 sm:px-6 sm:py-3"
             >
               {displayName} 종목 시가총액 상세보기
             </Link>
@@ -730,7 +706,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
   const shareUrl = `${siteConfig.url}/company/${secCode}/marketcap`;
 
   return (
-    <main className="relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+    <div className="app-container detail-grid">
       {/* 최근 본 종목 추적 */}
       <RecentSecurityTracker
         secCode={secCode}
@@ -742,7 +718,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
         metricValue={security.marketcap}
       />
 
-      <div className="mx-auto w-full min-w-0">
+      <div className="detail-content min-w-0">
         {/* 브레드크럼 네비게이션 */}
         <nav
           aria-label="Breadcrumb"
@@ -776,6 +752,11 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             />
           }
         />
+        <RankHeader rank={security.company?.marketcapRank} marketcap={companyMarketcapData?.totalMarketcap ?? security.company?.marketcap ?? undefined} price={security.prices?.[0]?.close}
+          exchange={security.exchange || market} isCompanyLevel={true}
+          rankLabel="기업 시가총액 순위" marketcapLabel="기업 전체 시가총액" marketcapUnit="원" />
+        <p className="mt-2 text-xs text-muted-foreground">보통주·우선주 합산 · 기준일 {companyMarketcapData?.totalMarketcapDate ? new Date(companyMarketcapData?.totalMarketcapDate!).toISOString().slice(0, 10) : '확인 중'}</p>
+        <CompanyFinancialTabs secCode={secCode} className="mt-4" />
 
         <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
           <div className="space-y-3">
@@ -792,10 +773,10 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           </div>
 
           {/* 시가총액 설명 알림 */}
-          <div
+          <details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div
             data-slot="alert"
-            role="alert"
-            className="relative -mx-4 w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground shadow-sm sm:mx-0 sm:rounded-2xl sm:px-5"
+            
+            className="relative  w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground  sm:mx-0 rounded-sm sm:px-5"
           >
             <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
               <svg
@@ -820,13 +801,13 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
                 <p>각 종목의 구성비율과 변동 추이를 확인할 수 있습니다.</p>
               </div>
             </div>
-          </div>
+          </div></details>
         </div>
 
         {hasMarketcapDetails ? renderLoadedSections() : renderEmptyState()}
       </div>
       {/* 사이드바 네비게이션 (데스크톱) */}
-      <div className="hidden xl:block">
+      <aside className="context-rail order-first xl:order-last">
         <SidebarManager
           navigationSections={[
             {
@@ -856,7 +837,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
             },
           ]}
           periodAnalysis={null}
-          perRank={marketCapRanking?.currentRank || null}
+          perRank={marketCapRanking?.currentRank ?? null}
           security={security}
           secCode={secCode}
           hasCompanyMarketcapData={true}
@@ -864,10 +845,10 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
           comparableSecuritiesWithPER={companySecs}
           currentTicker={currentTicker}
           market={market}
-          companyMarketcapData={companyMarketcapData || undefined}
+          companyMarketcapData={companyMarketcapData ?? undefined}
           metricType="marketcap"
         />
-      </div>
-    </main>
+      </aside>
+    </div>
   );
 }

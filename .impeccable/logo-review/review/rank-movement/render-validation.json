@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-05",
+  "approved": false,
+  "stage": "UX/UI comparison; production application unchanged",
+  "recommendation": "Current rank grouped with a small neutral vertical arrow and absolute movement count; previous/current values in optional explanation",
+  "viewports": [
+    {"device": "desktop", "width": 1440, "height": 1080, "themes": ["light", "dark"], "horizontal_overflow": false},
+    {"device": "mobile", "width": 390, "height": 844, "themes": ["light", "dark"], "horizontal_overflow": false}
+  ],
+  "font_and_image_loading": true,
+  "actual_wordmark": "Nanum Myeongjo ExtraBold 800 and original star SVG",
+  "current_ranks": [1, 2, 3, 4, 5, 6],
+  "illustrative_previous_ranks": [1, 4, 2, 5, 3, 6],
+  "illustrative_changes": [0, 2, -1, 1, -2, 0],
+  "unchanged_label": "유지",
+  "comparison_label": "이전 순위 대비",
+  "mobile_indicator_font_px_after_correction": 12.48,
+  "desktop_indicator_font_px": 14.112,
+  "contrast_ratios": {"light_movement": 5.92, "light_unchanged": 5.18, "dark_movement": 11.33, "dark_unchanged": 8.66},
+  "interaction_checks": {
+    "theme_updates_both_previews": true,
+    "theme_updates_preview_links": true,
+    "mobile_tap_opens_previous_and_current_rank": true,
+    "escape_hides_explanation": true,
+    "mobile_tooltip_within_viewport": true
+  },
+  "captures_opened_and_inspected": ["desktop-light.jpg", "desktop-dark.jpg", "mobile-light.jpg", "mobile-dark.jpg", "comparison-light.jpg"],
+  "native_red_blue_candidates_used_in_recommendation": false,
+  "native_mobile_generations": 0,
+  "verification_passes": "one initial batched inspection, one mobile type-size correction, one confirmation"
+}

@@ -1,0 +1,17 @@
+Use case: precise-object-edit.
+Asset type: high-fidelity Korean stock-ranking desktop UI comp.
+Primary request: make exactly one narrow addition to the supplied screenshot: restore small inline RANK MOVEMENT indicators beside the existing large rank digits. Treat the supplied image as the sole edit target and absolute authority for its existing composition, typography, palette and content. Preserve the exact 1491 x 1055 canvas and all existing pixels as closely as possible.
+Indicators: use the existing first rank column only. Existing rank digits are around x58..84; company names begin at x182. Add a 12px thin-stroke drawn TrendingUp or TrendingDown line icon at x107..119, followed by a signed integer in unobtrusive 14–16px sans-serif at x126..150. Entire indicator must fit inside x106..156. Center each tiny indicator vertically beside its rank digit. No background, no pill, no filled badge, no new column, and no shifting company names or any table content.
+Exact row assignment (rank change means previous rank minus current rank, in PLACES, not stock-price percent):
+- Rank 1 삼성전자 (previous 1): add nothing; blank unchanged. Preserve the gold rank 1.
+- Rank 2 SK하이닉스 (previous 4), center y515: TrendingUp icon then "+2".
+- Rank 3 LG에너지솔루션 (previous 2), center y609: TrendingDown icon then "-1".
+- Rank 4 삼성바이오로직스 (previous 5), center y704: TrendingUp icon then "+1".
+- Rank 5 현대차 (previous 3), center y800: TrendingDown icon then "-2".
+- Rank 6 한화에어로스페이스 (previous 6): add nothing; blank unchanged.
+Keep all six existing far-right price changes exactly: "0.00%", "+0.44%", "+2.91%", "-4.51%", "-0.72%", "+3.68%". Preserve those existing percent values and sparklines independently of the new rank movement. Do not attach percent signs to new rank indicators.
+Preserve the full primary 메인/랭킹 menu, selected ranking state, search, theme control, seven ranking metric tabs, title/date/filter/CSV, table columns, company names and codes, market caps, six row geometry, footer pagination, and the entire recent/context right rail exactly. Preserve the entire blank branding area at x40..320,y18..66 for a later real font and original SVG overlay; generate no wordmark, logo, emblem, star, placeholder or other mark there.
+Add no explanatory label or legend. If any comparison wording must appear, only "이전 순위 대비" is valid; do not add daily/전일/NEW wording.
+No other edits. Do not recompose, resize, crop, restyle, improve, change menus, add cards or alter anything outside the four tiny indicators.
+Input image: Image 1 is /Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-dark.png, sole edit target, composition and style authority.
+Theme: preserve its exact dark palette. New rise icon/text color #F06A68; new fall icon/text color #77A9FA. Do not change existing price colors.

@@ -5,6 +5,21 @@ import { cachedData } from "./cache-policy";
 import { and, asc, desc, eq, inArray, isNull, isNotNull, ne, lt, gt, sql } from "drizzle-orm";
 import { computeMixedPagination } from "./pagination";
 
+export function getSecurityRankingFilter(metricType: schema.MetricType, rankDate: string) {
+  return and(
+    eq(schema.securityRank.metricType, metricType),
+    eq(schema.securityRank.rankDate, rankDate),
+    isNull(schema.security.delistingDate),
+    isNotNull(schema.securityRank.currentRank),
+  );
+}
+
+export function getSecurityRankingOrder(metricType: schema.MetricType, sortOrder: "asc" | "desc" = "asc") {
+  return metricType === "div" || metricType === "dps" || metricType === "bps" || metricType === "eps"
+    ? desc(schema.securityRank.value)
+    : (sortOrder === "asc" ? asc : desc)(schema.securityRank.currentRank);
+}
+
 // Count ranked securities for a given metric
 export const countSecurityRanks = cachedData(
   async (metricType: schema.MetricType) => {
@@ -22,12 +37,7 @@ export const countSecurityRanks = cachedData(
         .select({ count: sql<number>`count(*)` })
         .from(schema.securityRank)
         .innerJoin(schema.security, eq(schema.securityRank.securityId, schema.security.securityId))
-        .where(and(
-          eq(schema.securityRank.metricType, metricType),
-          eq(schema.securityRank.rankDate, latestRankDate),
-          isNull(schema.security.delistingDate),
-          isNotNull(schema.securityRank.currentRank)
-        ));
+        .where(getSecurityRankingFilter(metricType, latestRankDate));
 
       return Number(totalResult[0].count);
     } catch (e) {
@@ -55,8 +65,6 @@ export const getSecurityRanksPage = cachedData(
       if (!latestRankDate) {
         return { items: [], latestDate: null };
       }
-
-      const orderFunction = sortOrder === 'asc' ? asc : desc;
 
       const rows = await db
         .select({
@@ -86,13 +94,8 @@ export const getSecurityRanksPage = cachedData(
           )
         )
         .leftJoin(schema.company, eq(schema.security.companyId, schema.company.companyId))
-        .where(
-          and(
-            isNull(schema.security.delistingDate),
-            isNotNull(schema.securityRank.currentRank)
-          )
-        )
-        .orderBy(metricType === 'div' || metricType === 'dps' || metricType === 'bps' || metricType === 'eps' ? desc(schema.securityRank.value) : orderFunction(schema.securityRank.currentRank))
+        .where(getSecurityRankingFilter(metricType, latestRankDate))
+        .orderBy(getSecurityRankingOrder(metricType, sortOrder))
         .limit(limit)
         .offset(skip);
 

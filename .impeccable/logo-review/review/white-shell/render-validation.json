@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-05",
+  "approved": false,
+  "views": [
+    {
+      "fontLoaded": true,
+      "height": 1080,
+      "loaded": true,
+      "movementCount": 6,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=desktop&theme=light",
+      "width": 1440
+    },
+    {
+      "fontLoaded": true,
+      "height": 1080,
+      "loaded": true,
+      "movementCount": 6,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=desktop&theme=dark",
+      "width": 1440
+    },
+    {
+      "fontLoaded": true,
+      "height": 1080,
+      "loaded": true,
+      "movementCount": 0,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=detail&theme=light",
+      "width": 1440
+    },
+    {
+      "fontLoaded": true,
+      "height": 1080,
+      "loaded": true,
+      "movementCount": 0,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=detail&theme=dark",
+      "width": 1440
+    },
+    {
+      "fontLoaded": true,
+      "groups": [
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.2890625,
+          "previous": "1",
+          "rank": "1",
+          "rankCenterX": 27.2890625,
+          "state": "same",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "4",
+          "rank": "2",
+          "rankCenterX": 27.2890625,
+          "state": "up",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "2",
+          "rank": "3",
+          "rankCenterX": 27.2890625,
+          "state": "down",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "5",
+          "rank": "4",
+          "rankCenterX": 27.2890625,
+          "state": "up",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "3",
+          "rank": "5",
+          "rankCenterX": 27.2890625,
+          "state": "down",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.2890625,
+          "previous": "6",
+          "rank": "6",
+          "rankCenterX": 27.2890625,
+          "state": "same",
+          "width": 45.234375
+        }
+      ],
+      "height": 844,
+      "loaded": true,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=mobile&theme=light",
+      "width": 390
+    },
+    {
+      "fontLoaded": true,
+      "groups": [
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.2890625,
+          "previous": "1",
+          "rank": "1",
+          "rankCenterX": 27.2890625,
+          "state": "same",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "4",
+          "rank": "2",
+          "rankCenterX": 27.2890625,
+          "state": "up",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "2",
+          "rank": "3",
+          "rankCenterX": 27.2890625,
+          "state": "down",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "5",
+          "rank": "4",
+          "rankCenterX": 27.2890625,
+          "state": "up",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.28125,
+          "previous": "3",
+          "rank": "5",
+          "rankCenterX": 27.2890625,
+          "state": "down",
+          "width": 45.234375
+        },
+        {
+          "centerX": 27.2890625,
+          "font": "26.13px",
+          "gap": 0.375,
+          "height": 44,
+          "movementCenterX": 27.2890625,
+          "previous": "6",
+          "rank": "6",
+          "rankCenterX": 27.2890625,
+          "state": "same",
+          "width": 45.234375
+        }
+      ],
+      "height": 844,
+      "loaded": true,
+      "overflow": false,
+      "url": "http://127.0.0.1:49673/white-shell-preview.html?device=mobile&theme=dark",
+      "width": 390
+    }
+  ],
+  "mobileAxisMaximumDifferencePx": 0.008,
+  "mobileGroupHeightPx": 44,
+  "mobileGroupWidthPx": 45.234375,
+  "mobileContentGapPx": 0.375,
+  "mobileRankFontPx": 26.13,
+  "mobileTooltipTapAndEscape": true,
+  "themeUpdatesAllThreePreviews": true,
+  "previewLinksInheritTheme": true,
+  "mobileGalleryNoHorizontalOverflow": true,
+  "sourceRasterScan": {
+    "rasters": 8,
+    "missingEmbeddedPrompts": 0
+  },
+  "productionAppChanged": false,
+  "mobileRankColor": "#66717D",
+  "verificationPasses": "One batched inspection, one mobile number-contrast correction, one confirmation",
+  "capturesOpenedAndInspected": [
+    "desktop-light.jpg",
+    "desktop-dark.jpg",
+    "detail-light.jpg",
+    "detail-dark.jpg",
+    "mobile-light.jpg",
+    "mobile-dark.jpg",
+    "comparison-light.jpg"
+  ]
+}

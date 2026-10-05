@@ -1,8 +1,5 @@
 "use client";
-
-import { useEffect } from "react";
-import { useCollapsedState } from "@/hooks/use-collapsed-state";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { DetailMetricFacts } from './detail-metric-facts';
 
 interface KeyMetricsSidebarBPSProps {
     bpsRank: number | null;
@@ -12,90 +9,23 @@ interface KeyMetricsSidebarBPSProps {
     bps5Year: number | null;
     bps10Year: number | null;
     bps20Year: number | null;
-    rangeMin: number;
-    rangeMax: number;
+    rangeMin: number | null;
+    rangeMax: number | null;
     currentPrice: number | null;
     onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function KeyMetricsSidebarBPS({
-    bpsRank,
-    latestBPS,
-    bps12Month,
-    bps3Year,
-    bps5Year,
-    bps10Year,
-    bps20Year,
-    rangeMin,
-    rangeMax,
-    currentPrice,
-    onCollapsedChange,
-}: KeyMetricsSidebarBPSProps) {
-    const [isCollapsed, handleToggle] = useCollapsedState('key-metrics-collapsed', false);
-
-    // 상태 변경 시 부모 컴포넌트에 알림
-    useEffect(() => {
-        onCollapsedChange?.(isCollapsed);
-    }, [isCollapsed, onCollapsedChange]);
-
-    return (
-        <div className={`${isCollapsed ? 'bg-background px-2 py-0 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
-            <button
-                onClick={handleToggle}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleToggle();
-                    }
-                }}
-                className={`flex items-center justify-between text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full ${isCollapsed ? 'py-2 px-0 gap-1' : 'py-2 mb-3 gap-2'
-                    }`}
-                aria-expanded={!isCollapsed}
-                aria-controls="key-metrics-content"
-                aria-label={`핵심 지표 ${isCollapsed ? '펼치기' : '접기'}`}
-            >
-                <span>핵심 지표</span>
-                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </button>
-
-            {!isCollapsed && (
-                <div id="key-metrics-content" className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">BPS 랭킹</span>
-                        <span className="font-medium">{bpsRank ? `${bpsRank}위` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">현재 BPS</span>
-                        <span className="font-medium">{latestBPS ? `${latestBPS.toLocaleString()}원` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">현재 주가</span>
-                        <span className="font-medium">{currentPrice ? `${currentPrice.toLocaleString()}원` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">12개월 평균</span>
-                        <span className="font-medium">{bps12Month ? `${Math.round(bps12Month).toLocaleString()}원` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">3년 평균</span>
-                        <span className="font-medium">{bps3Year ? `${Math.round(bps3Year).toLocaleString()}원` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">최저 BPS</span>
-                        <span className="font-medium">{rangeMin ? `${rangeMin.toLocaleString()}원` : "—"}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">최고 BPS</span>
-                        <span className="font-medium">{rangeMax ? `${rangeMax.toLocaleString()}원` : "—"}</span>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+export function KeyMetricsSidebarBPS(props: KeyMetricsSidebarBPSProps) {
+    const format = (value: number | null) => value != null && Number.isFinite(value) ? `${Math.round(value).toLocaleString('ko-KR')}원` : '—';
+    const price = props.currentPrice;
+    return <DetailMetricFacts onCollapsedChange={props.onCollapsedChange} rows={[
+        ['BPS 순위', props.bpsRank != null ? `${props.bpsRank}위` : '—'],
+        ['현재 BPS', format(props.latestBPS)],
+        ['현재 주가', price != null ? `${price.toLocaleString('ko-KR')}원` : '—'],
+        ['12개월 평균', format(props.bps12Month)],
+        ['3년 평균', format(props.bps3Year)],
+        ['5년 평균', format(props.bps5Year)],
+        ['최저 BPS', format(props.rangeMin)],
+        ['최고 BPS', format(props.rangeMax)],
+    ]} note="평균·최저·최고는 이력 데이터 기준입니다." />;
 }

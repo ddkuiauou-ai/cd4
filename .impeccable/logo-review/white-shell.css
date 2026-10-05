@@ -1,0 +1,55 @@
+@import url("rank-movement.css");
+.stage.light { background:#fff; --note-bg:#fff; }
+.single-preview { background:#fff; }
+.detail-section { margin-top:36px; }
+.detail-section h2 { margin-bottom:18px; }
+.detail-figure { max-width:1080px; }
+.mobile .rank-group {
+  position:absolute;
+  left:1.2cqi;
+  width:11.6cqi;
+  min-height:44px;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:.1cqi;
+  transform:translateY(-50%);
+  border:0;
+  background:transparent;
+  color:var(--movement-ink);
+  cursor:help;
+  z-index:2;
+  font:inherit;
+  font-variant-numeric:tabular-nums;
+}
+.rank-value {
+  display:block;
+  font-size:6.7cqi;
+  line-height:1.03;
+  font-weight:650;
+  letter-spacing:-.025em;
+  color:#66717d;
+}
+.rank-group[data-digits="3"] .rank-value { font-size:5.65cqi; }
+.rank-group[data-digits="4"] .rank-value { font-size:4.6cqi; }
+.rank-group[data-current="1"] .rank-value { color:#a26300; }
+.dark .rank-value { color:#d4dbe1; }
+.dark .rank-group[data-current="1"] .rank-value { color:#f8cd37; }
+.rank-movement-value {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.25cqi;
+  font-size:2.96cqi;
+  line-height:1.1;
+  font-weight:500;
+  letter-spacing:0;
+}
+.rank-movement-value .direction { width:2.8cqi; height:2.8cqi; }
+.rank-group[data-state="same"] .rank-movement-value { font-size:2.85cqi; font-weight:400; color:var(--movement-quiet); }
+.rank-group:focus-visible { outline:1px solid currentColor; outline-offset:1px; border-radius:3px; }
+.rank-group:hover .rank-movement-value { color:var(--note-ink); }
+.ranking-comparisons .rank-indicator { min-height:2.95cqi; }
+@media(max-width:650px) { .detail-section { margin-top:28px; } }

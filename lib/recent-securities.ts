@@ -10,6 +10,7 @@ export interface RecentlyViewedSecurity {
     ticker: string; // "005930"
     exchange: string; // "KOSPI"
     lastViewed: number; // 마지막 방문 타임스탬프
+    lastMetric?: MetricType; // 기존 저장 항목과 호환되는 마지막 지표
     metrics: {
         per?: { value: number | null; lastViewed: number };
         marketcap?: { value: number | null; lastViewed: number };
@@ -40,7 +41,7 @@ export type MetricType = keyof typeof METRIC_CONFIG;
 
 // 메트릭 값 포맷 함수
 export function formatMetricValue(type: string, value: number | null): string {
-    if (value === null) return '—';
+    if (value == null || !Number.isFinite(value)) return '—';
 
     switch (type) {
         case 'marketcap':
@@ -87,8 +88,13 @@ export function getRecentlyViewedSecurities(): RecentlyViewedSecurity[] {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) return [];
 
-        const securities: RecentlyViewedSecurity[] = JSON.parse(stored);
-        return securities.sort((a, b) => b.lastViewed - a.lastViewed); // 최신순 정렬
+        const parsed: unknown = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter((item): item is RecentlyViewedSecurity =>
+            item && typeof item.secCode === 'string' && typeof item.ticker === 'string' &&
+            typeof item.name === 'string' && typeof item.exchange === 'string' &&
+            Number.isFinite(item.lastViewed) && item.metrics && typeof item.metrics === 'object'
+        ).sort((a, b) => b.lastViewed - a.lastViewed).slice(0, MAX_RECENT_SECURITIES);
     } catch (error) {
         console.error('Failed to load recently viewed securities:', error);
         return [];
@@ -117,6 +123,7 @@ export function addRecentlyViewedSecurity(
         if (existingIndex >= 0) {
             // 기존 항목 업데이트 및 맨 앞으로 이동
             const existing = securities.splice(existingIndex, 1)[0];
+            Object.assign(existing, security, { lastMetric: metricType });
             existing.metrics[metricType] = { value: metricValue ?? null, lastViewed: now };
             existing.lastViewed = now;
             securities.unshift(existing);
@@ -128,6 +135,7 @@ export function addRecentlyViewedSecurity(
 
             securities.unshift({
                 ...security,
+                lastMetric: metricType,
                 lastViewed: now,
                 metrics: {
                     [metricType]: { value: metricValue ?? null, lastViewed: now }
@@ -135,7 +143,8 @@ export function addRecentlyViewedSecurity(
             });
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(securities));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(securities.slice(0, MAX_RECENT_SECURITIES)));
+        notifyRecentSecuritiesChanged();
     } catch (error) {
         console.error('Failed to save recently viewed security:', error);
     }
@@ -151,6 +160,7 @@ export function removeRecentlyViewedSecurity(secCode: string): void {
         const securities = getRecentlyViewedSecurities();
         const filteredSecurities = securities.filter(s => s.secCode !== secCode);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredSecurities));
+        notifyRecentSecuritiesChanged();
     } catch (error) {
         console.error('Failed to remove recently viewed security:', error);
     }
@@ -164,6 +174,7 @@ export function clearRecentlyViewedSecurities(): void {
 
     try {
         localStorage.removeItem(STORAGE_KEY);
+        notifyRecentSecuritiesChanged();
     } catch (error) {
         console.error('Failed to clear recently viewed securities:', error);
     }
@@ -175,4 +186,18 @@ export function clearRecentlyViewedSecurities(): void {
 export function isSecurityRecentlyViewed(secCode: string): boolean {
     const securities = getRecentlyViewedSecurities();
     return securities.some(s => s.secCode === secCode);
+}
+
+/** Same-tab updates use the same event as cross-tab changes. */
+function notifyRecentSecuritiesChanged() {
+    window.dispatchEvent(new StorageEvent('storage', {
+        key: STORAGE_KEY, newValue: localStorage.getItem(STORAGE_KEY),
+    }));
+}
+
+export function getLastViewedMetric(security: RecentlyViewedSecurity): MetricType {
+    if (security.lastMetric && security.lastMetric in METRIC_CONFIG) return security.lastMetric;
+    return (Object.entries(security.metrics)
+        .filter(([type, data]) => type in METRIC_CONFIG && data)
+        .sort((a, b) => (b[1]?.lastViewed ?? 0) - (a[1]?.lastViewed ?? 0))[0]?.[0] ?? 'marketcap') as MetricType;
 }

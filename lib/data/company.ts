@@ -67,24 +67,25 @@ type CompanyItem = {
   }>;
 };
 
+export function getListedCommonSecurityFilter() {
+  return and(eq(schema.security.type, "보통주"), isNull(schema.security.delistingDate));
+}
+
+export function getCompanyMarketcapRankingFilter() {
+  return and(
+    isNotNull(schema.company.marketcapRank),
+    exists(
+      db.select({ pk: schema.security.securityId }).from(schema.security).where(
+        and(eq(schema.security.companyId, schema.company.companyId), getListedCommonSecurityFilter()),
+      ),
+    ),
+  );
+}
+
 export const countCompanyMarketcaps = cachedData(async () => {
   try {
     const companies = await db.query.company.findMany({
-      where: and(
-        isNotNull(schema.company.marketcapRank),
-        exists(
-          db
-            .select({ pk: schema.security.securityId })
-            .from(schema.security)
-            .where(
-              and(
-                eq(schema.security.companyId, schema.company.companyId),
-                eq(schema.security.type, "보통주"),
-                isNull(schema.security.delistingDate)
-              )
-            )
-        )
-      ),
+      where: getCompanyMarketcapRankingFilter(),
       columns: { companyId: true },
     });
     return companies.length;
@@ -100,21 +101,7 @@ export const getCompanyMarketcapsPage = cachedData(
 
     try {
       const items = (await db.query.company.findMany({
-        where: and(
-          isNotNull(schema.company.marketcapRank),
-          exists(
-            db
-              .select({ pk: schema.security.securityId })
-              .from(schema.security)
-              .where(
-                and(
-                  eq(schema.security.companyId, schema.company.companyId),
-                  eq(schema.security.type, "보통주"),
-                  isNull(schema.security.delistingDate)
-                )
-              )
-          )
-        ),
+        where: getCompanyMarketcapRankingFilter(),
         orderBy: [asc(schema.company.marketcapRank)],
         limit,
         offset: skip,
@@ -131,7 +118,7 @@ export const getCompanyMarketcapsPage = cachedData(
         },
         with: {
           securities: {
-            where: and(eq(schema.security.type, "보통주"), isNull(schema.security.delistingDate)),
+            where: getListedCommonSecurityFilter(),
             columns: {
               securityId: true,
               exchange: true,

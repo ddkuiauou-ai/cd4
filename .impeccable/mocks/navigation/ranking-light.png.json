@@ -1,0 +1,72 @@
+{
+  "prompt": "Native edit of Image1, the existing ranking-light-v2.png. Reference1 is STYLE+composition authority. Reference2, incumbent-detail-top.jpg, is ONLY primary main/ranking navigation function evidence: do not copy its company-detail content, palette, cards or geometry. Narrowrefinement: preserve ENTIRE table/rail/all six data/existing7metricbar/palette/aspect1491x1055, only topheader rearrange. Logo reserved BLANK x40..330 y18..66 foractual Nanumtext+originalSVGoverlay; generate NO brandwordmark/emblem/placeholder. Add alwaysvisibleprimarynav '메인' and '랭킹' immediately afterlogo x370..540. Eachcompact40pxhigh, 16pxsans, '랭킹' selected darkink#182126 filledsmallrectanglewithwhite text subtle5pxcornerradius, '메인' plain dark text. Search moves/resizes tox590..1190, '기업 · 종목 검색'+'⌘ K', theme staysright '라이트'. Header existingheight92 okaydon'trestructurewholepage. Ranking secondarymetricbar staysexactwhereitwas withgoldselected '시가총액', otherPER,PBR,EPS,BPS,배당수익률,주당배당금. Distinguish primary site section from secondary ranking metric visually; NO dropdownhamburger/noapp extraitems. The companyranktitle/date/CSVbutton/sixrows/footer/recentcontext rail entirelyunchanged. No glass/gradients/glows/cards invented.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-light.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a39-c268-7fb0-8874-516addfbda90/exec-b6bf3222-673d-4039-b938-53cf7b557f45.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light-v2.png",
+  "references": [
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light-v2.png",
+      "role": "edit target, style and composition authority"
+    },
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/logo-review/review/desktop-shell/incumbent-detail-top.jpg",
+      "role": "primary main/ranking navigation function evidence only"
+    }
+  ],
+  "dimensions": {
+    "width": 1491,
+    "height": 1055
+  },
+  "header_reserved_area": {
+    "x_min": 40,
+    "x_max": 330,
+    "y_min": 18,
+    "y_max": 66
+  },
+  "header_safe_overlay_area_recommended": {
+    "x_min": 40,
+    "x_max": 320,
+    "y_min": 18,
+    "y_max": 66
+  },
+  "header_reserved_for": "Real Nanum Myeongjo ExtraBold wordmark and original star SVG overlay",
+  "observed_geometry_approximate": {
+    "primary_nav": {
+      "x_min": 331,
+      "x_max": 475
+    },
+    "ranking_selected_button": {
+      "x_min": 400,
+      "x_max": 475,
+      "y_min": 20,
+      "y_max": 71
+    },
+    "search_bounds": {
+      "x_min": 546,
+      "x_max": 1165,
+      "y_min": 19,
+      "y_max": 73
+    },
+    "search_center": {
+      "x": 855.5,
+      "y": 46
+    },
+    "header_height_estimated": 92,
+    "metric_bar_y_range_estimated": [
+      92,
+      151
+    ],
+    "main_content": {
+      "x_min": 42,
+      "x_max": 1004
+    },
+    "rail_surface": {
+      "x_min": 1039,
+      "x_max": 1491,
+      "y_min": 151
+    }
+  },
+  "geometry_note": "Generated pixel coordinates are approximate. Main table, seven metric tabs, title/date/CSV, six data rows, footer and recent/context rail remain visibly unchanged. Primary nav is aroundx331..475 rather than requestedx370..540; selected button is about51px high rather than40px. Search is x546..1165 rather thanx590..1190. The logo rectangle x40..330,y18..66 remains blank, with nav text beginning aboutx332; recommended safe overlay right edge320 leaves a small visual gap."
+}

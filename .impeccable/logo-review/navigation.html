@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>황금 전광판 · 메뉴와 종목 이동 개선</title>
+  <link rel="preload" href="fonts/nanum.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="navigation.css">
+  <script src="navigation.js" defer></script>
+</head>
+<body>
+  <main class="comparison">
+    <header class="intro">
+      <h1>메인·랭킹과 기업 지표를 구분했습니다.</h1>
+      <p>서비스 메뉴는 헤더에, 현재 기업의 분석 지표는 본문에 둡니다. 보통주·우선주는 이동 가능한 작은 링크 버튼으로 표시합니다.</p>
+      <div class="review-controls">
+        <div class="theme-controls" role="group" aria-label="시안 테마">
+          <button type="button" data-theme="light" aria-pressed="true">라이트</button>
+          <button type="button" data-theme="dark" aria-pressed="false">다크</button>
+        </div>
+        <a href="desktop-shell.html?theme=light">직전 시안과 비교</a>
+      </div>
+    </header>
+    <div class="comparisons">
+      <figure>
+        <figcaption><strong>랭킹</strong><a data-preview="ranking" href="navigation-preview.html?page=ranking&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-page="ranking"></div>
+        <p class="caption">헤더의 메인·랭킹 아래에서 전체 순위 지표를 선택</p>
+      </figure>
+      <figure>
+        <figcaption><strong>삼성전자 상세</strong><a data-preview="detail" href="navigation-preview.html?page=detail&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-page="detail"></div>
+        <p class="caption">기업 요약 아래의 지표 메뉴 · 우측의 보통주·우선주 링크 버튼</p>
+      </figure>
+    </div>
+    <section class="navigation-guide" aria-labelledby="navigation-guide-title">
+      <h2 id="navigation-guide-title">메뉴의 역할</h2>
+      <table>
+        <thead><tr><th scope="col">화면</th><th scope="col">상단 메뉴</th><th scope="col">지표 메뉴</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">메인</th><td>메인 선택</td><td>요약 화면 · 전체 순위 지표 줄 없음</td></tr>
+          <tr><th scope="row">랭킹</th><td>랭킹 선택</td><td>헤더 아래 · 시장 전체의 지표별 순위</td></tr>
+          <tr><th scope="row">기업·종목 상세</th><td>랭킹 탐색 유지 제안</td><td>기업 요약 아래 · 해당 기업·종목의 지표 상세</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <footer>디자인 검토용 이미지 시안 · 숫자와 차트는 예시입니다. 실제 나눔명조 ExtraBold와 기존 별 SVG를 합성했습니다. 이미지 안의 메뉴·링크·다운로드는 제품 구현 전입니다.</footer>
+  </main>
+</body>
+</html>

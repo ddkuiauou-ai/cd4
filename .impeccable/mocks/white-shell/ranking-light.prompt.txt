@@ -1,0 +1,17 @@
+Use case: precise-object-edit.
+Asset type: high-fidelity Korean financial dashboard desktop UI comp, light theme.
+Primary request: perform a narrow COLOR-ONLY edit of the supplied screenshot. Preserve the exact screenshot composition and all coordinates. Change only light-theme surface fills and neutral rules to create a clean pure-white shell matching a white mobile interface.
+SURFACE PALETTE:
+1. The ENTIRE full-width page header and the entire left/main content area must be perfectly flat solid pure white #FFFFFF. Remove all inherited gray/blue/cool tint, lighting falloff, gradients, vignettes, texture and grain. Search and white control surfaces remain flat pure white.
+2. Only the existing right rail background is perfectly flat neutral #F7F7F7, with a single thin 1px vertical neutral #E6E6E6 boundary at its existing left edge. The rail must have no bluish tint, no cool gray, no gradient, no lighting, no grain.
+3. Preserve existing rail row/card geometry. Their interior surfaces are pure white #FFFFFF, with existing hairline borders/rules recolored neutral #E4E4E4. Do not introduce or remove cards, roundings, rows, outlines or dividers. Keep existing neutral rules in main/header hairline and neutral gray.
+INVARIANTS: Preserve EXACTLY all typography, original text and values, linework, company names and stock codes, buttons/actions, geometry, content, whitespace, existing selected primary menu ink fill, branded gold/yellow accents, existing red/blue price colors, charts and sparklines. This is a surface recolor only. Preserve the full header 메인/랭킹 navigation, selected state, search content, theme sun control and 라이트 label. Do not resize, crop, recompose or shift any element.
+Branding: Preserve the existing BLANK left header branding region for a later actual Nanum-font wordmark and original SVG overlay. Add no logo, wordmark, emblem, star, placeholder, text, marker or other graphic there.
+Avoid: any blue/cool tint in surface fills, gradients, glass, shadows, grain, texture, decoration, new content or redesigned topology. The main and header should read as flat white, and the right rail as barely distinguishable neutral gray. Make no other changes.
+Input image: Image 1 is /Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-light.png, sole edit target, composition/content/style authority.
+Canvas: exact 1491 x 1055.
+Geometry: Header including all seven metric tabs remains full width and flat #FFFFFF. Main left area remains at x0..1038; rail begins at existing x1039,y151 and is #F7F7F7, with 1px boundary #E6E6E6.
+Preserve ALL seven metric tabs (시가총액, PER, PBR, EPS, BPS, 배당수익률, 주당배당금), title 시가총액 순위, filter/date, CSV action, table header, all six ranking rows with large rank digits and exactly unchanged company positions, footer/page control, recent items and 조회 기준 rail. Preserve the gold rank 1.
+Important: This source has NO rank movement indicators. Leave the space beside all rank digits BLANK exactly as shown. Generate no arrows, rank movement values, badges or additional columns.
+Six far-right price changes stay exactly "0.00%", "+0.44%", "+2.91%", "-4.51%", "-0.72%", "+3.68%".
+Branding blank area x40..320,y18..66 must remain empty.

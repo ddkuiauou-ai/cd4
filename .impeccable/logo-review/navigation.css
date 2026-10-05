@@ -1,0 +1,16 @@
+@import url("desktop-shell.css");
+.wordmark { font-size:2.0833cqi; }
+.navigation-guide { margin-top:30px; }
+.navigation-guide h2 { font-size:18px; line-height:1.4; margin:0 0 10px; letter-spacing:-.02em; }
+.navigation-guide table { width:100%; border-collapse:collapse; font-size:13px; text-align:left; }
+.navigation-guide th,.navigation-guide td { border-bottom:1px solid var(--line); padding:8px 12px; }
+.navigation-guide thead th { color:var(--secondary); font-weight:500; }
+.navigation-guide th:first-child { padding-left:0; }
+.navigation-guide tbody th { width:18%; font-weight:600; }
+.navigation-guide td:nth-child(2) { width:25%; }
+@media(max-width:600px) {
+  .navigation-guide table { font-size:12px; }
+  .navigation-guide th,.navigation-guide td { padding:8px 6px; vertical-align:top; }
+  .navigation-guide tbody th { width:24%; }
+  .navigation-guide td:nth-child(2) { width:30%; }
+}

@@ -1,10 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useMemo, useState, useEffect, memo } from "react";
-import { useCollapsedState } from "@/hooks/use-collapsed-state";
+import { useMemo, memo } from "react";
 import { formatNumberWithSeparateUnit } from "@/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { DetailMetricFacts } from "./detail-metric-facts";
 
 interface KeyMetricsSidebarProps {
     companyMarketcapData: any;
@@ -31,12 +30,6 @@ export function KeyMetricsSidebar({
     onCollapsedChange,
 }: KeyMetricsSidebarProps) {
     const pathname = usePathname();
-    const [isCollapsed, handleToggle] = useCollapsedState('key-metrics-collapsed', false);
-
-    // 상태 변경 시 부모 컴포넌트에 알림
-    useEffect(() => {
-        onCollapsedChange?.(isCollapsed);
-    }, [isCollapsed, onCollapsedChange]);
 
     const pathTicker = useMemo(() => {
         const pathParts = pathname.split('/');
@@ -90,14 +83,16 @@ export function KeyMetricsSidebar({
 
     // 선택된 타입에 따른 데이터 필터링
     const getMetricValue = (type: 'current' | 'avg5y' | 'min' | 'max') => {
-        if (!companyMarketcapData?.aggregatedHistory) return null;
+        if (type === 'current') {
+            return selectedSecurityType === '시가총액 구성'
+                ? companyMarketcapData?.totalMarketcap ?? security.company?.marketcap ?? null
+                : resolvedCurrentSecurity?.marketcap ?? security.marketcap ?? null;
+        }
+        if (!companyMarketcapData?.aggregatedHistory?.length) return null;
 
         if (selectedSecurityType === "시가총액 구성") {
             // 시가총액 구성: 전체 시가총액 기준
             switch (type) {
-                case 'current':
-                    const latestData = [...companyMarketcapData.aggregatedHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-                    return latestData?.totalMarketcap || 0;
                 case 'avg5y': {
                     const data = getDataByPeriod(60);
                     if (data.length === 0) return null;
@@ -121,8 +116,6 @@ export function KeyMetricsSidebar({
             if (securityValues.length === 0) return null;
 
             switch (type) {
-                case 'current':
-                    return securityValues[securityValues.length - 1];
                 case 'avg5y': {
                     const data = getDataByPeriod(60);
                     const values = data
@@ -139,110 +132,23 @@ export function KeyMetricsSidebar({
         return null;
     };
 
-    const getCurrentPrice = () => {
-        if (selectedSecurityType === "시가총액 구성") {
-            return security.prices?.[0]?.close ? security.prices[0].close.toLocaleString() : "—";
-        } else {
-            // 개별 종목의 경우 해당 종목 주가 표시
-            if (resolvedCurrentSecurity?.prices?.[0]?.close) {
-                return resolvedCurrentSecurity.prices[0].close.toLocaleString();
-            }
-            return security.prices?.[0]?.close ? security.prices[0].close.toLocaleString() : "—";
-        }
+    const format = (value: number | null) => {
+        if (value == null || !Number.isFinite(value)) return '—';
+        const result = formatNumberWithSeparateUnit(value);
+        return `${result.number}${result.unit}원`;
     };
-
-    const getRanking = () => {
-        if (selectedSecurityType === "시가총액 구성") {
-            return security.company?.marketcapRank || "—";
-        } else {
-            return marketCapRanking?.currentRank || "—";
-        }
-    };
-
-    return (
-        <div className={`${isCollapsed ? 'bg-background px-2 py-0 mb-0' : 'rounded-xl border bg-background p-4 mb-6'}`}>
-            <button
-                onClick={handleToggle}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleToggle();
-                    }
-                }}
-                className={`flex items-center gap-2 text-sm font-semibold text-foreground hover:text-muted-foreground transition-colors w-full justify-between ${isCollapsed ? 'py-2' : 'py-2 mb-3'
-                    }`}
-                aria-expanded={!isCollapsed}
-                aria-controls="key-metrics-content"
-                aria-label={`핵심 지표 ${isCollapsed ? '펼치기' : '접기'}`}
-            >
-                <span>핵심 지표</span>
-                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </button>
-
-            {!isCollapsed && (
-                <div id="key-metrics-content" className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                            {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
-                        </span>
-                        <span className="font-medium">{getRanking()}위</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                            {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
-                        </span>
-                        <span className="font-medium">
-                            {(() => {
-                                const value = getMetricValue('current');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return `${formatted.number}${formatted.unit}원`;
-                            })()}
-                        </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">현재 주가</span>
-                        <span className="font-medium">{getCurrentPrice()}원</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">5년 평균</span>
-                        <span className="font-medium">
-                            {(() => {
-                                const value = getMetricValue('avg5y');
-                                if (!value) return "—";
-                                const formatted = formatNumberWithSeparateUnit(value);
-                                return `${formatted.number}${formatted.unit}원`;
-                            })()}
-                        </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">최저 시총</span>
-                        <span className="font-medium">
-                            {(() => {
-                                const value = getMetricValue('min');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return `${formatted.number}${formatted.unit}원`;
-                            })()}
-                        </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">최고 시총</span>
-                        <span className="font-medium">
-                            {(() => {
-                                const value = getMetricValue('max');
-                                const formatted = formatNumberWithSeparateUnit(value || 0);
-                                return `${formatted.number}${formatted.unit}원`;
-                            })()}
-                        </span>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+    const rank = selectedSecurityType === '시가총액 구성' ? security.company?.marketcapRank : marketCapRanking?.currentRank;
+    const price = (resolvedCurrentSecurity ?? security).prices?.[0]?.close;
+    const date = companyMarketcapData?.totalMarketcapDate;
+    const dateLabel = date && !Number.isNaN(new Date(date).getTime()) ? new Date(date).toISOString().slice(0, 10) : null;
+    return <DetailMetricFacts onCollapsedChange={onCollapsedChange} rows={[
+        [selectedSecurityType === '시가총액 구성' ? '기업 시가총액 순위' : `${resolvedCurrentSecurity?.type || '종목'} 순위`, rank != null ? `${rank}위` : '—'],
+        [selectedSecurityType === '시가총액 구성' ? '기업 전체 시가총액' : '종목 시가총액', format(getMetricValue('current'))],
+        ['현재 주가', price != null ? `${price.toLocaleString('ko-KR')}원` : '—'],
+        ['5년 평균', format(getMetricValue('avg5y'))],
+        ['이력 최저 시가총액', format(getMetricValue('min'))],
+        ['이력 최고 시가총액', format(getMetricValue('max'))],
+    ]} note={`${dateLabel ? `시가총액 기준 ${dateLabel}. ` : ''}평균·최저·최고는 이력 데이터 기준입니다.`} />;
 }
 
 export default memo(KeyMetricsSidebar);

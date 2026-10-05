@@ -1,0 +1,14 @@
+{
+  "approved": false,
+  "theme": "light",
+  "source": "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/mobile-light-v2.png",
+  "image": "/Users/craigchoi/silla/cd4/.impeccable/mocks/white-shell/mobile-light-rank-base.png",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/white-shell/mobile-light-rank-base.prompt.txt",
+  "prompt": "Use case: precise-object-edit\nAsset type: mobile ranking UI composition base for a real HTML rank and movement overlay.\nPrimary request: Edit the supplied image target by erasing ONLY the six isolated large rank digits 1, 2, 3, 4, 5, 6 in the narrow left rank column below the \"순위\" column header. Fill the erased numeral pixels with an exact continuation of their existing uninterrupted background.\nCanvas and framing: Preserve the input canvas geometry at exactly 853 by 1844 pixels. No cropping, rescaling, reframing, repositioning, or redesign.\nExact edit regions in input pixels: rank 1 at x42..86/y685..740; rank 2 at x42..86/y831..886; rank 3 at x42..86/y977..1032; rank 4 at x42..86/y1124..1180; rank 5 at x42..86/y1274..1328; rank 6 at x42..86/y1418..1472.\nConstraints: Change ONLY those six rank numerals. Make the narrow rank column empty below its header, retaining every row separator. Preserve the \"순위\" header at y609 and all other typography, company names, stock codes, market caps, percentages, sparklines, footer, date, illustrative-data label, search box, CSV control, metric tabs, logo area and recent-viewed text in their exact current positions, colors, shapes and sizes. All non-target pixels must remain as close to the source as possible. No movement figures, no arrows, no substitute ranks, no new text or logo, no new UI elements.\nInput image 1: the light mobile image is the sole edit target.\nSurface preservation: Keep the exact existing mobile white background. Do not introduce gray, tint, texture, grain, gradients or patches. The existing blank logo area stays blank. Preserve the recent-viewed text \"최근 본\".",
+  "tool": "native image_gen",
+  "requested_dimensions": {
+    "width": 853,
+    "height": 1844
+  },
+  "edit": "Erase only six large rank digits 1–6 to reserve background for HTML rank/movement group"
+}

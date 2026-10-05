@@ -1,0 +1,78 @@
+{
+  "prompt": "Use case: precise-object-edit.\nAsset type: high-fidelity Korean financial dashboard desktop UI comp, light theme.\nPrimary request: perform a narrow COLOR-ONLY edit of the supplied screenshot. Preserve the exact screenshot composition and all coordinates. Change only light-theme surface fills and neutral rules to create a clean pure-white shell matching a white mobile interface.\nSURFACE PALETTE:\n1. The ENTIRE full-width page header and the entire left/main content area must be perfectly flat solid pure white #FFFFFF. Remove all inherited gray/blue/cool tint, lighting falloff, gradients, vignettes, texture and grain. Search and white control surfaces remain flat pure white.\n2. Only the existing right rail background is perfectly flat neutral #F7F7F7, with a single thin 1px vertical neutral #E6E6E6 boundary at its existing left edge. The rail must have no bluish tint, no cool gray, no gradient, no lighting, no grain.\n3. Preserve existing rail row/card geometry. Their interior surfaces are pure white #FFFFFF, with existing hairline borders/rules recolored neutral #E4E4E4. Do not introduce or remove cards, roundings, rows, outlines or dividers. Keep existing neutral rules in main/header hairline and neutral gray.\nINVARIANTS: Preserve EXACTLY all typography, original text and values, linework, company names and stock codes, buttons/actions, geometry, content, whitespace, existing selected primary menu ink fill, branded gold/yellow accents, existing red/blue price colors, charts and sparklines. This is a surface recolor only. Preserve the full header 메인/랭킹 navigation, selected state, search content, theme sun control and 라이트 label. Do not resize, crop, recompose or shift any element.\nBranding: Preserve the existing BLANK left header branding region for a later actual Nanum-font wordmark and original SVG overlay. Add no logo, wordmark, emblem, star, placeholder, text, marker or other graphic there.\nAvoid: any blue/cool tint in surface fills, gradients, glass, shadows, grain, texture, decoration, new content or redesigned topology. The main and header should read as flat white, and the right rail as barely distinguishable neutral gray. Make no other changes.\nInput image: Image 1 is /Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/detail-light.png, sole edit target, composition/content/style authority.\nCanvas: exact 1448 x 1086.\nGeometry: Full-width header y0..70 remains flat #FFFFFF. Main left area stays x0..1063; rail begins at existing x1064,y71 and is #F7F7F7, with 1px boundary #E6E6E6.\nPreserve the 삼성전자 title/breadcrumb/filter/date/share action; five top metric values including 549조, 1위, KOSPI, 494.3조 and 54.3조; all seven metric tabs; the market-cap line chart and complete labels/legend; candlestick/volume chart with unchanged red/blue colors; market-cap doughnut; stock comparison table; annual-data heading; all right-rail recent items, key indicators, page links, and 보통주 · 우선주 stock-link rows/cards and actions. Those two existing stock-link cards must remain pure-white surfaces, unchanged labels and values 삼성전자 005930 · KOSPI 494.3조 and 삼성전자우 005935 · KOSPI 54.3조.\nKeep every plotted line, candle, volume bar and numerical label exactly where it is. Main chart panel surfaces are pure-white #FFFFFF; their data marks and grid line positions remain unchanged.\nBranding blank area at the left of the header, about x36..320,y13..56, must remain empty.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/white-shell/detail-light.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "status": "light-shell color comparison candidate; native fidelity deviations recorded",
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a8b-1027-7d72-a9b0-55b911fdcb32/exec-59e45048-24bb-497c-85e1-56a779b29169.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/detail-light.png",
+  "references": [
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/detail-light.png",
+      "role": "sole color-only edit target; composition, content, typography and data authority"
+    }
+  ],
+  "generation_inputs": {
+    "transparent_background": false,
+    "native_calls_for_image": 1
+  },
+  "dimensions": {
+    "width": 1447,
+    "height": 1087
+  },
+  "requested_dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "requested_surface_palette": {
+    "main_and_full_width_header": "#FFFFFF",
+    "rail": "#F7F7F7",
+    "rail_boundary": {
+      "width_px": 1,
+      "color": "#E6E6E6"
+    },
+    "existing_rail_row_and_card_surfaces": "#FFFFFF",
+    "existing_rail_borders": "#E4E4E4",
+    "gradients": false,
+    "grain": false,
+    "cool_tint": false
+  },
+  "observed_surface_samples": {
+    "method": "read-only RGB pixel inspection, no raster editing",
+    "header_and_main_clear_background": [
+      "#FEFEFE",
+      "#FFFFFF"
+    ],
+    "rail_clear_background": [
+      "#F5F5F5",
+      "#F6F6F6"
+    ],
+    "note": "Sampled surface colors are neutral. Native output retains minute variation/texture rather than exact, fully flat requested RGB fills."
+  },
+  "header_reserved_area": {
+    "x_min": 36,
+    "x_max": 320,
+    "y_min": 13,
+    "y_max": 56
+  },
+  "header_reserved_for": "Actual Nanum font wordmark and original SVG overlay by parent; remains blank",
+  "observed_geometry_approximate": {
+    "rail_left_edge": 1064,
+    "rail_top_edge": 71
+  },
+  "visual_verification": {
+    "native_outputs_inspected": true,
+    "dimensions_verified_by": "sips -g pixelWidth -g pixelHeight",
+    "bluish_surface_tint_visibly_removed": true,
+    "all_navigation_metric_tabs_and_blank_branding_visibly_preserved": true,
+    "content_and_data_visibly_preserved": true,
+    "rank_movement_indicators_added": false,
+    "detail_charts_table_and_stock_link_rows_visibly_preserved": true
+  },
+  "material_errors": [
+    "Native output is 1447x1087 rather than the requested/source 1448x1086: width -1px, height +1px. No resizing or additional edit was performed.",
+    "Main/header samples are primarily #FEFEFE to #FFFFFF rather than a guaranteed flat exact #FFFFFF; rail samples are #F5F5F5 to #F6F6F6 rather than exact #F7F7F7.",
+    "Minute inherited/native texture remains. Exact neutral border RGB and one-pixel boundary are not guaranteed by native generation."
+  ],
+  "scope_note": "Only light screenshot comparison assets were created. Dark sources, viewer, production source and project documentation were not edited. No correction pass was performed."
+}

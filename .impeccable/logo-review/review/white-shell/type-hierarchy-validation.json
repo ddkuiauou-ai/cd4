@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-05",
+  "detectorReported": {
+    "body": "16px",
+    "h1": "16px",
+    "h2": "16px"
+  },
+  "rendered": [
+    {
+      "body": "15px",
+      "description": "15px",
+      "h1": "32px",
+      "h2": "21px",
+      "width": 1440
+    },
+    {
+      "body": "15px",
+      "description": "15px",
+      "h1": "24px",
+      "h2": "21px",
+      "width": 390
+    }
+  ],
+  "decision": "False positive: imported external CSS is applied in browser; one-rule ignore scoped to white-shell.html"
+}

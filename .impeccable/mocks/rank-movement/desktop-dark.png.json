@@ -1,0 +1,124 @@
+{
+  "prompt": "Use case: precise-object-edit.\nAsset type: high-fidelity Korean stock-ranking desktop UI comp.\nPrimary request: make exactly one narrow addition to the supplied screenshot: restore small inline RANK MOVEMENT indicators beside the existing large rank digits. Treat the supplied image as the sole edit target and absolute authority for its existing composition, typography, palette and content. Preserve the exact 1491 x 1055 canvas and all existing pixels as closely as possible.\nIndicators: use the existing first rank column only. Existing rank digits are around x58..84; company names begin at x182. Add a 12px thin-stroke drawn TrendingUp or TrendingDown line icon at x107..119, followed by a signed integer in unobtrusive 14–16px sans-serif at x126..150. Entire indicator must fit inside x106..156. Center each tiny indicator vertically beside its rank digit. No background, no pill, no filled badge, no new column, and no shifting company names or any table content.\nExact row assignment (rank change means previous rank minus current rank, in PLACES, not stock-price percent):\n- Rank 1 삼성전자 (previous 1): add nothing; blank unchanged. Preserve the gold rank 1.\n- Rank 2 SK하이닉스 (previous 4), center y515: TrendingUp icon then \"+2\".\n- Rank 3 LG에너지솔루션 (previous 2), center y609: TrendingDown icon then \"-1\".\n- Rank 4 삼성바이오로직스 (previous 5), center y704: TrendingUp icon then \"+1\".\n- Rank 5 현대차 (previous 3), center y800: TrendingDown icon then \"-2\".\n- Rank 6 한화에어로스페이스 (previous 6): add nothing; blank unchanged.\nKeep all six existing far-right price changes exactly: \"0.00%\", \"+0.44%\", \"+2.91%\", \"-4.51%\", \"-0.72%\", \"+3.68%\". Preserve those existing percent values and sparklines independently of the new rank movement. Do not attach percent signs to new rank indicators.\nPreserve the full primary 메인/랭킹 menu, selected ranking state, search, theme control, seven ranking metric tabs, title/date/filter/CSV, table columns, company names and codes, market caps, six row geometry, footer pagination, and the entire recent/context right rail exactly. Preserve the entire blank branding area at x40..320,y18..66 for a later real font and original SVG overlay; generate no wordmark, logo, emblem, star, placeholder or other mark there.\nAdd no explanatory label or legend. If any comparison wording must appear, only \"이전 순위 대비\" is valid; do not add daily/전일/NEW wording.\nNo other edits. Do not recompose, resize, crop, restyle, improve, change menus, add cards or alter anything outside the four tiny indicators.\nInput image: Image 1 is /Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-dark.png, sole edit target, composition and style authority.\nTheme: preserve its exact dark palette. New rise icon/text color #F06A68; new fall icon/text color #77A9FA. Do not change existing price colors.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/rank-movement/desktop-dark.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "status": "comparison candidate; final UX/UI direction pending",
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a8b-1027-7d72-a9b0-55b911fdcb32/exec-60ad387f-caa5-4a36-872b-16cf83c19b57.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-dark.png",
+  "references": [
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/navigation/ranking-dark.png",
+      "role": "sole edit target, existing composition and theme authority"
+    }
+  ],
+  "generation_inputs": {
+    "transparent_background": false,
+    "native_calls_for_theme": 1
+  },
+  "dimensions": {
+    "width": 1491,
+    "height": 1055
+  },
+  "header_reserved_area": {
+    "x_min": 40,
+    "x_max": 320,
+    "y_min": 18,
+    "y_max": 66
+  },
+  "header_reserved_for": "Real Nanum wordmark font and original SVG overlay by parent",
+  "intended_rank_movement": [
+    {
+      "current_rank": 1,
+      "previous_rank": 1,
+      "change": 0,
+      "indicator": "hidden"
+    },
+    {
+      "current_rank": 2,
+      "previous_rank": 4,
+      "change": 2,
+      "indicator": "+2",
+      "direction": "up",
+      "center_y": 515
+    },
+    {
+      "current_rank": 3,
+      "previous_rank": 2,
+      "change": -1,
+      "indicator": "-1",
+      "direction": "down",
+      "center_y": 609
+    },
+    {
+      "current_rank": 4,
+      "previous_rank": 5,
+      "change": 1,
+      "indicator": "+1",
+      "direction": "up",
+      "center_y": 704
+    },
+    {
+      "current_rank": 5,
+      "previous_rank": 3,
+      "change": -2,
+      "indicator": "-2",
+      "direction": "down",
+      "center_y": 800
+    },
+    {
+      "current_rank": 6,
+      "previous_rank": 6,
+      "change": 0,
+      "indicator": "hidden"
+    }
+  ],
+  "intended_indicator_bounds": {
+    "x_min": 106,
+    "x_max": 156,
+    "text_size_px": [
+      14,
+      16
+    ],
+    "icon_size_px": 12
+  },
+  "intended_indicator_colors": {
+    "rise": "#F06A68",
+    "fall": "#77A9FA"
+  },
+  "observed_indicator_geometry_approximate": {
+    "x_min": 101,
+    "x_max": 155,
+    "center_y": [
+      515,
+      609,
+      704,
+      800
+    ],
+    "text_size_px": 16,
+    "icon_size_px": [
+      20,
+      23
+    ]
+  },
+  "observed_geometry_note": "Indicators begin approximately five pixels left of requested bounds. Company names remain around x182 and no new column was introduced. Exact pixel colors and typography are not guaranteed by native generation.",
+  "visual_note": "Four dark-theme indicators use TrendingUp/TrendingDown zigzag stroke shapes, larger than the requested 12px.",
+  "verification": {
+    "inspected_native_output": true,
+    "dimensions_verified_by": "sips -g pixelWidth -g pixelHeight",
+    "rank_1_gold_preserved": true,
+    "rows_1_and_6_indicators_hidden": true,
+    "price_changes_preserved": [
+      "0.00%",
+      "+0.44%",
+      "+2.91%",
+      "-4.51%",
+      "-0.72%",
+      "+3.68%"
+    ],
+    "blank_branding_area_preserved": true,
+    "main_navigation_table_and_rail_visibly_preserved": true
+  },
+  "decision_note": "User clarified that the UX/UI may be redesigned based on better judgment; reproducing the existing component is not a constraint. This file is retained only as one candidate for comparison. No further image generation or visual edits were performed after that clarification.",
+  "known_ux_risk": "Red/blue and trend-line arrow forms duplicate stock-price change semantics and may blur the distinction between rank movement in places and the far-right price percentage change."
+}

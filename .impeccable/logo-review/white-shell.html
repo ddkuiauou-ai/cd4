@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>황금 전광판 · 화이트 톤과 모바일 순위 정렬</title>
+  <link rel="preload" href="fonts/nanum.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="white-shell.css">
+  <script src="white-shell.js" defer></script>
+</head>
+<body>
+  <main class="comparison">
+    <header class="intro">
+      <h1>화이트 톤 통일 · 모바일 순위 정렬</h1>
+      <p>데스크톱 본문도 모바일처럼 화이트로 맞췄습니다. 우측 패널은 아주 옅은 중립 회색과 얇은 구분선으로 나눕니다.</p>
+      <div class="review-controls">
+        <div class="theme-controls" role="group" aria-label="시안 테마">
+          <button type="button" data-theme="light" aria-pressed="true">라이트</button>
+          <button type="button" data-theme="dark" aria-pressed="false">다크</button>
+        </div>
+        <a href="rank-movement.html?theme=light">수정 전과 비교</a>
+      </div>
+    </header>
+    <div class="ranking-comparisons">
+      <figure>
+        <figcaption><strong>데스크톱 랭킹</strong><a data-preview="desktop" href="white-shell-preview.html?device=desktop&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-device="desktop" data-page="ranking"></div>
+        <p class="caption">본문과 헤더는 화이트 · 우측 패널은 옅은 회색 · 순위 변동 위치 유지</p>
+      </figure>
+      <figure class="mobile-figure">
+        <figcaption><strong>모바일 랭킹</strong><a data-preview="mobile" href="white-shell-preview.html?device=mobile&theme=light">크게 보기</a></figcaption>
+        <div class="stage mobile light" data-device="mobile"></div>
+        <p class="caption">순위와 변동을 하나의 묶음으로 · 같은 중심축과 촘촘한 간격</p>
+      </figure>
+    </div>
+    <section class="detail-section" aria-labelledby="detail-title">
+      <h2 id="detail-title">상세 화면에도 같은 톤 적용</h2>
+      <figure class="detail-figure">
+        <figcaption><strong>삼성전자 상세</strong><a data-preview="detail" href="white-shell-preview.html?device=detail&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-device="detail" data-page="detail"></div>
+        <p class="caption">최근 본 종목과 보통주·우선주 패널에도 같은 옅은 회색 적용</p>
+      </figure>
+    </section>
+    <footer>디자인 검토용 시안 · 숫자와 차트는 예시입니다. 순위 표시를 누르면 이전·현재 순위를 확인할 수 있습니다. 이미지 안의 종목 이동·다운로드는 제품 구현 전입니다. 실제 나눔명조 ExtraBold와 기존 별 SVG를 사용했습니다.</footer>
+  </main>
+</body>
+</html>

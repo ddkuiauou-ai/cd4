@@ -37,16 +37,8 @@ export function RecentSecurityTracker({
                 exchange,
             }, metricType, metricValue);
 
-            // UI 업데이트를 위한 storage 이벤트 트리거
-            // 다음 틱에서 실행하여 동기적 업데이트 방지
-            Promise.resolve().then(() => {
-                window.dispatchEvent(new StorageEvent('storage', {
-                    key: 'recently-viewed-securities',
-                    newValue: localStorage.getItem('recently-viewed-securities'),
-                }));
-            });
         }
-    }, [secCode]); // secCode만 변경될 때 실행
+    }, [secCode, name, korName, ticker, exchange, metricType, metricValue]);
 
     // 아무것도 렌더링하지 않음
     return null;

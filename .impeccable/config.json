@@ -1,3 +1,18 @@
 {
-  "buildPath": "comp"
+  "buildPath": "comp",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          ".impeccable/logo-review/white-shell.html"
+        ],
+        "createdAt": "2026-10-05T06:06:45.557Z",
+        "reason": "Agent: browser computed styles at 1440px are h1 32px, h2 21px, body 15px; at 390px h1 is 24px and body 15px. Imported CSS creates a clear hierarchy, while the static detector incorrectly reports all roles as 16px. Evidence: review/white-shell/type-hierarchy-validation.json."
+      }
+    ]
+  }
 }
