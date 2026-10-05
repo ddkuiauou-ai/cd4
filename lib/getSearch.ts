@@ -12,6 +12,7 @@
 
 import { db } from "@/db";
 import { unstable_cache } from "next/cache";
+import { cachedData } from "./data/cache-policy";
 import {
     eq,
     and,
@@ -72,7 +73,7 @@ export interface CompanySearchResult {
  * 
  * @returns Array of securities with search-relevant fields
  */
-export const getSecuritySearchNames = unstable_cache(
+export const getSecuritySearchNames = cachedData(
     async (): Promise<SearchNameResult[]> => {
         try {
             return await db.query.security.findMany({
@@ -88,11 +89,11 @@ export const getSecuritySearchNames = unstable_cache(
             });
         } catch (error) {
             console.error("[GET_SECURITY_SEARCH_NAMES] Error fetching data:", error);
-            return [];
+            throw error;
         }
     },
-    ["getSecuritySearchNames"],
-    { tags: ["getSecuritySearchNames"] }
+    "getSecuritySearchNames",
+    ["getSecuritySearchNames"]
 );
 
 /**

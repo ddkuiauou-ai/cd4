@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:main": "node --test tests/main-data-cache.test.cjs tests/dashboard-state.test.cjs",
     "dev": "next dev -H 0.0.0.0 --turbopack",
     "build": "NODE_OPTIONS='--max-old-space-size=12288' NEXT_TELEMETRY_DISABLED=1 next build --turbopack",
     "start": "next start",

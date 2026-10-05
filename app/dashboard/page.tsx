@@ -1,6 +1,4 @@
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { getSecuritySearchNames } from "@/lib/getSearch";
 import { getCompanyMarketcapsPage } from "@/lib/data/company";
 import { formatNumber } from "@/lib/utils";
 import Rate from "@/components/rate";
@@ -11,8 +9,6 @@ import type { Metadata } from "next";
 import CompanyLogo from "@/components/CompanyLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import MarketTrends from "@/components/MarketTrends";
-import NetworkStatus from "@/components/NetworkStatus";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
     title: "대시보드 - CD3 주식 시장 분석",
@@ -24,43 +20,34 @@ export const metadata: Metadata = {
     }
 };
 
+type DashboardCompany = Awaited<ReturnType<typeof getCompanyMarketcapsPage>>["items"][number];
+
+function getLatestPrice(company: DashboardCompany) {
+    return company.securities?.[0]?.prices?.at(-1);
+}
+
 async function DashboardPage() {
-    // 데이터 로딩을 병렬로 처리하여 성능 최적화
-    const [searchData, { items: data },] = await Promise.all([
-        getSecuritySearchNames(),
-        getCompanyMarketcapsPage(1),
-    ]);
+    const { items: data, totalCount } = await getCompanyMarketcapsPage(1);
 
-    // Default to dashboard1 for SSG
-    const currentView = "dashboard1";
-
-    const latestDate =
-        data.length > 0 && data[0].securities.length > 0 && data[0].securities[0].prices.length > 0
-            ? new Date(
-                data[0].securities[0].prices[
-                    data[0].securities[0].prices.length - 1
-                ].date
-            )
-                .toISOString()
-                .split("T")[0]
-            : "N/A";
+    const latestDate = data[0]?.marketcapDate
+        ? new Date(data[0].marketcapDate).toISOString().split("T")[0]
+        : "미확인";
+    const priceDate = data[0] ? getLatestPrice(data[0])?.date : undefined;
+    const latestPriceDate = priceDate
+        ? new Date(priceDate).toISOString().split("T")[0]
+        : "미확인";
 
     // 시가총액 상위 10개 기업
     const topMarketCaps = data.slice(0, 10);
 
     // 상승률 상위 기업들 (데이터가 있는 경우)
     const topGainers = data
-        .filter(company =>
-            company.securities?.length > 0 &&
-            company.securities[0].prices?.length > 0
-        )
+        .filter(company => getLatestPrice(company))
         .map(company => {
-            const security = company.securities[0];
-            const latestPrice = security.prices[security.prices.length - 1];
+            const latestPrice = getLatestPrice(company);
             return {
                 ...company,
-                security,
-                rate: latestPrice?.rate || 0
+                rate: latestPrice?.rate ?? 0
             };
         })
         .filter(item => item.rate > 0)
@@ -69,17 +56,12 @@ async function DashboardPage() {
 
     // 하락률 상위 기업들
     const topLosers = data
-        .filter(company =>
-            company.securities?.length > 0 &&
-            company.securities[0].prices?.length > 0
-        )
+        .filter(company => getLatestPrice(company))
         .map(company => {
-            const security = company.securities[0];
-            const latestPrice = security.prices[security.prices.length - 1];
+            const latestPrice = getLatestPrice(company);
             return {
                 ...company,
-                security,
-                rate: latestPrice?.rate || 0
+                rate: latestPrice?.rate ?? 0
             };
         })
         .filter(item => item.rate < 0)
@@ -89,86 +71,49 @@ async function DashboardPage() {
 
     // Trending stocks data
     const trendingStocks = {
-        gainers: topGainers.slice(0, 5).map((item, index) => ({
+        gainers: topGainers.slice(0, 5).map(item => ({
             name: item.name || "",
             korName: item.name || "",
             securityId: item.securities?.[0]?.securityId || "",
-            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
+            price: getLatestPrice(item)?.close ?? 0,
             change: item.rate || 0,
             changePercent: item.rate || 0
         })),
-        losers: topLosers.slice(0, 5).map((item, index) => ({
+        losers: topLosers.slice(0, 5).map(item => ({
             name: item.name || "",
             korName: item.name || "",
             securityId: item.securities?.[0]?.securityId || "",
-            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
+            price: getLatestPrice(item)?.close ?? 0,
             change: item.rate || 0,
             changePercent: item.rate || 0
         })),
-        volume: data.slice(0, 5).map((item, index) => ({
+        volume: data.filter(company => getLatestPrice(company)).slice(0, 5).map(item => ({
             name: item.name || "",
             korName: item.name || "",
             securityId: item.securities?.[0]?.securityId || "",
-            price: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.close || 0,
-            change: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.rate || 0,
-            changePercent: item.securities?.[0]?.prices?.[item.securities[0].prices.length - 1]?.rate || 0
+            price: getLatestPrice(item)?.close ?? 0,
+            change: getLatestPrice(item)?.rate ?? 0,
+            changePercent: getLatestPrice(item)?.rate ?? 0
         }))
     };
 
-    // Use dashboard1 for SSG
-
-    // 데이터가 없는 경우 로딩 상태 표시
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
         return (
             <>
                 <main className="flex-1">
                     <div className="container px-4 sm:px-8 relative">
-                        {/* Dashboard Header Skeleton */}
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Skeleton className="h-8 w-32 mb-2" />
-                                    <Skeleton className="h-4 w-64" />
-                                    <Skeleton className="h-3 w-24 mt-1" />
-                                </div>
-                                <Skeleton className="h-6 w-20" />
-                            </div>
-                        </div>
-
-                        {/* Market Summary Skeleton */}
-                        <div className="mb-8">
-                            <Skeleton className="h-6 w-24 mb-4" />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[1, 2, 3].map(i => (
-                                    <Card key={i}>
-                                        <CardHeader>
-                                            <Skeleton className="h-5 w-16" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Skeleton className="h-8 w-24 mb-2" />
-                                            <Skeleton className="h-4 w-20" />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Market Trends Skeleton */}
-                        <div className="mb-8">
-                            <Card>
-                                <CardHeader>
-                                    <Skeleton className="h-6 w-24" />
-                                </CardHeader>
-                                <CardContent>
-                                    <Skeleton className="h-10 w-full mb-4" />
-                                    <div className="space-y-2">
-                                        {[1, 2, 3, 4, 5].map(i => (
-                                            <Skeleton key={i} className="h-12 w-full" />
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight mb-8">대시보드</h1>
+                        <Card className="mb-8">
+                            <CardHeader>
+                                <CardTitle>표시할 기업 데이터가 없습니다</CardTitle>
+                                <CardDescription>
+                                    시가총액 순위를 조회할 수 있는 기업 데이터가 아직 없습니다.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Link href="/" className="text-primary hover:underline">랭킹으로 이동 →</Link>
+                            </CardContent>
+                        </Card>
                     </div>
                 </main>
                 <SiteFooter />
@@ -192,10 +137,12 @@ async function DashboardPage() {
                                     주식 시장의 주요 지표와 랭킹을 한눈에 확인하세요
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    기준일: {latestDate}
+                                    시가총액 기준일: {latestDate}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    가격 기준일: {latestPriceDate}
                                 </p>
                             </div>
-                            <NetworkStatus status="connected" lastUpdated={latestDate} message="실시간 데이터 업데이트 중" />
                         </div>
                     </div>
 
@@ -209,7 +156,7 @@ async function DashboardPage() {
                                 </svg>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{data.length.toLocaleString()}</div>
+                                <div className="text-2xl font-bold">{totalCount.toLocaleString()}</div>
                                 <p className="text-xs text-muted-foreground">상장 기업 수</p>
                             </CardContent>
                         </Card>
@@ -272,7 +219,7 @@ async function DashboardPage() {
                             gainers={trendingStocks.gainers}
                             losers={trendingStocks.losers}
                             volume={trendingStocks.volume}
-                            date={latestDate}
+                            date={latestPriceDate}
                         />
                     </div>
 
@@ -296,9 +243,7 @@ async function DashboardPage() {
                                     {topMarketCaps.slice(0, 5).map((company, index) => {
                                         if (!company.securities || company.securities.length === 0) return null;
                                         const security = company.securities[0];
-                                        if (!security.prices || security.prices.length === 0) return null;
-
-                                        const { close, rate } = security.prices[security.prices.length - 1] || {};
+                                        const { close, rate } = getLatestPrice(company) || {};
 
                                         return (
                                             <div key={company.companyId} className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
@@ -319,7 +264,7 @@ async function DashboardPage() {
                                                         </Link>
                                                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                                             <Exchange exchange={security.exchange as string} />
-                                                            <span>{close?.toLocaleString()}원</span>
+                                                            <span>{close != null ? `${close.toLocaleString()}원` : "—"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -327,7 +272,7 @@ async function DashboardPage() {
                                                     <div className="font-medium text-sm">
                                                         {company.marketcap != null ? formatNumber(company.marketcap) : "—"}
                                                     </div>
-                                                    <Rate rate={rate as number} />
+                                                    {rate != null ? <Rate rate={rate} /> : <span>—</span>}
                                                 </div>
                                             </div>
                                         );

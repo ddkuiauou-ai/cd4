@@ -238,35 +238,27 @@ export function formatDateKorean(
 
 // Date processing utilities for market data
 export function getLatestDateFromMarketData(data: any[]): string {
-  if (
-    data.length > 0 &&
-    data[0].securities?.length > 0 &&
-    data[0].securities[0].prices?.length > 0
-  ) {
-    const latestPrice =
-      data[0].securities[0].prices[
-      data[0].securities[0].prices.length - 1
-      ];
-    return new Date(latestPrice.date).toISOString().split("T")[0];
-  }
-  return "N/A";
+  return getISODateString(data[0]?.marketcapDate) ?? "N/A";
 }
 
 export function getUpdatedDateFromMarketData(data: any[]): string {
-  if (
-    data.length > 0 &&
-    data[0].securities?.length > 0 &&
-    data[0].securities[0].prices?.length > 0
-  ) {
-    const latestPrice =
-      data[0].securities[0].prices[
-      data[0].securities[0].prices.length - 1
-      ];
-    const date = new Date(latestPrice.updatedAt);
-    date.setHours(date.getHours() + 9); // KST timezone adjustment
-    return date.toISOString().replace(/T/, " ").replace(/\.\d{3}Z$/, "");
+  let latestUpdate: Date | null = null;
+  for (const item of data) {
+    const date = safeDateConvert(item.updatedAt);
+    if (date && (!latestUpdate || date > latestUpdate)) latestUpdate = date;
   }
-  return "N/A";
+  if (!latestUpdate) return "N/A";
+
+  return latestUpdate.toLocaleString("sv-SE", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 }
 
 // 🔥 CD3 Recharts 전용 Formatter 함수들

@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { computeTotalPagesMixed } from "@/lib/data/pagination";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { siteConfig } from "@/config/site";
+import { getUpdatedDateFromMarketData } from "@/lib/utils";
 
 export async function generateStaticParams() {
     const total = await countSecurityRanks("marketcap");
@@ -124,13 +125,7 @@ async function MarketcapRankPage({ params }: MarketcapRankPageProps) {
     const transformedData = transformDataForUI(items);
     const totalPages = computeTotalPagesMixed(total);
 
-    const updatedDate = latestDate
-        ? (() => {
-            const date = new Date(latestDate);
-            date.setHours(date.getHours() + 9); // KST 변환
-            return date.toISOString().replace(/:\d{2}\.\d{3}Z$/, "");
-        })()
-        : new Date().toISOString().replace(/:\d{2}\.\d{3}Z$/, "");
+    const updatedDate = getUpdatedDateFromMarketData(items);
 
     return (
         <TooltipProvider>

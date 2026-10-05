@@ -1,0 +1,349 @@
+{
+  "captured_at": "2026-10-05T02:40:17.848Z",
+  "mode": "read only",
+  "company_total": 2601,
+  "companies": [
+    {
+      "company_id": "b0ec8bf8-aa80-4ec8-98ba-04742431374e",
+      "kor_name": "삼성전자",
+      "marketcap": "548715276575800",
+      "marketcap_rank": 1,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "3012abfd-65c4-423d-9028-9a90269843c2",
+      "kor_name": "SK하이닉스",
+      "marketcap": "255528830115000",
+      "marketcap_rank": 2,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "1a0bd3ad-0532-4a6b-8952-780f9565aa69",
+      "kor_name": "LG에너지솔루션",
+      "marketcap": "81666000000000",
+      "marketcap_rank": 3,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "cfdaeada-f600-45cc-8e58-4803d1e4ed56",
+      "kor_name": "삼성바이오로직스",
+      "marketcap": "73024524000000",
+      "marketcap_rank": 4,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "21b87235-c131-4e37-a3de-d6a13e72e82a",
+      "kor_name": "현대차",
+      "marketcap": "54711910408400",
+      "marketcap_rank": 5,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "d93cfd09-d81f-4665-b34f-bd58c16a4a98",
+      "kor_name": "한화에어로스페이스",
+      "marketcap": "52697795822000",
+      "marketcap_rank": 6,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "39a2e501-8a6b-4dc5-944d-fa601655c319",
+      "kor_name": "KB금융",
+      "marketcap": "44592919840700",
+      "marketcap_rank": 7,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "f1a778f5-a668-4161-8f7b-b2bd5a242ea6",
+      "kor_name": "HD현대중공업",
+      "marketcap": "44164625210000",
+      "marketcap_rank": 8,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "0beca5b6-2577-4116-86cb-2b7e822db4b6",
+      "kor_name": "기아",
+      "marketcap": "40127126613000",
+      "marketcap_rank": 9,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "69333b59-82a6-4b84-97fa-9ff109b6aae6",
+      "kor_name": "두산에너빌리티",
+      "marketcap": "39971015510400",
+      "marketcap_rank": 10,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "b0789dfe-bec4-4fc0-a017-d21e34c4a52c",
+      "kor_name": "셀트리온",
+      "marketcap": "39051810941400",
+      "marketcap_rank": 11,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "c3b05205-0657-453d-b879-940e81c19de3",
+      "kor_name": "NAVER",
+      "marketcap": "36389812016000",
+      "marketcap_rank": 12,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "d301426b-a2d4-4fc4-9e32-3242d2018280",
+      "kor_name": "삼성물산",
+      "marketcap": "33796617038800",
+      "marketcap_rank": 13,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "6a3b3707-665d-48a5-8249-5036dd942490",
+      "kor_name": "신한지주",
+      "marketcap": "33741897913000",
+      "marketcap_rank": 14,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "c990321d-692c-44d1-91d0-c622d14372fe",
+      "kor_name": "한화오션",
+      "marketcap": "33582907982400",
+      "marketcap_rank": 15,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "6c014dd5-463c-44bc-a342-6a6f505bc8aa",
+      "kor_name": "삼성생명",
+      "marketcap": "31160000000000",
+      "marketcap_rank": 16,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "78734c41-cc35-4411-8cc2-21b4af5a1a90",
+      "kor_name": "카카오",
+      "marketcap": "29367093532000",
+      "marketcap_rank": 17,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "0759c097-24b1-45ed-99a9-58bd5cb1c146",
+      "kor_name": "현대모비스",
+      "marketcap": "28685966875000",
+      "marketcap_rank": 18,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "2902b656-ae79-4d5a-b3cf-a29c6994deab",
+      "kor_name": "SK스퀘어",
+      "marketcap": "28562554899000",
+      "marketcap_rank": 19,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    },
+    {
+      "company_id": "e9fe99ff-e510-4c9e-be7d-425227197bef",
+      "kor_name": "HD한국조선해양",
+      "marketcap": "28521565748000",
+      "marketcap_rank": 20,
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-19 21:52:01.386"
+    }
+  ],
+  "securities": [
+    {
+      "security_id": "96319862-b217-48ea-aed1-02b18dbf526a",
+      "ticker": "005930",
+      "kor_name": "삼성전자",
+      "current_rank": 1,
+      "value": "494289766487000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "bd9d0267-fbef-4221-9735-6ba1ce57be88",
+      "ticker": "000660",
+      "kor_name": "SK하이닉스",
+      "current_rank": 2,
+      "value": "255528830115000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "e0b3339c-3136-432f-a990-2bb415dca7f1",
+      "ticker": "373220",
+      "kor_name": "LG에너지솔루션",
+      "current_rank": 3,
+      "value": "81666000000000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "7905c4fb-617a-498f-a959-594ca28661e6",
+      "ticker": "207940",
+      "kor_name": "삼성바이오로직스",
+      "current_rank": 4,
+      "value": "73024524000000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "1fc469b8-a24d-4eb4-a46d-ce66e868d13e",
+      "ticker": "005935",
+      "kor_name": "삼성전자우",
+      "current_rank": 5,
+      "value": "54425510088800",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "02358d69-9b37-4824-a3aa-29998c1303f3",
+      "ticker": "012450",
+      "kor_name": "한화에어로스페이스",
+      "current_rank": 6,
+      "value": "52697795822000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "56e6417c-ce7b-486f-96ad-78f63af2d2b6",
+      "ticker": "005380",
+      "kor_name": "현대차",
+      "current_rank": 7,
+      "value": "44637192988000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "43031cb0-c222-4407-9c9c-a1a0872d176b",
+      "ticker": "105560",
+      "kor_name": "KB금융",
+      "current_rank": 8,
+      "value": "44592919840700",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "a5eb6533-f9b3-4589-905e-53e288035c3d",
+      "ticker": "329180",
+      "kor_name": "HD현대중공업",
+      "current_rank": 9,
+      "value": "44164625210000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "65234f24-ea69-4f9d-9404-8ba91bf2d791",
+      "ticker": "000270",
+      "kor_name": "기아",
+      "current_rank": 10,
+      "value": "40127126613000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "edb8fcb8-789e-4645-ba8b-c33591b4a905",
+      "ticker": "034020",
+      "kor_name": "두산에너빌리티",
+      "current_rank": 11,
+      "value": "39971015510400",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "e43df9c0-0731-4577-b0c1-8b4b942dbb59",
+      "ticker": "068270",
+      "kor_name": "셀트리온",
+      "current_rank": 12,
+      "value": "39051810941400",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "01766673-5841-4267-9851-f5e31079cf50",
+      "ticker": "035420",
+      "kor_name": "NAVER",
+      "current_rank": 13,
+      "value": "36389812016000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "35e9cb4c-3547-42ee-b4e2-e3c2883abedc",
+      "ticker": "055550",
+      "kor_name": "신한지주",
+      "current_rank": 14,
+      "value": "33741897913000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "1c72ca43-e139-4a0f-8637-27357dd6fd5c",
+      "ticker": "028260",
+      "kor_name": "삼성물산",
+      "current_rank": 15,
+      "value": "33604362748800",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "c89232c2-d1b9-4401-bedc-62e51f92a7ac",
+      "ticker": "042660",
+      "kor_name": "한화오션",
+      "current_rank": 16,
+      "value": "33582907982400",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "5018e6ca-a590-481e-ae2d-c2e43b167862",
+      "ticker": "032830",
+      "kor_name": "삼성생명",
+      "current_rank": 17,
+      "value": "31160000000000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "82c2dee1-79b3-4424-b3e1-bde992df0e18",
+      "ticker": "035720",
+      "kor_name": "카카오",
+      "current_rank": 18,
+      "value": "29367093532000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "2c3749d2-d0df-4c6c-a1e9-427b375858e4",
+      "ticker": "012330",
+      "kor_name": "현대모비스",
+      "current_rank": 19,
+      "value": "28685966875000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    },
+    {
+      "security_id": "0d0d8790-2c22-4e50-b6d1-ccf0ee9200c0",
+      "ticker": "402340",
+      "kor_name": "SK스퀘어",
+      "current_rank": 20,
+      "value": "28562554899000",
+      "basis_date": "2025-09-22",
+      "updated_at": "2025-09-23 21:16:17.649204"
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { unstable_cache } from "next/cache";
+import { cachedData } from "./cache-policy";
 import { and, asc, desc, eq, inArray, isNull, isNotNull, ne, lt, gt, sql } from "drizzle-orm";
 import { computeMixedPagination } from "./pagination";
 
 // Count ranked securities for a given metric
-export const countSecurityRanks = unstable_cache(
+export const countSecurityRanks = cachedData(
   async (metricType: schema.MetricType) => {
     try {
       const latestRankDateResult = await db
@@ -31,15 +32,15 @@ export const countSecurityRanks = unstable_cache(
       return Number(totalResult[0].count);
     } catch (e) {
       console.error(`[countSecurityRanks] ERROR for ${metricType}:`, e);
-      return 0;
+      throw e;
     }
   },
-  ["countSecurityRanks"],
-  { tags: ["countSecurityRanks"] }
+  "countSecurityRanks",
+  ["countSecurityRanks"]
 );
 
 // Generic function to get ranked securities by a given metric
-export const getSecurityRanksPage = unstable_cache(
+export const getSecurityRanksPage = cachedData(
   async (metricType: schema.MetricType, page: number, sortOrder: 'asc' | 'desc' = 'asc') => {
     const { limit, skip } = computeMixedPagination(page);
     try {
@@ -69,6 +70,7 @@ export const getSecurityRanksPage = unstable_cache(
           value: schema.securityRank.value, // Use the value from security_rank
           currentRank: schema.securityRank.currentRank,
           priorRank: schema.securityRank.priorRank,
+          updatedAt: schema.securityRank.updatedAt,
           company: {
             korName: schema.company.korName,
             logo: schema.company.logo,
@@ -149,15 +151,15 @@ export const getSecurityRanksPage = unstable_cache(
       return { items: itemsWithPrices, latestDate: latestRankDate };
     } catch (e) {
       console.error(`[getSecurityRanksPage] ERROR for ${metricType}:`, e);
-      return { items: [], latestDate: null };
+      throw e;
     }
   },
-  ["getSecurityRanksPage"],
-  { tags: ["getSecurityRanksPage"] }
+  "getSecurityRanksPage",
+  ["getSecurityRanksPage"]
 );
 
 
-export const getPricesBySecurityIds = unstable_cache(
+export const getPricesBySecurityIds = cachedData(
   async (securityIds: string[]) => {
     try {
       if (!securityIds || securityIds.length === 0) return {} as Record<string, any[]>;
@@ -199,11 +201,11 @@ export const getPricesBySecurityIds = unstable_cache(
       return grouped;
     } catch (e) {
       console.error("[getPricesBySecurityIds] ERROR:", e);
-      return {};
+      throw e;
     }
   },
-  ["getPricesBySecurityIds"],
-  { tags: ["getPricesBySecurityIds"] }
+  "getPricesBySecurityIds",
+  ["getPricesBySecurityIds"]
 );
 
 

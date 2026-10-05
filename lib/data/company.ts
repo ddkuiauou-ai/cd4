@@ -4,6 +4,7 @@ import { and, asc, eq, exists, isNull, isNotNull, desc, inArray } from "drizzle-
 import { unstable_cache } from "next/cache";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { getMarketCapHistoryBySecurityIds, getPricesBySecurityIds } from "./security";
+import { cachedData } from "./cache-policy";
 
 export interface CompanyMarketcapAggregated {
   companyId: string;
@@ -45,6 +46,7 @@ type CompanyItem = {
   marketcapRank: number | null;
   marketcapDate: Date | null;
   marketcapPriorRank: number | null;
+  updatedAt: Date | null;
   securities: Array<{
     securityId: string;
     exchange: string | null;
@@ -66,7 +68,7 @@ type CompanyItem = {
   }>;
 };
 
-export const countCompanyMarketcaps = unstable_cache(async () => {
+export const countCompanyMarketcaps = cachedData(async () => {
   try {
     const companies = await db.query.company.findMany({
       where: and(
@@ -89,11 +91,11 @@ export const countCompanyMarketcaps = unstable_cache(async () => {
     return companies.length;
   } catch (e) {
     console.error("[countCompanyMarketcaps] ERROR:", e);
-    return 0;
+    throw e;
   }
-}, ["countCompanyMarketcaps"], { tags: ["countCompanyMarketcaps"] });
+}, "countCompanyMarketcaps", ["countCompanyMarketcaps"]);
 
-export const getCompanyMarketcapsPage = unstable_cache(
+export const getCompanyMarketcapsPage = cachedData(
   async (page: number) => {
     const { limit, skip, page: currentPage, pageSize } = computeMixedPagination(page);
 
@@ -126,6 +128,7 @@ export const getCompanyMarketcapsPage = unstable_cache(
           marketcapRank: true,
           marketcapDate: true,
           marketcapPriorRank: true,
+          updatedAt: true,
         },
         with: {
           securities: {
@@ -148,8 +151,8 @@ export const getCompanyMarketcapsPage = unstable_cache(
 
       items.forEach((item) => {
         const security = item.securities?.[0];
-        if (security && pricesBySecurityId[security.securityId]) {
-          security.prices = pricesBySecurityId[security.securityId];
+        if (security) {
+          security.prices = pricesBySecurityId[security.securityId] ?? [];
         }
       });
 
@@ -166,11 +169,11 @@ export const getCompanyMarketcapsPage = unstable_cache(
       };
     } catch (e) {
       console.error("[getCompanyMarketcapsPage] ERROR:", e);
-      return { items: [] as CompanyItem[], page: 1, pageSize: 20, skip: 0, totalCount: 0, totalPages: 1 };
+      throw e;
     }
   },
-  ["getCompanyMarketcapsPage"],
-  { tags: ["getCompanyMarketcapsPage"] }
+  "getCompanyMarketcapsPage",
+  ["getCompanyMarketcapsPage"]
 );
 
 // Company aggregated marketcap (moved from lib/getMarketData.ts)
