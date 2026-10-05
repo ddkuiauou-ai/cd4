@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>황금 전광판 · 데스크톱 순위와 상세</title>
+  <link rel="preload" href="fonts/nanum.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="desktop-shell.css">
+  <script src="desktop-shell.js" defer></script>
+</head>
+<body>
+  <main class="comparison">
+    <header class="intro">
+      <h1>순위에서 상세까지, 같은 데스크톱 구조.</h1>
+      <p>최근 본 종목은 우측 상단에 이어집니다. 순위는 표에, 상세는 차트에 본문을 사용합니다.</p>
+      <div class="review-controls">
+        <div class="theme-controls" role="group" aria-label="시안 테마">
+          <button type="button" data-theme="light" aria-pressed="true">라이트</button>
+          <button type="button" data-theme="dark" aria-pressed="false">다크</button>
+        </div>
+        <a href="scoreboard-preview.html?device=mobile&theme=light">기존 모바일 라이트 보기</a>
+      </div>
+    </header>
+    <div class="comparisons">
+      <figure>
+        <figcaption><strong>순위</strong><a data-preview="ranking" href="desktop-shell-preview.html?page=ranking&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-page="ranking"></div>
+        <p class="caption">전체 순위와 CSV 다운로드 · 우측은 최근 본 종목과 조회 기준</p>
+      </figure>
+      <figure>
+        <figcaption><strong>삼성전자 상세</strong><a data-preview="detail" href="desktop-shell-preview.html?page=detail&theme=light">원래 크기로 보기</a></figcaption>
+        <div class="stage light" data-page="detail"></div>
+        <p class="caption">기업 합산과 종목을 구분 · 큰 차트와 상세 전용 우측 정보</p>
+      </figure>
+    </div>
+    <footer>디자인 검토용 이미지 시안 · 숫자와 차트는 예시입니다. 로고만 실제 나눔명조 ExtraBold와 기존 별 SVG로 표시합니다. 검색·표·차트·다운로드는 제품 구현 전입니다.</footer>
+  </main>
+</body>
+</html>

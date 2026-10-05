@@ -1,0 +1,25 @@
+{
+  "prompt": "Use case ui-mockup, beautiful fullyrealized DESKTOP LIGHT variation of reference A '황금 전광판' Koreanstocklookup '천하제일 단타대회'. Landscapeviewport1440x1000 no browserchrome/devicemockup. Flat coolopticalwhite#FAFBFC canvas white#FFFFFF maincontent darkink#182126 text secondary#626A70 thin#D8DEE3 horizontalrules. Golden#F8AD02 restrained selectedunderline and goldfilled downloadbuttonblacktext, redbrand#DC3030. No cream/beige/papertexture/shadows/gradients/newmotifs. This is A inlightmode, notyellowbannerC orrecordbookB. Maxcontentwidth1200 centered x120..1320. Header64–88px: blanklogoarea x120..435,y20..70 (NO generatedwordmark/icon; rootwilloverlayREAL NanumMyeongjoExtraBoldplusoriginalSVG), central search x520..1110 y22..66 '기업 · 종목 검색', '최근 본' right. Compacttabs below '시가총액','PER','PBR','EPS','BPS','배당수익률','주당배당금', firstselectedgoldunderline. Main title '시가총액 순위' with directlybeneath '기업 합산' '2025.09.22 기준 · 예시 데이터'. Rightgoldfilledbutton 'CSV 다운로드' andsmall '엑셀에서 열 수 있어요'. Tabletop~230px fullwidth columns '순위','기업','최근 추이','시가총액','등락'. Exactsixrows1삼성전자005930549조0.00%;2SK하이닉스000660256조+0.44%;3LG에너지솔루션37322082조+2.91%;4삼성바이오로직스20794073조-4.51%;5현대차00538055조-0.72%;6한화에어로스페이스01245053조+3.68%. Real sansforUI datanotserif. Compactrows78–85px, namesleft,codesunder dim, smallplausibletrendline owncolumn, numericalcolumnsrightaligned. Rank1canbe darkochre readable notbrightyellow, othersink. Positivechangesrednegativeblue. Continuousruleddatatable notcards. Bottom '전체 2,601개 기업 · 1–20위','다음 20개 →'. Nohero/sidebar/statcards/login/addeddataorfeatures; showall6rows insideviewport. Brandiscompactheader; informationleadsscreen.",
+  "generator": "native imagegen",
+  "tool": "image_gen.imagegen",
+  "approved": false,
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a10a35-dcb7-7703-a288-bab9df6da42d/exec-3886af4d-4dc4-4219-89ca-d4236a880ebf.png",
+  "referenced_image_paths": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/decision/a-scoreboard-v2.png"
+  ],
+  "transparent_background": false,
+  "dimensions": {
+    "width": 1505,
+    "height": 1045
+  },
+  "blank_logo_area_logical": {
+    "x": 120,
+    "y": 20,
+    "width": 315,
+    "height": 50
+  },
+  "logical_viewport": {
+    "width": 1440,
+    "height": 1000
+  }
+}

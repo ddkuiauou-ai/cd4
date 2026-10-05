@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>천하제일 단타대회 · 로고 폰트 비교</title>
+    <link rel="preload" href="fonts/nanum.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script src="review.js" defer></script>
+  </head>
+  <body data-font="nanum">
+    <main>
+      <header class="review-intro">
+        <h1>같은 별, 실제 폰트로.</h1>
+        <p>‘천하제일 <img src="assets/icon.svg" width="18" height="18" alt="별"> 단타대회’ 배치로 바꾼 세 시안입니다.<br>폰트를 선택하면 아래 A·B·C의 헤더에 함께 적용됩니다.</p>
+      </header>
+
+      <form class="font-picker" aria-label="로고 폰트 선택">
+        <fieldset>
+          <legend>로고에 사용할 폰트</legend>
+          <div class="font-options">
+            <label class="font-option">
+              <input type="radio" name="logo-font" value="nanum" checked>
+              <span class="option-info"><strong>나눔명조 ExtraBold</strong><span>전통적인 획과 선명한 인상 <b>추천</b></span></span>
+              <span class="specimen" data-font="nanum"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span></span>
+              <span class="font-meta">800 · WOFF2 18.0 KB</span>
+            </label>
+            <label class="font-option">
+              <input type="radio" name="logo-font" value="noto">
+              <span class="option-info"><strong>Noto Serif KR</strong><span>기존 명조 느낌에 가장 가까운 인상</span></span>
+              <span class="specimen" data-font="noto"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span></span>
+              <span class="font-meta">700 · WOFF2 30.1 KB</span>
+            </label>
+            <label class="font-option">
+              <input type="radio" name="logo-font" value="black">
+              <span class="option-info"><strong>Black Han Sans</strong><span>굵고 또렷한 레트로 간판 인상</span></span>
+              <span class="specimen" data-font="black"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span></span>
+              <span class="font-meta">400 · WOFF2 5.8 KB</span>
+            </label>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="review-status"><p id="font-status" aria-live="polite">현재 적용: 나눔명조 ExtraBold</p><p>로고 외 구성은 기존 시안 그대로 · 본문은 예시 이미지</p></div>
+
+      <section class="concepts" aria-label="로고를 수정한 기존 세 시안">
+        <article class="concept" id="concept-a">
+          <h2><span>A</span> 황금 전광판</h2>
+          <div class="surface theme-a">
+            <img class="base" src="assets/a-base.png" width="853" height="1844" alt="A 황금 전광판: 어두운 배경에 금색 강조를 사용한 주식 순위 시안. 데이터는 예시입니다.">
+            <div class="masthead"><div class="masthead-row"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span><span class="recent">최근 본</span></div></div>
+          </div>
+        </article>
+        <article class="concept" id="concept-b">
+          <h2><span>B</span> 대회 기록실</h2>
+          <div class="surface theme-b">
+            <img class="base" src="assets/b-base.png" width="853" height="1844" alt="B 대회 기록실: 밝은 바탕에 차분한 표를 사용한 주식 순위 시안. 데이터는 예시입니다.">
+            <div class="masthead"><div class="masthead-row"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span><span class="recent">최근 본</span></div></div>
+          </div>
+        </article>
+        <article class="concept" id="concept-c">
+          <h2><span>C</span> 랭킹 스튜디오</h2>
+          <div class="surface theme-c">
+            <img class="base" src="assets/c-base.png" width="853" height="1844" alt="C 랭킹 스튜디오: 금색 헤더와 큼직한 순위 번호를 사용한 주식 순위 시안. 데이터는 예시입니다.">
+            <div class="masthead"><div class="masthead-row"><span class="brand" aria-label="천하제일 단타대회"><span class="brand-first">천하제일</span><img src="assets/icon.svg" alt="" width="28" height="28"><span class="brand-last">단타대회</span></span><span class="recent">최근 본 <svg aria-hidden="true" viewBox="0 0 10 16" width="7" height="12"><path d="m2 2 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+          </div>
+        </article>
+      </section>
+
+      <footer class="review-footer">
+        <p>표시 용량은 ‘천하제일단타대회’ 8글자만 포함한 실제 파일 기준입니다. 기존 별 SVG는 767 B입니다.</p>
+        <p>폰트 원본과 라이선스: <a href="https://github.com/google/fonts/tree/main/ofl/nanummyeongjo" target="_blank" rel="noopener">나눔명조</a> · <a href="https://github.com/google/fonts/tree/main/ofl/notoserifkr" target="_blank" rel="noopener">Noto Serif KR</a> · <a href="https://github.com/google/fonts/tree/main/ofl/blackhansans" target="_blank" rel="noopener">Black Han Sans</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

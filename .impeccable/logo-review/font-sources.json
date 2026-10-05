@@ -1,0 +1,44 @@
+[
+  {
+    "id": "noto",
+    "label": "Noto Serif KR",
+    "weight": 700,
+    "family": "Noto Serif KR:wght@700",
+    "characters": "천하제일단타대회",
+    "bytes": 30120,
+    "format": "woff2",
+    "file": "fonts/noto.woff2",
+    "css_url": "https://fonts.googleapis.com/css2?family=Noto+Serif+KR%3Awght%40700&display=swap&text=%EC%B2%9C%ED%95%98%EC%A0%9C%EC%9D%BC%EB%8B%A8%ED%83%80%EB%8C%80%ED%9A%8C",
+    "font_url": "https://fonts.gstatic.com/l/font?kit=3JnoSDn90Gmq2mr3blnHaTZXbOtLJDvui3JOncgBf85z4ZvTefxux-mCzLIvkDdKzOeNZsJwKPYu_OgwDnlbn27wqLA3lpu2lioYxldzSasSKtoFXuJU1aFFhFnOrc3Opy-C7ywQLgggRwjO5Deh013UqXe-UJbDoXc4dZQuP2tKpBsQuB59UWrRU1rmfnLwDUXcdU78wJk41MpHADuBXkQyLVkRSJIzsundFADCU1b_qbFsB0HBtkgV3Y5VPvna89xfMLDdPLl8boornp5LM9Vk-1oETjdFGeQIqvCujqlGR-R6Xp36pxzdv_0gFlEWH7HcBD18wPUfoiHVzNVZQfUyI8g4pEqbTygM1GqxfN1TbSW6wDbsHui25_HWPvbtfpqn7BA-1HI3Hx_gsN3pFj5tSSOmEh7rvvx-WGV9tnJ4wPkp_L5BFGuPv8Yvm_Z5cmWvZzVD6TvkNzYGncex0ZG25va92F9QVig9faIsLL3V51nvn1gial_fAm6x4jxZdeHrhvm91EFKtNwnvFF4HYQkKX_4jPEk&skey=de7c49c7501994cc&v=v32",
+    "license_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifkr/OFL.txt",
+    "source": "https://github.com/google/fonts/tree/main/ofl/notoserifkr"
+  },
+  {
+    "id": "nanum",
+    "label": "나눔명조 ExtraBold",
+    "weight": 800,
+    "family": "Nanum Myeongjo:wght@800",
+    "characters": "천하제일단타대회",
+    "bytes": 18040,
+    "format": "woff2",
+    "file": "fonts/nanum.woff2",
+    "css_url": "https://fonts.googleapis.com/css2?family=Nanum+Myeongjo%3Awght%40800&display=swap&text=%EC%B2%9C%ED%95%98%EC%A0%9C%EC%9D%BC%EB%8B%A8%ED%83%80%EB%8C%80%ED%9A%8C",
+    "font_url": "https://fonts.gstatic.com/l/font?kit=9Bty3DZF0dXLMZlywRbVRNhxy2pLVFAxpfas5YDDceQO77winoQ904m6fk4_sJrcdLcliDubB2iqMAGnYacS5TLo5PfCDka0BGB5r4rvuXcroBug1nytDcWwmdRByNCE4G-ivcOEWeDKxgfJzCWIRXYdU0VvUWDOt6lSh_SbRwGOkdDNnx2MutBEH_XkJqlmbXcTVsGz8vrpnUf7bgr8RYrsRWHQPpCyxN28D1YQ_GGYSJFQ5kJor3wU-ykVwTGn7dPkylRpvWkgeALeZIkib3oj40mmT18sCachwTKQRQ5Hbi6IlwX_YAWYMdSvc6-uZdSGmGdtO-TSmhtoQiMcuLPSZzeB9GxYzWdiy2sYWPRzhcufNQni1LsF-EvoSq02pZoVG3EZaaJfaJ1mSHg9NboFexheg6jVPwS9aukN3fYdDnlCs78XkeLMTGNMcmR_4BBZ0CJxJ29yC1-S8idHpoLkcVy-PrXOMg6QQLPwJf_ht_40XFw2srJLn8aL_E2OJ3PTQ8GpWWCoO8RpEw&skey=7f88cf83bf337c15&v=v31",
+    "license_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/nanummyeongjo/OFL.txt",
+    "source": "https://github.com/google/fonts/tree/main/ofl/nanummyeongjo"
+  },
+  {
+    "id": "black",
+    "label": "Black Han Sans",
+    "weight": 400,
+    "family": "Black Han Sans",
+    "characters": "천하제일단타대회",
+    "bytes": 5812,
+    "format": "woff2",
+    "file": "fonts/black.woff2",
+    "css_url": "https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap&text=%EC%B2%9C%ED%95%98%EC%A0%9C%EC%9D%BC%EB%8B%A8%ED%83%80%EB%8C%80%ED%9A%8C",
+    "font_url": "https://fonts.gstatic.com/l/font?kit=ea8Aad44WunzF9a-dL6toA8r8nqQIXKkHsszpvZfynX4vuC2_flGPCXNOzuqH9hYqN-CWPQEXrqdes94Lp3O2GhehWWnWVWRiYuM32ChRJRjXyw2G5kfSZHWebKkSqZJm_3XBkUjyQFhVQ71jZqUWP-I_kQqK5tYKO5GeM2Y3-BtxxeVHq5cftylgNLaSMAwuCjWlXfPPepXDnLTXfOlOozwkwerMPkzNaFql6EEOeJkrkBUs2v1E9cp72lgu4FW4GmYPZvt2UymiPP1a0Gn_6VHwOBy5IRUPWJfLHz5S85WWFwGOifV_6XH9A0ZdfyxlGzUu8OIA0ivKVvYdpCeDVyuQzJ3zFikpd4ykDlt3SHz7B1-LxkkxqNPMoCXmh5rG_ceDIa8-cUmPtxp10utyCZAu9Q6nOAL-8WYhxZszgFbhHGML7b4SJbBt-Y684oFKlVHp0GRkmnGChinjMAzSRC2D0Wa5D2JZV3vghKFMOBmiSESDUPZxvOz44oaQ2FLKDLSrWNEBCQJSA&skey=10d56f3563364219&v=v24",
+    "license_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/blackhansans/OFL.txt",
+    "source": "https://github.com/google/fonts/tree/main/ofl/blackhansans"
+  }
+]

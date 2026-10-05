@@ -1,0 +1,79 @@
+[
+  {
+    "device": "desktop",
+    "theme": "dark",
+    "width": 1440,
+    "height": 1000,
+    "font": "\"Scoreboard Logo\", serif",
+    "fonts": "loaded",
+    "imagesReady": true,
+    "logo": {
+      "bottom": 68.59375,
+      "height": 36.75,
+      "left": 84.1875,
+      "right": 353.90625,
+      "top": 31.84375,
+      "width": 269.71875,
+      "x": 84.1875,
+      "y": 31.84375
+    },
+    "overflow": false
+  },
+  {
+    "device": "desktop",
+    "theme": "light",
+    "width": 1440,
+    "height": 1000,
+    "font": "\"Scoreboard Logo\", serif",
+    "fonts": "loaded",
+    "imagesReady": true,
+    "logo": {
+      "x": 38.265625,
+      "y": 46.671875,
+      "width": 269.71875,
+      "height": 36.75
+    },
+    "overflow": false,
+    "confirmation": "Light desktop logo aligned with its search center and content start"
+  },
+  {
+    "device": "mobile",
+    "theme": "dark",
+    "width": 390,
+    "height": 844,
+    "font": "\"Scoreboard Logo\", serif",
+    "fonts": "loaded",
+    "imagesReady": true,
+    "logo": {
+      "bottom": 64.65625,
+      "height": 29.46875,
+      "left": 15.59375,
+      "right": 232.09375,
+      "top": 35.1875,
+      "width": 216.5,
+      "x": 15.59375,
+      "y": 35.1875
+    },
+    "overflow": false
+  },
+  {
+    "device": "mobile",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "font": "\"Scoreboard Logo\", serif",
+    "fonts": "loaded",
+    "imagesReady": true,
+    "logo": {
+      "bottom": 64.65625,
+      "height": 29.46875,
+      "left": 15.59375,
+      "right": 232.09375,
+      "top": 35.1875,
+      "width": 216.5,
+      "x": 15.59375,
+      "y": 35.1875
+    },
+    "overflow": false
+  }
+]

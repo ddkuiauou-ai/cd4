@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>황금 전광판 · 다크와 라이트 시안</title>
+  <link rel="preload" href="fonts/nanum.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="scoreboard.css">
+  <script src="scoreboard.js" defer></script>
+</head>
+<body>
+  <main class="comparison">
+    <header class="comparison-intro">
+      <h1>황금 전광판, 다크와 라이트.</h1>
+      <p>나눔명조 ExtraBold와 기존 별을 유지한 모바일·데스크톱 시안입니다.<br>같은 데이터와 조회 흐름을 두 테마로 비교합니다.</p>
+      <a class="previous" href="index.html?font=nanum">이전 A·B·C 비교</a>
+    </header>
+    <section class="comparison-section" aria-labelledby="desktop-heading">
+      <div class="section-heading"><h2 id="desktop-heading">데스크톱</h2><p>표의 열을 분리하고 같은 시작선에 정렬</p></div>
+      <div class="desktop-comparisons">
+        <figure>
+          <figcaption><strong>다크</strong><a href="scoreboard-preview.html?device=desktop&theme=dark">크게 보기</a></figcaption>
+          <div class="stage desktop dark" data-device="desktop" data-theme="dark"></div>
+        </figure>
+        <figure>
+          <figcaption><strong>라이트</strong><a href="scoreboard-preview.html?device=desktop&theme=light">크게 보기</a></figcaption>
+          <div class="stage desktop light" data-device="desktop" data-theme="light"></div>
+        </figure>
+      </div>
+    </section>
+    <section class="comparison-section" aria-labelledby="mobile-heading">
+      <div class="section-heading"><h2 id="mobile-heading">모바일</h2><p>기존 전광판의 읽기 순서와 밀도 유지</p></div>
+      <div class="mobile-comparisons">
+        <figure>
+          <figcaption><strong>다크</strong><a href="scoreboard-preview.html?device=mobile&theme=dark">크게 보기</a></figcaption>
+          <div class="stage mobile dark" data-device="mobile" data-theme="dark"></div>
+        </figure>
+        <figure>
+          <figcaption><strong>라이트</strong><a href="scoreboard-preview.html?device=mobile&theme=light">크게 보기</a></figcaption>
+          <div class="stage mobile light" data-device="mobile" data-theme="light"></div>
+        </figure>
+      </div>
+    </section>
+    <footer class="comparison-footer">디자인 검토용 시안 · 표의 숫자와 추이는 예시이며, 검색·순위·다운로드는 이미지입니다. 로고는 실제 폰트와 SVG로 표시합니다.</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "prompt": "Use case ui-mockup, polished Korean stock ranking site '천하제일 단타대회', same restrained retro golden scoreboard visual grammar and MOBILE topology as reference, but LIGHT mode. Portrait viewport 853x1844 to match reference, no device mockup/browser chrome. Flat optical white #FAFBFC background, ink #182126 text, thin cool-gray row rules #D8DEE3, golden accent #F8AD02 only selected-tab underline, rank1 and download action. Avoid beige/cream, gradients, shadows, glass, large cards. No loud yellow banner (this is A light, not C). Header has blank logo area left (x32..620,y55..155) reserved to overlay REAL Nanum Myeongjo ExtraBold text and original starSVG later, don't generate wordmark/star there. Recent text '최근 본' right. Search outline width790atx32 andy176, placeholder '기업 · 종목 검색'. Tabs '시가총액', 'PER', 'PBR', '배당', '더보기'. Title '시가총액 순위', below '기업 합산' and '2025.09.22 기준 · 예시 데이터'; right 'CSV 다운로드' with small '엑셀에서 열 수 있어요'. A fullwidth continuous ruled leaderboard, headers '순위', '기업', '시가총액', '등락'. Exact six rows: 1삼성전자005930549조0.00%; 2SK하이닉스000660256조+0.44%; 3LG에너지솔루션37322082조+2.91%; 4삼성바이오로직스20794073조-4.51%; 5현대차00538055조-0.72%; 6한화에어로스페이스01245053조+3.68%. Market values rightaligned; restrained small actual-looking trendline under each value; positive red negativeblue. Bottom '전체 2,601개 기업 · 1–20위' and '다음 20개 →'. Keep reference density, alignment, layout; no addeddata/features/login/navigation/sidebar.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/mobile-light.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a39-c268-7fb0-8874-516addfbda90/exec-e801f9ef-1324-4618-b23a-01d2a3929128.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/decision/a-scoreboard-v2.png",
+  "dimensions": {
+    "width": 853,
+    "height": 1844
+  },
+  "header_reserved_area": {
+    "x_min": 32,
+    "x_max": 620,
+    "y_min": 55,
+    "y_max": 155
+  },
+  "header_reserved_for": "Real Nanum Myeongjo ExtraBold wordmark and original star SVG overlay"
+}

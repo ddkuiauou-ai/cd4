@@ -1,0 +1,222 @@
+{
+  "title": "천하제일 단타대회 · 디자인 시안",
+  "question": "레트로 브랜드를 살리는 세 가지 방향입니다. 마음에 드는 안을 선택하거나, 결합하고 싶은 요소를 적어 주세요. 실제 사이트 구현은 다음 단계에서 진행합니다.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "A · 황금 전광판",
+      "kicker": "시안 A",
+      "lineage": "오락실 순위판과 스포츠 전광판",
+      "thesis": "깊은 먹색 바탕의 한 장짜리 순위판에 황금색 조작부를 집중합니다.",
+      "palette": [
+        "#181A1C",
+        "#F8AD02",
+        "#F5F5EF",
+        "#DC3030"
+      ],
+      "materials": [
+        "매트한 전광판",
+        "정렬된 숫자"
+      ],
+      "viewport": "전체 이름 → 검색 → 지표 탭 → 연속 순위 목록 → CSV 다운로드.",
+      "risk": "몰입감은 좋지만 낮의 모바일 조회에서는 밝은 안보다 무거울 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/a-scoreboard-v2.png",
+      "raised": [
+        {
+          "from": "상태선 시스템",
+          "raise": "색 외에도 선택선·기준일·순위 변화를 함께 읽도록 합니다."
+        },
+        {
+          "from": "모노크롬 제품 화면",
+          "raise": "표의 수치는 중립색으로 묶고 조작의 강조를 하나로 제한합니다."
+        },
+        {
+          "from": "카탈로그 행",
+          "raise": "행을 따라 훑되 모든 대표 지표는 선택 없이 보이게 합니다."
+        },
+        {
+          "from": "지도 범례",
+          "raise": "기업/종목 범위와 지표 단위를 목록 위에서 설명합니다."
+        },
+        {
+          "from": "카세트 목록",
+          "raise": "이름과 숫자의 정렬이 전체 순위 끝까지 이어지도록 합니다."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "B · 대회 기록실",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "스포츠 연감과 대회 기록표",
+      "thesis": "레트로 마스트헤드 아래에 읽기 쉬운 기록표를 바로 펼칩니다.",
+      "palette": [
+        "#F5F4ED",
+        "#20221F",
+        "#F8AD02",
+        "#DC3030"
+      ],
+      "materials": [
+        "밝은 기록지",
+        "검정 괘선",
+        "황금 별 인장"
+      ],
+      "viewport": "붓글씨 이름과 검색 → 지표 선택 → 정돈된 전체 순위표.",
+      "risk": "사용성이 가장 안정적이지만 브랜드의 에너지는 다른 두 안보다 절제됩니다.",
+      "comp": ".impeccable/mocks/decision/b-recordbook-v2.png"
+    },
+    {
+      "id": "challenger-grid",
+      "label": "C · 랭킹 스튜디오",
+      "verdict": "competitive",
+      "lineage": "격자 타이포그래피와 레트로 방송 순위 그래픽",
+      "thesis": "노란 브랜드 면과 큰 순위 숫자가 흰색 목록에 경쾌한 리듬을 만듭니다.",
+      "palette": [
+        "#F8AD02",
+        "#FAFAF5",
+        "#202020",
+        "#DC3030"
+      ],
+      "materials": [
+        "평평한 색면",
+        "모듈 격자",
+        "정밀한 한글"
+      ],
+      "viewport": "브랜드 상단의 노란 면 → 넓은 검색 → 격자에 맞춘 순위 행.",
+      "case": "브랜드의 활기에서 경쟁력이 있고, 목록 밀도는 전광판과 기록실보다 낮을 수 있습니다.",
+      "risk": "큰 브랜드 면이 조회 공간을 잡아먹지 않도록 높이를 제한해야 합니다.",
+      "comp": ".impeccable/mocks/decision/c-studio-v2.png",
+      "board": "https://impeccable.style/worlds/cards/crouwel-grid-specimen.webp",
+      "hero": "https://impeccable.style/worlds/cards/crouwel-grid-specimen-hero.webp"
+    },
+    {
+      "id": "challenger-rail",
+      "label": "상태선 작업판",
+      "verdict": "declined",
+      "thesis": "지표와 순위를 가는 기준선에 등록하는 분석 작업판.",
+      "palette": [
+        "#252627",
+        "#E6E4DC",
+        "#F8AD02"
+      ],
+      "materials": [
+        "먹색 판",
+        "상태선"
+      ],
+      "viewport": "지표 눈금과 선택 판 → 숫자 목록.",
+      "risk": "작은 범례와 낯선 탐색 규칙이 빠른 모바일 조회를 방해할 수 있습니다.",
+      "case": "상태선의 전문적인 문화와 조작법은 우선 사용자 장면과 거리가 있습니다.",
+      "kept": "선택·갱신 상태를 색뿐 아니라 형태로 표현.",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-emission-line-rail-hero.webp"
+    },
+    {
+      "id": "challenger-neutral",
+      "label": "모노크롬 제품 소개",
+      "verdict": "declined",
+      "thesis": "설명과 증거를 한 쌍으로 보여 주는 중립적 화면.",
+      "palette": [
+        "#FAFAFA",
+        "#1B1B1B",
+        "#F8AD02"
+      ],
+      "materials": [
+        "중립면",
+        "제품 증거"
+      ],
+      "viewport": "기능 설명과 표를 순차적으로 배치.",
+      "risk": "서비스 설명이 순위 조회보다 먼저 나오기 쉽습니다.",
+      "case": "설명 중심의 소개 화면은 검색에서 들어와 바로 숫자를 확인하는 목적에 약합니다.",
+      "kept": "강조 하나만 남기는 명확한 시각 위계.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-monochrome-product-marketing-hero.webp"
+    },
+    {
+      "id": "challenger-shelf",
+      "label": "종목 카탈로그",
+      "verdict": "declined",
+      "thesis": "종목 카드를 가로 행으로 탐색하는 컬렉션.",
+      "palette": [
+        "#151515",
+        "#EDEDED",
+        "#F8AD02"
+      ],
+      "materials": [
+        "카탈로그 행",
+        "확장 카드"
+      ],
+      "viewport": "지표별 종목 타일을 가로로 탐색.",
+      "risk": "전체 순위를 줄 세워 비교하는 데 카드 확장과 가로 탐색이 불리합니다.",
+      "case": "포스터 문화와 숨겨진 수치가 순위·숫자를 원하는 사용자에게 맞지 않습니다.",
+      "kept": "행 탐색과 선택 피드백의 일관성.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-streaming-title-card-wall-hero.webp"
+    },
+    {
+      "id": "challenger-map",
+      "label": "지표 지도",
+      "verdict": "declined",
+      "thesis": "지표를 범례와 경로로 연결하는 탐색 지도.",
+      "palette": [
+        "#FFFFFF",
+        "#E9B426",
+        "#A58454",
+        "#776DA7"
+      ],
+      "materials": [
+        "지도",
+        "범례"
+      ],
+      "viewport": "범례와 순위 설명을 지도처럼 펼침.",
+      "risk": "전체 순위의 선형 비교를 공간 탐색으로 바꿉니다.",
+      "case": "지도 읽기의 학습 부담과 불필요한 이동이 간단한 조회에 맞지 않습니다.",
+      "kept": "데이터 범위와 단위를 가까이 두는 범례 규율.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map-hero.webp"
+    },
+    {
+      "id": "challenger-tape",
+      "label": "카세트 트랙리스트",
+      "verdict": "declined",
+      "thesis": "지표별 순위를 한 장의 접힌 목록으로 읽습니다.",
+      "palette": [
+        "#FAFAF7",
+        "#31517B",
+        "#F8AD02"
+      ],
+      "materials": [
+        "줄 있는 종이",
+        "트랙리스트"
+      ],
+      "viewport": "두 면에 지표 목록을 나누고 숫자를 우측 정렬.",
+      "risk": "필기체와 면 전환은 긴 기업명과 전체 순위에 불리합니다.",
+      "case": "한정된 트랙 수의 아날로그 형식은 수천 종목을 탐색하는 제품과 거리가 있습니다.",
+      "kept": "길게 이어지는 목록의 숫자 정렬.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-cassette-j-card-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "steer": true,
+  "canon": true,
+  "canonCard": {
+    "label": "담백한 주식 조회 화면",
+    "thesis": "표준적인 밝은 조회 UI에 기존 로고를 유지합니다.",
+    "palette": [
+      "#FFFFFF",
+      "#202020",
+      "#F8AD02"
+    ],
+    "materials": [
+      "일반 표",
+      "절제된 강조"
+    ],
+    "viewport": "컴팩트 헤더 → 검색 → 지표 탭 → 순위 목록.",
+    "risk": "친숙한 대신 천하제일 단타대회의 개성이 가장 약합니다.",
+    "comp": ".impeccable/mocks/decision/d-standard.png"
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  }
+}

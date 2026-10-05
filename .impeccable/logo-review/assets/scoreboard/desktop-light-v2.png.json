@@ -1,0 +1,27 @@
+{
+  "prompt": "Image1 is edit target LIGHT DESKTOP, Image2 DARK DESKTOP is geometry reference. Keep Image1 opticalwhite/mutedgray surfaces, darkink text, plainthin rules and golden filled download. Adjust ONLY light layout/grid to match Image2 exactly in header/tab/title/table/footer geometry, width, margins and row heights. Use Image2 centered content x~88..1420 (actual1505x1045), company column x230, trend around800,marketcapright1145,changeright1410. Match Image2 searchheaderx558..1264y23..82, blanklogoarea x88..510y22..83; exactsameblanklogo no generatedwordmark/icon. Match all6rows and titles/data/text exactlyincludingnumbers/codes, portraitnone landscape1505x1045. Rank1deepochre, active tab deepochre/goldunderline, positive changesrednegativeblue. Keep light fontpositions same dark for clean themecompare. No glow gradients shadows textures, NO card/tableborder aroundsides. Do not alter content.",
+  "generator": "native imagegen",
+  "tool": "image_gen.imagegen",
+  "approved": false,
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a10a35-dcb7-7703-a288-bab9df6da42d/exec-ec0cb90d-fc13-4f7b-b63d-7c02376d4f32.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/desktop-light.png",
+  "referenced_image_paths": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/desktop-light.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/desktop-dark.png"
+  ],
+  "transparent_background": false,
+  "dimensions": {
+    "width": 1505,
+    "height": 1045
+  },
+  "requested_blank_logo_area_actual": {
+    "x": 88,
+    "y": 22,
+    "width": 422,
+    "height": 61
+  },
+  "requested_viewport": {
+    "width": 1505,
+    "height": 1045
+  }
+}

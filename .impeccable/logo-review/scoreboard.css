@@ -1,0 +1,51 @@
+@font-face { font-family: "Scoreboard Logo"; src: url("fonts/nanum.woff2") format("woff2"); font-style: normal; font-weight: 800; font-display: swap; }
+:root { color-scheme: light; --review-bg: #f1f2f3; --review-text: #242424; --review-secondary: #60666b; --review-line: #d2d5d8; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--review-text); background: var(--review-bg); font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+::selection { background: #f8ad02; color: #181a1c; }
+a { color: inherit; text-underline-offset: 4px; }
+a:hover { color: #825300; }
+a:focus-visible { outline: 2px solid #825300; outline-offset: 4px; }
+.comparison { max-width: 1600px; padding: 36px 32px 28px; margin: auto; }
+.comparison-intro { margin-bottom: 34px; position: relative; }
+h1 { margin: 0 0 10px; font-size: 32px; line-height: 1.25; letter-spacing: -.025em; }
+.comparison-intro p { margin: 0; color: var(--review-secondary); }
+.previous { display: inline-block; margin-top: 12px; font-size: 13px; }
+.comparison-section { margin-bottom: 36px; }
+.section-heading { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; border-bottom: 1px solid var(--review-line); padding-bottom: 10px; }
+h2 { margin: 0; font-size: 21px; line-height: 1.4; letter-spacing: -.02em; }
+.section-heading p { margin: 0; font-size: 13px; color: var(--review-secondary); }
+.desktop-comparisons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.mobile-comparisons { display: grid; grid-template-columns: repeat(2, minmax(0, 390px)); justify-content: center; gap: 28px; }
+figure { margin: 0; min-width: 0; }
+figcaption { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; }
+figcaption a { font-size: 12px; color: var(--review-secondary); }
+.stage { position: relative; container-type: inline-size; overflow: hidden; background: #fff; }
+.stage.dark { background: #181a1c; }
+.stage > .comp { display: block; width: 100%; height: auto; }
+.wordmark { display: inline-flex; align-items: center; gap: .18em; font: 800 2.1262cqi/1.2 "Scoreboard Logo", serif; font-synthesis: none; letter-spacing: -.035em; white-space: nowrap; }
+.wordmark .first { color: #dc3030; }
+.wordmark .last { color: #f8ad02; }
+.wordmark .first, .wordmark .last { -webkit-text-stroke: .65px #000; paint-order: stroke fill; }
+.wordmark > img { display: block; width: 1.13em; height: 1.13em; flex: 0 0 auto; }
+.logo-zone { position: absolute; display: flex; align-items: center; justify-content: flex-start; left: 5.8472cqi; top: 1.4618cqi; height: 4.0532cqi; }
+.desktop.light .logo-zone { left: 2.6578cqi; top: 2.4917cqi; }
+.mobile .logo-zone { left: 4cqi; top: 9.3cqi; height: 7cqi; }
+.mobile .wordmark { font-size: 6.3cqi; }
+.mobile.dark .logo-mask { position: absolute; left: 0; right: 0; top: 0; height: 20.15cqi; background: #181a1c; }
+.mobile.dark .recent { position: absolute; right: 4cqi; top: 11.05cqi; padding-left: 3cqi; border-left: 1px solid #555b60; color: #d5dce2; font-size: 3.45cqi; line-height: 1.2; }
+.comparison-footer { border-top: 1px solid var(--review-line); padding-top: 18px; color: var(--review-secondary); font-size: 12px; }
+.single-preview { background: #181a1c; }
+.single-preview[data-theme="light"] { background: #fafbfc; }
+.single-stage { margin: auto; width: 100%; max-width: 1440px; }
+.single-preview[data-device="mobile"] .single-stage { max-width: 853px; }
+@media (max-width: 800px) {
+  .comparison { padding: 26px 18px 22px; }
+  h1 { font-size: 26px; }
+  .desktop-comparisons { grid-template-columns: 1fr; gap: 24px; }
+  .section-heading { flex-wrap: wrap; gap: 4px 12px; }
+  .mobile-comparisons { gap: 16px; }
+}
+@media (max-width: 540px) {
+  .mobile-comparisons { grid-template-columns: minmax(0, 390px); gap: 24px; }
+}

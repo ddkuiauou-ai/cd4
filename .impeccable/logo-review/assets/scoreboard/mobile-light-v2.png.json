@@ -1,0 +1,19 @@
+{
+  "prompt": "Edit ONLY color/readability of gold UI controls in this existing LIGHT MOBILE comp. Preserve ALL geometry, existing blank logo space, exact text/data/numbers, rows and dimensions853x1844. Active '시가총액' tab text change to darkink#182126 while retaining thin golden selected underline. CSV 다운로드 button change to flat golden fill#F8AD02 and darkink#182126 text/downloadicon, no shadow. Rank1 change to deepochre#9A6500 for readable smallscreen contrast. Remove any tiny glow/shading under sparklines: plain hairlinecharts. Everythingelse unchanged, same white theme. No generated logo/star. Use existing edit target, not regenerate topology.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/mobile-light-v2.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a39-c268-7fb0-8874-516addfbda90/exec-836a2b1b-03fb-45d9-a6a2-a55900593481.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/scoreboard/mobile-light.png",
+  "dimensions": {
+    "width": 853,
+    "height": 1844
+  },
+  "header_reserved_area": {
+    "x_min": 32,
+    "x_max": 620,
+    "y_min": 55,
+    "y_max": 155
+  },
+  "header_reserved_for": "Real Nanum Myeongjo ExtraBold wordmark and original star SVG overlay"
+}

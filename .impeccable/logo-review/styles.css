@@ -1,0 +1,76 @@
+@font-face { font-family: "Logo Nanum"; src: url("fonts/nanum.woff2") format("woff2"); font-style: normal; font-weight: 800; font-display: swap; }
+@font-face { font-family: "Logo Noto"; src: url("fonts/noto.woff2") format("woff2"); font-style: normal; font-weight: 700; font-display: swap; }
+@font-face { font-family: "Logo Black"; src: url("fonts/black.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; }
+
+:root { color-scheme: light; --paper: #f1f2f3; --ink: #242424; --muted: #60666b; --rule: #d2d5d8; --brand-family: "Logo Nanum"; --brand-weight: 800; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+body[data-font="noto"], .specimen[data-font="noto"] { --brand-family: "Logo Noto"; --brand-weight: 700; }
+body[data-font="black"], .specimen[data-font="black"] { --brand-family: "Logo Black"; --brand-weight: 400; }
+.specimen[data-font="nanum"] { --brand-family: "Logo Nanum"; --brand-weight: 800; }
+::selection { background: #f8ad02; color: #181a1c; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+a:hover { color: #874800; }
+main { max-width: 1280px; margin: auto; padding: 40px 32px 28px; }
+.review-intro { margin-bottom: 28px; }
+h1 { margin: 0 0 10px; font-size: clamp(25px, 3vw, 36px); line-height: 1.25; letter-spacing: -.025em; text-wrap: balance; }
+.review-intro p { margin: 0; color: var(--muted); }
+.review-intro img { vertical-align: -3px; margin: 0 1px; }
+fieldset { min-width: 0; border: 0; margin: 0; padding: 0; }
+legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.font-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.font-option { position: relative; display: block; padding: 14px 0 12px; cursor: pointer; border-top: 2px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.font-option:has(input:checked) { border-top-color: #242424; }
+.font-option:hover { border-top-color: #9f6d00; }
+.font-option:focus-within { outline: 2px solid #9f6d00; outline-offset: 5px; }
+.font-option input { position: absolute; top: 18px; left: 0; width: 16px; height: 16px; margin: 0; accent-color: #242424; }
+.option-info { display: block; padding-left: 27px; margin-bottom: 12px; }
+.option-info strong { display: block; font-size: 16px; line-height: 1.4; }
+.option-info > span { color: var(--muted); font-size: 12px; }
+.option-info b { color: #825300; font-weight: 700; margin-left: 4px; }
+.specimen { container-type: inline-size; display: block; background: #181a1c; padding: 22px 10px; text-align: center; }
+.brand { display: inline-flex; align-items: center; justify-content: center; gap: .18em; font: var(--brand-weight) clamp(18px, 6.5cqi, 26px)/1.2 var(--brand-family), serif; font-synthesis: none; letter-spacing: -.035em; white-space: nowrap; }
+.brand-first, .brand-last { -webkit-text-stroke: .65px #000; paint-order: stroke fill; }
+.brand-first { color: #dc3030; }
+.brand-last { color: #f8ad02; }
+.brand img { display: block; flex: 0 0 auto; width: 1.06em; height: 1.06em; }
+.font-meta { display: block; margin-top: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.review-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 24px; margin: 25px 0 16px; }
+.review-status p { margin: 0; font-size: 12px; color: var(--muted); }
+#font-status { color: var(--ink); font-weight: 600; }
+.concepts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.concept h2 { margin: 0 0 10px; font-size: 16px; line-height: 1.5; font-weight: 650; }
+.concept h2 span { margin-right: 6px; font-weight: 800; }
+.surface { position: relative; container-type: inline-size; overflow: hidden; }
+.base { display: block; width: 100%; height: auto; }
+.masthead { position: absolute; inset: 0 0 auto; height: var(--masthead-height); background: var(--masthead-color); color: var(--masthead-ink); }
+.masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 3cqi; position: absolute; bottom: var(--logo-bottom); width: 100%; padding: 0 4cqi; }
+.masthead .brand { font-size: clamp(17px, 6.3cqi, 25px); }
+.masthead .brand img { width: 1.13em; height: 1.13em; }
+.recent { display: inline-flex; align-items: center; gap: 1.5cqi; padding-left: 3cqi; border-left: 1px solid var(--masthead-rule); font-size: 3.45cqi; line-height: 1.2; white-space: nowrap; }
+.theme-a { --masthead-color: #181a1c; --masthead-ink: #d5dce2; --masthead-rule: #555b60; --masthead-height: 20.15cqi; --logo-bottom: 3.7cqi; }
+.theme-b { --masthead-color: #f7f6f1; --masthead-ink: #454545; --masthead-rule: #b6b5b1; --masthead-height: 24.38cqi; --logo-bottom: 3.4cqi; }
+.theme-c { --masthead-color: #ffbf00; --masthead-ink: #242424; --masthead-rule: #8c6208; --masthead-height: 22.5cqi; --logo-bottom: 5.1cqi; }
+.theme-c .brand-last { color: #181a1c; -webkit-text-stroke-width: 0; }
+.theme-c .brand-first { -webkit-text-stroke-width: .65px; }
+.review-footer { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--muted); }
+.review-footer p { margin: 0 0 4px; }
+@media (max-width: 850px) {
+  main { padding: 28px 20px 24px; }
+  .font-options { grid-template-columns: 1fr; gap: 12px; }
+  .font-option { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr); gap: 0 20px; }
+  .option-info { margin: 0; align-self: center; }
+  .specimen { grid-column: 2; grid-row: 1 / 3; }
+  .font-meta { padding-left: 27px; }
+  .concepts { gap: 16px; }
+}
+@media (max-width: 680px) {
+  .review-intro { margin-bottom: 22px; }
+  .font-option { display: block; }
+  .option-info { margin-bottom: 10px; }
+  .font-meta { padding-left: 0; }
+  .specimen { padding: 18px 8px; }
+  .concepts { grid-template-columns: 1fr; gap: 28px; max-width: 440px; margin: auto; }
+  .review-status { margin-top: 20px; }
+  .masthead .brand { font-size: 6.3cqi; }
+}

@@ -1,0 +1,50 @@
+{
+  "prompt": "Edit Image1, ranking-light.png, as the existing RANKING LIGHT desktop comp. Image2, detail-light.png, is STYLE/DENSITY ONLY: do not copy its company-detail content or modules into ranking. Needed correction: desktop main dominates, rail width300 not452. At1448 width: contentmargin40, MAIN x40..1076 (1036), gap32, RAIL x1108..1408 width300; no railbackground toedge. Header y0..80, metrictabs y80..136, contenttop164; consistent shared header with detail correction. Railrecent font14px compact three items about70pxeach, continuous surface no tiny nestedcards; no left thick accents. Title32px, company18px/code13px, ranks24px, values18px, tableheaderaround272, eachrow70px(not95). Keep six existing companies/numbers/codes andCSV inmain, footerbelowtable. Recent andquerycriteria keepbutcompact; preserveall7tabs/exactlabels/sixrows. Remove gray logo placeholder COMPLETELY, blanklogo x40..365y18..66 for rootrealfontoverlay. Colorsflat #FAFBFC,#F2F4F6 surfaces withoutgradient/no glow. Querycontextprioritylower thanranking. Do not invent content ornewfunctionalbuttons. Important width ratio main:rail ~3.45:1; railmust NOT occupy thirdofscreen. One nativeedit, nofurtherstructuraliteration.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light-v2.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a39-c268-7fb0-8874-516addfbda90/exec-6c2885c4-2645-47f3-9de5-4540452fe660.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light.png",
+  "references": [
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light.png",
+      "role": "edit target"
+    },
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/detail-light.png",
+      "role": "style and density only"
+    }
+  ],
+  "dimensions": {
+    "width": 1491,
+    "height": 1055
+  },
+  "header_reserved_area": {
+    "x_min": 40,
+    "x_max": 365,
+    "y_min": 18,
+    "y_max": 66
+  },
+  "header_reserved_for": "Real Nanum Myeongjo ExtraBold wordmark and original star SVG overlay",
+  "observed_geometry_approximate": {
+    "main_content": {
+      "x_min": 42,
+      "x_max": 1004
+    },
+    "rail_surface": {
+      "x_min": 1039,
+      "x_max": 1491,
+      "y_min": 151
+    },
+    "rail_inner_content": {
+      "x_min": 1068,
+      "x_max": 1452
+    },
+    "row_height": 95,
+    "table_header_y_range": [
+      320,
+      376
+    ]
+  },
+  "geometry_note": "Native edit changed dimensions to 1491x1055. Rail remains approximately 452px wide and extends to canvas edge, so the requested 300px rail was not achieved. Logo placeholder removed; recent items compacted. Six table rows remain approximately95px, not70px."
+}

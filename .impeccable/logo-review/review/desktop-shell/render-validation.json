@@ -1,0 +1,170 @@
+[
+  {
+    "page": "ranking",
+    "theme": "light",
+    "fontSize": "31.9968px",
+    "fontsLoaded": true,
+    "imagesReady": true,
+    "logo": {
+      "bottom": 63.59375,
+      "height": 38.390625,
+      "left": 40.03125,
+      "right": 321.90625,
+      "top": 25.203125,
+      "width": 281.875,
+      "x": 40.03125,
+      "y": 25.203125
+    },
+    "overflow": false,
+    "stage": {
+      "bottom": 1018.90625,
+      "height": 1018.90625,
+      "left": 0,
+      "right": 1440,
+      "top": 0,
+      "width": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "title": "황금 전광판 · 라이트 순위",
+    "viewport": {
+      "height": 1080,
+      "width": 1440
+    }
+  },
+  {
+    "page": "detail",
+    "theme": "light",
+    "fontSize": "31.9968px",
+    "fontsLoaded": true,
+    "imagesReady": true,
+    "logo": {
+      "bottom": 54.671875,
+      "height": 38.390625,
+      "left": 40.03125,
+      "right": 321.90625,
+      "top": 16.28125,
+      "width": 281.875,
+      "x": 40.03125,
+      "y": 16.28125
+    },
+    "overflow": false,
+    "stage": {
+      "bottom": 1080,
+      "height": 1080,
+      "left": 0,
+      "right": 1440,
+      "top": 0,
+      "width": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "title": "황금 전광판 · 라이트 삼성전자 상세",
+    "viewport": {
+      "height": 1080,
+      "width": 1440
+    }
+  },
+  {
+    "page": "ranking",
+    "theme": "dark",
+    "fontSize": "31.9968px",
+    "fontsLoaded": true,
+    "imagesReady": true,
+    "logo": {
+      "bottom": 63.59375,
+      "height": 38.390625,
+      "left": 40.03125,
+      "right": 321.90625,
+      "top": 25.203125,
+      "width": 281.875,
+      "x": 40.03125,
+      "y": 25.203125
+    },
+    "overflow": false,
+    "stage": {
+      "bottom": 1018.90625,
+      "height": 1018.90625,
+      "left": 0,
+      "right": 1440,
+      "top": 0,
+      "width": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "title": "황금 전광판 · 다크 순위",
+    "viewport": {
+      "height": 1080,
+      "width": 1440
+    }
+  },
+  {
+    "page": "detail",
+    "theme": "dark",
+    "fontSize": "31.9968px",
+    "fontsLoaded": true,
+    "imagesReady": true,
+    "logo": {
+      "bottom": 54.671875,
+      "height": 38.390625,
+      "left": 40.03125,
+      "right": 321.90625,
+      "top": 16.28125,
+      "width": 281.875,
+      "x": 40.03125,
+      "y": 16.28125
+    },
+    "overflow": false,
+    "stage": {
+      "bottom": 1080,
+      "height": 1080,
+      "left": 0,
+      "right": 1440,
+      "top": 0,
+      "width": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "title": "황금 전광판 · 다크 삼성전자 상세",
+    "viewport": {
+      "height": 1080,
+      "width": 1440
+    }
+  },
+  {
+    "gallery": "desktop",
+    "fontLoaded": true,
+    "imagesReady": true,
+    "overflow": false,
+    "rect": {
+      "bottom": 854.375,
+      "height": 854.375,
+      "left": 0,
+      "right": 1440,
+      "top": 0,
+      "width": 1440,
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "galleryTheme": "dark",
+    "imagesReady": true,
+    "previewLinks": [
+      "http://127.0.0.1:49673/desktop-shell-preview.html?page=ranking&theme=dark",
+      "http://127.0.0.1:49673/desktop-shell-preview.html?page=detail&theme=dark"
+    ],
+    "themeButtonPressed": "true"
+  },
+  {
+    "columns": "354px",
+    "fontLoaded": true,
+    "gallery": "mobile",
+    "imagesReady": true,
+    "overflow": false,
+    "viewport": {
+      "height": 844,
+      "width": 390
+    }
+  }
+]

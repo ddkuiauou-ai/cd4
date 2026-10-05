@@ -1,0 +1,82 @@
+{
+  "prompt": "Edit this existing RANKING LIGHT v2 desktop comp to DARK by changing ONLY colors. Preserve ALL structure, geometry, coordinates, columns, rows, font sizes, content, exact text/data/numbers and existing dimensions1491x1055. Do not move, resize, reorder, or add anything. Main background #181A1C, right rail background #20252A, primary text #F0F3F5, secondary text #A8B1B8, hairline rules #3B4349, golden accent #F8AD02, positive change and trendlines red #F06A68, negative change and trendlines blue #77A9FA. Header theme text '라이트' changes ONLY to '다크'; preserve icons as they are. Logo reserved blank space stays completely blank for later real-font/original-star overlay; do not generate any logo, wordmark, star, or placeholder rectangle. CSV button stays flat golden filled with black text/download icon. No gradients, texture, shadows or glow. Preserve all seven metric tabs, all six existing table rows, their company names/codes/cap values/changes, the complete three recent-viewed rows, query criteria module, footer and explanatory line. Existing v2 is the ONLY reference and edit target. Dark variant is color-only, never regenerate or change topology.\n",
+  "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-dark.prompt.txt",
+  "source_tool": "native imagegen",
+  "approved": false,
+  "source": "/Users/craigchoi/.codex/generated_images/01a10a39-c268-7fb0-8874-516addfbda90/exec-19fa640e-851d-48b1-bbd3-fd5e519ca22e.png",
+  "edit_target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light-v2.png",
+  "references": [
+    {
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/desktop-shell/ranking-light-v2.png",
+      "role": "sole edit target, color-only"
+    }
+  ],
+  "dimensions": {
+    "width": 1491,
+    "height": 1055
+  },
+  "header_reserved_area": {
+    "x_min": 40,
+    "x_max": 365,
+    "y_min": 18,
+    "y_max": 66
+  },
+  "observed_geometry_approximate": {
+    "main_content": {
+      "x_min": 42,
+      "x_max": 1004
+    },
+    "rail_surface": {
+      "x_min": 1039,
+      "x_max": 1491,
+      "y_min": 151
+    },
+    "rail_inner_content": {
+      "x_min": 1068,
+      "x_max": 1452
+    },
+    "row_height": 95,
+    "table_header_y_range": [
+      320,
+      376
+    ],
+    "header_y_range_estimated": [
+      0,
+      92
+    ],
+    "header_height_estimated": 92,
+    "metric_bar_y_range_estimated": [
+      92,
+      151
+    ],
+    "metric_bar_top_note": "No explicit top rule; approximate boundary inferred from spacing. Bottom rule visible near y150.",
+    "search_bounds": {
+      "x_min": 455,
+      "x_max": 1165,
+      "y_min": 19,
+      "y_max": 73
+    },
+    "search_center": {
+      "x": 810,
+      "y": 46
+    },
+    "logo_blank": {
+      "x_min": 40,
+      "x_max": 365,
+      "y_min": 18,
+      "y_max": 66
+    },
+    "logo_blank_center": {
+      "x": 202.5,
+      "y": 42
+    }
+  },
+  "geometry_changes_from_reference": "No material layout or coordinate changes visible. Both light v2 and dark are 1491x1055. Generated image coordinates are approximate and do not exactly match implementation rules.",
+  "implementation_rules": {
+    "rail_css_width": 300,
+    "header_css_height": 80,
+    "metric_bar_css_height": 56,
+    "main_to_rail_gap": 32
+  },
+  "geometry_note": "Rail remains approximately452px in generated comps, not the production CSS300px rule. No further structural generation. Faint surface lighting remains in the dark image."
+}
