@@ -89,7 +89,7 @@ export function calculatePBRPeriodAnalysis(
 /**
  * Process PBR data for charts and analysis
  */
-export function processPBRData(data: Array<{ date: Date; pbr: number | null; bps?: number | null }>): PBRData[] {
+export function processPBRData(data: Array<{ date: Date | string; pbr: number | null; bps?: number | null }>): PBRData[] {
     return data
         .filter((item) => item.pbr !== null && item.pbr !== undefined)
         .map((item) => ({

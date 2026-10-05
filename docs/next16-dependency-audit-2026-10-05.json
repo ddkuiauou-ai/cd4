@@ -1,0 +1,3283 @@
+{
+  "checkedAtUTC": "2026-10-05T02:53:43.236Z",
+  "timezone": "Asia/Seoul",
+  "workspace": "/Users/craigchoi/silla/cd4",
+  "scope": "Read-only dependency, peer, source-use, and deployment audit; no installation, application edit, or lockfile change.",
+  "runtime": {
+    "node": "v22.14.0",
+    "pnpm": "10.7.1",
+    "ciNode": "20",
+    "ciPnpm": "9",
+    "enginesField": null,
+    "packageManagerField": null
+  },
+  "policy": "npm official registry latest dist-tag only for latest table; numeric stable versions only for same-major targets; canary, beta, rc, preview excluded from targets.",
+  "packages": [
+    {
+      "name": "@libsql/client",
+      "declared": "^0.15.7",
+      "section": "dependencies",
+      "lockfileVersion": "0.15.7",
+      "installed": {
+        "version": "0.15.7",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@libsql/core": "^0.15.7",
+          "@libsql/hrana-client": "^0.7.0",
+          "js-base64": "^3.7.5",
+          "libsql": "^0.5.11",
+          "promise-limit": "^2.7.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.18.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "libsql": "^0.5.28",
+          "js-base64": "^3.7.5",
+          "@libsql/core": "^0.18.0",
+          "promise-limit": "^2.7.0",
+          "@libsql/hrana-client": "^0.10.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40libsql%2Fclient/latest"
+    },
+    {
+      "name": "@next/third-parties",
+      "declared": "^15.3.2",
+      "section": "dependencies",
+      "lockfileVersion": "15.3.2",
+      "installed": {
+        "version": "15.3.2",
+        "engines": null,
+        "peerDependencies": {
+          "next": "^13.0.0 || ^14.0.0 || ^15.0.0",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "third-party-capital": "1.0.20"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "16.3.8",
+        "engines": null,
+        "peerDependencies": {
+          "next": "^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0-beta.0",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "third-party-capital": "1.0.20"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40next%2Fthird-parties/latest"
+    },
+    {
+      "name": "@nivo/core",
+      "declared": "^0.99.0",
+      "section": "dependencies",
+      "lockfileVersion": "0.99.0",
+      "installed": {
+        "version": "0.99.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@nivo/theming": "0.99.0",
+          "@nivo/tooltip": "0.99.0",
+          "@react-spring/web": "9.4.5 || ^9.7.2 || ^10.0",
+          "@types/d3-shape": "^3.1.6",
+          "d3-color": "^3.1.0",
+          "d3-format": "^1.4.4",
+          "d3-interpolate": "^3.0.1",
+          "d3-scale": "^4.0.2",
+          "d3-scale-chromatic": "^3.0.0",
+          "d3-shape": "^3.2.0",
+          "d3-time-format": "^3.0.0",
+          "lodash": "^4.17.21",
+          "react-virtualized-auto-sizer": "^1.0.26",
+          "use-debounce": "^10.0.4"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.99.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "lodash": "^4.17.21",
+          "d3-color": "^3.1.0",
+          "d3-scale": "^4.0.2",
+          "d3-shape": "^3.2.0",
+          "d3-format": "^1.4.4",
+          "use-debounce": "^10.0.4",
+          "@nivo/theming": "0.99.0",
+          "@nivo/tooltip": "0.99.0",
+          "d3-interpolate": "^3.0.1",
+          "d3-time-format": "^3.0.0",
+          "@types/d3-shape": "^3.1.6",
+          "@react-spring/web": "9.4.5 || ^9.7.2 || ^10.0",
+          "d3-scale-chromatic": "^3.0.0",
+          "react-virtualized-auto-sizer": "^1.0.26"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40nivo%2Fcore/latest"
+    },
+    {
+      "name": "@nivo/heatmap",
+      "declared": "^0.99.0",
+      "section": "dependencies",
+      "lockfileVersion": "0.99.0",
+      "installed": {
+        "version": "0.99.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@nivo/annotations": "0.99.0",
+          "@nivo/axes": "0.99.0",
+          "@nivo/colors": "0.99.0",
+          "@nivo/core": "0.99.0",
+          "@nivo/legends": "0.99.0",
+          "@nivo/scales": "0.99.0",
+          "@nivo/text": "0.99.0",
+          "@nivo/theming": "0.99.0",
+          "@nivo/tooltip": "0.99.0",
+          "@react-spring/core": "9.4.5 || ^9.7.2 || ^10.0",
+          "@react-spring/web": "9.4.5 || ^9.7.2 || ^10.0",
+          "@types/d3-scale": "^4.0.8",
+          "d3-scale": "^4.0.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.99.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "d3-scale": "^4.0.2",
+          "@nivo/axes": "0.99.0",
+          "@nivo/core": "0.99.0",
+          "@nivo/text": "0.99.0",
+          "@nivo/colors": "0.99.0",
+          "@nivo/scales": "0.99.0",
+          "@nivo/legends": "0.99.0",
+          "@nivo/theming": "0.99.0",
+          "@nivo/tooltip": "0.99.0",
+          "@types/d3-scale": "^4.0.8",
+          "@nivo/annotations": "0.99.0",
+          "@react-spring/web": "9.4.5 || ^9.7.2 || ^10.0",
+          "@react-spring/core": "9.4.5 || ^9.7.2 || ^10.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40nivo%2Fheatmap/latest"
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "declared": "^1.2.11",
+      "section": "dependencies",
+      "lockfileVersion": "1.2.11",
+      "installed": {
+        "version": "1.2.11",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-collapsible": "1.1.11",
+          "@radix-ui/react-collection": "1.1.7",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-direction": "1.1.1",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.2.20",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-direction": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-collection": "1.1.15",
+          "@radix-ui/react-collapsible": "1.1.20",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-accordion/latest"
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "declared": "^1.3.2",
+      "section": "dependencies",
+      "lockfileVersion": "1.3.2",
+      "installed": {
+        "version": "1.3.2",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-use-previous": "1.1.1",
+          "@radix-ui/react-use-size": "1.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.3.11",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-use-size": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-checkbox/latest"
+    },
+    {
+      "name": "@radix-ui/react-collapsible",
+      "declared": "^1.1.11",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.11",
+      "installed": {
+        "version": "1.1.11",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-use-layout-effect": "1.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.20",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-collapsible/latest"
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "declared": "^1.1.14",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.14",
+      "installed": {
+        "version": "1.1.14",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "aria-hidden": "^1.2.4",
+          "react-remove-scroll": "^2.6.3",
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-dismissable-layer": "1.1.10",
+          "@radix-ui/react-focus-guards": "1.1.2",
+          "@radix-ui/react-focus-scope": "1.1.7",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-portal": "1.1.9",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-slot": "1.2.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.23",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "aria-hidden": "^1.2.4",
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "react-remove-scroll": "^2.7.2",
+          "@radix-ui/react-slot": "1.3.3",
+          "@radix-ui/react-portal": "1.1.17",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-focus-scope": "1.1.16",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-focus-guards": "1.1.6",
+          "@radix-ui/react-dismissable-layer": "1.1.19",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-dialog/latest"
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "declared": "^2.1.15",
+      "section": "dependencies",
+      "lockfileVersion": "2.1.15",
+      "installed": {
+        "version": "2.1.15",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-menu": "2.1.15",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-primitive": "2.1.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "2.1.24",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-menu": "2.1.24",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-dropdown-menu/latest"
+    },
+    {
+      "name": "@radix-ui/react-icons",
+      "declared": "^1.3.2",
+      "section": "dependencies",
+      "lockfileVersion": "1.3.2",
+      "installed": {
+        "version": "1.3.2",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.x || ^17.x || ^18.x || ^19.0.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.3.2",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.x || ^17.x || ^18.x || ^19.0.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-icons/latest"
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "declared": "^1.1.7",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.7",
+      "installed": {
+        "version": "1.1.7",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-primitive": "2.1.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.16",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-primitive": "2.1.10"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-progress/latest"
+    },
+    {
+      "name": "@radix-ui/react-scroll-area",
+      "declared": "^1.2.9",
+      "section": "dependencies",
+      "lockfileVersion": "1.2.9",
+      "installed": {
+        "version": "1.2.9",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/number": "1.1.1",
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-direction": "1.1.1",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-callback-ref": "1.1.1",
+          "@radix-ui/react-use-layout-effect": "1.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.2.18",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/number": "1.1.3",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-direction": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-callback-ref": "1.1.4",
+          "@radix-ui/react-use-layout-effect": "1.1.4"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-scroll-area/latest"
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "declared": "^2.2.5",
+      "section": "dependencies",
+      "lockfileVersion": "2.2.5",
+      "installed": {
+        "version": "2.2.5",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "aria-hidden": "^1.2.4",
+          "react-remove-scroll": "^2.6.3",
+          "@radix-ui/number": "1.1.1",
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-collection": "1.1.7",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-direction": "1.1.1",
+          "@radix-ui/react-dismissable-layer": "1.1.10",
+          "@radix-ui/react-focus-scope": "1.1.7",
+          "@radix-ui/react-focus-guards": "1.1.2",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-popper": "1.2.7",
+          "@radix-ui/react-portal": "1.1.9",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-slot": "1.2.3",
+          "@radix-ui/react-use-callback-ref": "1.1.1",
+          "@radix-ui/react-use-previous": "1.1.1",
+          "@radix-ui/react-visually-hidden": "1.2.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-use-layout-effect": "1.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "2.3.7",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "aria-hidden": "^1.2.4",
+          "@radix-ui/number": "1.1.3",
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "react-remove-scroll": "^2.7.2",
+          "@radix-ui/react-slot": "1.3.3",
+          "@radix-ui/react-popper": "1.3.7",
+          "@radix-ui/react-portal": "1.1.17",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-direction": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-collection": "1.1.15",
+          "@radix-ui/react-focus-scope": "1.1.16",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-focus-guards": "1.1.6",
+          "@radix-ui/react-use-previous": "1.1.4",
+          "@radix-ui/react-visually-hidden": "1.2.11",
+          "@radix-ui/react-use-callback-ref": "1.1.4",
+          "@radix-ui/react-dismissable-layer": "1.1.19",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-select/latest"
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "declared": "^1.1.7",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.7",
+      "installed": {
+        "version": "1.1.7",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-primitive": "2.1.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.15",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-primitive": "2.1.10"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-separator/latest"
+    },
+    {
+      "name": "@radix-ui/react-slider",
+      "declared": "^1.3.5",
+      "section": "dependencies",
+      "lockfileVersion": "1.3.5",
+      "installed": {
+        "version": "1.3.5",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/number": "1.1.1",
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-collection": "1.1.7",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-direction": "1.1.1",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-layout-effect": "1.1.1",
+          "@radix-ui/react-use-previous": "1.1.1",
+          "@radix-ui/react-use-size": "1.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.4.7",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/number": "1.1.3",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-use-size": "1.1.4",
+          "@radix-ui/react-direction": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-collection": "1.1.15",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-use-previous": "1.1.4",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-slider/latest"
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "declared": "^1.2.3",
+      "section": "dependencies",
+      "lockfileVersion": "1.2.3",
+      "installed": {
+        "version": "1.2.3",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-compose-refs": "1.1.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.3.3",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-compose-refs": "1.1.5"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-slot/latest"
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "declared": "^1.1.12",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.12",
+      "installed": {
+        "version": "1.1.12",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-direction": "1.1.1",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-roving-focus": "1.1.10",
+          "@radix-ui/react-use-controllable-state": "1.2.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.21",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-direction": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-roving-focus": "1.1.19",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-tabs/latest"
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "declared": "^1.2.14",
+      "section": "dependencies",
+      "lockfileVersion": "1.2.14",
+      "installed": {
+        "version": "1.2.14",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-collection": "1.1.7",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-dismissable-layer": "1.1.10",
+          "@radix-ui/react-portal": "1.1.9",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-use-callback-ref": "1.1.1",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-use-layout-effect": "1.1.1",
+          "@radix-ui/react-visually-hidden": "1.2.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.2.23",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-portal": "1.1.17",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-collection": "1.1.15",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-visually-hidden": "1.2.11",
+          "@radix-ui/react-use-callback-ref": "1.1.4",
+          "@radix-ui/react-dismissable-layer": "1.1.19",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-toast/latest"
+    },
+    {
+      "name": "@radix-ui/react-tooltip",
+      "declared": "^1.2.7",
+      "section": "dependencies",
+      "lockfileVersion": "1.2.7",
+      "installed": {
+        "version": "1.2.7",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "*",
+          "@types/react-dom": "*",
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/primitive": "1.1.2",
+          "@radix-ui/react-compose-refs": "1.1.2",
+          "@radix-ui/react-context": "1.1.2",
+          "@radix-ui/react-dismissable-layer": "1.1.10",
+          "@radix-ui/react-id": "1.1.1",
+          "@radix-ui/react-popper": "1.2.7",
+          "@radix-ui/react-portal": "1.1.9",
+          "@radix-ui/react-presence": "1.1.4",
+          "@radix-ui/react-primitive": "2.1.3",
+          "@radix-ui/react-slot": "1.2.3",
+          "@radix-ui/react-use-controllable-state": "1.2.2",
+          "@radix-ui/react-visually-hidden": "1.2.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.2.16",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+          "@types/react": "*",
+          "@types/react-dom": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "@types/react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@radix-ui/react-id": "1.1.4",
+          "@radix-ui/primitive": "1.1.7",
+          "@radix-ui/react-slot": "1.3.3",
+          "@radix-ui/react-popper": "1.3.7",
+          "@radix-ui/react-portal": "1.1.17",
+          "@radix-ui/react-context": "1.2.2",
+          "@radix-ui/react-presence": "1.1.10",
+          "@radix-ui/react-primitive": "2.1.10",
+          "@radix-ui/react-compose-refs": "1.1.5",
+          "@radix-ui/react-visually-hidden": "1.2.11",
+          "@radix-ui/react-dismissable-layer": "1.1.19",
+          "@radix-ui/react-use-layout-effect": "1.1.4",
+          "@radix-ui/react-use-controllable-state": "1.2.6"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40radix-ui%2Freact-tooltip/latest"
+    },
+    {
+      "name": "class-variance-authority",
+      "declared": "^0.7.1",
+      "section": "dependencies",
+      "lockfileVersion": "0.7.1",
+      "installed": {
+        "version": "0.7.1",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "clsx": "^2.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.7.1",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "clsx": "^2.1.1"
+        }
+      },
+      "source": "https://registry.npmjs.org/class-variance-authority/latest"
+    },
+    {
+      "name": "clsx",
+      "declared": "^2.1.1",
+      "section": "dependencies",
+      "lockfileVersion": "2.1.1",
+      "installed": {
+        "version": "2.1.1",
+        "engines": {
+          "node": ">=6"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "2.1.1",
+        "engines": {
+          "node": ">=6"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/clsx/latest"
+    },
+    {
+      "name": "cmdk",
+      "declared": "^1.1.1",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.1",
+      "installed": {
+        "version": "1.1.1",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18 || ^19 || ^19.0.0-rc",
+          "react-dom": "^18 || ^19 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@radix-ui/react-compose-refs": "^1.1.1",
+          "@radix-ui/react-dialog": "^1.1.6",
+          "@radix-ui/react-id": "^1.1.0",
+          "@radix-ui/react-primitive": "^2.0.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.1",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18 || ^19 || ^19.0.0-rc",
+          "react-dom": "^18 || ^19 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@radix-ui/react-id": "^1.1.0",
+          "@radix-ui/react-dialog": "^1.1.6",
+          "@radix-ui/react-primitive": "^2.0.2",
+          "@radix-ui/react-compose-refs": "^1.1.1"
+        }
+      },
+      "source": "https://registry.npmjs.org/cmdk/latest"
+    },
+    {
+      "name": "d3",
+      "declared": "^7.9.0",
+      "section": "dependencies",
+      "lockfileVersion": "7.9.0",
+      "installed": {
+        "version": "7.9.0",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "d3-array": "3",
+          "d3-axis": "3",
+          "d3-brush": "3",
+          "d3-chord": "3",
+          "d3-color": "3",
+          "d3-contour": "4",
+          "d3-delaunay": "6",
+          "d3-dispatch": "3",
+          "d3-drag": "3",
+          "d3-dsv": "3",
+          "d3-ease": "3",
+          "d3-fetch": "3",
+          "d3-force": "3",
+          "d3-format": "3",
+          "d3-geo": "3",
+          "d3-hierarchy": "3",
+          "d3-interpolate": "3",
+          "d3-path": "3",
+          "d3-polygon": "3",
+          "d3-quadtree": "3",
+          "d3-random": "3",
+          "d3-scale": "4",
+          "d3-scale-chromatic": "3",
+          "d3-selection": "3",
+          "d3-shape": "3",
+          "d3-time": "3",
+          "d3-time-format": "4",
+          "d3-timer": "3",
+          "d3-transition": "3",
+          "d3-zoom": "3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "7.9.0",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "d3-dsv": "3",
+          "d3-geo": "3",
+          "d3-axis": "3",
+          "d3-drag": "3",
+          "d3-ease": "3",
+          "d3-path": "3",
+          "d3-time": "3",
+          "d3-zoom": "3",
+          "d3-array": "3",
+          "d3-brush": "3",
+          "d3-chord": "3",
+          "d3-color": "3",
+          "d3-fetch": "3",
+          "d3-force": "3",
+          "d3-scale": "4",
+          "d3-shape": "3",
+          "d3-timer": "3",
+          "d3-format": "3",
+          "d3-random": "3",
+          "d3-contour": "4",
+          "d3-polygon": "3",
+          "d3-delaunay": "6",
+          "d3-dispatch": "3",
+          "d3-quadtree": "3",
+          "d3-hierarchy": "3",
+          "d3-selection": "3",
+          "d3-transition": "3",
+          "d3-interpolate": "3",
+          "d3-time-format": "4",
+          "d3-scale-chromatic": "3"
+        }
+      },
+      "source": "https://registry.npmjs.org/d3/latest"
+    },
+    {
+      "name": "dotenv",
+      "declared": "^16.5.0",
+      "section": "dependencies",
+      "lockfileVersion": "16.5.0",
+      "installed": {
+        "version": "16.5.0",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "18.0.5",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/dotenv/latest"
+    },
+    {
+      "name": "drizzle-orm",
+      "declared": "^0.43.1",
+      "section": "dependencies",
+      "lockfileVersion": "0.43.1",
+      "installed": {
+        "version": "0.43.1",
+        "engines": null,
+        "peerDependencies": {
+          "@aws-sdk/client-rds-data": ">=3",
+          "@cloudflare/workers-types": ">=4",
+          "@electric-sql/pglite": ">=0.2.0",
+          "@libsql/client": ">=0.10.0",
+          "@libsql/client-wasm": ">=0.10.0",
+          "@neondatabase/serverless": ">=0.10.0",
+          "@op-engineering/op-sqlite": ">=2",
+          "@opentelemetry/api": "^1.4.1",
+          "@planetscale/database": ">=1.13",
+          "@prisma/client": "*",
+          "@tidbcloud/serverless": "*",
+          "@types/better-sqlite3": "*",
+          "@types/pg": "*",
+          "@types/sql.js": "*",
+          "@vercel/postgres": ">=0.8.0",
+          "@xata.io/client": "*",
+          "better-sqlite3": ">=7",
+          "bun-types": "*",
+          "expo-sqlite": ">=14.0.0",
+          "gel": ">=2",
+          "knex": "*",
+          "kysely": "*",
+          "mysql2": ">=2",
+          "pg": ">=8",
+          "postgres": ">=3",
+          "sql.js": ">=1",
+          "sqlite3": ">=5"
+        },
+        "peerDependenciesMeta": {
+          "mysql2": {
+            "optional": true
+          },
+          "@vercel/postgres": {
+            "optional": true
+          },
+          "@xata.io/client": {
+            "optional": true
+          },
+          "better-sqlite3": {
+            "optional": true
+          },
+          "@types/better-sqlite3": {
+            "optional": true
+          },
+          "sqlite3": {
+            "optional": true
+          },
+          "sql.js": {
+            "optional": true
+          },
+          "@types/sql.js": {
+            "optional": true
+          },
+          "@cloudflare/workers-types": {
+            "optional": true
+          },
+          "pg": {
+            "optional": true
+          },
+          "@types/pg": {
+            "optional": true
+          },
+          "postgres": {
+            "optional": true
+          },
+          "@neondatabase/serverless": {
+            "optional": true
+          },
+          "bun-types": {
+            "optional": true
+          },
+          "@aws-sdk/client-rds-data": {
+            "optional": true
+          },
+          "@planetscale/database": {
+            "optional": true
+          },
+          "knex": {
+            "optional": true
+          },
+          "kysely": {
+            "optional": true
+          },
+          "@libsql/client": {
+            "optional": true
+          },
+          "@libsql/client-wasm": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "expo-sqlite": {
+            "optional": true
+          },
+          "gel": {
+            "optional": true
+          },
+          "@op-engineering/op-sqlite": {
+            "optional": true
+          },
+          "@electric-sql/pglite": {
+            "optional": true
+          },
+          "@tidbcloud/serverless": {
+            "optional": true
+          },
+          "prisma": {
+            "optional": true
+          },
+          "@prisma/client": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.45.3",
+        "engines": null,
+        "peerDependencies": {
+          "pg": ">=8",
+          "gel": ">=2",
+          "knex": "*",
+          "kysely": "*",
+          "mysql2": ">=2",
+          "sql.js": ">=1",
+          "sqlite3": ">=5",
+          "postgres": ">=3",
+          "@types/pg": "*",
+          "bun-types": "*",
+          "@netlify/db": ">=0.4.0",
+          "expo-sqlite": ">=14.0.0",
+          "@types/sql.js": "*",
+          "@libsql/client": ">=0.10.0",
+          "@prisma/client": "*",
+          "@upstash/redis": ">=1.34.7",
+          "better-sqlite3": ">=7",
+          "@xata.io/client": "*",
+          "@vercel/postgres": ">=0.8.0",
+          "@opentelemetry/api": "^1.4.1",
+          "@libsql/client-wasm": ">=0.10.0",
+          "@electric-sql/pglite": ">=0.2.0",
+          "@planetscale/database": ">=1.13",
+          "@tidbcloud/serverless": "*",
+          "@types/better-sqlite3": "*",
+          "@aws-sdk/client-rds-data": ">=3",
+          "@neondatabase/serverless": ">=0.10.0",
+          "@cloudflare/workers-types": ">=4",
+          "@op-engineering/op-sqlite": ">=2"
+        },
+        "peerDependenciesMeta": {
+          "pg": {
+            "optional": true
+          },
+          "gel": {
+            "optional": true
+          },
+          "knex": {
+            "optional": true
+          },
+          "kysely": {
+            "optional": true
+          },
+          "mysql2": {
+            "optional": true
+          },
+          "prisma": {
+            "optional": true
+          },
+          "sql.js": {
+            "optional": true
+          },
+          "sqlite3": {
+            "optional": true
+          },
+          "postgres": {
+            "optional": true
+          },
+          "@types/pg": {
+            "optional": true
+          },
+          "bun-types": {
+            "optional": true
+          },
+          "@netlify/db": {
+            "optional": true
+          },
+          "expo-sqlite": {
+            "optional": true
+          },
+          "@types/sql.js": {
+            "optional": true
+          },
+          "@libsql/client": {
+            "optional": true
+          },
+          "@prisma/client": {
+            "optional": true
+          },
+          "@upstash/redis": {
+            "optional": true
+          },
+          "better-sqlite3": {
+            "optional": true
+          },
+          "@xata.io/client": {
+            "optional": true
+          },
+          "@vercel/postgres": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "@libsql/client-wasm": {
+            "optional": true
+          },
+          "@electric-sql/pglite": {
+            "optional": true
+          },
+          "@planetscale/database": {
+            "optional": true
+          },
+          "@tidbcloud/serverless": {
+            "optional": true
+          },
+          "@types/better-sqlite3": {
+            "optional": true
+          },
+          "@aws-sdk/client-rds-data": {
+            "optional": true
+          },
+          "@neondatabase/serverless": {
+            "optional": true
+          },
+          "@cloudflare/workers-types": {
+            "optional": true
+          },
+          "@op-engineering/op-sqlite": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/drizzle-orm/latest"
+    },
+    {
+      "name": "jotai",
+      "declared": "^2.12.4",
+      "section": "dependencies",
+      "lockfileVersion": "2.12.4",
+      "installed": {
+        "version": "2.12.4",
+        "engines": {
+          "node": ">=12.20.0"
+        },
+        "peerDependencies": {
+          "@types/react": ">=17.0.0",
+          "react": ">=17.0.0"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          },
+          "react": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "3.0.1",
+        "engines": {
+          "node": ">=22.12.0"
+        },
+        "peerDependencies": {
+          "react": ">=18.0.0",
+          "@types/react": ">=18.0.0"
+        },
+        "peerDependenciesMeta": {
+          "react": {
+            "optional": true
+          },
+          "@types/react": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/jotai/latest"
+    },
+    {
+      "name": "jsdom",
+      "declared": "^26.1.0",
+      "section": "dependencies",
+      "lockfileVersion": "26.1.0",
+      "installed": {
+        "version": "26.1.0",
+        "engines": {
+          "node": ">=18"
+        },
+        "peerDependencies": {
+          "canvas": "^3.0.0"
+        },
+        "peerDependenciesMeta": {
+          "canvas": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "cssstyle": "^4.2.1",
+          "data-urls": "^5.0.0",
+          "decimal.js": "^10.5.0",
+          "html-encoding-sniffer": "^4.0.0",
+          "http-proxy-agent": "^7.0.2",
+          "https-proxy-agent": "^7.0.6",
+          "is-potential-custom-element-name": "^1.0.1",
+          "nwsapi": "^2.2.16",
+          "parse5": "^7.2.1",
+          "rrweb-cssom": "^0.8.0",
+          "saxes": "^6.0.0",
+          "symbol-tree": "^3.2.4",
+          "tough-cookie": "^5.1.1",
+          "w3c-xmlserializer": "^5.0.0",
+          "webidl-conversions": "^7.0.0",
+          "whatwg-encoding": "^3.1.1",
+          "whatwg-mimetype": "^4.0.0",
+          "whatwg-url": "^14.1.1",
+          "ws": "^8.18.0",
+          "xml-name-validator": "^5.0.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "30.1.2",
+        "engines": {
+          "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+        },
+        "peerDependencies": {
+          "canvas": "^3.2.3"
+        },
+        "peerDependenciesMeta": {
+          "canvas": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "saxes": "^6.0.0",
+          "parse5": "^8.0.1",
+          "undici": "^8.11.2",
+          "css-tree": "^3.2.1",
+          "data-urls": "^8.0.0",
+          "lru-cache": "^11.5.3",
+          "decimal.js": "^10.6.0",
+          "whatwg-url": "^17.2.0",
+          "tough-cookie": "^6.0.2",
+          "@exodus/bytes": "^1.16.0",
+          "whatwg-mimetype": "^5.0.0",
+          "w3c-xmlserializer": "^6.0.0",
+          "webidl-conversions": "^8.0.1",
+          "xml-name-validator": "^5.0.0",
+          "@bramus/specificity": "^2.4.2",
+          "@asamuzakjp/css-color": "^7.1.3",
+          "html-encoding-sniffer": "^7.0.0",
+          "@asamuzakjp/dom-selector": "^9.2.4",
+          "is-potential-custom-element-name": "^1.0.1",
+          "@csstools/css-syntax-patches-for-csstree": "^1.1.15"
+        }
+      },
+      "source": "https://registry.npmjs.org/jsdom/latest"
+    },
+    {
+      "name": "lightweight-charts",
+      "declared": "^5.0.8",
+      "section": "dependencies",
+      "lockfileVersion": "5.0.8",
+      "installed": {
+        "version": "5.0.8",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "fancy-canvas": "2.1.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "5.2.1",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "fancy-canvas": "2.1.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/lightweight-charts/latest"
+    },
+    {
+      "name": "lucide-react",
+      "declared": "^0.511.0",
+      "section": "dependencies",
+      "lockfileVersion": "0.511.0",
+      "installed": {
+        "version": "0.511.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.52.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/lucide-react/latest"
+    },
+    {
+      "name": "motion",
+      "declared": "^12.23.22",
+      "section": "dependencies",
+      "lockfileVersion": "12.23.22",
+      "installed": {
+        "version": "12.23.22",
+        "engines": null,
+        "peerDependencies": {
+          "@emotion/is-prop-valid": "*",
+          "react": "^18.0.0 || ^19.0.0",
+          "react-dom": "^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {
+          "@emotion/is-prop-valid": {
+            "optional": true
+          },
+          "react": {
+            "optional": true
+          },
+          "react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "framer-motion": "^12.23.22",
+          "tslib": "^2.4.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "14.0.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18.0.0 || ^19.0.0",
+          "react-dom": "^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {
+          "react": {
+            "optional": true
+          },
+          "react-dom": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "tslib": "^2.4.0",
+          "framer-motion": "14.0.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/motion/latest"
+    },
+    {
+      "name": "next",
+      "declared": "15.5.4",
+      "section": "dependencies",
+      "lockfileVersion": "15.5.4",
+      "installed": {
+        "version": "15.5.4",
+        "engines": {
+          "node": "^18.18.0 || ^19.8.0 || >= 20.0.0"
+        },
+        "peerDependencies": {
+          "@opentelemetry/api": "^1.1.0",
+          "@playwright/test": "^1.51.1",
+          "babel-plugin-react-compiler": "*",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "sass": "^1.3.0"
+        },
+        "peerDependenciesMeta": {
+          "babel-plugin-react-compiler": {
+            "optional": true
+          },
+          "sass": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "@playwright/test": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@next/env": "15.5.4",
+          "@swc/helpers": "0.5.15",
+          "caniuse-lite": "^1.0.30001579",
+          "postcss": "8.4.31",
+          "styled-jsx": "5.1.6"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "16.3.8",
+        "engines": {
+          "node": ">=20.9.0"
+        },
+        "peerDependencies": {
+          "sass": "^1.3.0",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "@playwright/test": "^1.51.1",
+          "@opentelemetry/api": "^1.1.0",
+          "babel-plugin-react-compiler": "*"
+        },
+        "peerDependenciesMeta": {
+          "sass": {
+            "optional": true
+          },
+          "@playwright/test": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "babel-plugin-react-compiler": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "postcss": "8.5.23",
+          "@next/env": "16.3.8",
+          "styled-jsx": "5.1.6",
+          "@swc/helpers": "0.5.23",
+          "caniuse-lite": "^1.0.30001579",
+          "baseline-browser-mapping": "^2.9.19"
+        }
+      },
+      "source": "https://registry.npmjs.org/next/latest"
+    },
+    {
+      "name": "next-themes",
+      "declared": "^0.4.6",
+      "section": "dependencies",
+      "lockfileVersion": "0.4.6",
+      "installed": {
+        "version": "0.4.6",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.4.6",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
+          "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/next-themes/latest"
+    },
+    {
+      "name": "pg",
+      "declared": "^8.16.0",
+      "section": "dependencies",
+      "lockfileVersion": "8.16.0",
+      "installed": {
+        "version": "8.16.0",
+        "engines": {
+          "node": ">= 8.0.0"
+        },
+        "peerDependencies": {
+          "pg-native": ">=3.0.1"
+        },
+        "peerDependenciesMeta": {
+          "pg-native": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "pg-connection-string": "^2.9.0",
+          "pg-pool": "^3.10.0",
+          "pg-protocol": "^1.10.0",
+          "pg-types": "2.2.0",
+          "pgpass": "1.0.5"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "8.23.1",
+        "engines": {
+          "node": ">= 16.0.0"
+        },
+        "peerDependencies": {
+          "pg-native": ">=3.0.1"
+        },
+        "peerDependenciesMeta": {
+          "pg-native": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "pgpass": "1.0.5",
+          "pg-pool": "^3.14.0",
+          "pg-types": "2.2.0",
+          "pg-protocol": "^1.16.1",
+          "pg-cloudflare": "^1.4.1",
+          "pg-connection-string": "^2.14.1"
+        }
+      },
+      "source": "https://registry.npmjs.org/pg/latest"
+    },
+    {
+      "name": "postgres",
+      "declared": "^3.4.6",
+      "section": "dependencies",
+      "lockfileVersion": "3.4.6",
+      "installed": {
+        "version": "3.4.6",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "3.4.9",
+        "engines": {
+          "node": ">=12"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/postgres/latest"
+    },
+    {
+      "name": "react",
+      "declared": "^19.1.1",
+      "section": "dependencies",
+      "lockfileVersion": "19.1.1",
+      "installed": {
+        "version": "19.1.1",
+        "engines": {
+          "node": ">=0.10.0"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "19.3.0",
+        "engines": {
+          "node": ">=0.10.0"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/react/latest"
+    },
+    {
+      "name": "react-dom",
+      "declared": "^19.1.1",
+      "section": "dependencies",
+      "lockfileVersion": "19.1.1",
+      "installed": {
+        "version": "19.1.1",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^19.1.1"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "scheduler": "^0.26.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "19.3.0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^19.3.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "scheduler": "^0.28.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/react-dom/latest"
+    },
+    {
+      "name": "react-wrap-balancer",
+      "declared": "^1.1.1",
+      "section": "dependencies",
+      "lockfileVersion": "1.1.1",
+      "installed": {
+        "version": "1.1.1",
+        "engines": null,
+        "peerDependencies": {
+          "react": ">=16.8.0 || ^17.0.0 || ^18"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.1.1",
+        "engines": null,
+        "peerDependencies": {
+          "react": ">=16.8.0 || ^17.0.0 || ^18"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/react-wrap-balancer/latest"
+    },
+    {
+      "name": "recharts",
+      "declared": "^2.15.3",
+      "section": "dependencies",
+      "lockfileVersion": "2.15.3",
+      "installed": {
+        "version": "2.15.3",
+        "engines": {
+          "node": ">=14"
+        },
+        "peerDependencies": {
+          "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "clsx": "^2.0.0",
+          "eventemitter3": "^4.0.1",
+          "lodash": "^4.17.21",
+          "react-is": "^18.3.1",
+          "react-smooth": "^4.0.4",
+          "recharts-scale": "^0.4.4",
+          "tiny-invariant": "^1.3.1",
+          "victory-vendor": "^36.6.8"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "3.10.1",
+        "engines": {
+          "node": ">=18"
+        },
+        "peerDependencies": {
+          "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "react-is": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+          "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "clsx": "^2.1.1",
+          "immer": "^11.1.8",
+          "reselect": "5.2.0",
+          "es-toolkit": "^1.39.3",
+          "react-redux": "8.x.x || 9.x.x",
+          "eventemitter3": "^5.0.1",
+          "tiny-invariant": "^1.3.3",
+          "victory-vendor": "^37.0.2",
+          "@reduxjs/toolkit": "^1.9.0 || 2.x.x",
+          "decimal.js-light": "^2.5.1",
+          "use-sync-external-store": "^1.2.2"
+        }
+      },
+      "source": "https://registry.npmjs.org/recharts/latest"
+    },
+    {
+      "name": "shadcn",
+      "declared": "^2.5.0",
+      "section": "dependencies",
+      "lockfileVersion": "2.5.0",
+      "installed": {
+        "version": "2.5.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@antfu/ni": "^23.2.0",
+          "@babel/core": "^7.22.1",
+          "@babel/parser": "^7.22.6",
+          "@babel/plugin-transform-typescript": "^7.22.5",
+          "commander": "^10.0.0",
+          "cosmiconfig": "^8.1.3",
+          "deepmerge": "^4.3.1",
+          "diff": "^5.1.0",
+          "execa": "^7.0.0",
+          "fast-glob": "^3.3.2",
+          "fs-extra": "^11.1.0",
+          "https-proxy-agent": "^6.2.0",
+          "kleur": "^4.1.5",
+          "msw": "^2.7.1",
+          "node-fetch": "^3.3.0",
+          "ora": "^6.1.2",
+          "postcss": "^8.4.24",
+          "prompts": "^2.4.2",
+          "recast": "^0.23.2",
+          "stringify-object": "^5.0.0",
+          "ts-morph": "^18.0.0",
+          "tsconfig-paths": "^4.2.0",
+          "zod": "^3.20.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "4.21.1",
+        "engines": {
+          "node": ">=20.18.1"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "cn": "^0.2.4",
+          "ora": "^8.2.0",
+          "zod": "^3.24.1",
+          "diff": "^8.0.2",
+          "open": "^11.0.0",
+          "execa": "^9.6.0",
+          "kleur": "^4.1.5",
+          "socks": "^2.8.8",
+          "dedent": "^1.6.0",
+          "recast": "^0.23.11",
+          "undici": "^7.29.0",
+          "postcss": "^8.5.23",
+          "prompts": "^2.4.2",
+          "fs-extra": "^11.3.1",
+          "ts-morph": "^26.0.0",
+          "commander": "^14.0.0",
+          "deepmerge": "^4.3.1",
+          "fast-glob": "^3.3.3",
+          "fuzzysort": "^3.1.0",
+          "@babel/core": "^7.28.0",
+          "cosmiconfig": "^9.0.0",
+          "browserslist": "^4.26.2",
+          "@babel/parser": "^7.28.0",
+          "tsconfig-paths": "^4.2.0",
+          "@dotenvx/dotenvx": "^1.48.4",
+          "@shadcn/registry": "0.1.0",
+          "stringify-object": "^5.0.0",
+          "zod-to-json-schema": "^3.24.6",
+          "postcss-selector-parser": "^7.1.3",
+          "@babel/preset-typescript": "^7.27.1",
+          "@modelcontextprotocol/sdk": "^1.26.0",
+          "validate-npm-package-name": "^7.0.1",
+          "@types/validate-npm-package-name": "^4.0.2",
+          "@babel/plugin-transform-typescript": "^7.28.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/shadcn/latest"
+    },
+    {
+      "name": "sonner",
+      "declared": "^2.0.5",
+      "section": "dependencies",
+      "lockfileVersion": "2.0.5",
+      "installed": {
+        "version": "2.0.5",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+          "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "2.0.8",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+          "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+          "@types/react": "^18.0.0 || ^19.0.0"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/sonner/latest"
+    },
+    {
+      "name": "tailwind-merge",
+      "declared": "^3.3.0",
+      "section": "dependencies",
+      "lockfileVersion": "3.3.0",
+      "installed": {
+        "version": "3.3.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "3.7.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/tailwind-merge/latest"
+    },
+    {
+      "name": "@eslint/eslintrc",
+      "declared": "^3",
+      "section": "devDependencies",
+      "lockfileVersion": "3.3.1",
+      "installed": {
+        "version": "3.3.1",
+        "engines": {
+          "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "ajv": "^6.12.4",
+          "debug": "^4.3.2",
+          "espree": "^10.0.1",
+          "globals": "^14.0.0",
+          "ignore": "^5.2.0",
+          "import-fresh": "^3.2.1",
+          "js-yaml": "^4.1.0",
+          "minimatch": "^3.1.2",
+          "strip-json-comments": "^3.1.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "3.3.7",
+        "engines": {
+          "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "ajv": "^6.14.0",
+          "debug": "^4.3.2",
+          "espree": "^10.0.1",
+          "ignore": "^5.2.0",
+          "globals": "^14.0.0",
+          "js-yaml": "^4.3.2",
+          "minimatch": "^3.1.5",
+          "import-fresh": "^3.2.1",
+          "strip-json-comments": "^3.1.1"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40eslint%2Feslintrc/latest"
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "declared": "^4",
+      "section": "devDependencies",
+      "lockfileVersion": "4.1.7",
+      "installed": {
+        "version": "4.1.7",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@alloc/quick-lru": "^5.2.0",
+          "postcss": "^8.4.41",
+          "@tailwindcss/node": "4.1.7",
+          "@tailwindcss/oxide": "4.1.7",
+          "tailwindcss": "4.1.7"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "4.3.3",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "postcss": "^8.5.16",
+          "tailwindcss": "4.3.3",
+          "@alloc/quick-lru": "^5.2.0",
+          "@tailwindcss/node": "4.3.3",
+          "@tailwindcss/oxide": "4.3.3"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40tailwindcss%2Fpostcss/latest"
+    },
+    {
+      "name": "@types/d3",
+      "declared": "^7.4.3",
+      "section": "devDependencies",
+      "lockfileVersion": "7.4.3",
+      "installed": {
+        "version": "7.4.3",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@types/d3-array": "*",
+          "@types/d3-axis": "*",
+          "@types/d3-brush": "*",
+          "@types/d3-chord": "*",
+          "@types/d3-color": "*",
+          "@types/d3-contour": "*",
+          "@types/d3-delaunay": "*",
+          "@types/d3-dispatch": "*",
+          "@types/d3-drag": "*",
+          "@types/d3-dsv": "*",
+          "@types/d3-ease": "*",
+          "@types/d3-fetch": "*",
+          "@types/d3-force": "*",
+          "@types/d3-format": "*",
+          "@types/d3-geo": "*",
+          "@types/d3-hierarchy": "*",
+          "@types/d3-interpolate": "*",
+          "@types/d3-path": "*",
+          "@types/d3-polygon": "*",
+          "@types/d3-quadtree": "*",
+          "@types/d3-random": "*",
+          "@types/d3-scale": "*",
+          "@types/d3-scale-chromatic": "*",
+          "@types/d3-selection": "*",
+          "@types/d3-shape": "*",
+          "@types/d3-time": "*",
+          "@types/d3-time-format": "*",
+          "@types/d3-timer": "*",
+          "@types/d3-transition": "*",
+          "@types/d3-zoom": "*"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "7.4.3",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@types/d3-dsv": "*",
+          "@types/d3-geo": "*",
+          "@types/d3-axis": "*",
+          "@types/d3-drag": "*",
+          "@types/d3-ease": "*",
+          "@types/d3-path": "*",
+          "@types/d3-time": "*",
+          "@types/d3-zoom": "*",
+          "@types/d3-array": "*",
+          "@types/d3-brush": "*",
+          "@types/d3-chord": "*",
+          "@types/d3-color": "*",
+          "@types/d3-fetch": "*",
+          "@types/d3-force": "*",
+          "@types/d3-scale": "*",
+          "@types/d3-shape": "*",
+          "@types/d3-timer": "*",
+          "@types/d3-format": "*",
+          "@types/d3-random": "*",
+          "@types/d3-contour": "*",
+          "@types/d3-polygon": "*",
+          "@types/d3-delaunay": "*",
+          "@types/d3-dispatch": "*",
+          "@types/d3-quadtree": "*",
+          "@types/d3-hierarchy": "*",
+          "@types/d3-selection": "*",
+          "@types/d3-transition": "*",
+          "@types/d3-interpolate": "*",
+          "@types/d3-time-format": "*",
+          "@types/d3-scale-chromatic": "*"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40types%2Fd3/latest"
+    },
+    {
+      "name": "@types/jsdom",
+      "declared": "^21.1.7",
+      "section": "devDependencies",
+      "lockfileVersion": "21.1.7",
+      "installed": {
+        "version": "21.1.7",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@types/node": "*",
+          "@types/tough-cookie": "*",
+          "parse5": "^7.0.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "30.0.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "parse5": "^8.0.0",
+          "@types/node": "*",
+          "undici-types": "^8.9.0",
+          "@types/tough-cookie": "*"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40types%2Fjsdom/latest"
+    },
+    {
+      "name": "@types/node",
+      "declared": "^24.5.2",
+      "section": "devDependencies",
+      "lockfileVersion": "24.5.2",
+      "installed": {
+        "version": "24.5.2",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "undici-types": "~7.12.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "26.6.4",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "undici-types": "~8.9.0"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40types%2Fnode/latest"
+    },
+    {
+      "name": "@types/pg",
+      "declared": "^8.15.2",
+      "section": "devDependencies",
+      "lockfileVersion": "8.15.2",
+      "installed": {
+        "version": "8.15.2",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@types/node": "*",
+          "pg-protocol": "*",
+          "pg-types": "^4.0.1"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "8.23.1",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "pg-types": "^2.2.0",
+          "@types/node": "*",
+          "pg-protocol": "*"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40types%2Fpg/latest"
+    },
+    {
+      "name": "@types/react",
+      "declared": "^19.1.15",
+      "section": "devDependencies",
+      "lockfileVersion": "19.1.15",
+      "installed": {
+        "version": "19.1.15",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "csstype": "^3.0.2"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "19.3.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "csstype": "^3.2.2"
+        }
+      },
+      "source": "https://registry.npmjs.org/%40types%2Freact/latest"
+    },
+    {
+      "name": "@types/react-dom",
+      "declared": "^19.1.5",
+      "section": "devDependencies",
+      "lockfileVersion": "19.1.5",
+      "installed": {
+        "version": "19.1.5",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "^19.0.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "19.3.0",
+        "engines": null,
+        "peerDependencies": {
+          "@types/react": "^19.3.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/%40types%2Freact-dom/latest"
+    },
+    {
+      "name": "drizzle-kit",
+      "declared": "^0.31.1",
+      "section": "devDependencies",
+      "lockfileVersion": "0.31.1",
+      "installed": {
+        "version": "0.31.1",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@drizzle-team/brocli": "^0.10.2",
+          "@esbuild-kit/esm-loader": "^2.5.5",
+          "esbuild": "^0.25.2",
+          "esbuild-register": "^3.5.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "0.31.11",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "tsx": "^4.21.0",
+          "esbuild": "^0.25.4",
+          "@drizzle-team/brocli": "^0.10.2",
+          "@esbuild-kit/esm-loader": "^2.5.5"
+        }
+      },
+      "source": "https://registry.npmjs.org/drizzle-kit/latest"
+    },
+    {
+      "name": "eslint",
+      "declared": "^9",
+      "section": "devDependencies",
+      "lockfileVersion": "9.27.0",
+      "installed": {
+        "version": "9.27.0",
+        "engines": {
+          "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+        },
+        "peerDependencies": {
+          "jiti": "*"
+        },
+        "peerDependenciesMeta": {
+          "jiti": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@eslint-community/eslint-utils": "^4.2.0",
+          "@eslint-community/regexpp": "^4.12.1",
+          "@eslint/config-array": "^0.20.0",
+          "@eslint/config-helpers": "^0.2.1",
+          "@eslint/core": "^0.14.0",
+          "@eslint/eslintrc": "^3.3.1",
+          "@eslint/js": "9.27.0",
+          "@eslint/plugin-kit": "^0.3.1",
+          "@humanfs/node": "^0.16.6",
+          "@humanwhocodes/module-importer": "^1.0.1",
+          "@humanwhocodes/retry": "^0.4.2",
+          "@types/estree": "^1.0.6",
+          "@types/json-schema": "^7.0.15",
+          "ajv": "^6.12.4",
+          "chalk": "^4.0.0",
+          "cross-spawn": "^7.0.6",
+          "debug": "^4.3.2",
+          "escape-string-regexp": "^4.0.0",
+          "eslint-scope": "^8.3.0",
+          "eslint-visitor-keys": "^4.2.0",
+          "espree": "^10.3.0",
+          "esquery": "^1.5.0",
+          "esutils": "^2.0.2",
+          "fast-deep-equal": "^3.1.3",
+          "file-entry-cache": "^8.0.0",
+          "find-up": "^5.0.0",
+          "glob-parent": "^6.0.2",
+          "ignore": "^5.2.0",
+          "imurmurhash": "^0.1.4",
+          "is-glob": "^4.0.0",
+          "json-stable-stringify-without-jsonify": "^1.0.1",
+          "lodash.merge": "^4.6.2",
+          "minimatch": "^3.1.2",
+          "natural-compare": "^1.4.0",
+          "optionator": "^0.9.3"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "10.12.0",
+        "engines": {
+          "node": "^20.19.0 || ^22.13.0 || >=24"
+        },
+        "peerDependencies": {
+          "jiti": "*"
+        },
+        "peerDependenciesMeta": {
+          "jiti": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "ajv": "^6.14.0",
+          "debug": "^4.3.2",
+          "espree": "^11.2.0",
+          "ignore": "^5.2.0",
+          "esquery": "^1.7.0",
+          "esutils": "^2.0.2",
+          "find-up": "^5.0.0",
+          "is-glob": "^4.0.0",
+          "minimatch": "^10.2.5",
+          "optionator": "^0.9.3",
+          "cross-spawn": "^7.0.6",
+          "glob-parent": "^6.0.2",
+          "imurmurhash": "^0.1.4",
+          "@eslint/core": "^1.2.1",
+          "eslint-scope": "^9.1.2",
+          "@humanfs/node": "^0.16.6",
+          "@types/estree": "^1.0.6",
+          "fast-deep-equal": "^3.1.3",
+          "natural-compare": "^1.4.0",
+          "file-entry-cache": "11.1.5 || >11.1.6 <12",
+          "@eslint/plugin-kit": "^0.7.3",
+          "eslint-visitor-keys": "^5.0.1",
+          "@eslint/config-array": "^0.23.5",
+          "@humanwhocodes/retry": "^0.4.2",
+          "escape-string-regexp": "^4.0.0",
+          "@eslint/config-helpers": "^0.7.0",
+          "@eslint-community/regexpp": "^4.12.2",
+          "@eslint-community/eslint-utils": "^4.8.0",
+          "@humanwhocodes/module-importer": "^1.0.1",
+          "json-stable-stringify-without-jsonify": "^1.0.1"
+        }
+      },
+      "source": "https://registry.npmjs.org/eslint/latest"
+    },
+    {
+      "name": "eslint-config-next",
+      "declared": "15.5.4",
+      "section": "devDependencies",
+      "lockfileVersion": "15.5.4",
+      "installed": {
+        "version": "15.5.4",
+        "engines": null,
+        "peerDependencies": {
+          "eslint": "^7.23.0 || ^8.0.0 || ^9.0.0",
+          "typescript": ">=3.3.1"
+        },
+        "peerDependenciesMeta": {
+          "typescript": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "@next/eslint-plugin-next": "15.5.4",
+          "@rushstack/eslint-patch": "^1.10.3",
+          "@typescript-eslint/eslint-plugin": "^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+          "@typescript-eslint/parser": "^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+          "eslint-import-resolver-node": "^0.3.6",
+          "eslint-import-resolver-typescript": "^3.5.2",
+          "eslint-plugin-import": "^2.31.0",
+          "eslint-plugin-jsx-a11y": "^6.10.0",
+          "eslint-plugin-react": "^7.37.0",
+          "eslint-plugin-react-hooks": "^5.0.0"
+        }
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "16.3.8",
+        "engines": null,
+        "peerDependencies": {
+          "eslint": ">=9.0.0",
+          "typescript": ">=3.3.1"
+        },
+        "peerDependenciesMeta": {
+          "typescript": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "globals": "16.4.0",
+          "typescript-eslint": "^8.46.0",
+          "eslint-plugin-react": "^7.37.0",
+          "eslint-plugin-import": "^2.32.0",
+          "eslint-plugin-jsx-a11y": "^6.10.0",
+          "@next/eslint-plugin-next": "16.3.8",
+          "eslint-plugin-react-hooks": "^7.0.0",
+          "eslint-import-resolver-node": "^0.3.6",
+          "eslint-import-resolver-typescript": "^3.5.2"
+        }
+      },
+      "source": "https://registry.npmjs.org/eslint-config-next/latest"
+    },
+    {
+      "name": "tailwindcss",
+      "declared": "^4",
+      "section": "devDependencies",
+      "lockfileVersion": "4.1.7",
+      "installed": {
+        "version": "4.1.7",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "4.3.3",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/tailwindcss/latest"
+    },
+    {
+      "name": "tw-animate-css",
+      "declared": "^1.3.0",
+      "section": "devDependencies",
+      "lockfileVersion": "1.3.0",
+      "installed": {
+        "version": "1.3.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "1.4.0",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "source": "https://registry.npmjs.org/tw-animate-css/latest"
+    },
+    {
+      "name": "typescript",
+      "declared": "^5.9.2",
+      "section": "devDependencies",
+      "lockfileVersion": "5.9.2",
+      "installed": {
+        "version": "5.9.2",
+        "engines": {
+          "node": ">=14.17"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      },
+      "latestTag": "latest",
+      "latest": {
+        "version": "7.0.2",
+        "engines": {
+          "node": ">=16.20.0"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@typescript/typescript-aix-ppc64": "7.0.2",
+          "@typescript/typescript-linux-arm": "7.0.2",
+          "@typescript/typescript-linux-x64": "7.0.2",
+          "@typescript/typescript-sunos-x64": "7.0.2",
+          "@typescript/typescript-win32-x64": "7.0.2",
+          "@typescript/typescript-darwin-x64": "7.0.2",
+          "@typescript/typescript-netbsd-x64": "7.0.2",
+          "@typescript/typescript-freebsd-x64": "7.0.2",
+          "@typescript/typescript-linux-arm64": "7.0.2",
+          "@typescript/typescript-linux-ppc64": "7.0.2",
+          "@typescript/typescript-linux-s390x": "7.0.2",
+          "@typescript/typescript-openbsd-x64": "7.0.2",
+          "@typescript/typescript-win32-arm64": "7.0.2",
+          "@typescript/typescript-darwin-arm64": "7.0.2",
+          "@typescript/typescript-netbsd-arm64": "7.0.2",
+          "@typescript/typescript-freebsd-arm64": "7.0.2",
+          "@typescript/typescript-linux-loong64": "7.0.2",
+          "@typescript/typescript-linux-riscv64": "7.0.2",
+          "@typescript/typescript-openbsd-arm64": "7.0.2",
+          "@typescript/typescript-linux-mips64el": "7.0.2"
+        }
+      },
+      "source": "https://registry.npmjs.org/typescript/latest"
+    }
+  ],
+  "compatibility": {
+    "next": {
+      "source": "https://registry.npmjs.org/next",
+      "selectedMajor": 16,
+      "newestStableInMajor": "16.3.8",
+      "published": "2026-09-30T16:07:21.198Z",
+      "tags": {
+        "rc": "15.0.0-rc.1",
+        "beta": "16.0.0-beta.0",
+        "preview": "16.3.0-preview.10",
+        "latest": "16.3.8",
+        "backport": "15.5.27",
+        "canary": "16.4.0-canary.60"
+      },
+      "metadata": {
+        "version": "16.3.8",
+        "engines": {
+          "node": ">=20.9.0"
+        },
+        "peerDependencies": {
+          "sass": "^1.3.0",
+          "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+          "@playwright/test": "^1.51.1",
+          "@opentelemetry/api": "^1.1.0",
+          "babel-plugin-react-compiler": "*"
+        },
+        "peerDependenciesMeta": {
+          "sass": {
+            "optional": true
+          },
+          "@playwright/test": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "babel-plugin-react-compiler": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "postcss": "8.5.23",
+          "@next/env": "16.3.8",
+          "styled-jsx": "5.1.6",
+          "@swc/helpers": "0.5.23",
+          "caniuse-lite": "^1.0.30001579",
+          "baseline-browser-mapping": "^2.9.19"
+        }
+      }
+    },
+    "eslint": {
+      "source": "https://registry.npmjs.org/eslint",
+      "selectedMajor": 9,
+      "newestStableInMajor": "9.39.5",
+      "published": "2026-07-10T20:41:47.507Z",
+      "tags": {
+        "maintenance": "9.39.5",
+        "latest": "10.12.0"
+      },
+      "metadata": {
+        "version": "9.39.5",
+        "engines": {
+          "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+        },
+        "peerDependencies": {
+          "jiti": "*"
+        },
+        "peerDependenciesMeta": {
+          "jiti": {
+            "optional": true
+          }
+        },
+        "dependencies": {
+          "ajv": "^6.14.0",
+          "chalk": "^4.0.0",
+          "debug": "^4.3.2",
+          "espree": "^10.4.0",
+          "ignore": "^5.2.0",
+          "esquery": "^1.5.0",
+          "esutils": "^2.0.2",
+          "find-up": "^5.0.0",
+          "is-glob": "^4.0.0",
+          "minimatch": "^3.1.5",
+          "@eslint/js": "9.39.5",
+          "optionator": "^0.9.3",
+          "cross-spawn": "^7.0.6",
+          "glob-parent": "^6.0.2",
+          "imurmurhash": "^0.1.4",
+          "@eslint/core": "^0.17.0",
+          "eslint-scope": "^8.4.0",
+          "lodash.merge": "^4.6.2",
+          "@humanfs/node": "^0.16.6",
+          "@types/estree": "^1.0.6",
+          "fast-deep-equal": "^3.1.3",
+          "natural-compare": "^1.4.0",
+          "@eslint/eslintrc": "^3.3.6",
+          "file-entry-cache": "^8.0.0",
+          "@eslint/plugin-kit": "^0.4.1",
+          "eslint-visitor-keys": "^4.2.1",
+          "@eslint/config-array": "^0.21.2",
+          "@humanwhocodes/retry": "^0.4.2",
+          "escape-string-regexp": "^4.0.0",
+          "@eslint/config-helpers": "^0.4.2",
+          "@eslint-community/regexpp": "^4.12.1",
+          "@eslint-community/eslint-utils": "^4.8.0",
+          "@humanwhocodes/module-importer": "^1.0.1",
+          "json-stable-stringify-without-jsonify": "^1.0.1"
+        }
+      }
+    },
+    "typescript": {
+      "source": "https://registry.npmjs.org/typescript",
+      "selectedMajor": 5,
+      "newestStableInMajor": "5.9.3",
+      "published": "2025-09-30T21:19:38.784Z",
+      "tags": {
+        "beta": "6.0.0-beta",
+        "rc": "7.0.1-rc",
+        "latest": "7.0.2"
+      },
+      "metadata": {
+        "version": "5.9.3",
+        "engines": {
+          "node": ">=14.17"
+        },
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {}
+      }
+    },
+    "@types/node": {
+      "source": "https://registry.npmjs.org/%40types%2Fnode",
+      "selectedMajor": 22,
+      "newestStableInMajor": "22.20.5",
+      "published": "2026-10-01T22:38:10.803Z",
+      "tags": {
+        "old-version": "22.20.5",
+        "latest": "26.6.4"
+      },
+      "metadata": {
+        "version": "22.20.5",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "undici-types": "~6.21.0"
+        }
+      }
+    },
+    "typescript-eslint": {
+      "source": "https://registry.npmjs.org/typescript-eslint",
+      "selectedMajor": 8,
+      "newestStableInMajor": "8.71.0",
+      "published": "2026-09-28T17:12:00.356Z",
+      "tags": {
+        "latest": "8.71.0",
+        "canary": "8.71.1-alpha.11"
+      },
+      "metadata": {
+        "version": "8.71.0",
+        "engines": {
+          "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+        },
+        "peerDependencies": {
+          "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0",
+          "typescript": ">=4.8.4 <6.1.0"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "@typescript-eslint/utils": "8.71.0",
+          "@typescript-eslint/parser": "8.71.0",
+          "@typescript-eslint/eslint-plugin": "8.71.0",
+          "@typescript-eslint/typescript-estree": "8.71.0"
+        }
+      }
+    },
+    "eslint-plugin-react": {
+      "source": "https://registry.npmjs.org/eslint-plugin-react",
+      "selectedMajor": 7,
+      "newestStableInMajor": "7.37.5",
+      "published": "2025-04-03T20:01:15.958Z",
+      "tags": {
+        "latest": "7.37.5"
+      },
+      "metadata": {
+        "version": "7.37.5",
+        "engines": {
+          "node": ">=4"
+        },
+        "peerDependencies": {
+          "eslint": "^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7"
+        },
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "array-includes": "^3.1.8",
+          "array.prototype.findlast": "^1.2.5",
+          "array.prototype.flatmap": "^1.3.3",
+          "array.prototype.tosorted": "^1.1.4",
+          "doctrine": "^2.1.0",
+          "es-iterator-helpers": "^1.2.1",
+          "estraverse": "^5.3.0",
+          "hasown": "^2.0.2",
+          "jsx-ast-utils": "^2.4.1 || ^3.0.0",
+          "minimatch": "^3.1.2",
+          "object.entries": "^1.1.9",
+          "object.fromentries": "^2.0.8",
+          "object.values": "^1.2.1",
+          "prop-types": "^15.8.1",
+          "resolve": "^2.0.0-next.5",
+          "semver": "^6.3.1",
+          "string.prototype.matchall": "^4.0.12",
+          "string.prototype.repeat": "^1.0.0"
+        }
+      }
+    },
+    "drizzle-orm": {
+      "source": "https://registry.npmjs.org/drizzle-orm",
+      "selectedMajor": 0,
+      "newestStableInMajor": "0.45.3",
+      "published": "2026-09-21T10:06:39.969Z",
+      "tags": {
+        "latest": "0.45.3",
+        "beta": "1.0.0-beta.22",
+        "rc": "1.0.0-rc.4"
+      },
+      "metadata": {
+        "version": "0.45.3",
+        "engines": null,
+        "peerDependencies": {
+          "pg": ">=8",
+          "gel": ">=2",
+          "knex": "*",
+          "kysely": "*",
+          "mysql2": ">=2",
+          "sql.js": ">=1",
+          "sqlite3": ">=5",
+          "postgres": ">=3",
+          "@types/pg": "*",
+          "bun-types": "*",
+          "@netlify/db": ">=0.4.0",
+          "expo-sqlite": ">=14.0.0",
+          "@types/sql.js": "*",
+          "@libsql/client": ">=0.10.0",
+          "@prisma/client": "*",
+          "@upstash/redis": ">=1.34.7",
+          "better-sqlite3": ">=7",
+          "@xata.io/client": "*",
+          "@vercel/postgres": ">=0.8.0",
+          "@opentelemetry/api": "^1.4.1",
+          "@libsql/client-wasm": ">=0.10.0",
+          "@electric-sql/pglite": ">=0.2.0",
+          "@planetscale/database": ">=1.13",
+          "@tidbcloud/serverless": "*",
+          "@types/better-sqlite3": "*",
+          "@aws-sdk/client-rds-data": ">=3",
+          "@neondatabase/serverless": ">=0.10.0",
+          "@cloudflare/workers-types": ">=4",
+          "@op-engineering/op-sqlite": ">=2"
+        },
+        "peerDependenciesMeta": {
+          "pg": {
+            "optional": true
+          },
+          "gel": {
+            "optional": true
+          },
+          "knex": {
+            "optional": true
+          },
+          "kysely": {
+            "optional": true
+          },
+          "mysql2": {
+            "optional": true
+          },
+          "prisma": {
+            "optional": true
+          },
+          "sql.js": {
+            "optional": true
+          },
+          "sqlite3": {
+            "optional": true
+          },
+          "postgres": {
+            "optional": true
+          },
+          "@types/pg": {
+            "optional": true
+          },
+          "bun-types": {
+            "optional": true
+          },
+          "@netlify/db": {
+            "optional": true
+          },
+          "expo-sqlite": {
+            "optional": true
+          },
+          "@types/sql.js": {
+            "optional": true
+          },
+          "@libsql/client": {
+            "optional": true
+          },
+          "@prisma/client": {
+            "optional": true
+          },
+          "@upstash/redis": {
+            "optional": true
+          },
+          "better-sqlite3": {
+            "optional": true
+          },
+          "@xata.io/client": {
+            "optional": true
+          },
+          "@vercel/postgres": {
+            "optional": true
+          },
+          "@opentelemetry/api": {
+            "optional": true
+          },
+          "@libsql/client-wasm": {
+            "optional": true
+          },
+          "@electric-sql/pglite": {
+            "optional": true
+          },
+          "@planetscale/database": {
+            "optional": true
+          },
+          "@tidbcloud/serverless": {
+            "optional": true
+          },
+          "@types/better-sqlite3": {
+            "optional": true
+          },
+          "@aws-sdk/client-rds-data": {
+            "optional": true
+          },
+          "@neondatabase/serverless": {
+            "optional": true
+          },
+          "@cloudflare/workers-types": {
+            "optional": true
+          },
+          "@op-engineering/op-sqlite": {
+            "optional": true
+          }
+        },
+        "dependencies": {}
+      }
+    },
+    "drizzle-kit": {
+      "source": "https://registry.npmjs.org/drizzle-kit",
+      "selectedMajor": 0,
+      "newestStableInMajor": "0.31.11",
+      "published": "2026-09-21T10:06:58.727Z",
+      "tags": {
+        "latest": "0.31.11",
+        "beta": "1.0.0-beta.22",
+        "rc": "1.0.0-rc.4"
+      },
+      "metadata": {
+        "version": "0.31.11",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": {},
+        "dependencies": {
+          "tsx": "^4.21.0",
+          "esbuild": "^0.25.4",
+          "@drizzle-team/brocli": "^0.10.2",
+          "@esbuild-kit/esm-loader": "^2.5.5"
+        }
+      }
+    }
+  },
+  "recommendedCoreTargets": {
+    "next": "16.3.8",
+    "eslint-config-next": "16.3.8",
+    "@next/third-parties": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3"
+  },
+  "findings": [
+    "eslint-config-next 16.3.8 permits ESLint >=9 but depends on eslint-plugin-react ^7.37.0. Latest eslint-plugin-react 7.37.5 supports ESLint only through ^9.7.0, excluding latest ESLint 10.12.0.",
+    "typescript-eslint latest 8.71.0 supports TypeScript >=4.8.4 <6.1.0, excluding TypeScript latest 7.0.2. Keep compatible 5.9.3 for core framework upgrade.",
+    "Installed @next/third-parties 15.3.2 has Next peer ^13 || ^14 || ^15 and must be replaced or removed if moving to Next 16.",
+    "Recharts 2.15.3 already supports React 19. Its major upgrade is independent. components/chart-company-marketcap.tsx:309 consumes Customized injected yAxisMap and offset removed in Recharts 3 migration.",
+    "Active database adapter is drizzle-orm/postgres-js plus postgres in db/index.ts:1-2. No direct pg or @libsql/client import found in app/components/hooks/lib/db/scripts/tests.",
+    "Runtime and major dependency upgrades need separate gates. Latest jsdom 30.1.2 requires Node ^22.22.2 || ^24.15.0 || >=26.0.0, incompatible with current local 22.14.0 and CI20.",
+    "No Jotai atom/useAtom/useAtomValue/useSetAtom call found in app/components/hooks/lib; Jotai Provider remains in components/providers.tsx:4,12. Re-check product need before major upgrade or removal.",
+    "Shadcn is a CLI; upgrading the dependency does not regenerate copied components/ui source."
+  ],
+  "officialSources": [
+    "https://nextjs.org/docs/app/guides/upgrading/version-16",
+    "https://typescript-eslint.io/users/dependency-versions/",
+    "https://registry.npmjs.org/eslint-plugin-react/latest",
+    "https://github.com/recharts/recharts/wiki/3.0-migration-guide",
+    "https://github.com/drizzle-team/drizzle-orm/releases/tag/0.45.3"
+  ],
+  "limitations": [
+    "Registry metadata confirms declared peers and target versions, not runtime or build success.",
+    "No new install, lint, type check, build, DB read, workflow, or deployment executed by this subtask.",
+    "Active production deployment provider and last successful deploy remain unknown.",
+    "Import usage scan covers app/components/hooks/lib/db/scripts/tests TypeScript/JavaScript. Config use and CLI use considered separately; zero import is a cleanup candidate, not automatic proof of removability."
+  ]
+}

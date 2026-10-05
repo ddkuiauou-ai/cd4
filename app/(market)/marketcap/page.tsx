@@ -21,10 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
         title,
         description,
         keywords: ['주식', '시가총액', '순위', '종목', '랭킹', '투자', 'PER', 'PBR', '천하제일 단타 대회'],
+        alternates: {
+            canonical: `${siteConfig.url}/marketcap/`,
+        },
         openGraph: {
             title,
             description,
-            url: `${siteConfig.url}/marketcap`,
+            url: `${siteConfig.url}/marketcap/`,
             siteName: siteConfig.name,
             images: [
                 {

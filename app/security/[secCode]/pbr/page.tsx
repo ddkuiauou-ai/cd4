@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { SecurityMetricEmpty } from "@/components/security-metric-empty";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
@@ -48,7 +50,7 @@ interface SecurityPBRPageProps {
 /**
  * Generate metadata for the security PBR page
  */
-export async function generateMetadata({ params }: SecurityPBRPageProps) {
+export async function generateMetadata({ params }: SecurityPBRPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -59,7 +61,11 @@ export async function generateMetadata({ params }: SecurityPBRPageProps) {
     };
   }
 
+  const canonical = `${siteConfig.url}/security/${secCode}/pbr/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${security.korName || security.name} 주가순자산비율 PBR - CD3`,
     description: `${security.korName || security.name}의 연도별 주가순자산비율(PBR) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
@@ -87,7 +93,7 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('[GENERATE_STATIC_PARAMS] Error generating PBR params:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -127,12 +133,15 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
     // Get PBR rank
     getPbrRank(security.securityId),
     // Get company marketcap data for Interactive Securities Section
-    security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+    security.companyId ? getCompanyAggregatedMarketcap(security.companyId) : Promise.resolve(null)
   ]);
 
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
   if (!data || data.length === 0) {
-    notFound();
+    return <SecurityMetricEmpty
+      secCode={secCode}
+      displayName={security.korName || security.name || secCode}
+      metricLabel={ACTIVE_METRIC.label}
+    />;
   }
 
   // Find representative security (보통주)
@@ -163,11 +172,7 @@ export default async function SecurityPBRPage({ params }: SecurityPBRPageProps) 
         };
       } catch (error) {
         console.error(`Failed to get PBR data for ${sec.ticker}:`, error);
-        return {
-          ...sec,
-          pbr: null,
-          pbrDate: null,
-        };
+        throw error;
       }
     })
   );

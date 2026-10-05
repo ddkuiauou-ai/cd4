@@ -1,0 +1,3712 @@
+{
+  "checkedAt": "2026-10-05T03:49:35.239348+00:00",
+  "filesScanned": 206,
+  "errors": 205,
+  "warnings": 213,
+  "rules": {
+    "@typescript-eslint/no-explicit-any": {
+      "errors": 196,
+      "warnings": 0
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "errors": 0,
+      "warnings": 168
+    },
+    "@next/next/no-page-custom-font": {
+      "errors": 0,
+      "warnings": 1
+    },
+    "react-hooks/static-components": {
+      "errors": 0,
+      "warnings": 10
+    },
+    "react-hooks/set-state-in-effect": {
+      "errors": 0,
+      "warnings": 25
+    },
+    "react-hooks/refs": {
+      "errors": 0,
+      "warnings": 4
+    },
+    "@typescript-eslint/no-empty-object-type": {
+      "errors": 5,
+      "warnings": 0
+    },
+    "react-hooks/purity": {
+      "errors": 0,
+      "warnings": 1
+    },
+    "prefer-const": {
+      "errors": 4,
+      "warnings": 0
+    },
+    "react-hooks/preserve-manual-memoization": {
+      "errors": 0,
+      "warnings": 1
+    },
+    "react-hooks/exhaustive-deps": {
+      "errors": 0,
+      "warnings": 2
+    },
+    "import/no-anonymous-default-export": {
+      "errors": 0,
+      "warnings": 1
+    }
+  },
+  "files": [
+    {
+      "file": "app/(market)/bps/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/bps/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 85,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/div/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/div/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 86,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/dps/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/dps/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 86,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/eps/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/eps/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 86,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/marketcap/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 72,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/marketcap/page.tsx",
+      "errors": 3,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 15,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 54,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 91,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/marketcaps/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 127,
+          "column": 59,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/pbr/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/pbr/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 87,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/per/[page]/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/(market)/per/page.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 86,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/company/[secCode]/marketcap/page.tsx",
+      "errors": 8,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 21,
+          "column": 10,
+          "message": "'KeyMetricsSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 22,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 179,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 211,
+          "column": 21,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 227,
+          "column": 9,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 227,
+          "column": 17,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 238,
+          "column": 13,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 245,
+          "column": 61,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 334,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 674,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/layout.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 9,
+          "column": 10,
+          "message": "'GoogleAnalytics' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 10,
+          "column": 8,
+          "message": "'GoogleAdsense' is defined but never used."
+        },
+        {
+          "ruleId": "@next/next/no-page-custom-font",
+          "severity": 1,
+          "line": 178,
+          "column": 11,
+          "message": "Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font"
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/bps/page.tsx",
+      "errors": 3,
+      "warnings": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 18,
+          "column": 10,
+          "message": "'KeyMetricsSidebarBPS' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 19,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 29,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 187,
+          "column": 39,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 223,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 253,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 288,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 799,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/bps/page.tsx:799:20\n  797 |               ) : (\n  798 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>\n> 799 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  800 |                     title=\"BPS 차트 데이터 없음\"\n  801 |                     description=\"연간 BPS 데이터를 불러올 수 없습니다\"\n  802 |                     iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/bps/page.tsx:352:25\n  350 |\n  351 |   // 공통 NoData 컴포넌트\n> 352 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 353 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 354 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 373 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 374 |   );\n      | ^^^^ The component is created during render here\n  375 |\n  376 |   return (\n  377 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/div/page.tsx",
+      "errors": 3,
+      "warnings": 7,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 16,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 125,
+          "column": 9,
+          "message": "'commonSecurities' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 159,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 203,
+          "column": 11,
+          "message": "'binCount' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 292,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 322,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 357,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 396,
+          "column": 9,
+          "message": "'hasSidebarContent' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/dps/page.tsx",
+      "errors": 3,
+      "warnings": 7,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 15,
+          "column": 15,
+          "message": "'HeatMapSerie' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 20,
+          "column": 10,
+          "message": "'KeyMetricsSidebarDPS' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 21,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 30,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 188,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 218,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 253,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 256,
+          "column": 39,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 803,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/dps/page.tsx:803:20\n  801 |               ) : (\n  802 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>\n> 803 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  804 |                     title=\"DPS 차트 데이터 없음\"\n  805 |                     description=\"연간 DPS 데이터를 불러올 수 없습니다\"\n  806 |                     iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/dps/page.tsx:348:25\n  346 |\n  347 |   // Common NoData display component\n> 348 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 349 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 350 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 369 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 370 |   );\n      | ^^^^ The component is created during render here\n  371 |\n  372 |   return (\n  373 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/eps/page.tsx",
+      "errors": 2,
+      "warnings": 9,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 10,
+          "message": "'KeyMetricsSidebarEPS' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 18,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 25,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 40,
+          "column": 78,
+          "message": "'EPSData' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 40,
+          "column": 87,
+          "message": "'PeriodType' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 193,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 223,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 258,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 719,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:719:20\n  717 |               ) : (\n  718 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>\n> 719 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  720 |                     title=\"EPS 차트 데이터 없음\"\n  721 |                     description=\"연간 EPS 데이터를 불러올 수 없습니다\"\n  722 |                     iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:310:25\n  308 |\n  309 |   // 공통 NoData 컴포넌트\n> 310 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 311 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 312 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 331 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 332 |   );\n      | ^^^^ The component is created during render here\n  333 |\n  334 |   return (\n  335 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 733,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:733:20\n  731 |                   <ListEPSEnhanced data={result} />\n  732 |                 ) : (\n> 733 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  734 |                     title=\"연도별 EPS 데이터 없음\"\n  735 |                     description=\"시계열 데이터를 불러올 수 없습니다\"\n  736 |                     iconType=\"table\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:310:25\n  308 |\n  309 |   // 공통 NoData 컴포넌트\n> 310 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 311 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 312 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 331 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 332 |   );\n      | ^^^^ The component is created during render here\n  333 |\n  334 |   return (\n  335 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/marketcap/page.tsx",
+      "errors": 0,
+      "warnings": 5,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 29,
+          "column": 10,
+          "message": "'SidebarManager' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 33,
+          "column": 10,
+          "message": "'KeyMetricsSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 34,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 36,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 37,
+          "column": 10,
+          "message": "'NavigationCollapsible' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/page.tsx",
+      "errors": 2,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 216,
+          "column": 39,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 219,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/pbr/page.tsx",
+      "errors": 2,
+      "warnings": 18,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 11,
+          "column": 8,
+          "message": "'ChartPBREnhanced' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 10,
+          "message": "'KeyMetricsSidebarPBR' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 18,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 25,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 40,
+          "column": 78,
+          "message": "'PBRData' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 197,
+          "column": 9,
+          "message": "'rangeMin' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 198,
+          "column": 9,
+          "message": "'rangeMax' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 221,
+          "column": 9,
+          "message": "'pbr20Year' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 222,
+          "column": 9,
+          "message": "'pbr10Year' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 223,
+          "column": 9,
+          "message": "'pbr5Year' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 224,
+          "column": 9,
+          "message": "'pbr3Year' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 225,
+          "column": 9,
+          "message": "'pbr12Month' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 231,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 261,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 296,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 604,
+          "column": 22,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:604:22\n  602 |                       </div>\n  603 |                     ) : null}\n> 604 |                     <NoDataDisplay\n      |                      ^^^^^^^^^^^^^ This component is created during render\n  605 |                       title=\"PBR 히트맵 데이터 없음\"\n  606 |                       description=\"히트맵 데이터를 불러올 수 없습니다\"\n  607 |                       iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:348:25\n  346 |\n  347 |   // 공통 NoData 컴포넌트\n> 348 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 349 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 350 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 369 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 370 |   );\n      | ^^^^ The component is created during render here\n  371 |\n  372 |   return (\n  373 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 635,
+          "column": 22,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:635:22\n  633 |                       </div>\n  634 |                     ) : null}\n> 635 |                     <NoDataDisplay\n      |                      ^^^^^^^^^^^^^ This component is created during render\n  636 |                       title=\"PBR 분포 데이터 없음\"\n  637 |                       description=\"분포 데이터를 불러올 수 없습니다\"\n  638 |                       iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:348:25\n  346 |\n  347 |   // 공통 NoData 컴포넌트\n> 348 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 349 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 350 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 369 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 370 |   );\n      | ^^^^ The component is created during render here\n  371 |\n  372 |   return (\n  373 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 773,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:773:20\n  771 |               ) : (\n  772 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>\n> 773 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  774 |                     title=\"PBR 차트 데이터 없음\"\n  775 |                     description=\"연간 PBR 데이터를 불러올 수 없습니다\"\n  776 |                     iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:348:25\n  346 |\n  347 |   // 공통 NoData 컴포넌트\n> 348 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 349 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 350 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 369 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 370 |   );\n      | ^^^^ The component is created during render here\n  371 |\n  372 |   return (\n  373 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 787,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:787:20\n  785 |                   <ListPBRMarketcap data={result} />\n  786 |                 ) : (\n> 787 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  788 |                     title=\"연도별 PBR 데이터 없음\"\n  789 |                     description=\"시계열 데이터를 불러올 수 없습니다\"\n  790 |                     iconType=\"table\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:348:25\n  346 |\n  347 |   // 공통 NoData 컴포넌트\n> 348 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 349 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 350 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 369 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 370 |   );\n      | ^^^^ The component is created during render here\n  371 |\n  372 |   return (\n  373 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        }
+      ]
+    },
+    {
+      "file": "app/security/[secCode]/per/page.tsx",
+      "errors": 2,
+      "warnings": 10,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 14,
+          "column": 15,
+          "message": "'HeatMapSerie' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 19,
+          "column": 10,
+          "message": "'KeyMetricsSidebarPER' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 20,
+          "column": 10,
+          "message": "'RecentSecuritiesSidebar' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 26,
+          "column": 15,
+          "message": "'Price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 10,
+          "message": "'PageNavigation' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 29,
+          "column": 10,
+          "message": "'NavigationCollapsible' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 32,
+          "column": 10,
+          "message": "'addRecentlyViewedSecurity' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 44,
+          "column": 87,
+          "message": "'PeriodType' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 203,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 233,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 268,
+          "column": 25,
+          "message": "'sortedPricePoints' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 817,
+          "column": 20,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/per/page.tsx:817:20\n  815 |               ) : (\n  816 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>\n> 817 |                   <NoDataDisplay\n      |                    ^^^^^^^^^^^^^ This component is created during render\n  818 |                     title=\"PER 차트 데이터 없음\"\n  819 |                     description=\"연간 PER 데이터를 불러올 수 없습니다\"\n  820 |                     iconType=\"chart\"\n\n/Users/craigchoi/silla/cd4/app/security/[secCode]/per/page.tsx:363:25\n  361 |\n  362 |   // 공통 NoData 컴포넌트\n> 363 |   const NoDataDisplay = ({ title, description, iconType = \"chart\" }: {\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 364 |     title: string;\n      | ^^^^^^^^^^^^^^^^^^\n> 365 |     description: string;\n      …\n      | ^^^^^^^^^^^^^^^^^^\n> 384 |     </div>\n      | ^^^^^^^^^^^^^^^^^^\n> 385 |   );\n      | ^^^^ The component is created during render here\n  386 |\n  387 |   return (\n  388 |     <main className=\"relative py-4 sm:py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]\">"
+        }
+      ]
+    },
+    {
+      "file": "app/sitemap.xml/route.ts",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 2,
+          "column": 10,
+          "message": "'siteConfig' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/CsvDownloadButton.tsx",
+      "errors": 2,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 6,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 50,
+          "column": 11,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/animate-ui/icons/icon.tsx",
+      "errors": 0,
+      "warnings": 6,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 209,
+          "column": 5,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:209:5\n  207 |   React.useEffect(() => {\n  208 |     if (animate === undefined) return;\n> 209 |     setCurrentAnimation(typeof animate === 'string' ? animate : animation);\n      |     ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  210 |     if (animate) startAnimation(animate as TriggerProp);\n  211 |     else stopAnimation();\n  212 |     // eslint-disable-next-line react-hooks/exhaustive-deps"
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 243,
+          "column": 19,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:243:19\n  241 |   React.useEffect(() => {\n  242 |     if (!animateOnView) return;\n> 243 |     if (isInView) startAnimation(animateOnView);\n      |                   ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  244 |     else stopAnimation();\n  245 |   }, [isInView, animateOnView, startAnimation, stopAnimation]);\n  246 |"
+        },
+        {
+          "ruleId": "react-hooks/refs",
+          "severity": 1,
+          "line": 380,
+          "column": 5,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:380:5\n  378 |   const handleMouseEnter = composeEventHandlers<React.MouseEvent<HTMLElement>>(\n  379 |     childProps.onMouseEnter,\n> 380 |     () => {\n      |     ^^^^^^^\n> 381 |       if (animateOnHover) startAnimation(animateOnHover);\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 382 |     },\n      | ^^^^^^ Passing a ref to a function may read its value during render\n  383 |   );\n  384 |\n  385 |   const handleMouseLeave = composeEventHandlers<React.MouseEvent<HTMLElement>>("
+        },
+        {
+          "ruleId": "react-hooks/refs",
+          "severity": 1,
+          "line": 387,
+          "column": 5,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:387:5\n  385 |   const handleMouseLeave = composeEventHandlers<React.MouseEvent<HTMLElement>>(\n  386 |     childProps.onMouseLeave,\n> 387 |     () => {\n      |     ^^^^^^^\n> 388 |       if (animateOnHover || animateOnTap) stopAnimation();\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 389 |     },\n      | ^^^^^^ Passing a ref to a function may read its value during render\n  390 |   );\n  391 |\n  392 |   const handlePointerDown = composeEventHandlers<"
+        },
+        {
+          "ruleId": "react-hooks/refs",
+          "severity": 1,
+          "line": 394,
+          "column": 31,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:394:31\n  392 |   const handlePointerDown = composeEventHandlers<\n  393 |     React.PointerEvent<HTMLElement>\n> 394 |   >(childProps.onPointerDown, () => {\n      |                               ^^^^^^^\n> 395 |     if (animateOnTap) startAnimation(animateOnTap);\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 396 |   });\n      | ^^^^ Passing a ref to a function may read its value during render\n  397 |\n  398 |   const handlePointerUp = composeEventHandlers<React.PointerEvent<HTMLElement>>(\n  399 |     childProps.onPointerUp,"
+        },
+        {
+          "ruleId": "react-hooks/refs",
+          "severity": 1,
+          "line": 400,
+          "column": 5,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:400:5\n  398 |   const handlePointerUp = composeEventHandlers<React.PointerEvent<HTMLElement>>(\n  399 |     childProps.onPointerUp,\n> 400 |     () => {\n      |     ^^^^^^^\n> 401 |       if (animateOnTap) stopAnimation();\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 402 |     },\n      | ^^^^^^ Passing a ref to a function may read its value during render\n  403 |   );\n  404 |\n  405 |   const content = asChild ? ("
+        }
+      ]
+    },
+    {
+      "file": "components/animate-ui/primitives/animate/slot.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/static-components",
+          "severity": 1,
+          "line": 86,
+          "column": 6,
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\n/Users/craigchoi/silla/cd4/components/animate-ui/primitives/animate/slot.tsx:86:6\n  84 |\n  85 |   return (\n> 86 |     <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />\n     |      ^^^^ This component is created during render\n  87 |   );\n  88 | }\n  89 |\n\n/Users/craigchoi/silla/cd4/components/animate-ui/primitives/animate/slot.tsx:75:11\n  73 |       isAlreadyMotion\n  74 |         ? (children.type as React.ElementType)\n> 75 |         : motion.create(children.type as React.ElementType),\n     |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here\n  76 |     [isAlreadyMotion, children.type],\n  77 |   );\n  78 |"
+        }
+      ]
+    },
+    {
+      "file": "components/bps-chart-with-period-switcher.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 33,
+          "column": 76,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/bps-compact-list.tsx",
+      "errors": 4,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 48,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 55,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 105,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 108,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/card-company-marketcap.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 16,
+          "column": 54,
+          "message": "'market' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/card-marketcap.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 49,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-BPS-enhanced.tsx",
+      "errors": 3,
+      "warnings": 5,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 15,
+          "column": 5,
+          "message": "'formatNumberRaw' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'formatNumberRatio' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 18,
+          "column": 5,
+          "message": "'formatNumberPercent' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 54,
+          "column": 11,
+          "message": "'FormatFunctionMap' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 67,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-BPS-enhanced.tsx:67:13\n  65 |\n  66 |         if (typeof window !== 'undefined') {\n> 67 |             setWindowWidth(window.innerWidth);\n     |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  68 |             window.addEventListener('resize', handleResize);\n  69 |             return () => window.removeEventListener('resize', handleResize);\n  70 |         }"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 117,
+          "column": 58,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 118,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 165,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-DIV.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 35,
+          "column": 5,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-DIV.tsx:35:5\n  33 |\n  34 |   useEffect(() => {\n> 35 |     setIsClient(true);\n     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  36 |   }, []);\n  37 |\n  38 |   // 🎨 전문적인 그레이스케일 팔레트 (레이어링 최적화)"
+        }
+      ]
+    },
+    {
+      "file": "components/chart-EPS-enhanced.tsx",
+      "errors": 3,
+      "warnings": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 15,
+          "column": 5,
+          "message": "'formatNumberRaw' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'formatNumberRatio' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 18,
+          "column": 5,
+          "message": "'formatNumberPercent' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 53,
+          "column": 11,
+          "message": "'FormatFunctionMap' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 66,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-EPS-enhanced.tsx:66:13\n  64 |\n  65 |         if (typeof window !== 'undefined') {\n> 66 |             setWindowWidth(window.innerWidth);\n     |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  67 |             window.addEventListener('resize', handleResize);\n  68 |             return () => window.removeEventListener('resize', handleResize);\n  69 |         }"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 109,
+          "column": 58,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 110,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 113,
+          "column": 11,
+          "message": "'getBarColor' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 164,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-PBR-enhanced.tsx",
+      "errors": 3,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 40,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 126,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 139,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-PER-enhanced.tsx",
+      "errors": 3,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 40,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 128,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 141,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-a11y-description.tsx",
+      "errors": 2,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 7,
+          "column": 11,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 19,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-bps-distribution.tsx",
+      "errors": 1,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 15,
+          "message": "'BarChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 31,
+          "message": "'LineChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 113,
+          "column": 43,
+          "message": "'label' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 113,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-bps-heatmap.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "severity": 2,
+          "line": 8,
+          "column": 50,
+          "message": "The `{}` (\"empty object\") type allows any non-nullish value, including literals like `0` and `\"\"`.\n- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.\n- If you want a type meaning \"any object\", you probably want `object` instead.\n- If you want a type meaning \"any value\", you probably want `unknown` instead."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-company-marketcap.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 353,
+          "column": 9,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-company-marketcap.tsx:353:9\n  351 |\n  352 |     useEffect(() => {\n> 353 |         setIsClient(true);\n      |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  354 |         const checkMobile = () => setIsMobile(window.innerWidth < 768);\n  355 |         checkMobile();\n  356 |         window.addEventListener('resize', checkMobile);"
+        }
+      ]
+    },
+    {
+      "file": "components/chart-dps-distribution.tsx",
+      "errors": 1,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 15,
+          "message": "'BarChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 31,
+          "message": "'LineChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 111,
+          "column": 43,
+          "message": "'label' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 111,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-dps-growth.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 33,
+          "column": 9,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-dps-growth.tsx:33:9\n  31 |\n  32 |     useEffect(() => {\n> 33 |         setIsClient(true);\n     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  34 |     }, []);\n  35 |\n  36 |     const chartData = useMemo(() => {"
+        }
+      ]
+    },
+    {
+      "file": "components/chart-dps-heatmap.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "severity": 2,
+          "line": 8,
+          "column": 50,
+          "message": "The `{}` (\"empty object\") type allows any non-nullish value, including literals like `0` and `\"\"`.\n- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.\n- If you want a type meaning \"any object\", you probably want `object` instead.\n- If you want a type meaning \"any value\", you probably want `unknown` instead."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-loading-skeleton.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/purity",
+          "severity": 1,
+          "line": 24,
+          "column": 74,
+          "message": "Error: Cannot call impure function during render\n\n`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\n/Users/craigchoi/silla/cd4/components/chart-loading-skeleton.tsx:24:74\n  22 |                             className=\"bg-gray-300 rounded-t-sm flex-1\"\n  23 |                             style={{\n> 24 |                                 height: `${20 + Math.sin(i * 0.5) * 30 + Math.random() * 20}%`,\n     |                                                                          ^^^^^^^^^^^^^ Cannot call impure function\n  25 |                                 animationDelay: `${i * 0.1}s`\n  26 |                             }}\n  27 |                         />"
+        }
+      ]
+    },
+    {
+      "file": "components/chart-marketcap.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 55,
+          "column": 5,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-marketcap.tsx:55:5\n  53 |\n  54 |   useEffect(() => {\n> 55 |     setIsClient(true);\n     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  56 |   }, []);\n  57 |\n  58 |   // 🛡️ 데이터 안전성 검증"
+        }
+      ]
+    },
+    {
+      "file": "components/chart-per-distribution.tsx",
+      "errors": 1,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 15,
+          "message": "'BarChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 31,
+          "message": "'LineChart' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 113,
+          "column": 43,
+          "message": "'label' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 113,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-per-heatmap.tsx",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "severity": 2,
+          "line": 8,
+          "column": 48,
+          "message": "The `{}` (\"empty object\") type allows any non-nullish value, including literals like `0` and `\"\"`.\n- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.\n- If you want a type meaning \"any object\", you probably want `object` instead.\n- If you want a type meaning \"any value\", you probably want `unknown` instead."
+        }
+      ]
+    },
+    {
+      "file": "components/chart-pie-marketcap.tsx",
+      "errors": 2,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 102,
+          "column": 43,
+          "message": "'selectedType' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 102,
+          "column": 59,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 135,
+          "column": 82,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 253,
+          "column": 9,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/chart-pie-marketcap.tsx:253:9\n  251 |\n  252 |     useEffect(() => {\n> 253 |         setIsClient(true);\n      |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  254 |     }, []);\n  255 |\n  256 |     const chartData = useMemo(() => {"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 381,
+          "column": 60,
+          "message": "'index' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/div-compact-list.tsx",
+      "errors": 4,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 48,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 55,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 105,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 108,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/dps-compact-list.tsx",
+      "errors": 4,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 4,
+          "column": 10,
+          "message": "'usePathname' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 49,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 56,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 106,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 109,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/eps-compact-list.tsx",
+      "errors": 4,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 48,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 55,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 105,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 108,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/header-rank.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 11,
+          "column": 3,
+          "message": "'name' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/interactive-chart-section.tsx",
+      "errors": 7,
+      "warnings": 8,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 11,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 12,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 20,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 66,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "prefer-const",
+          "severity": 2,
+          "line": 69,
+          "column": 9,
+          "message": "'filteredHistory' is never reassigned. Use 'const' instead."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 80,
+          "column": 5,
+          "message": "'companySecs' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 82,
+          "column": 5,
+          "message": "'selectedTicker' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 83,
+          "column": 5,
+          "message": "'onTickerChange' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 86,
+          "column": 11,
+          "message": "'pathname' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 87,
+          "column": 11,
+          "message": "'searchParams' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 88,
+          "column": 23,
+          "message": "'startTransition' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 89,
+          "column": 25,
+          "message": "'setIsAnimating' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/preserve-manual-memoization",
+          "severity": 1,
+          "line": 100,
+          "column": 31,
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `companyMarketcapData`, but the source dependencies were [companyMarketcapData?.aggregatedHistory, companyMarketcapData?.securities, type]. Inferred less specific property than source.\n\n/Users/craigchoi/silla/cd4/components/interactive-chart-section.tsx:100:31\n   98 |\n   99 |     // 차트 데이터 준비 - 메모이제이션으로 성능 최적화\n> 100 |     const chartData = useMemo(() => {\n      |                               ^^^^^^^\n> 101 |         if (!companyMarketcapData?.aggregatedHistory?.length) return [];\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 102 |\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 134 |         });\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 135 |     }, [companyMarketcapData?.aggregatedHistory, companyMarketcapData?.securities, type]);\n      | ^^^^^^ Could not preserve existing manual memoization\n  136 |\n  137 |     // 🚨 데이터가 없는 경우 Empty State UI\n  138 |     if (!hasValidData) {"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 106,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 115,
+          "column": 63,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-section-bps.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 50,
+          "column": 11,
+          "message": "'getBPSChangeRate' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-section-dps.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 37,
+          "column": 5,
+          "message": "'security' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-section.tsx",
+      "errors": 33,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 11,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 12,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 13,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 14,
+          "column": 21,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 100,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 117,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 123,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 129,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 135,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 140,
+          "column": 89,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 152,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 163,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 170,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 177,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 184,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 190,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 196,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 202,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "prefer-const",
+          "severity": 2,
+          "line": 215,
+          "column": 13,
+          "message": "'ratios' is never reassigned. Use 'const' instead."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 216,
+          "column": 70,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 218,
+          "column": 92,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 219,
+          "column": 90,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 267,
+          "column": 82,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 276,
+          "column": 77,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 277,
+          "column": 79,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 283,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 286,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 301,
+          "column": 81,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 301,
+          "column": 89,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 338,
+          "column": 81,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 338,
+          "column": 89,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 341,
+          "column": 88,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 342,
+          "column": 86,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-bps.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 26,
+          "column": 5,
+          "message": "'bps5Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 5,
+          "message": "'bps10Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 5,
+          "message": "'bps20Year' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-div.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 41,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/key-metrics-sidebar-div.tsx:41:17\n  39 |             if (stored !== null) {\n  40 |                 const storedCollapsed = JSON.parse(stored);\n> 41 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  42 |                 onCollapsedChange?.(storedCollapsed);\n  43 |             }\n  44 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-dps.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 41,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/key-metrics-sidebar-dps.tsx:41:17\n  39 |             if (stored !== null) {\n  40 |                 const storedCollapsed = JSON.parse(stored);\n> 41 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  42 |                 onCollapsedChange?.(storedCollapsed);\n  43 |             }\n  44 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-eps.tsx",
+      "errors": 0,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 25,
+          "column": 5,
+          "message": "'eps5Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 26,
+          "column": 5,
+          "message": "'eps10Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 5,
+          "message": "'eps20Year' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 41,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/key-metrics-sidebar-eps.tsx:41:17\n  39 |             if (stored !== null) {\n  40 |                 const storedCollapsed = JSON.parse(stored);\n> 41 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  42 |                 onCollapsedChange?.(storedCollapsed);\n  43 |             }\n  44 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-marketcap.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 42,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/key-metrics-sidebar-marketcap.tsx:42:17\n  40 |             if (stored !== null) {\n  41 |                 const storedCollapsed = JSON.parse(stored);\n> 42 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  43 |                 onCollapsedChange?.(storedCollapsed);\n  44 |             }\n  45 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-pbr.tsx",
+      "errors": 0,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 25,
+          "column": 5,
+          "message": "'pbr5Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 26,
+          "column": 5,
+          "message": "'pbr10Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 5,
+          "message": "'pbr20Year' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 41,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/key-metrics-sidebar-pbr.tsx:41:17\n  39 |             if (stored !== null) {\n  40 |                 const storedCollapsed = JSON.parse(stored);\n> 41 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  42 |                 onCollapsedChange?.(storedCollapsed);\n  43 |             }\n  44 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar-per.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 26,
+          "column": 5,
+          "message": "'per5Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 27,
+          "column": 5,
+          "message": "'per10Year' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 5,
+          "message": "'per20Year' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/key-metrics-sidebar.tsx",
+      "errors": 11,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 4,
+          "column": 19,
+          "message": "'useState' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 10,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 11,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 12,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 85,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 99,
+          "column": 93,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 99,
+          "column": 101,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 104,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 108,
+          "column": 90,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 110,
+          "column": 90,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 118,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 129,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/list-EPS-enhanced.tsx",
+      "errors": 0,
+      "warnings": 7,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 21,
+          "column": 8,
+          "message": "'Rate' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 5,
+          "message": "'BarChart3' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 106,
+          "column": 12,
+          "message": "'selectedYear' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 106,
+          "column": 26,
+          "message": "'setSelectedYear' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 107,
+          "column": 12,
+          "message": "'showAllYears' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 107,
+          "column": 26,
+          "message": "'setShowAllYears' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-bps-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 16,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 22,
+          "column": 5,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 5,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-div-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 5,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 5,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-dps-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 5,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 5,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 3,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 3,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 3,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-pbr-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 5,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 5,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/list-per-marketcap.tsx",
+      "errors": 0,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 17,
+          "column": 5,
+          "message": "'TrendingDownIcon' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 23,
+          "column": 5,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 24,
+          "column": 5,
+          "message": "'TrendingDown' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/marketcap-compact-list.tsx",
+      "errors": 5,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 46,
+          "column": 73,
+          "message": "'metric' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 57,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 58,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 64,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 120,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 123,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/marketcap-sidebar-scroll-sync.tsx",
+      "errors": 2,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 16,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 17,
+          "column": 23,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/marketcap-summary-expandable.tsx",
+      "errors": 11,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 73,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 82,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 82,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 82,
+          "column": 62,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 82,
+          "column": 76,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 98,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 118,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 400,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 402,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 402,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 404,
+          "column": 48,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 404,
+          "column": 53,
+          "message": "'index' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/mode-toggle.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 16,
+          "column": 21,
+          "message": "'theme' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/navigation-collapsible.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 29,
+          "column": 17,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/navigation-collapsible.tsx:29:17\n  27 |             if (stored !== null) {\n  28 |                 const storedCollapsed = JSON.parse(stored);\n> 29 |                 setIsCollapsed(storedCollapsed);\n     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  30 |                 onCollapsedChange?.(storedCollapsed);\n  31 |             }\n  32 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/page-navigation.tsx",
+      "errors": 0,
+      "warnings": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 5,
+          "column": 10,
+          "message": "'ChevronDown' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 5,
+          "column": 23,
+          "message": "'ChevronUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 10,
+          "message": "'isCollapsed' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 28,
+          "column": 23,
+          "message": "'setIsCollapsed' is assigned a value but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 32,
+          "column": 7,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/page-navigation.tsx:32:7\n  30 |   useEffect(() => {\n  31 |     if (sections.length === 0) {\n> 32 |       setActiveSection(null);\n     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  33 |       activeRef.current = null;\n  34 |       return;\n  35 |     }"
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 80,
+          "column": 5,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/page-navigation.tsx:80:5\n  78 |   useEffect(() => {\n  79 |     const firstSection = sections[0]?.id ?? null;\n> 80 |     setActiveSection(firstSection);\n     |     ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  81 |     activeRef.current = firstSection;\n  82 |   }, [sections]);\n  83 |"
+        }
+      ]
+    },
+    {
+      "file": "components/pbr-compact-list.tsx",
+      "errors": 4,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 48,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 55,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 105,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 108,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/per-compact-list.tsx",
+      "errors": 4,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 49,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 56,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 106,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 109,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/rank-change.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 1,
+          "column": 36,
+          "message": "'Equal' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/rate.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 13,
+          "column": 9,
+          "message": "'isZero' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/recent-securities-sidebar.tsx",
+      "errors": 1,
+      "warnings": 5,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 5,
+          "column": 20,
+          "message": "'TrendingUp' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 5,
+          "column": 32,
+          "message": "'DollarSign' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 5,
+          "column": 44,
+          "message": "'BarChart3' is defined but never used."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 78,
+          "column": 9,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/recent-securities-sidebar.tsx:78:9\n  76 |     // 클라이언트 사이드에서만 실행\n  77 |     useEffect(() => {\n> 78 |         setMounted(true);\n     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  79 |         updateSecurities();\n  80 |     }, [updateSecurities]);\n  81 |"
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 85,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/recent-securities-sidebar.tsx:85:13\n  83 |     useEffect(() => {\n  84 |         if (mounted) {\n> 85 |             updateSecurities();\n     |             ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  86 |         }\n  87 |     }, [pathname, mounted, updateSecurities]);\n  88 |"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 297,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/recent-security-tracker.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "line": 49,
+          "column": 8,
+          "message": "React Hook useEffect has missing dependencies: 'exchange', 'korName', 'metricType', 'metricValue', 'name', and 'ticker'. Either include them or remove the dependency array."
+        }
+      ]
+    },
+    {
+      "file": "components/server-table.tsx",
+      "errors": 1,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 9,
+          "column": 10,
+          "message": "'formatNumber' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 15,
+          "column": 11,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/share-button.tsx",
+      "errors": 0,
+      "warnings": 2,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 52,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/share-button.tsx:52:13\n  50 |     useEffect(() => {\n  51 |         if (typeof navigator === \"undefined\") {\n> 52 |             setCanNativeShare(false);\n     |             ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  53 |             return;\n  54 |         }\n  55 |"
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 78,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/share-button.tsx:78:13\n  76 |     useEffect(() => {\n  77 |         if (typeof window === \"undefined\") {\n> 78 |             setIsSmallViewport(false);\n     |             ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  79 |             setMode(\"default\");\n  80 |             return;\n  81 |         }"
+        }
+      ]
+    },
+    {
+      "file": "components/sidebar-manager.tsx",
+      "errors": 2,
+      "warnings": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 33,
+          "message": "'useMemo' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 21,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 28,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 46,
+          "column": 12,
+          "message": "'navigationCollapsed' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 47,
+          "column": 12,
+          "message": "'keyMetricsCollapsed' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "components/simple-interactive-securities.tsx",
+      "errors": 19,
+      "warnings": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 16,
+          "column": 11,
+          "message": "'SecurityData' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 26,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 27,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 51,
+          "column": 5,
+          "message": "'onTickerChange' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 69,
+          "column": 11,
+          "message": "'pathname' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 82,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 101,
+          "column": 57,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 103,
+          "column": 20,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 103,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 119,
+          "column": 63,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 121,
+          "column": 26,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 127,
+          "column": 21,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 137,
+          "column": 38,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 161,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "prefer-const",
+          "severity": 2,
+          "line": 187,
+          "column": 13,
+          "message": "'newUrl' is never reassigned. Use 'const' instead."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 206,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 227,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 265,
+          "column": 9,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/simple-interactive-securities.tsx:265:9\n  263 |     // 마운트 처리\n  264 |     useEffect(() => {\n> 265 |         setMounted(true);\n      |         ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  266 |     }, []);\n  267 |\n  268 |     // 초기 필터 설정 - URL 파라미터 고려"
+        },
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 271,
+          "column": 13,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/simple-interactive-securities.tsx:271:13\n  269 |     useEffect(() => {\n  270 |         if (!mounted || !hasValidData) {\n> 271 |             setSelectedFilter(defaultFilter);\n      |             ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  272 |             return;\n  273 |         }\n  274 |"
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 327,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 352,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 435,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 435,
+          "column": 60,
+          "message": "'index' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 458,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 491,
+          "column": 63,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/spike-chart.tsx",
+      "errors": 3,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "line": 23,
+          "column": 7,
+          "message": "The 'chartData' array makes the dependencies of useEffect Hook (at line 105) change on every render. To fix this, wrap the initialization of 'chartData' in its own useMemo() Hook."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 70,
+          "column": 16,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 71,
+          "column": 16,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 76,
+          "column": 38,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "components/sticky-company-header.tsx",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 85,
+          "column": 7,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/components/sticky-company-header.tsx:85:7\n  83 |\n  84 |     if (!siteHeader) {\n> 85 |       setEffectiveOffset(prev => (prev === stickyOffset ? prev : stickyOffset));\n     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  86 |       return;\n  87 |     }\n  88 |"
+        }
+      ]
+    },
+    {
+      "file": "db/schema-postgres.ts",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 109,
+          "column": 4,
+          "message": "'table' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "hooks/use-collapsed-state.ts",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 1,
+          "line": 16,
+          "column": 21,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Users/craigchoi/silla/cd4/hooks/use-collapsed-state.ts:16:21\n  14 |                 try {\n  15 |                     const storedCollapsed = JSON.parse(stored);\n> 16 |                     setIsCollapsed(storedCollapsed);\n     |                     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  17 |                 } catch (error) {\n  18 |                     console.warn(`Failed to parse stored value for ${storageKey}:`, error);\n  19 |                 }"
+        }
+      ]
+    },
+    {
+      "file": "lib/bps-utils.ts",
+      "errors": 1,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 111,
+          "column": 38,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "lib/data/company.ts",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 3,
+          "column": 51,
+          "message": "'desc' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "lib/data/security.ts",
+      "errors": 6,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "prefer-const",
+          "severity": 2,
+          "line": 100,
+          "column": 11,
+          "message": "'pricesBySec' is never reassigned. Use 'const' instead."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 165,
+          "column": 81,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 185,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 389,
+          "column": 80,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 435,
+          "column": 80,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 456,
+          "column": 88,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "lib/eps-utils.ts",
+      "errors": 0,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 202,
+          "column": 16,
+          "message": "'weekKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 235,
+          "column": 16,
+          "message": "'monthKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 250,
+          "column": 11,
+          "message": "'sortedData' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 270,
+          "column": 16,
+          "message": "'yearKey' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "lib/pbr-utils.ts",
+      "errors": 0,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 204,
+          "column": 16,
+          "message": "'weekKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 237,
+          "column": 16,
+          "message": "'monthKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 252,
+          "column": 11,
+          "message": "'sortedData' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 272,
+          "column": 16,
+          "message": "'yearKey' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "lib/per-utils.ts",
+      "errors": 0,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 209,
+          "column": 12,
+          "message": "'weekKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 242,
+          "column": 12,
+          "message": "'monthKey' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 257,
+          "column": 9,
+          "message": "'sortedData' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 277,
+          "column": 12,
+          "message": "'yearKey' is defined but never used."
+        }
+      ]
+    },
+    {
+      "file": "lib/security-utils.ts",
+      "errors": 3,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 20,
+          "column": 43,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 38,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 57,
+          "column": 66,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "lib/select.ts",
+      "errors": 1,
+      "warnings": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 9,
+          "column": 29,
+          "message": "'price' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 12,
+          "column": 20,
+          "message": "'desc' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 12,
+          "column": 30,
+          "message": "'exists' is defined but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 24,
+          "column": 25,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 41,
+          "column": 7,
+          "message": "'formatDate' is assigned a value but never used."
+        }
+      ]
+    },
+    {
+      "file": "lib/utils.ts",
+      "errors": 2,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-unused-vars",
+          "severity": 1,
+          "line": 212,
+          "column": 13,
+          "message": "'year' is assigned a value but never used."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 240,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 244,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "tailwind.config.js",
+      "errors": 0,
+      "warnings": 1,
+      "messages": [
+        {
+          "ruleId": "import/no-anonymous-default-export",
+          "severity": 1,
+          "line": 4,
+          "column": 1,
+          "message": "Assign object to a variable before exporting as module default"
+        }
+      ]
+    },
+    {
+      "file": "types/nav.ts",
+      "errors": 5,
+      "warnings": 0,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "severity": 2,
+          "line": 16,
+          "column": 18,
+          "message": "An interface declaring no members is equivalent to its supertype."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-empty-object-type",
+          "severity": 2,
+          "line": 18,
+          "column": 18,
+          "message": "An interface declaring no members is equivalent to its supertype."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 49,
+          "column": 12,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 53,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 59,
+          "column": 20,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    }
+  ]
+}

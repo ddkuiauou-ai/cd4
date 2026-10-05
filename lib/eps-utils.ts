@@ -88,7 +88,7 @@ export function calculateEPSPeriodAnalysis(
 /**
  * Process EPS data for charts and analysis
  */
-export function processEPSData(data: Array<{ date: Date; eps: number | null }>): EPSData[] {
+export function processEPSData(data: Array<{ date: Date | string; eps: number | null }>): EPSData[] {
     return data
         .filter((item) => item.eps !== null && item.eps !== undefined && item.eps > 0)
         .map((item) => ({

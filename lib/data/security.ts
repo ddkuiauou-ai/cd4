@@ -211,7 +211,7 @@ export const getPricesBySecurityIds = cachedData(
 
 
 // Marketcap history by securityId
-export const getMarketCapHistoryBySecurityId = unstable_cache(
+export const getMarketCapHistoryBySecurityId = cachedData(
   async (securityId: string) => {
     try {
       if (!securityId) return [] as Array<{
@@ -232,17 +232,26 @@ export const getMarketCapHistoryBySecurityId = unstable_cache(
       return marketcaps;
     } catch (e) {
       console.error("[getMarketCapHistoryBySecurityId] ERROR:", e);
-      return [];
+      throw e;
     }
   },
-  ["getMarketCapHistoryBySecurityId"],
-  { tags: ["getMarketCapHistoryBySecurityId"] }
+  "getMarketCapHistoryBySecurityId",
+  ["getMarketCapHistoryBySecurityId"]
 );
 
-export const getMarketCapHistoryBySecurityIds = unstable_cache(
+type MarketcapHistoryRow = {
+  date: Date;
+  marketcap: number;
+  ticker: string | null;
+  name: string | null;
+  korName: string | null;
+  exchange: string | null;
+};
+
+export const getMarketCapHistoryBySecurityIds = cachedData(
   async (securityIds: string[]) => {
     try {
-      if (!securityIds || securityIds.length === 0) return {} as Record<string, any[]>;
+      if (!securityIds || securityIds.length === 0) return {} as Record<string, MarketcapHistoryRow[]>;
       const marketcaps = await db.query.marketcap.findMany({
         where: inArray(schema.marketcap.securityId, securityIds),
         columns: {
@@ -256,7 +265,7 @@ export const getMarketCapHistoryBySecurityIds = unstable_cache(
         },
         orderBy: [schema.marketcap.securityId, asc(schema.marketcap.date)],
       });
-      const grouped: Record<string, any[]> = {};
+      const grouped: Record<string, MarketcapHistoryRow[]> = {};
       marketcaps.forEach((m) => {
         if (!m.securityId) return;
         if (!grouped[m.securityId]) grouped[m.securityId] = [];
@@ -272,15 +281,15 @@ export const getMarketCapHistoryBySecurityIds = unstable_cache(
       return grouped;
     } catch (e) {
       console.error("[getMarketCapHistoryBySecurityIds] ERROR:", e);
-      return {};
+      throw e;
     }
   },
-  ["getMarketCapHistoryBySecurityIds"],
-  { tags: ["getMarketCapHistoryBySecurityIds"] }
+  "getMarketCapHistoryBySecurityIds",
+  ["getMarketCapHistoryBySecurityIds"]
 );
 
 // Neighbor navigation for security marketcap
-export const getSecurityMarketCapPageData = unstable_cache(
+export const getSecurityMarketCapPageData = cachedData(
   async (rank: number) => {
     try {
       // Find the most recent date in security_rank for marketcap
@@ -328,11 +337,11 @@ export const getSecurityMarketCapPageData = unstable_cache(
       return rows.filter((item) => item.marketcapRank !== null);
     } catch (e) {
       console.error(`[getSecurityMarketCapPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityMarketCapPageData"],
-  { tags: ["getSecurityMarketCapPageData"] }
+  "getSecurityMarketCapPageData",
+  ["getSecurityMarketCapPageData"]
 );
 
 // ---------- Security lookup and metrics (migrated from getSecCode/getSecurities) ----------
@@ -343,7 +352,7 @@ function parseSecCode(secCode: string): { market: string; code: string } | null 
   return { market: parts[0], code: parts[1] };
 }
 
-export const getSecurityByCode = unstable_cache(
+export const getSecurityByCode = cachedData(
   async (secCode: string) => {
     try {
       const parsed = parseSecCode(secCode);
@@ -451,14 +460,14 @@ export const getSecurityByCode = unstable_cache(
       return null;
     } catch (e) {
       console.error(`[getSecurityByCode] Error for "${secCode}"`, e);
-      return null;
+      throw e;
     }
   },
-  ['getSecurityByCode'],
-  { tags: ['getSecurityByCode'] }
+  "getSecurityByCode",
+  ['getSecurityByCode']
 );
 
-export const getCompanySecurities = unstable_cache(
+export const getCompanySecurities = cachedData(
   async (companyId: string) => {
     try {
       if (!companyId) return [];
@@ -530,14 +539,14 @@ export const getCompanySecurities = unstable_cache(
       return securities.filter(s => s.companyId !== null && s.marketcap !== null).map(s => ({ ...s, companyId: s.companyId!, marketcap: s.marketcap! }));
     } catch (e) {
       console.error('[getCompanySecurities] ERROR:', e);
-      return [];
+      throw e;
     }
   },
-  ['getCompanySecurities'],
-  { tags: ['getCompanySecurities'] }
+  "getCompanySecurities",
+  ['getCompanySecurities']
 );
 
-export const getSecurityMetricsHistory = unstable_cache(
+export const getSecurityMetricsHistory = cachedData(
   async (securityId: string) => {
     try {
       if (!securityId) return [] as Array<{ date: Date; bps: number | null; per: number | null; pbr: number | null; eps: number | null; div: number | null; dps: number | null }>;
@@ -550,11 +559,11 @@ export const getSecurityMetricsHistory = unstable_cache(
       return data;
     } catch (e) {
       console.error('[getSecurityMetricsHistory] ERROR:', e);
-      return [];
+      throw e;
     }
   },
-  ['getSecurityMetricsHistory'],
-  { tags: ['getSecurityMetricsHistory'] }
+  "getSecurityMetricsHistory",
+  ['getSecurityMetricsHistory']
 );
 
 // ===== Metrics rankings (PER, PBR, DIV, DPS, BPS, EPS) =====
@@ -820,21 +829,19 @@ export const countSecurityMarketcap = unstable_cache(async () => {
 }, ["countSecurityMarketcap"], { tags: ["countSecurityMarketcap"], revalidate: 3600 });
 
 // Rank helpers
-export const getPerRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.per), ne(schema.security.per, 0), isNull(schema.security.delistingDate)),
-      columns: { per: true },
-    });
-    if (!target?.per) return null;
-    const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
-      .where(and(lt(schema.security.per, target.per), isNotNull(schema.security.per), ne(schema.security.per, 0), isNull(schema.security.delistingDate)));
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch { return null; }
-}, ["getPerRank"], { tags: ["getPerRank"] });
+export const getPerRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.per), ne(schema.security.per, 0), isNull(schema.security.delistingDate)),
+    columns: { per: true },
+  });
+  if (!target?.per) return null;
+  const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
+    .where(and(lt(schema.security.per, target.per), isNotNull(schema.security.per), ne(schema.security.per, 0), isNull(schema.security.delistingDate)));
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getPerRank", ["getPerRank"]);
 
 // Neighbor navigation for security PER
-export const getSecurityPerPageData = unstable_cache(
+export const getSecurityPerPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with PER data, ordered by PER ascending (lower PER = higher rank)
@@ -875,15 +882,15 @@ export const getSecurityPerPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityPerPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityPerPageData"],
-  { tags: ["getSecurityPerPageData"] }
+  "getSecurityPerPageData",
+  ["getSecurityPerPageData"]
 );
 
 // Neighbor navigation for security PBR
-export const getSecurityPbrPageData = unstable_cache(
+export const getSecurityPbrPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with PBR data, ordered by PBR ascending (lower PBR = higher rank)
@@ -924,15 +931,15 @@ export const getSecurityPbrPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityPbrPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityPbrPageData"],
-  { tags: ["getSecurityPbrPageData"] }
+  "getSecurityPbrPageData",
+  ["getSecurityPbrPageData"]
 );
 
 // Neighbor navigation for security DIV
-export const getSecurityDivPageData = unstable_cache(
+export const getSecurityDivPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with DIV data, ordered by DIV descending (higher DIV = higher rank)
@@ -973,15 +980,15 @@ export const getSecurityDivPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityDivPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityDivPageData"],
-  { tags: ["getSecurityDivPageData"] }
+  "getSecurityDivPageData",
+  ["getSecurityDivPageData"]
 );
 
 // Neighbor navigation for security EPS
-export const getSecurityEpsPageData = unstable_cache(
+export const getSecurityEpsPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with EPS data, ordered by EPS descending (higher EPS = higher rank)
@@ -1021,15 +1028,15 @@ export const getSecurityEpsPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityEpsPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityEpsPageData"],
-  { tags: ["getSecurityEpsPageData"] }
+  "getSecurityEpsPageData",
+  ["getSecurityEpsPageData"]
 );
 
 // Neighbor navigation for security DPS
-export const getSecurityDpsPageData = unstable_cache(
+export const getSecurityDpsPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with DPS data, ordered by DPS descending (higher DPS = higher rank)
@@ -1070,15 +1077,15 @@ export const getSecurityDpsPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityDpsPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityDpsPageData"],
-  { tags: ["getSecurityDpsPageData"] }
+  "getSecurityDpsPageData",
+  ["getSecurityDpsPageData"]
 );
 
 // Neighbor navigation for security BPS
-export const getSecurityBpsPageData = unstable_cache(
+export const getSecurityBpsPageData = cachedData(
   async (rank: number) => {
     try {
       // Get securities with BPS data, ordered by BPS descending (higher BPS = higher rank)
@@ -1119,91 +1126,79 @@ export const getSecurityBpsPageData = unstable_cache(
       return targetItems;
     } catch (e) {
       console.error(`[getSecurityBpsPageData] ERROR for rank ${rank}:`, e);
-      return [];
+      throw e;
     }
   },
-  ["getSecurityBpsPageData"],
-  { tags: ["getSecurityBpsPageData"] }
+  "getSecurityBpsPageData",
+  ["getSecurityBpsPageData"]
 );
 
-export const getPbrRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.pbr), ne(schema.security.pbr, 0), isNull(schema.security.delistingDate)),
-      columns: { pbr: true },
-    });
-    if (!target?.pbr) return null;
-    const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
-      .where(and(sql`${schema.security.pbr} < ${target.pbr}`, isNotNull(schema.security.pbr), ne(schema.security.pbr, 0), isNull(schema.security.delistingDate)));
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch { return null; }
-}, ["getPbrRank"], { tags: ["getPbrRank"] });
+export const getPbrRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.pbr), ne(schema.security.pbr, 0), isNull(schema.security.delistingDate)),
+    columns: { pbr: true },
+  });
+  if (!target?.pbr) return null;
+  const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
+    .where(and(sql`${schema.security.pbr} < ${target.pbr}`, isNotNull(schema.security.pbr), ne(schema.security.pbr, 0), isNull(schema.security.delistingDate)));
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getPbrRank", ["getPbrRank"]);
 
-export const getDivRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.div), ne(schema.security.div, 0), isNull(schema.security.delistingDate)),
-      columns: { div: true },
-    });
-    if (!target?.div) return null;
-    const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
-      .where(and(sql`${schema.security.div} > ${target.div}`, isNotNull(schema.security.div), ne(schema.security.div, 0), isNull(schema.security.delistingDate)));
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch { return null; }
-}, ["getDivRank"], { tags: ["getDivRank"] });
+export const getDivRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.div), ne(schema.security.div, 0), isNull(schema.security.delistingDate)),
+    columns: { div: true },
+  });
+  if (!target?.div) return null;
+  const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
+    .where(and(sql`${schema.security.div} > ${target.div}`, isNotNull(schema.security.div), ne(schema.security.div, 0), isNull(schema.security.delistingDate)));
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getDivRank", ["getDivRank"]);
 
-export const getEpsRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.eps), ne(schema.security.eps, 0), isNull(schema.security.delistingDate)),
-      columns: { eps: true },
-    });
-    if (!target?.eps) return null;
-    const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
-      .where(and(sql`${schema.security.eps} > ${target.eps}`, isNotNull(schema.security.eps), ne(schema.security.eps, 0), isNull(schema.security.delistingDate)));
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch { return null; }
-}, ["getEpsRank"], { tags: ["getEpsRank"] });
+export const getEpsRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.eps), ne(schema.security.eps, 0), isNull(schema.security.delistingDate)),
+    columns: { eps: true },
+  });
+  if (!target?.eps) return null;
+  const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
+    .where(and(sql`${schema.security.eps} > ${target.eps}`, isNotNull(schema.security.eps), ne(schema.security.eps, 0), isNull(schema.security.delistingDate)));
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getEpsRank", ["getEpsRank"]);
 
-export const getDpsRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.dps), ne(schema.security.dps, 0), isNull(schema.security.delistingDate)),
-      columns: { dps: true },
-    });
-    if (!target?.dps) return null;
-    const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
-      .where(and(sql`${schema.security.dps} > ${target.dps}`, isNotNull(schema.security.dps), ne(schema.security.dps, 0), isNull(schema.security.delistingDate)));
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch { return null; }
-}, ["getDpsRank"], { tags: ["getDpsRank"] });
+export const getDpsRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(eq(schema.security.securityId, securityId), isNotNull(schema.security.dps), ne(schema.security.dps, 0), isNull(schema.security.delistingDate)),
+    columns: { dps: true },
+  });
+  if (!target?.dps) return null;
+  const result = await db.select({ count: sql`COUNT(*)` }).from(schema.security)
+    .where(and(sql`${schema.security.dps} > ${target.dps}`, isNotNull(schema.security.dps), ne(schema.security.dps, 0), isNull(schema.security.delistingDate)));
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getDpsRank", ["getDpsRank"]);
 
-export const getBpsRank = unstable_cache(async (securityId: string) => {
-  try {
-    const target = await db.query.security.findFirst({
-      where: and(
-        eq(schema.security.securityId, securityId),
+export const getBpsRank = cachedData(async (securityId: string) => {
+  const target = await db.query.security.findFirst({
+    where: and(
+      eq(schema.security.securityId, securityId),
+      isNotNull(schema.security.bps),
+      ne(schema.security.bps, 0),
+      isNull(schema.security.delistingDate)
+    ),
+    columns: { bps: true },
+  });
+  if (!target?.bps) return null;
+  // Higher BPS is better → rank by count of securities with higher BPS
+  const result = await db
+    .select({ count: sql`COUNT(*)` })
+    .from(schema.security)
+    .where(
+      and(
+        sql`${schema.security.bps} > ${target.bps}`,
         isNotNull(schema.security.bps),
         ne(schema.security.bps, 0),
         isNull(schema.security.delistingDate)
-      ),
-      columns: { bps: true },
-    });
-    if (!target?.bps) return null;
-    // Higher BPS is better → rank by count of securities with higher BPS
-    const result = await db
-      .select({ count: sql`COUNT(*)` })
-      .from(schema.security)
-      .where(
-        and(
-          sql`${schema.security.bps} > ${target.bps}`,
-          isNotNull(schema.security.bps),
-          ne(schema.security.bps, 0),
-          isNull(schema.security.delistingDate)
-        )
-      );
-    return (Number(result[0]?.count) || 0) + 1;
-  } catch {
-    return null;
-  }
-}, ["getBpsRank"], { tags: ["getBpsRank"] });
+      )
+    );
+  return (Number(result[0]?.count) || 0) + 1;
+}, "getBpsRank", ["getBpsRank"]);

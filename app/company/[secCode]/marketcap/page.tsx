@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
@@ -103,7 +104,7 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('[GENERATE_STATIC_PARAMS] Error generating company marketcap params:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -112,6 +113,16 @@ export async function generateStaticParams() {
  */
 interface CompanyMarketcapPageProps {
   params: Promise<{ secCode: string }>;
+}
+
+export async function generateMetadata({ params }: CompanyMarketcapPageProps, parent: ResolvingMetadata): Promise<Metadata> {
+  const { secCode } = await params;
+  const canonical = `${siteConfig.url}/company/${secCode}/marketcap/`;
+
+  return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
+  };
 }
 
 export default async function CompanyMarketcapPage({ params }: CompanyMarketcapPageProps) {
@@ -252,19 +263,17 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
     const history = companyMarketcapData.aggregatedHistory;
     const securities = companyMarketcapData.securities;
+    const latestData = history[history.length - 1];
 
     // 기간별 데이터 필터링 함수
     const getDataForPeriod = (months: number) => {
-      const cutoffDate = new Date();
+      const cutoffDate = new Date(latestData.date);
       cutoffDate.setMonth(cutoffDate.getMonth() - months);
       return history.filter(item => {
-        const itemDate = item.date instanceof Date ? item.date : new Date(item.date);
+        const itemDate = new Date(item.date);
         return itemDate >= cutoffDate;
       });
     };
-
-    // 최신 데이터
-    const latestData = history[history.length - 1];
 
     // 기간별 평균 계산
 
@@ -601,7 +610,7 @@ export default async function CompanyMarketcapPage({ params }: CompanyMarketcapP
 
               <ListMarketcap
                 data={companyMarketcapData.aggregatedHistory.map(item => ({
-                  date: item.date instanceof Date ? item.date.toISOString().split("T")[0] : String(item.date),
+                  date: item.date.split("T")[0],
                   value: item.totalMarketcap,
                 }))}
               />

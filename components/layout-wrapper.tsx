@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import type { SearchNameResult } from "@/lib/getSearch";
-
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { MarketNav } from "@/components/market-nav";
 import { MobileHeaderProvider } from "@/components/mobile-header-context";
@@ -11,7 +9,6 @@ import { cn } from "@/lib/utils";
 
 interface LayoutWrapperProps {
   children: ReactNode;
-  searchData: SearchNameResult[];
   showMarketNav?: boolean;
   showCorpSecTabs?: boolean;
   containerClassName?: string;
@@ -20,7 +17,6 @@ interface LayoutWrapperProps {
 
 export function LayoutWrapper({
   children,
-  searchData,
   showMarketNav = true,
   showCorpSecTabs = true,
   containerClassName,
@@ -29,7 +25,7 @@ export function LayoutWrapper({
   return (
     <MobileHeaderProvider>
       <div className="flex min-h-screen flex-col">
-        <SiteHeader searchData={searchData} />
+        <SiteHeader />
         <div className={cn("flex-1 pb-20 md:pb-0", containerClassName)}>
           <div
             className={cn(

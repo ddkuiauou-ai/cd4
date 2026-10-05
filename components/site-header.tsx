@@ -12,17 +12,6 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useMobileHeader } from "@/components/mobile-header-context";
 import { cn } from "@/lib/utils";
 
-// Define props for SiteHeader to accept searchData
-interface SiteHeaderProps {
-  searchData: {
-    securityId: string;
-    companyId: string | null;
-    korName: string;
-    type: string | null;
-    exchange: string;
-  }[];
-}
-
 const Logo = ({ showMobileVariant = true }: { showMobileVariant?: boolean }) => (
   <Link
     href="/"
@@ -150,7 +139,7 @@ function MobileCompanyIdentity({
   );
 }
 
-export function SiteHeader({ searchData }: SiteHeaderProps) {
+export function SiteHeader() {
   const { content } = useMobileHeader();
   const showMobileCompany = content?.type === "company";
 
@@ -179,13 +168,13 @@ export function SiteHeader({ searchData }: SiteHeaderProps) {
 
         <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
           <div className="flex-1 sm:flex-none sm:justify-end">
-            <CommandMenu data={searchData} />
+            <CommandMenu />
           </div>
           <div className="hidden sm:block">
             <ModeToggle />
           </div>
           <div className="md:hidden">
-            <MobileNav searchData={searchData} />
+            <MobileNav />
           </div>
         </div>
       </div>

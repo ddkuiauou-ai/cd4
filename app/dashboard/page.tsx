@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Exchange from "@/components/exchange";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { siteConfig } from "@/config/site";
 import CompanyLogo from "@/components/CompanyLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import MarketTrends from "@/components/MarketTrends";
@@ -13,7 +14,9 @@ import MarketTrends from "@/components/MarketTrends";
 export const metadata: Metadata = {
     title: "대시보드 - CD3 주식 시장 분석",
     description: "주식 시장의 주요 지표와 랭킹을 한눈에 확인할 수 있는 대시보드입니다.",
+    alternates: { canonical: `${siteConfig.url}/dashboard/` },
     openGraph: {
+        url: `${siteConfig.url}/dashboard/`,
         title: "대시보드 - CD3 주식 시장 분석",
         description: "시가총액, PER, PBR 등 주요 지표 랭킹을 제공합니다.",
         images: ['/opengraph-image.png']

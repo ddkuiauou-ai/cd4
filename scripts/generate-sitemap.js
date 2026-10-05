@@ -15,6 +15,8 @@ const path = require("path");
 const BASE_URL = "https://www.chundan.xyz";
 const OUT_DIR = path.join(__dirname, "..", "out");
 const SITEMAP_PATH = path.join(OUT_DIR, "sitemap.xml");
+const ERROR_PAGE_PATHS = new Set(["/404", "/_not-found"]);
+const VERIFICATION_DOCUMENT = /^\/(?:naver|google)[0-9a-f]+$/i;
 
 // Priority mapping for different page types
 const PAGE_PRIORITIES = {
@@ -112,6 +114,12 @@ function findHtmlFiles(dir, baseDir = dir) {
       // Clean up root path
       if (urlPath === "/index") {
         urlPath = "/";
+      }
+
+      // Error and search-engine verification files are not content pages.
+      const pagePath = urlPath.replace(/\/+$/, "");
+      if (ERROR_PAGE_PATHS.has(pagePath) || VERIFICATION_DOCUMENT.test(pagePath)) {
+        continue;
       }
 
       files.push(urlPath);

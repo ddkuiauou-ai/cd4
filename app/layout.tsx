@@ -82,8 +82,6 @@ export const metadata: Metadata = {
     telephone: false,
   },
 
-  metadataBase: new URL(siteConfig.url),
-
   alternates: {
     canonical: siteConfig.url,
   },

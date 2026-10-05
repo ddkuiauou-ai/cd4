@@ -21,11 +21,14 @@ import {
   Legend,
 } from "recharts";
 
+type MarketcapDataPoint = {
+  date: string;
+  totalValue?: number;
+  [key: string]: string | number | boolean | null | undefined;
+};
+
 type Props = {
-  data: {
-    date: string;
-    totalValue?: number;
-  }[];
+  data: MarketcapDataPoint[];
   format: string;
   formatTooltip: string;
   selectedType?: string; // 선택된 종목 타입 (보통주, 우선주, 시가총액 구성)
@@ -57,17 +60,10 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
     if (!data || !Array.isArray(data) || data.length === 0) {
       return [];
     }
-    return data.filter(item => item && typeof item === 'object' && item.date);
+    return data
+      .filter(item => item && typeof item === 'object' && item.date)
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [data]);
-
-  // 빈 데이터 처리
-  if (safeData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        <p>차트 데이터가 없습니다</p>
-      </div>
-    );
-  }
 
   // 🎨 선택적 컬러 어노테이션 팔레트 (CD3 브랜드 컬러 활용)
   const colors = useMemo(() => {
@@ -153,22 +149,22 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
   // 📊 데이터 키 추출
   const keys = useMemo(() => {
-    if (!data.length) return [];
-    return Object.keys(data[0]).filter(key => key !== "date");
-  }, [data]);
+    if (!safeData.length) return [];
+    return Object.keys(safeData[0]).filter(key => key !== "date");
+  }, [safeData]);
 
   // 📊 Y축 도메인 계산 (데이터 범위에 맞게 조정)
   const getYAxisDomain = () => {
-    if (!data.length || !keys.length) return [0, 100];
+    if (!safeData.length || !keys.length) return [0, 100];
 
     let minValue = Infinity;
     let maxValue = -Infinity;
 
-    data.forEach(item => {
+    safeData.forEach(item => {
       keys.forEach(key => {
         // "date"와 "value" 키는 제외
         if (key !== "date" && key !== "value") {
-          const value = (item as any)[key];
+          const value = item[key];
           if (value !== null && value !== undefined && typeof value === 'number') {
             minValue = Math.min(minValue, value);
             maxValue = Math.max(maxValue, value);
@@ -187,8 +183,14 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
   const yAxisDomain = getYAxisDomain();
 
-  // reoder by date in inputValues
-  data.sort((a, b) => (a.date < b.date ? -1 : 1));
+  // 빈 데이터 처리
+  if (safeData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <p>차트 데이터가 없습니다</p>
+      </div>
+    );
+  }
 
   if (!isClient || !data || data.length === 0) {
     return (
@@ -240,6 +242,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             isAnimationActive={false}
           />
           <Legend
+            itemSorter={(entry) => keys.indexOf(String(entry.value))}
             content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
             wrapperStyle={{
               paddingTop: '2px', // 2px -> 2px 유지
@@ -290,7 +293,7 @@ interface CustomTooltipProps {
   selectedType?: string;
 }
 
-function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
@@ -358,7 +361,6 @@ interface CustomLegendProps {
     value: string;
     type: string;
     color: string;
-    payload?: any;
   }>;
   selectedType?: string;
 }

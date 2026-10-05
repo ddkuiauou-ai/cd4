@@ -94,7 +94,7 @@ export function calculatePERPeriodAnalysis(
 /**
  * Process PER data for charts and analysis
  */
-export function processPERData(data: Array<{ date: Date; per: number | null; eps: number | null }>): PERData[] {
+export function processPERData(data: Array<{ date: Date | string; per: number | null; eps: number | null }>): PERData[] {
   return data
     .filter((item) => item.per !== null && item.per !== undefined && item.per > 0 && item.eps !== null && item.eps !== undefined && item.eps > 0)
     .map((item) => ({

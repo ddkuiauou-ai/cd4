@@ -2,7 +2,7 @@
 
 **Korean Stock Information Service - Professional Development Standards**
 
-**Last Updated:** June 11, 2025
+**Last Updated:** October 5, 2026
 
 ## 🎯 Project Philosophy
 
@@ -10,7 +10,7 @@ CD3는 한국 주식시장 정보를 제공하는 전문적이고 신뢰할 수 
 
 ## 🛠 핵심 기술 스택
 
-- **Framework**: Next.js 15 (App Router, SSR 우선)
+- **Framework**: Next.js App Router (정적 export 기본안, Node.js 서버 모드 지원; 정확한 버전은 package.json 기준)
 - **UI**: shadcn/ui (New York 스타일, slate 베이스)
 - **Styling**: Tailwind CSS 4 (모바일 우선)
 - **Database**: Drizzle ORM (직접 접근)
@@ -133,7 +133,7 @@ type Security = {
 
 ### SEO 최적화
 
-- **SSR 우선**: 모든 랭킹 페이지는 서버 사이드 렌더링
+- **정적 배포**: 랭킹 HTML은 export 빌드의 데이터 snapshot으로 생성하며, 새 자료는 성공한 재빌드·배포 후 공개
 - **메타데이터**: 동적 meta 태그 생성
 - **사이트맵**: 자동 XML 사이트맵 생성
 - **구조화된 데이터**: JSON-LD 마크업
@@ -141,8 +141,9 @@ type Security = {
 ```typescript
 // 메타데이터 예시
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { page } = await params;
   return {
-    title: `시가총액 순위 ${params.page}페이지 - CD3`,
+    title: `시가총액 순위 ${page}페이지 - CD3`,
     description: "한국 주식시장 시가총액 순위 정보",
     keywords: ["시가총액", "주식순위", "KOSPI", "KOSDAQ"],
   };
@@ -151,9 +152,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 ### 캐싱 전략
 
-- **정적 생성**: ISR로 랭킹 페이지 사전 생성
-- **데이터베이스 캐싱**: 5분 TTL로 쿼리 결과 캐싱
-- **CDN**: Vercel Edge Network 활용
+- **정적 export**: 빌드한 HTML·RSC 파일을 CDN에서 제공. 서버 재검증·ISR은 이 모드에서 사용하지 않음
+- **데이터베이스 캐싱**: 조회 함수별 신선도와 오류 전파 계약은 공통 캐시 정책 및 회귀 테스트에서 확인. 태그만으로 자동 갱신되지 않음
+- **빌드 캐시**: CI는 `.next/cache/turbopack` 컴파일 산출물만 복원. 금융 Data Cache를 다음 export로 재사용하지 않음
+- **Cache Components**: 정적 배포에서는 비활성. 서버 배포로 범위를 확정할 때 별도 전환·검증
 
 ## 🧩 컴포넌트 가이드라인
 
@@ -201,7 +203,7 @@ export const SecurityCard = ({
 
 Context7은 내부 개발 보조용 MCP 서버로, 다음과 같은 상황에서 **코드 생성 및 기술 반영**을 위한 보조 지식 검색 도구로 사용한다:
 
-- **Next.js 15**의 신규 기능 (예: 서버 액션, App Router 등) 관련 적용법이 불명확할 때
+- **설치된 Next.js 버전**의 API 적용법이 불명확할 때: 먼저 bundled docs와 공식 업그레이드 문서를 확인
 - **Drizzle ORM**에서의 최신 문법, 실사용 예시가 필요할 때
 - **Tailwind CSS v4**, **shadcn/ui** 컴포넌트의 변경점/조합법이 헷갈릴 때
 - **라이브러리 최신 패턴**이 웹에 산재해 있고, 이를 압축해서 요약적으로 보고 싶을 때
@@ -209,7 +211,7 @@ Context7은 내부 개발 보조용 MCP 서버로, 다음과 같은 상황에서
 ### ✅ Context7 질의 예시
 
 ```typescript
-// "Next.js 15에서 server action의 mutation 상태를 어떻게 관리하나요?"
+// "설치된 Next.js 버전에서 async params를 어떻게 처리하나요?"
 // "Drizzle에서 JOIN한 테이블을 타입 안전하게 처리하려면 어떻게 해야 하나요?"
 // "shadcn/ui의 card 컴포넌트를 어떻게 커스터마이징해서 mobile에 맞출 수 있을까요?"
 ```
@@ -346,7 +348,7 @@ const isValidSecurity = (data: unknown): data is MarketCapData => {
 - 차트 패딩: `p-2 sm:p-4` (모바일 여백 최적화)
 - 반응형 그리드: 모바일에서 세로 배치
 
-**5. Next.js 15 Suspense + 스켈레톤 UI**
+**5. Next.js Suspense + 스켈레톤 UI**
 
 - 페이지 전체 로딩 상태 구현
 - 섹션별 특성에 맞는 스켈레톤 디자인
@@ -560,88 +562,32 @@ export function UnifiedComponent({ layout, compactMode, ...props }: Props) {
 - [ ] UI/UX 일관성 검증
 - [ ] 성능 영향 검토
 
-## 📦 빌드 시스템 최적화 (2025년 6월 추가)
+## 📦 빌드와 검사 기준 (2026년 10월)
 
-#### SSG 병렬 빌드
-
-대규모 데이터셋 처리를 위한 병렬 빌드 시스템:
+Node.js는 `.nvmrc`의 정확한 22 계열 버전, pnpm은 `package.json`의 `packageManager`에 고정된 10 계열 버전을 사용한다. CI도 동일 파일을 읽는다. 설치는 `pnpm install --frozen-lockfile`로 재현한다.
 
 ```bash
-# 개발/테스트용 빌드
-pnpm build:ssg
+# 개발 서버
+pnpm dev
 
-# 병렬 빌드 옵션들
-pnpm build:chunks        # 순차 청크 빌드 (안전함)
-pnpm build:staggered     # 지연된 병렬 빌드 (권장)
-pnpm build:parallel-real # 진짜 병렬 빌드 (최고 성능)
+# 소스 lint와 기존 격리 회귀 테스트
+pnpm lint
+pnpm test
+
+# 독립 타입 검사
+pnpm typecheck
+
+# Node.js 서버 모드의 production 검사
+pnpm build
+pnpm start
 ```
 
-#### 청크 기반 빌드 전략
+정적 export는 별도 checkout 또는 복사본에서 R2/Netlify workflow의 단계를 재현한다. `NEXT_OUTPUT_MODE=export`로 빌드하고, 요청 URL을 읽는 SSR sitemap route를 export용 복사본에서 제외한 뒤 `NEXT_OUTPUT_MODE=export pnpm sitemap`을 실행한다. 원본 소스의 sitemap 디렉터리를 삭제해 로컬 검증하지 않는다.
 
-```typescript
-// 환경 변수로 청크 제어
-BUILD_CHUNK_INDEX=0      # 현재 청크 인덱스 (0부터 시작)
-BUILD_CHUNK_TOTAL=4      # 전체 청크 수
-BUILD_CHUNK_SIZE=500     # 청크당 종목 수
+CI는 `.next/cache/turbopack`만 복원한다. 금융 조회 Data Cache의 복원과 컴파일 캐시 복원은 별개의 작업이며, 새 export는 현재 완료 데이터 snapshot을 읽어야 한다. 수집·집계의 기준일 계약은 [DAG 연동 문서](dag-integration.md)를 따른다.
 
-// 실제 사용 예시
-BUILD_CHUNK_INDEX=0 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-```
+전체 빌드와 브라우저 검증에는 실제 읽기 DB 또는 명시적인 fixture가 필요하다. isolated query/page 테스트 통과만으로 모든 production route 검증이 끝났다고 표시하지 않는다. 생성 URL·총 파일 수·산출물 크기·최대 메모리·DB 조회·build/upload 시간과 LCP/INP/CLS를 동일한 조건에서 비교한다.
 
-#### 수동 병렬 빌드 (최고 성능)
+과거 청크 병렬 빌드 명령은 현재 package scripts에 없다. 같은 checkout에서 여러 build를 동시에 실행하지 않으며, 지원하지 않는 명령이나 과거의 페이지 수·시간 수치를 현재 성능으로 안내하지 않는다.
 
-4개 터미널에서 동시 실행:
-
-```bash
-# 터미널 1
-BUILD_CHUNK_INDEX=0 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-mv out out-chunk-0
-
-# 터미널 2
-BUILD_CHUNK_INDEX=1 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-mv out out-chunk-1
-
-# 터미널 3
-BUILD_CHUNK_INDEX=2 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-mv out out-chunk-2
-
-# 터미널 4
-BUILD_CHUNK_INDEX=3 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-mv out out-chunk-3
-
-# 최종 합치기
-mkdir -p out && cp -r out-chunk-*/* out/ && node scripts/generate-sitemap.js
-```
-
-#### 성능 메트릭
-
-- **단일 빌드**: 15-20분 (전체 데이터셋)
-- **병렬 빌드**: 4-6분 (4개 청크, 약 4배 향상)
-- **테스트 성과**: 609페이지 성공적 생성 (100종목 기준)
-
-#### 데이터베이스 최적화
-
-```typescript
-// db/index.ts - 병렬 빌드 지원 설정
-const sql = postgres(connectionString, {
-  max: process.env.NODE_ENV === "production" ? 5 : 10, // 연결 풀 증가
-  idle_timeout: 60, // 타임아웃 연장
-  connect_timeout: 60, // 연결 타임아웃 연장
-  prepare: false, // prepared statements 비활성화
-});
-```
-
-#### 빌드 에러 해결
-
-**일반적인 문제들:**
-
-1. **DB 연결 타임아웃**
-
-   - 해결: 연결 풀 크기 증가, 타임아웃 시간 연장
-
-2. **메모리 부족**
-
-   - 해결: 청크 크기 감소, 동시 실행 수 제한
-
-3. **Next.js 파일 충돌**
-   - 해결: 완전 분리된 빌드 디렉토리 사용
+배포 workflow는 수동 실행이다. 업그레이드의 로컬 검증, 외부 업로드, 운영 공개 결과를 각각 기록한다. Vercel은 선택 경로이며 [설정 안내](../VERCEL_SETUP.md)에서 정적 출력과 서버 배포 조건을 구분한다.

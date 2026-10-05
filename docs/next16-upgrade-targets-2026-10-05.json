@@ -1,0 +1,542 @@
+{
+  "checkedAt": "2026-10-05T03:04:53.002Z",
+  "packages": [
+    {
+      "name": "@libsql/client",
+      "version": "0.18.0"
+    },
+    {
+      "name": "@next/third-parties",
+      "version": "16.3.8",
+      "peerDependencies": {
+        "next": "^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0-beta.0",
+        "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0"
+      }
+    },
+    {
+      "name": "@nivo/core",
+      "version": "0.99.0",
+      "peerDependencies": {
+        "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+      }
+    },
+    {
+      "name": "@nivo/heatmap",
+      "version": "0.99.0",
+      "peerDependencies": {
+        "react": "^16.14 || ^17.0 || ^18.0 || ^19.0"
+      }
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "version": "1.2.20",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "version": "1.3.11",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-collapsible",
+      "version": "1.1.20",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "1.1.23",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "2.1.24",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-icons",
+      "version": "1.3.2",
+      "peerDependencies": {
+        "react": "^16.x || ^17.x || ^18.x || ^19.0.0 || ^19.0.0-rc"
+      }
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "version": "1.1.16",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-scroll-area",
+      "version": "1.2.18",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "2.3.7",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "version": "1.1.15",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-slider",
+      "version": "1.4.7",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "version": "1.3.3",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "version": "1.1.21",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "version": "1.2.23",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "@radix-ui/react-tooltip",
+      "version": "1.2.16",
+      "peerDependencies": {
+        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+        "@types/react": "*",
+        "@types/react-dom": "*"
+      }
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "0.7.1"
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "engines": {
+        "node": ">=6"
+      }
+    },
+    {
+      "name": "cmdk",
+      "version": "1.1.1",
+      "peerDependencies": {
+        "react": "^18 || ^19 || ^19.0.0-rc",
+        "react-dom": "^18 || ^19 || ^19.0.0-rc"
+      }
+    },
+    {
+      "name": "d3",
+      "version": "7.9.0",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    {
+      "name": "dotenv",
+      "version": "18.0.5",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    {
+      "name": "drizzle-orm",
+      "version": "0.45.3",
+      "peerDependencies": {
+        "pg": ">=8",
+        "gel": ">=2",
+        "knex": "*",
+        "kysely": "*",
+        "mysql2": ">=2",
+        "sql.js": ">=1",
+        "sqlite3": ">=5",
+        "postgres": ">=3",
+        "@types/pg": "*",
+        "bun-types": "*",
+        "@netlify/db": ">=0.4.0",
+        "expo-sqlite": ">=14.0.0",
+        "@types/sql.js": "*",
+        "@libsql/client": ">=0.10.0",
+        "@prisma/client": "*",
+        "@upstash/redis": ">=1.34.7",
+        "better-sqlite3": ">=7",
+        "@xata.io/client": "*",
+        "@vercel/postgres": ">=0.8.0",
+        "@opentelemetry/api": "^1.4.1",
+        "@libsql/client-wasm": ">=0.10.0",
+        "@electric-sql/pglite": ">=0.2.0",
+        "@planetscale/database": ">=1.13",
+        "@tidbcloud/serverless": "*",
+        "@types/better-sqlite3": "*",
+        "@aws-sdk/client-rds-data": ">=3",
+        "@neondatabase/serverless": ">=0.10.0",
+        "@cloudflare/workers-types": ">=4",
+        "@op-engineering/op-sqlite": ">=2"
+      }
+    },
+    {
+      "name": "jotai",
+      "version": "3.0.1",
+      "engines": {
+        "node": ">=22.12.0"
+      },
+      "peerDependencies": {
+        "react": ">=18.0.0",
+        "@types/react": ">=18.0.0"
+      }
+    },
+    {
+      "name": "jsdom",
+      "version": "30.1.2",
+      "engines": {
+        "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+      },
+      "peerDependencies": {
+        "canvas": "^3.2.3"
+      }
+    },
+    {
+      "name": "lightweight-charts",
+      "version": "5.2.1"
+    },
+    {
+      "name": "lucide-react",
+      "version": "1.52.0",
+      "peerDependencies": {
+        "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "@types/react": "*"
+      }
+    },
+    {
+      "name": "motion",
+      "version": "14.0.0",
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
+      }
+    },
+    {
+      "name": "next",
+      "version": "16.3.8",
+      "engines": {
+        "node": ">=20.9.0"
+      },
+      "peerDependencies": {
+        "sass": "^1.3.0",
+        "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+        "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+        "@playwright/test": "^1.51.1",
+        "@opentelemetry/api": "^1.1.0",
+        "babel-plugin-react-compiler": "*"
+      }
+    },
+    {
+      "name": "next-themes",
+      "version": "0.4.6",
+      "peerDependencies": {
+        "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",
+        "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"
+      }
+    },
+    {
+      "name": "pg",
+      "version": "8.23.1",
+      "engines": {
+        "node": ">= 16.0.0"
+      },
+      "peerDependencies": {
+        "pg-native": ">=3.0.1"
+      }
+    },
+    {
+      "name": "postgres",
+      "version": "3.4.9",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    {
+      "name": "react",
+      "version": "19.3.0",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.0",
+      "peerDependencies": {
+        "react": "^19.3.0"
+      }
+    },
+    {
+      "name": "react-wrap-balancer",
+      "version": "1.1.1",
+      "peerDependencies": {
+        "react": ">=16.8.0 || ^17.0.0 || ^18"
+      }
+    },
+    {
+      "name": "recharts",
+      "version": "3.10.1",
+      "engines": {
+        "node": ">=18"
+      },
+      "peerDependencies": {
+        "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-is": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+      }
+    },
+    {
+      "name": "shadcn",
+      "version": "4.21.1",
+      "engines": {
+        "node": ">=20.18.1"
+      }
+    },
+    {
+      "name": "sonner",
+      "version": "2.0.8",
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+        "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc",
+        "@types/react": "^18.0.0 || ^19.0.0"
+      }
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "3.7.0"
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "version": "4.3.3"
+    },
+    {
+      "name": "@types/d3",
+      "version": "7.4.3"
+    },
+    {
+      "name": "@types/jsdom",
+      "version": "30.0.0",
+      "peerDependencies": {}
+    },
+    {
+      "name": "@types/node",
+      "version": "26.6.4",
+      "peerDependencies": {}
+    },
+    {
+      "name": "@types/pg",
+      "version": "8.23.1",
+      "peerDependencies": {}
+    },
+    {
+      "name": "@types/react",
+      "version": "19.3.0",
+      "peerDependencies": {}
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "19.3.0",
+      "peerDependencies": {
+        "@types/react": "^19.3.0"
+      }
+    },
+    {
+      "name": "drizzle-kit",
+      "version": "0.31.11"
+    },
+    {
+      "name": "eslint",
+      "version": "10.12.0",
+      "engines": {
+        "node": "^20.19.0 || ^22.13.0 || >=24"
+      },
+      "peerDependencies": {
+        "jiti": "*"
+      }
+    },
+    {
+      "name": "eslint-config-next",
+      "version": "16.3.8",
+      "peerDependencies": {
+        "eslint": ">=9.0.0",
+        "typescript": ">=3.3.1"
+      }
+    },
+    {
+      "name": "tailwindcss",
+      "version": "4.3.3"
+    },
+    {
+      "name": "tw-animate-css",
+      "version": "1.4.0"
+    },
+    {
+      "name": "typescript",
+      "version": "7.0.2",
+      "engines": {
+        "node": ">=16.20.0"
+      }
+    },
+    {
+      "name": "pnpm",
+      "version": "12.9.1",
+      "engines": {
+        "node": ">=18.*"
+      }
+    },
+    {
+      "name": "react-is",
+      "version": "19.3.0",
+      "distIntegrity": "sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==",
+      "source": "https://registry.npmjs.org/react-is/19.3.0",
+      "selectionReason": "Recharts required peer; aligned with React/React DOM 19.3.0",
+      "verifiedPinnedMetadataAt": "2026-10-05T03:43:00Z"
+    }
+  ],
+  "selectedVersions": {
+    "@libsql/client": "0.18.0",
+    "@next/third-parties": "16.3.8",
+    "@nivo/core": "0.99.0",
+    "@nivo/heatmap": "0.99.0",
+    "@radix-ui/react-accordion": "1.2.20",
+    "@radix-ui/react-checkbox": "1.3.11",
+    "@radix-ui/react-collapsible": "1.1.20",
+    "@radix-ui/react-dialog": "1.1.23",
+    "@radix-ui/react-dropdown-menu": "2.1.24",
+    "@radix-ui/react-icons": "1.3.2",
+    "@radix-ui/react-progress": "1.1.16",
+    "@radix-ui/react-scroll-area": "1.2.18",
+    "@radix-ui/react-select": "2.3.7",
+    "@radix-ui/react-separator": "1.1.15",
+    "@radix-ui/react-slider": "1.4.7",
+    "@radix-ui/react-slot": "1.3.3",
+    "@radix-ui/react-tabs": "1.1.21",
+    "@radix-ui/react-toast": "1.2.23",
+    "@radix-ui/react-tooltip": "1.2.16",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "d3": "7.9.0",
+    "dotenv": "18.0.5",
+    "drizzle-orm": "0.45.3",
+    "jotai": "3.0.1",
+    "jsdom": "30.1.2",
+    "lightweight-charts": "5.2.1",
+    "lucide-react": "1.52.0",
+    "motion": "14.0.0",
+    "next": "16.3.8",
+    "next-themes": "0.4.6",
+    "pg": "8.23.1",
+    "postgres": "3.4.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-wrap-balancer": "1.1.1",
+    "recharts": "3.10.1",
+    "shadcn": "4.21.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "3.7.0",
+    "react-is": "19.3.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/d3": "7.4.3",
+    "@types/jsdom": "30.0.0",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "4.3.3",
+    "tw-animate-css": "1.4.0",
+    "typescript": "5.9.3"
+  },
+  "runtime": {
+    "node": "22.23.3",
+    "pnpm": "10.34.6"
+  },
+  "compatibilityExceptions": {
+    "eslint": "9.39.5: eslint-plugin-react peer excludes 10.x",
+    "typescript": "5.9.3: typescript-eslint peer excludes 7.x",
+    "@types/node": "22.20.5: matches selected Node22",
+    "pnpm": "10.34.6: stays on current package-manager major"
+  },
+  "installPolicy": {
+    "strictPeerDependencies": true,
+    "nativeBuildAllowlist": [
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "mswBuildScripts": false
+  }
+}

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -62,7 +63,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: SecurityMarketcapPageProps) {
+export async function generateMetadata({ params }: SecurityMarketcapPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -76,7 +77,11 @@ export async function generateMetadata({ params }: SecurityMarketcapPageProps) {
   const displayName = security.korName || security.name;
   const securityType = security.type || "종목";
 
+  const canonical = `${siteConfig.url}/security/${secCode}/marketcap/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${displayName} ${securityType} 시가총액 - CD3`,
     description: `${displayName} ${securityType}의 시가총액 추이와 구성 비중을 확인해 보세요.`,
   };

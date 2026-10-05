@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { SecurityMetricEmpty } from "@/components/security-metric-empty";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
@@ -47,7 +49,7 @@ interface SecurityEPSPageProps {
 /**
  * Generate metadata for the security EPS page
  */
-export async function generateMetadata({ params }: SecurityEPSPageProps) {
+export async function generateMetadata({ params }: SecurityEPSPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -58,7 +60,11 @@ export async function generateMetadata({ params }: SecurityEPSPageProps) {
     };
   }
 
+  const canonical = `${siteConfig.url}/security/${secCode}/eps/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${security.korName || security.name} 주당순이익 EPS - CD3`,
     description: `${security.korName || security.name}의 연도별 주당순이익(EPS) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
@@ -85,7 +91,7 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('[GENERATE_STATIC_PARAMS] Error generating EPS params:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -134,11 +140,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
         };
       } catch (error) {
         console.error(`Failed to get EPS data for ${sec.ticker}:`, error);
-        return {
-          ...sec,
-          eps: null,
-          epsDate: null,
-        };
+        throw error;
       }
     })
   );
@@ -146,9 +148,12 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
   // Get EPS data
   const data = await getSecurityMetricsHistory(security.securityId);
 
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
   if (!data || data.length === 0) {
-    notFound();
+    return <SecurityMetricEmpty
+      secCode={secCode}
+      displayName={security.korName || security.name || secCode}
+      metricLabel={ACTIVE_METRIC.label}
+    />;
   }
 
   // Find representative security (보통주)
@@ -165,14 +170,9 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
   const epsRank = await getEpsRank(security.securityId);
 
   // Get company marketcap data for Interactive Securities Section
-  let companyMarketcapData = null;
-  if (security.companyId) {
-    try {
-      companyMarketcapData = await getCompanyAggregatedMarketcap(security.companyId);
-    } catch (error) {
-      // Error is silently handled - fallback to null
-    }
-  }
+  const companyMarketcapData = security.companyId
+    ? await getCompanyAggregatedMarketcap(security.companyId)
+    : null;
 
   // Transform data to match expected format for EPS
   const result = processEPSData(data);

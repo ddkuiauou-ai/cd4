@@ -1,8 +1,8 @@
 # CD3 - Korean Stock Information Service
 
-> **후속 작업 시작 문서:** [문서 안내](docs/README.md)에서 2026-10-04 조사 기준의 [프로젝트 현황](docs/project-current-state.md), [DAG 연동 계약](docs/dag-integration.md), [라이브러리 업데이트 인수인계](docs/upgrade-handoff.md)를 읽으세요. 아래 기존 안내에는 과거 버전의 명칭·명령·배포 설명이 남아 있으며, 구현과 다른 항목은 조사 문서에 기록했습니다.
+> **업그레이드와 운영 기준:** [Next.js 16 변경·검증 결과](docs/next16-upgrade-verification-2026-10-05.md), [문서 안내](docs/README.md), [DAG 연동 계약](docs/dag-integration.md)을 함께 읽으세요. 설치 버전과 실행 명령은 `package.json`, 고정 의존성은 `pnpm-lock.yaml`이 기준입니다.
 
-CD3 is a professional stock information service providing comprehensive financial data, rankings, and analysis tools for Korean stock market investors. Built with Next.js 15 and optimized for mobile-first experiences with institutional-grade credibility.
+CD3 provides financial data, rankings, and analysis tools for the Korean stock market. It uses the Next.js App Router and supports static export for CDN hosting alongside a Node.js server build.
 
 ## 🎯 Project Overview
 
@@ -12,18 +12,19 @@ CD3 is a professional stock information service providing comprehensive financia
 
 ## 🛠 Technology Stack
 
-- **Framework**: Next.js 15 (App Router, SSR-first)
+- **Framework**: Next.js (App Router, static export and Node.js server modes)
 - **UI Components**: shadcn/ui (New York style, slate base)
 - **Styling**: Tailwind CSS 4 (mobile-first approach)
 - **Database**: Drizzle ORM with PostgreSQL
-- **Deployment**: Vercel with Edge Network optimization
+- **Deployment**: Static export to R2 or Netlify; Vercel is an optional hosting choice
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm (required package manager)
+- Node.js 22 (use the exact version in `.nvmrc`)
+- pnpm 10 (required package manager; follow `packageManager` in `package.json`)
+- Read access to a completed PostgreSQL data snapshot for development and production builds
 
 ### Installation
 
@@ -33,14 +34,11 @@ git clone [repository-url]
 cd cd4
 
 # Install dependencies (pnpm only)
-pnpm install
+pnpm install --frozen-lockfile
 
 # Set up environment variables
 cp .env.example .env.local
 # Configure your database URL and other required variables
-
-# Run database migrations
-pnpm db:migrate
 
 # Start development server
 pnpm dev
@@ -116,8 +114,8 @@ pnpm dlx shadcn@latest add [component-name]
 - **Market Cap Rankings**: Company and security rankings
 - **Financial Metrics**: PER, PBR, EPS, BPS, Dividend analysis
 - **Mobile Optimization**: Responsive design for all screen sizes
-- **SEO Optimization**: Server-side rendering with dynamic metadata
-- **Real-time Data**: Live market data with performance indicators
+- **SEO Optimization**: Generated HTML, metadata, sitemap, and structured data
+- **Market Data**: Published data from the collection and aggregation pipeline
 
 ## 📚 Documentation
 
@@ -137,72 +135,43 @@ pnpm dev
 # Run linting
 pnpm lint
 
-# Revalidate cache
-pnpm cache:revalidate
+# Run the independent typecheck and existing isolated regression tests
+pnpm typecheck
+pnpm test
 ```
 
 ### Production Builds
 
-#### SSG (Static Site Generation) - Recommended
+#### Node.js server build
 
 ```bash
-# Standard build
-pnpm build:ssg
-
-# Parallel builds for large datasets (2025년 6월 추가)
-pnpm build:staggered     # 지연된 병렬 빌드 (권장)
-pnpm build:chunks        # 순차 청크 빌드 (안전함)
-pnpm build:parallel-real # 진짜 병렬 빌드 (최고 성능)
-
-# Manual parallel build (최고 성능)
-# 4개 터미널에서 동시 실행:
-BUILD_CHUNK_INDEX=0 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-BUILD_CHUNK_INDEX=1 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-BUILD_CHUNK_INDEX=2 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
-BUILD_CHUNK_INDEX=3 BUILD_CHUNK_TOTAL=4 BUILD_CHUNK_SIZE=500 pnpm build:ssg
+pnpm build
+pnpm start
 ```
 
-#### Performance Improvements
-
-- **Single Build**: ~15-20 minutes (full dataset)
-- **Parallel Build**: ~4-6 minutes (4 chunks, ~4x improvement)
-- **Test Results**: 609 pages successfully generated (100 securities baseline)
-
-#### Build Configuration
+Without `NEXT_OUTPUT_MODE=export`, the Next configuration creates standalone output. `pnpm start` runs the conventional local production check and Next prints a standalone warning. For the generated standalone server, package `public` and `.next/static` with it before starting the entry point:
 
 ```bash
-# Environment variables for chunked builds
-BUILD_CHUNK_INDEX=0      # Current chunk index (starts from 0)
-BUILD_CHUNK_TOTAL=4      # Total number of chunks
-BUILD_CHUNK_SIZE=500     # Securities per chunk
+cp -R public .next/standalone/public
+cp -R .next/static .next/standalone/.next/static
+PORT=3000 HOSTNAME=127.0.0.1 pnpm exec node .next/standalone/server.js
 ```
 
-pnpm build
-pnpm sitemap
+#### Static export — default deployment plan
 
-````
+The R2 and Netlify workflows build with `NEXT_OUTPUT_MODE=export`, remove the request-dependent sitemap Route Handlers in the deployment checkout, then run `NEXT_OUTPUT_MODE=export pnpm sitemap` to generate sitemap files from `out`.
 
-The SSG build process:
+For a local export check, use a separate checkout or copy and reproduce those workflow steps there. Preserve the original `app/sitemap.xml` and `app/sitemaps` sources. Serve the completed `out` directory with a static web server to verify direct URL navigation and assets.
 
-1. Generates all static pages (1500+ pages including all stock/company pages)
-2. Creates a dynamic sitemap.xml from generated HTML files
-3. Outputs to `/out` directory ready for CDN deployment
+An export publishes a fixed data snapshot. New data appears after a successful rebuild and deployment; runtime ISR and Cache Components are unavailable in this mode. The CI cache stores only `.next/cache/turbopack` compiler artifacts. Keep financial query results separate from that cache.
 
-**Requirements**: Database connection must be available during build. If DB is unavailable, build will fail (no fallback data).
+The workflows remain manually triggered. Uploading `out` or running a Vercel deployment is a separate operation from local build verification. See [Vercel setup](VERCEL_SETUP.md) for the optional Vercel path.
 
-#### Standard Build
-
-```bash
-# Build for production (server-side)
-pnpm build
-
-# Deploy to Vercel
-pnpm deploy
-````
+Measure current generated URLs, total files, output size, peak memory, and build/upload times against the same data snapshot. Historical page counts and build durations are not current performance guarantees.
 
 ### SEO Features
 
-- **Dynamic Sitemap**: Auto-generated from actual build output (1500+ URLs)
+- **Sitemap**: Generated from actual static HTML output, or served by Route Handlers in server mode
 - **Robots.txt**: Optimized for search engine crawling
 - **Structured Data**: JSON-LD for rich snippets
 - **Meta Tags**: Complete OpenGraph and Twitter Card support

@@ -38,6 +38,7 @@ function loadRanking(db, environment = "production") {
   try {
     return {
       ...load(path.join(root, "lib/data/security.ts")),
+      ...load(path.join(root, "lib/data/ranking.ts")),
       ...load(path.join(root, "lib/utils.ts")),
     };
   } finally {
@@ -58,13 +59,14 @@ function fixture() {
     if (state.faults.has(kind)) throw new Error(`fixture-${kind}-unavailable`);
     const values = {
       latest: [{ maxDate: state.latestDate }], count: [{ count: state.rows.length }],
+      rank: [{ rank: state.rows[0]?.currentRank ?? null }],
       rows: state.rows, price: state.prices,
     };
     return structuredClone(values[kind]);
   }
   const db = {
     select(columns) {
-      const kind = columns.maxDate ? "latest" : columns.count ? "count" : "rows";
+      const kind = columns.maxDate ? "latest" : columns.count ? "count" : columns.rank ? "rank" : "rows";
       const query = { then: (resolve, reject) => read(kind).then(resolve, reject) };
       for (const method of ["from", "where", "innerJoin", "leftJoin", "orderBy", "limit", "offset"]) {
         query[method] = () => query;
@@ -76,12 +78,13 @@ function fixture() {
   return { db, state };
 }
 
-// Only the IncrementalCache storage/clock are fake; Next 15 manages revalidation.
+// Only the IncrementalCache storage/clock are fake; installed Next manages revalidation.
 function cacheStorage() {
   const entries = new Map();
   return {
     entries, now: 0,
     async generateCacheKey(input) { return createHash("sha256").update(input).digest("hex"); },
+    async generateSimpleCacheKey(input) { return createHash("sha256").update(input).digest("hex"); },
     async get(key, options) {
       const entry = entries.get(key);
       return entry ? { value: entry.value, isStale: this.now - entry.time >= options.revalidate * 1000 } : null;
@@ -191,4 +194,35 @@ test("missing or invalid timestamps are unavailable, without a fabricated update
   assert.equal(ranking.getLatestDateFromMarketData([{ marketcapDate: "invalid" }]), "N/A");
   assert.equal(ranking.getUpdatedDateFromMarketData([{ marketcapDate: "2025-09-22" }]), "N/A");
   assert.equal(ranking.getUpdatedDateFromMarketData([{ updatedAt: "invalid" }]), "N/A");
+});
+
+for (const failure of ["latest", "rank"]) {
+  test(`fallback security rank: ${failure} failure rejects instead of caching a missing rank`, async (t) => {
+    t.mock.method(console, "error", () => {});
+    const { db, state } = fixture();
+    const ranking = loadRanking(db);
+    const cache = cacheStorage();
+    const run = () => ranking.getSecurityRank("security-1", "marketcap");
+    state.faults.add(failure);
+    await assert.rejects(request(cache, run), new RegExp(`fixture-${failure}-unavailable`));
+    assert.equal(cache.entries.size, 0);
+    state.faults.clear();
+    assert.equal(await request(cache, run), 1);
+  });
+}
+
+test("a missing effective rank date stays absent, then the cached fallback rank refreshes", async () => {
+  const { db, state } = fixture();
+  const ranking = loadRanking(db);
+  const cache = cacheStorage();
+  state.latestDate = null;
+  assert.equal(await ranking.getEffectiveRankDate("marketcap"), null);
+  const run = () => ranking.getSecurityRank("security-1", "marketcap");
+  assert.equal(await request(cache, run), null);
+  assert.equal(state.calls.rank, undefined);
+  state.latestDate = "2026-10-02";
+  state.rows[0].currentRank = 3;
+  cache.now += 301_000;
+  await request(cache, run);
+  assert.equal(await request(cache, run), 3);
 });

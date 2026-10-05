@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { TrendingUp, Building2, FileText, BarChart, ArrowLeftRight, BarChart3 } from "lucide-react";
 import Link from "next/link";
+import { SecurityMetricEmpty } from "@/components/security-metric-empty";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory, getDivRank } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getTopSecurityCodesByMetric } from "@/lib/select";
@@ -51,7 +53,7 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error("[GENERATE_STATIC_PARAMS] Error generating security params:", error);
-    return [];
+    throw error;
   }
 }
 
@@ -63,7 +65,7 @@ interface SecurityDIVPageProps {
 /**
  * Generate metadata for the security DIV page
  */
-export async function generateMetadata({ params }: SecurityDIVPageProps) {
+export async function generateMetadata({ params }: SecurityDIVPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -74,7 +76,11 @@ export async function generateMetadata({ params }: SecurityDIVPageProps) {
     };
   }
 
+  const canonical = `${siteConfig.url}/security/${secCode}/div/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${security.korName || security.name} 배당수익률 DIV - CD3`,
     description: `${security.korName || security.name}의 연도별 배당수익률(DIV) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
@@ -113,7 +119,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     // Get DIV rank
     getDivRank(security.securityId),
     // Get company marketcap data for Interactive Securities Section
-    security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+    security.companyId ? getCompanyAggregatedMarketcap(security.companyId) : Promise.resolve(null)
   ]);
 
   const commonSecurities = securities.filter((sec) => sec.type === "보통주");
@@ -136,18 +142,17 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
         };
       } catch (error) {
         console.error(`Failed to get DIV data for ${sec.ticker}:`, error);
-        return {
-          ...sec,
-          div: null,
-          divDate: null,
-        };
+        throw error;
       }
     })
   );
 
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
   if (!data || data.length === 0) {
-    notFound();
+    return <SecurityMetricEmpty
+      secCode={secCode}
+      displayName={security.korName || security.name || secCode}
+      metricLabel={ACTIVE_METRIC.label}
+    />;
   }
 
   // DIV 데이터 처리 및 중복 제거 최적화

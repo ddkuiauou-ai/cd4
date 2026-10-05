@@ -24,6 +24,7 @@ import * as schema from "@/db/schema-postgres";
 // Type definitions for search data structures
 export interface SearchNameResult {
     securityId: string;
+    ticker: string;
     companyId: string | null;
     name: string;
     korName: string;
@@ -80,6 +81,7 @@ export const getSecuritySearchNames = cachedData(
                 where: isNull(schema.security.delistingDate),
                 columns: {
                     securityId: true,
+                    ticker: true,
                     companyId: true,
                     name: true,
                     korName: true,

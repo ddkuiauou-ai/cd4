@@ -8,10 +8,11 @@ export function getTodayISO(): string {
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { and, eq, sql } from "drizzle-orm";
+import { cachedData } from "./cache-policy";
 
 export type MetricType = 'marketcap' | 'bps' | 'per' | 'pbr' | 'eps' | 'div' | 'dps';
 
-export async function getEffectiveRankDate(metric: string): Promise<string> {
+export async function getEffectiveRankDate(metric: string): Promise<string | null> {
   try {
     const rows = metric === 'multi'
       ? await db
@@ -26,26 +27,25 @@ export async function getEffectiveRankDate(metric: string): Promise<string> {
 
     const latestDate = rows[0]?.maxDate;
 
-    if (!latestDate) {
-      throw new Error(`No rank date found for metric ${metric}`);
-    }
+    if (!latestDate) return null;
 
     return latestDate instanceof Date
       ? latestDate.toISOString().split('T')[0]
       : new Date(latestDate).toISOString().split('T')[0];
   } catch (error) {
     console.error(`[getEffectiveRankDate] Failed to resolve rank date for metric ${metric}:`, error);
-    return getTodayISO();
+    throw error;
   }
 }
 
-export async function getSecurityRank(
+export const getSecurityRank = cachedData(async (
   securityId: string,
   metricType: MetricType,
   rankDate?: string
-): Promise<number | null> {
+): Promise<number | null> => {
   try {
     const targetDate = rankDate || await getEffectiveRankDate(metricType);
+    if (!targetDate) return null;
     const result = await db
       .select({ rank: schema.securityRank.currentRank })
       .from(schema.securityRank)
@@ -58,9 +58,9 @@ export async function getSecurityRank(
     return result[0]?.rank || null;
   } catch (e) {
     console.error(`Error fetching ${metricType} rank for ${securityId}:`, e);
-    return null;
+    throw e;
   }
-}
+}, "getSecurityRank", ["getSecurityRank"]);
 
 export async function getSecurityRanks(
   securityId: string,
@@ -69,6 +69,7 @@ export async function getSecurityRanks(
 ): Promise<Record<MetricType, number | null>> {
   try {
     const targetDate = rankDate || await getEffectiveRankDate('multi');
+    if (!targetDate) return {} as Record<MetricType, number | null>;
     const results = await db
       .select({ metricType: schema.securityRank.metricType, rank: schema.securityRank.currentRank })
       .from(schema.securityRank)
@@ -94,6 +95,7 @@ export async function getTopRankedSecurities(
 ) {
   try {
     const targetDate = rankDate || await getEffectiveRankDate(metricType);
+    if (!targetDate) return [];
     const results = await db
       .select({
         securityId: schema.securityRank.securityId,
@@ -129,6 +131,7 @@ export async function getRankingContext(
 ) {
   try {
     const targetDate = rankDate || await getEffectiveRankDate(metricType);
+    if (!targetDate) return [];
     const currentRank = await getSecurityRank(securityId, metricType, targetDate);
     if (!currentRank) return [];
     const startRank = Math.max(1, currentRank - contextSize);

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { getSecurityByCode } from "@/lib/data/security";
 import { getTopSecurityCodesByMetric } from "@/lib/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import BaseImage from "@/components/BaseImage";
 import Exchange from "@/components/exchange";
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 /**
  * Props for Security Detail Page
@@ -17,7 +19,7 @@ interface SecurityDetailPageProps {
 /**
  * Generate metadata for the security detail page
  */
-export async function generateMetadata({ params }: SecurityDetailPageProps) {
+export async function generateMetadata({ params }: SecurityDetailPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -28,7 +30,11 @@ export async function generateMetadata({ params }: SecurityDetailPageProps) {
     };
   }
 
+  const canonical = `${siteConfig.url}/security/${secCode}/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${security.korName || security.name} 종목 정보 - CD3`,
     description: `${security.korName || security.name}의 상세 정보, 시가총액, PER, PBR 등 투자 지표를 확인하세요.`,
   };

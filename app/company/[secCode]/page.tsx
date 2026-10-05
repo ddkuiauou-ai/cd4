@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: CompanyDetailPageProps) {
     openGraph: {
       title,
       description,
-      url: `https://www.chundan.xyz/company/${secCode}`,
+      url: `https://www.chundan.xyz/company/${secCode}/`,
       siteName: "천하제일 단타대회",
       images: [
         {
@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: CompanyDetailPageProps) {
       creator: '@chundan_xyz',
     },
     alternates: {
-      canonical: `https://www.chundan.xyz/company/${secCode}`,
+      canonical: `https://www.chundan.xyz/company/${secCode}/`,
     },
     robots: {
       index: true,

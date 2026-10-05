@@ -66,7 +66,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                     data={chartData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <CartesianGrid yAxisId="dps" strokeDasharray="3 3" opacity={0.3} />
                     <XAxis
                         dataKey="date"
                         axisLine={false}
@@ -93,7 +93,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         label={{ value: '성장률 (%)', angle: 90, position: 'insideRight' }}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend itemSorter={(entry) => entry.dataKey === "value" ? 0 : 1} />
 
                     {/* DPS 라인 */}
                     <Line
@@ -135,13 +135,13 @@ interface CustomTooltipProps {
         name: string;
         payload: DPSGrowthItem;
     }>;
-    label?: string;
+    label?: string | number;
 }
 
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (!active || !payload || !payload.length) return null;
 
-    const year = label?.split("-")[0];
+    const year = String(label ?? "").split("-")[0];
 
     return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">

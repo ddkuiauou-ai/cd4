@@ -42,9 +42,9 @@ export async function generateStaticParams() {
 
 export async function GET(
   request: Request,
-  context: { params: { segment: string } }
+  context: { params: Promise<{ segment: string }> }
 ) {
-  const segment = context.params.segment;
+  const { segment } = await context.params;
   const chunks = await getSitemapChunks();
   const [type, rawIndex] = segment.split("-");
   const index = rawIndex ? Number(rawIndex) : 0;

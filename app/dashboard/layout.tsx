@@ -1,15 +1,12 @@
 import { LayoutWrapper } from "@/components/layout-wrapper";
-import { getSecuritySearchNames } from "@/lib/getSearch";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
-export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-    const searchData = await getSecuritySearchNames();
-
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
-        <LayoutWrapper searchData={searchData} showMarketNav={false}>
+        <LayoutWrapper showMarketNav={false}>
             {children}
         </LayoutWrapper>
     );

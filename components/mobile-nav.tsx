@@ -22,19 +22,7 @@ const navItems = [
   { name: "시가총액", href: "/", altHref: "/marketcaps" },
 ];
 
-// Define props for MobileNav to accept searchData
-interface MobileNavProps {
-  searchData: {
-    securityId: string;
-    companyId: string | null;
-    korName: string;
-    type: string | null;
-    exchange: string;
-  }[];
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function MobileNav({ searchData }: MobileNavProps) { // Destructure searchData from props
+export function MobileNav() {
   const [open, setOpen] = React.useState(false); // Manage sheet open state
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const pathname = usePathname();

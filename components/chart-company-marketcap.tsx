@@ -18,14 +18,18 @@ import {
     Tooltip,
     ResponsiveContainer,
     Legend,
-    Customized,
+    usePlotArea,
+    useYAxisScale,
 } from "recharts";
 
+type MarketcapDataPoint = {
+    date: string;
+    totalValue?: number;
+    [key: string]: string | number | boolean | null | undefined;
+};
+
 type Props = {
-    data: {
-        date: string;
-        totalValue?: number;
-    }[];
+    data: MarketcapDataPoint[];
     format: string;
     formatTooltip: string;
     selectedType?: string; // 선택된 종목 타입 (보통주, 우선주, 시가총액 구성)
@@ -52,7 +56,7 @@ const MIN_COMPRESSION_RATIO = 0.08;
 const MAX_COMPRESSION_RATIO = 0.35;
 
 function computeSeriesStats(
-    data: Array<Record<string, string | number | null | undefined>>,
+    data: MarketcapDataPoint[],
     keys: string[],
 ): SeriesStats[] {
     return keys
@@ -196,12 +200,12 @@ function createAxisBreakConfig(seriesStats: SeriesStats[]): AxisBreakConfig | nu
 }
 
 function transformChartData(
-    data: Array<Record<string, string | number | null | undefined>>,
+    data: MarketcapDataPoint[],
     keys: string[],
     axisBreak: AxisBreakConfig | null,
 ) {
     return data.map((item) => {
-        const transformed: Record<string, string | number | null | undefined> = {
+        const transformed: MarketcapDataPoint = {
             date: item.date,
         };
 
@@ -235,7 +239,7 @@ function transformChartData(
 }
 
 function computeYAxisDomain(
-    data: Array<Record<string, string | number | null | undefined>>,
+    data: MarketcapDataPoint[],
     keys: string[],
 ) {
     const domainValues = keys.reduce<number[]>((acc, key) => {
@@ -303,67 +307,45 @@ function generateAxisBreakTicks(
 }
 
 function AxisBreakIndicator({ axisBreak }: { axisBreak: AxisBreakConfig }) {
-    const breakPosition = axisBreak.forward(axisBreak.breakStart);
+    const plotArea = usePlotArea();
+    const yScale = useYAxisScale();
+    const yCoord = yScale?.(axisBreak.forward(axisBreak.breakStart));
+
+    if (!plotArea || yCoord === undefined || !Number.isFinite(yCoord)) {
+        return null;
+    }
+
+    const indicatorX = plotArea.x + 6;
+    const slashWidth = 6;
+    const slashGap = 8;
+    const slashHeight = 6;
+    const secondSlashStartX = indicatorX + slashGap;
+    const secondSlashEndX = secondSlashStartX + slashWidth;
+    const upperY = yCoord - slashHeight;
+    const lowerY = yCoord + slashHeight;
 
     return (
-        <Customized
-            component={({ yAxisMap, offset }: any) => {
-                const axisEntries = Object.values(yAxisMap ?? {});
-                const activeAxis: any = axisEntries[0];
-
-                if (!activeAxis || typeof activeAxis.scale !== "function") {
-                    return null;
-                }
-
-                const yCoord = activeAxis.scale(breakPosition);
-
-                if (!Number.isFinite(yCoord)) {
-                    return null;
-                }
-
-                const indicatorX = (offset?.left ?? 0) + 6;
-                const slashWidth = 6;
-                const slashGap = 8;
-                const slashHeight = 6;
-
-                const firstSlashStartX = indicatorX;
-                const firstSlashEndX = indicatorX + slashWidth;
-                const secondSlashStartX = indicatorX + slashGap;
-                const secondSlashEndX = indicatorX + slashGap + slashWidth;
-
-                const upperY = yCoord - slashHeight;
-                const lowerY = yCoord + slashHeight;
-
-                return (
-                    <g pointerEvents="none">
-                        <path
-                            d={`M${firstSlashStartX},${upperY} L${firstSlashEndX},${lowerY}`}
-                            stroke="#9ca3af"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                        />
-                        <path
-                            d={`M${secondSlashStartX},${upperY} L${secondSlashEndX},${lowerY}`}
-                            stroke="#9ca3af"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                        />
-                        <text
-                            x={secondSlashEndX + 4}
-                            y={yCoord + 4}
-                            fill="#9ca3af"
-                            fontSize={10}
-                        >
-                            축 생략
-                        </text>
-                    </g>
-                );
-            }}
-        />
+        <g pointerEvents="none">
+            <path
+                d={`M${indicatorX},${upperY} L${indicatorX + slashWidth},${lowerY}`}
+                stroke="#9ca3af"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+            />
+            <path
+                d={`M${secondSlashStartX},${upperY} L${secondSlashEndX},${lowerY}`}
+                stroke="#9ca3af"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+            />
+            <text x={secondSlashEndX + 4} y={yCoord + 4} fill="#9ca3af" fontSize={10}>
+                축 생략
+            </text>
+        </g>
     );
 }
 
-function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedType = "시가총액 구성" }: Props) {
+function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총액 구성" }: Props) {
     const [isMobile, setIsMobile] = useState(false);
     const [isClient, setIsClient] = useState(false);
 
@@ -458,24 +440,6 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         return "0"; // 모든 라인을 실선으로 (더 깔끔함)
     };
 
-    if (!data || data.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] bg-gray-50/50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
-                <div className="text-center space-y-3">
-                    <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">차트 데이터 없음</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">시가총액 데이터가 없습니다</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     const sortedData = useMemo(() => {
         if (!Array.isArray(data)) {
             return [] as typeof data;
@@ -489,11 +453,11 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
             return [] as string[];
         }
 
-        const firstItem = sortedData[0] as Record<string, unknown>;
+        const firstItem = sortedData[0];
         return Object.keys(firstItem).filter((key) => key !== "date" && key !== "value");
     }, [sortedData]);
     const seriesStats = useMemo(
-        () => computeSeriesStats(sortedData as any, lineKeys),
+        () => computeSeriesStats(sortedData, lineKeys),
         [sortedData, lineKeys]
     );
 
@@ -503,12 +467,12 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
     );
 
     const transformedData = useMemo(
-        () => transformChartData(sortedData as any, lineKeys, axisBreak),
+        () => transformChartData(sortedData, lineKeys, axisBreak),
         [sortedData, lineKeys, axisBreak]
     );
 
     const yAxisDomain = useMemo(
-        () => computeYAxisDomain(transformedData as any, lineKeys),
+        () => computeYAxisDomain(transformedData, lineKeys),
         [transformedData, lineKeys]
     );
 
@@ -545,6 +509,24 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         return formatNumberCompactForChart(originalValue);
     };
 
+    if (!data || data.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] bg-gray-50/50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                <div className="text-center space-y-3">
+                    <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">차트 데이터 없음</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">시가총액 데이터가 없습니다</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!isClient || !data || data.length === 0) {
         return (
             <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] flex items-center justify-center">
@@ -559,7 +541,7 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
         <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={250}>
                 <LineChart
-                    data={transformedData as any}
+                    data={transformedData}
                     margin={{
                         top: 8,   // 5 -> 8로 조금 증가 (범례와의 여백)
                         right: 12, // 10 -> 12로 조금 증가
@@ -599,6 +581,7 @@ function ChartCompanyMarketcap({ data, format: _format, formatTooltip, selectedT
                         isAnimationActive={false}
                     />
                     <Legend
+                        itemSorter={(entry) => lineKeys.indexOf(String(entry.value))}
                         content={<CustomLegend payload={lineKeys.map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
                         wrapperStyle={{
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
@@ -646,7 +629,7 @@ interface CustomTooltipProps {
     selectedType?: string;
 }
 
-function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
@@ -715,7 +698,7 @@ function CustomTooltip({ active, payload, formatTooltip, selectedType }: CustomT
                         <span className="text-xs font-medium text-gray-900 dark:text-gray-100 text-right">
                             {(() => {
                                 const originalValueKey = `__original__${entry.dataKey}`;
-                                const originalValue = (entry.payload as any)?.[originalValueKey];
+                                const originalValue = entry.payload?.[originalValueKey];
                                 const resolvedValue = (typeof originalValue === 'number' && Number.isFinite(originalValue))
                                     ? originalValue
                                     : (typeof entry.value === 'number' && Number.isFinite(entry.value)
@@ -737,7 +720,6 @@ interface CustomLegendProps {
         value: string;
         type: string;
         color: string;
-        payload?: any;
     }>;
     selectedType?: string;
 }

@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
             '주식 순위',
             '천하제일 단타대회',
             'PBR 랭킹',
-            latestDate,
+            ...(latestDate ? [latestDate] : []),
             ...items.slice(0, 10).map(s => s.korName || s.name),
         ],
         openGraph: {

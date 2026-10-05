@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { and, asc, eq, exists, isNull, isNotNull, desc, inArray } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { getMarketCapHistoryBySecurityIds, getPricesBySecurityIds } from "./security";
 import { cachedData } from "./cache-policy";
@@ -177,7 +176,7 @@ export const getCompanyMarketcapsPage = cachedData(
 );
 
 // Company aggregated marketcap (moved from lib/getMarketData.ts)
-export const getCompanyAggregatedMarketcap = unstable_cache(
+export const getCompanyAggregatedMarketcap = cachedData(
   async (companyId: string): Promise<CompanyMarketcapAggregated | null> => {
     try {
       if (!companyId) return null;
@@ -212,39 +211,19 @@ export const getCompanyAggregatedMarketcap = unstable_cache(
       const securityIds = company.securities.map((sec) => sec.securityId);
       const marketcapHistories = await getMarketCapHistoryBySecurityIds(securityIds);
 
-      const currentTotalMarketcap = company.securities.reduce((total, sec) => {
-        return total + (sec.marketcap || 0);
-      }, 0);
-
-      const securitiesData = company.securities.map((sec) => {
-        const marketcapHistory = marketcapHistories[sec.securityId] || [];
-        const percentage = currentTotalMarketcap > 0 ? ((sec.marketcap || 0) / currentTotalMarketcap) * 100 : 0;
-
-        return {
-          securityId: sec.securityId,
-          name: sec.name,
-          korName: sec.korName,
-          ticker: sec.ticker,
-          type: sec.type,
-          marketcap: sec.marketcap,
-          marketcapDate: sec.marketcapDate ? (sec.marketcapDate instanceof Date ? sec.marketcapDate : new Date(sec.marketcapDate)) : null,
-          percentage,
-          marketcapHistory,
-        };
-      });
-
       const aggregatedHistory: Array<{
         date: Date;
         totalMarketcap: number;
         securitiesBreakdown: Record<string, number>;
       }> = [];
 
+      const historyDateKey = (date: Date | string) =>
+        (date instanceof Date ? date.toISOString() : date).split("T")[0];
       const allDates = new Set<string>();
       Object.values(marketcapHistories).forEach((history) => {
-        history.forEach((item: any) => {
+        history.forEach((item) => {
           if (item.date) {
-            const dateStr = item.date instanceof Date ? item.date.toISOString().split("T")[0] : String(item.date);
-            allDates.add(dateStr);
+            allDates.add(historyDateKey(item.date));
           }
         });
       });
@@ -257,11 +236,8 @@ export const getCompanyAggregatedMarketcap = unstable_cache(
           const securitiesBreakdown: Record<string, number> = {};
 
           company.securities.forEach((sec) => {
-            const history = (marketcapHistories as any)[sec.securityId] || [];
-            const marketcapOnDate = history.find((item: any) => {
-              const itemDateStr = item.date instanceof Date ? item.date.toISOString().split("T")[0] : String(item.date);
-              return itemDateStr === dateStr;
-            });
+            const history = marketcapHistories[sec.securityId] || [];
+            const marketcapOnDate = history.find((item) => historyDateKey(item.date) === dateStr);
 
             const marketcapValue = marketcapOnDate?.marketcap || 0;
             totalMarketcap += marketcapValue;
@@ -277,22 +253,54 @@ export const getCompanyAggregatedMarketcap = unstable_cache(
           }
         });
 
+      const hasCurrentSnapshot = company.marketcapDate !== null &&
+        company.securities.every((sec) => sec.marketcap !== null);
+      const latestHistory = aggregatedHistory.at(-1);
+      if (!hasCurrentSnapshot && !latestHistory) return null;
+
+      const totalMarketcap = hasCurrentSnapshot
+        ? company.securities.reduce((total, sec) => total + (sec.marketcap ?? 0), 0)
+        : latestHistory!.totalMarketcap;
+      const totalMarketcapDate = hasCurrentSnapshot
+        ? new Date(company.marketcapDate!)
+        : latestHistory!.date;
+      const securitiesData = company.securities.map((sec) => {
+        const marketcapHistory = marketcapHistories[sec.securityId] || [];
+        const historicalSnapshot = latestHistory
+          ? marketcapHistory.find((item) => historyDateKey(item.date) === historyDateKey(latestHistory.date))
+          : undefined;
+        const marketcap = hasCurrentSnapshot ? sec.marketcap : historicalSnapshot?.marketcap ?? null;
+        const marketcapDate = hasCurrentSnapshot ? sec.marketcapDate : historicalSnapshot?.date ?? null;
+
+        return {
+          securityId: sec.securityId,
+          name: sec.name,
+          korName: sec.korName,
+          ticker: sec.ticker,
+          type: sec.type,
+          marketcap,
+          marketcapDate: marketcapDate ? new Date(marketcapDate) : null,
+          percentage: totalMarketcap > 0 ? ((marketcap ?? 0) / totalMarketcap) * 100 : 0,
+          marketcapHistory,
+        };
+      });
+
       return {
         companyId: company.companyId,
         companyName: company.name,
         companyKorName: company.korName,
-        totalMarketcap: currentTotalMarketcap,
-        totalMarketcapDate: company.marketcapDate ? (company.marketcapDate instanceof Date ? company.marketcapDate : new Date(company.marketcapDate)) : new Date(),
+        totalMarketcap,
+        totalMarketcapDate,
         securities: securitiesData,
         aggregatedHistory,
       };
     } catch (error) {
       console.error("[getCompanyAggregatedMarketcap] ERROR:", error);
-      return null;
+      throw error;
     }
   },
-  ["getCompanyAggregatedMarketcap"],
-  { tags: ["getCompanyAggregatedMarketcap"] }
+  "getCompanyAggregatedMarketcap",
+  ["getCompanyAggregatedMarketcap"]
 );
 
 // Neighbor navigation helpers around a given rank
@@ -309,7 +317,7 @@ export const getMarketCapPageData = async (rank: number) => {
   }
 };
 
-export const getCompanyMarketCapPageData = async (rank: number) => {
+export const getCompanyMarketCapPageData = cachedData(async (rank: number) => {
   try {
     const results = await db.query.company.findMany({
       where: inArray(schema.company.marketcapRank, [rank - 1, rank, rank + 1]),
@@ -335,6 +343,6 @@ export const getCompanyMarketCapPageData = async (rank: number) => {
       }));
   } catch (error) {
     console.error("[company.getCompanyMarketCapPageData] ERROR:", error);
-    return [];
+    throw error;
   }
-};
+}, "getCompanyMarketCapPageData", ["getCompanyMarketCapPageData"]);

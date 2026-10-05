@@ -17,6 +17,7 @@ import {
 import { useTheme } from "next-themes";
 
 import { cn } from "@/lib/utils";
+import { useSearchData } from "@/components/search-data";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,19 +34,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"; // Import DialogTitle and DialogDescription
 
-interface CommandMenuProps {
-  data: {
-    securityId: string;
-    companyId: string | null;
-    korName: string;
-    type: string | null;
-    exchange: string;
-  }[];
-}
-
-export function CommandMenu({ data, ...props }: CommandMenuProps) {
+export function CommandMenu() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const { data, status, retry } = useSearchData(open);
   const { setTheme } = useTheme();
 
   React.useEffect(() => {
@@ -82,7 +74,6 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
           "relative h-10 w-full justify-start rounded-md bg-background text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
         )}
         onClick={() => setOpen(true)}
-        {...props}
       >
         <div className="flex items-center space-x-2 w-full">
           <span className="text-lg">🔍</span>
@@ -98,7 +89,18 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
         <DialogDescription className="sr-only">기업, 종목을 검색하거나 테마를 변경할 수 있습니다.</DialogDescription> {/* Optional: Add sr-only DialogDescription */}
         <CommandInput placeholder="검색할 기업 또는 종목을 입력하세요" />
         <CommandList>
-          <CommandEmpty>검색 결과 없음.</CommandEmpty>
+          {status === "idle" || status === "loading" ? (
+            <div role="status" className="px-4 py-6 text-center text-sm text-muted-foreground">
+              검색 데이터를 불러오는 중입니다.
+            </div>
+          ) : status === "error" ? (
+            <div role="alert" className="space-y-3 px-4 py-6 text-center text-sm">
+              <p className="text-muted-foreground">검색 데이터를 불러오지 못했습니다.</p>
+              <Button variant="outline" size="sm" onClick={retry}>다시 시도</Button>
+            </div>
+          ) : (
+            <CommandEmpty>검색 결과 없음.</CommandEmpty>
+          )}
           <CommandGroup heading="기업">
             {data.map(
               (navItem) =>
@@ -109,7 +111,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={navItem.korName}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/corp/marketcap/${navItem.korName}`)
+                        router.push(`/company/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -128,7 +130,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`보통주${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -147,7 +149,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`우선주${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -166,7 +168,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`전환우선주${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -185,7 +187,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`리츠${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -204,7 +206,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`펀드${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >
@@ -223,7 +225,7 @@ export function CommandMenu({ data, ...props }: CommandMenuProps) {
                     value={`스팩${navItem.korName}`}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/sec/marketcap/${navItem.korName}`)
+                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
                       );
                     }}
                   >

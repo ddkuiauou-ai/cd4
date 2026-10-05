@@ -1,0 +1,484 @@
+{
+  "measuredAt": "2026-10-05T03:28:44.150843+00:00",
+  "measurementRoot": "/Users/craigchoi/silla/cd4/.next/server/app",
+  "metricDefinition": "Logical uncompressed file bytes; page payload = HTML + full RSC + every sibling .segments file + .meta. Build-route totals also count route handlers/assets, unlike HTML-page count.",
+  "scope": "Both snapshots are Next.js 16.3.8 server/standalone builds of the original checkout, before and after shared search JSON extraction. This is not a Next 15 versus Next 16 comparison.",
+  "beforeRecorded": {
+    "provenance": "Read-only measurements delivered in this agent tool results/messages before the original .next was replaced by the warm build. Raw original artifact no longer available; KiB/MiB figures retain their recorded rounding.",
+    "figuresRounded": true,
+    "nextVersion": "16.3.8",
+    "buildRoutes": 325,
+    "htmlPages": 322,
+    "totalPagePayloadMiB": 1579.13,
+    "htmlMiB": 547.8,
+    "allRscMiB": 1030.96,
+    "sampleKiB": {
+      "index": {
+        "html": 1003.1,
+        "rsc": 756.38,
+        "segments": 1513.16,
+        "meta": 0.8,
+        "segmentCount": 5,
+        "total": 3273.44
+      },
+      "security/KOSPI.005930": {
+        "html": 728.92,
+        "rsc": 617.36,
+        "segments": 1234.79,
+        "meta": 0.99,
+        "segmentCount": 5,
+        "total": 2582.06
+      },
+      "marketcaps/2": {
+        "html": 2243.34,
+        "rsc": 1306.61,
+        "segments": 2613.46,
+        "meta": 1.18,
+        "segmentCount": 5,
+        "total": 6164.6
+      },
+      "company/KOSPI.005930": {
+        "html": 733.04,
+        "rsc": 619.55,
+        "segments": 1239.06,
+        "meta": 0.98,
+        "segmentCount": 5,
+        "total": 2592.63
+      },
+      "security/KOSPI.005930/marketcap": {
+        "html": 1177.28,
+        "rsc": 901.24,
+        "segments": 1802.06,
+        "meta": 1.34,
+        "segmentCount": 5,
+        "total": 3881.93
+      },
+      "security/KOSPI.322000/per": {
+        "html": 1011.25,
+        "rsc": 777.51,
+        "segments": 1554.65,
+        "meta": 1.28,
+        "segmentCount": 5,
+        "total": 3344.69
+      },
+      "company/KOSPI.005930/marketcap": {
+        "html": 1089.94,
+        "rsc": 938.39,
+        "segments": 1875.93,
+        "meta": 1.3,
+        "segmentCount": 5,
+        "total": 3905.57
+      }
+    },
+    "groupMeanPagePayloadKiB": {
+      "company/base": 2595.0,
+      "company/marketcap": 3614.8,
+      "security/base": 2582.2,
+      "security/marketcap": 3654.5,
+      "security/per": 3445.6,
+      "security/pbr": 3270.8,
+      "security/eps": 3675.2,
+      "security/bps": 3686.8,
+      "security/div": 3542.4,
+      "security/dps": 4084.7,
+      "ranking/core": 5734.5
+    },
+    "searchArray": {
+      "rows": 2882,
+      "exactRawJsonBytes": 608537,
+      "copiesPerPage": {
+        "fullRsc": 1,
+        "layoutSegmentRsc": 1,
+        "fullSegmentRsc": 1,
+        "htmlEmbeddedFlight": 1
+      },
+      "escapedHtmlKiBApproximate": 673.09,
+      "repeatedPagePayloadKiBApproximate": 2455.91
+    }
+  },
+  "afterMeasured": {
+    "nextVersion": "16.3.8",
+    "buildRoutes": 326,
+    "htmlPages": 322,
+    "totalPagePayloadBytes": 850821900,
+    "allFilesBytes": 853352939,
+    "extensions": {
+      ".rsc": {
+        "files": 1609,
+        "bytes": 496627115
+      },
+      ".meta": {
+        "files": 326,
+        "bytes": 373828
+      },
+      ".html": {
+        "files": 322,
+        "bytes": 353822518
+      },
+      ".body": {
+        "files": 4,
+        "bytes": 719470
+      },
+      ".js": {
+        "files": 68,
+        "bytes": 789385
+      },
+      ".map": {
+        "files": 35,
+        "bytes": 1855
+      },
+      ".json": {
+        "files": 198,
+        "bytes": 1018768
+      }
+    },
+    "groups": {
+      "company/base": {
+        "pages": 10,
+        "totalBytes": 1416348,
+        "meanBytes": {
+          "html": 62240.3,
+          "rsc": 26331.5,
+          "segments": 52098,
+          "meta": 965,
+          "total": 141634.8
+        },
+        "minTotalBytes": 139178,
+        "maxTotalBytes": 143441
+      },
+      "company/marketcap": {
+        "pages": 10,
+        "totalBytes": 11858305,
+        "meanBytes": {
+          "html": 346532.7,
+          "rsc": 279800.6,
+          "segments": 558200.2,
+          "meta": 1297,
+          "total": 1185830.5
+        },
+        "minTotalBytes": 798265,
+        "maxTotalBytes": 2094287
+      },
+      "ranking/core": {
+        "pages": 223,
+        "totalBytes": 753505500,
+        "meanBytes": {
+          "html": 1431385.0,
+          "rsc": 648905.56,
+          "segments": 1297530.55,
+          "meta": 1127.33,
+          "total": 3378948.43
+        },
+        "minTotalBytes": 24325,
+        "maxTotalBytes": 3796865
+      },
+      "security/base": {
+        "pages": 10,
+        "totalBytes": 1284623,
+        "meanBytes": {
+          "html": 57084.3,
+          "rsc": 23612,
+          "segments": 46794,
+          "meta": 972,
+          "total": 128462.3
+        },
+        "minTotalBytes": 128007,
+        "maxTotalBytes": 129044
+      },
+      "security/bps": {
+        "pages": 10,
+        "totalBytes": 12595823,
+        "meanBytes": {
+          "html": 450788.9,
+          "rsc": 269485.8,
+          "segments": 538034.6,
+          "meta": 1273,
+          "total": 1259582.3
+        },
+        "minTotalBytes": 1231772,
+        "maxTotalBytes": 1283115
+      },
+      "security/div": {
+        "pages": 10,
+        "totalBytes": 11118012,
+        "meanBytes": {
+          "html": 405225.7,
+          "rsc": 235413.9,
+          "segments": 469887,
+          "meta": 1274.6,
+          "total": 1111801.2
+        },
+        "minTotalBytes": 791173,
+        "maxTotalBytes": 1379646
+      },
+      "security/dps": {
+        "pages": 10,
+        "totalBytes": 16670385,
+        "meanBytes": {
+          "html": 571299.4,
+          "rsc": 365140.1,
+          "segments": 729326,
+          "meta": 1273,
+          "total": 1667038.5
+        },
+        "minTotalBytes": 1246968,
+        "maxTotalBytes": 2107137
+      },
+      "security/eps": {
+        "pages": 10,
+        "totalBytes": 12477791,
+        "meanBytes": {
+          "html": 445615,
+          "rsc": 267270.1,
+          "segments": 533621,
+          "meta": 1273,
+          "total": 1247779.1
+        },
+        "minTotalBytes": 883843,
+        "maxTotalBytes": 1991551
+      },
+      "security/marketcap": {
+        "pages": 10,
+        "totalBytes": 12264919,
+        "meanBytes": {
+          "html": 448178.8,
+          "rsc": 259310.7,
+          "segments": 517664.4,
+          "meta": 1338,
+          "total": 1226491.9
+        },
+        "minTotalBytes": 853678,
+        "maxTotalBytes": 1985231
+      },
+      "security/pbr": {
+        "pages": 9,
+        "totalBytes": 7503382,
+        "meanBytes": {
+          "html": 329103,
+          "rsc": 168077,
+          "segments": 335254.11,
+          "meta": 1275,
+          "total": 833709.11
+        },
+        "minTotalBytes": 404897,
+        "maxTotalBytes": 1146988
+      },
+      "security/per": {
+        "pages": 10,
+        "totalBytes": 10126812,
+        "meanBytes": {
+          "html": 379208.6,
+          "rsc": 211042.1,
+          "segments": 421156.3,
+          "meta": 1274.2,
+          "total": 1012681.2
+        },
+        "minTotalBytes": 832322,
+        "maxTotalBytes": 1455434
+      }
+    },
+    "samples": {
+      "index": {
+        "bytes": {
+          "html": 337771,
+          "rsc": 165947,
+          "segments": 332135,
+          "meta": 781,
+          "segmentCount": 4,
+          "total": 836634
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "index.html"
+      },
+      "security/KOSPI.005930": {
+        "bytes": {
+          "html": 57101,
+          "rsc": 23582,
+          "segments": 46733,
+          "meta": 972,
+          "segmentCount": 4,
+          "total": 128388
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "security/KOSPI.005930.html"
+      },
+      "marketcaps/2": {
+        "bytes": {
+          "html": 1607856,
+          "rsc": 729373,
+          "segments": 1458472,
+          "meta": 1164,
+          "segmentCount": 4,
+          "total": 3796865
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "marketcaps/2.html"
+      },
+      "company/KOSPI.005930": {
+        "bytes": {
+          "html": 61276,
+          "rsc": 25834,
+          "segments": 51103,
+          "meta": 965,
+          "segmentCount": 4,
+          "total": 139178
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "company/KOSPI.005930.html"
+      },
+      "security/KOSPI.005930/marketcap": {
+        "bytes": {
+          "html": 516223,
+          "rsc": 314279,
+          "segments": 627619,
+          "meta": 1338,
+          "segmentCount": 4,
+          "total": 1459459
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "security/KOSPI.005930/marketcap.html"
+      },
+      "security/KOSPI.322000/per": {
+        "bytes": {
+          "html": 346206,
+          "rsc": 187581,
+          "segments": 374265,
+          "meta": 1273,
+          "segmentCount": 4,
+          "total": 909325
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "security/KOSPI.322000/per.html"
+      },
+      "company/KOSPI.005930/marketcap": {
+        "bytes": {
+          "html": 426747,
+          "rsc": 352325,
+          "segments": 703256,
+          "meta": 1297,
+          "segmentCount": 4,
+          "total": 1483625
+        },
+        "searchDataPropertyOccurrences": {
+          "html": 0,
+          "rsc": 0,
+          "segments": 0
+        },
+        "relativeHtmlPath": "company/KOSPI.005930/marketcap.html"
+      }
+    },
+    "sharedSearch": {
+      "path": "/Users/craigchoi/silla/cd4/.next/server/app/search-data.json.body",
+      "bytes": 539772,
+      "rows": 2882,
+      "emittedAsOneSharedRouteBody": true
+    }
+  },
+  "comparison": {
+    "samples": {
+      "index": {
+        "beforeTotalKiBRecorded": 3273.44,
+        "afterTotalBytes": 836634,
+        "reductionPercentApproximate": 75.04
+      },
+      "security/KOSPI.005930": {
+        "beforeTotalKiBRecorded": 2582.06,
+        "afterTotalBytes": 128388,
+        "reductionPercentApproximate": 95.14
+      },
+      "marketcaps/2": {
+        "beforeTotalKiBRecorded": 6164.6,
+        "afterTotalBytes": 3796865,
+        "reductionPercentApproximate": 39.85
+      },
+      "company/KOSPI.005930": {
+        "beforeTotalKiBRecorded": 2592.63,
+        "afterTotalBytes": 139178,
+        "reductionPercentApproximate": 94.76
+      },
+      "security/KOSPI.005930/marketcap": {
+        "beforeTotalKiBRecorded": 3881.93,
+        "afterTotalBytes": 1459459,
+        "reductionPercentApproximate": 63.28
+      },
+      "security/KOSPI.322000/per": {
+        "beforeTotalKiBRecorded": 3344.69,
+        "afterTotalBytes": 909325,
+        "reductionPercentApproximate": 73.45
+      },
+      "company/KOSPI.005930/marketcap": {
+        "beforeTotalKiBRecorded": 3905.57,
+        "afterTotalBytes": 1483625,
+        "reductionPercentApproximate": 62.9
+      }
+    },
+    "totalPagePayloadReductionPercentApproximate": 48.62
+  },
+  "fullExportExtrapolation": {
+    "countsSource": "Read-only DB count audit from cache_audit agent on 2026-10-05",
+    "detailUniverseCounts": {
+      "company/base": 2788,
+      "company/marketcap": 2788,
+      "security/base": 2882,
+      "security/marketcap": 2882,
+      "security/per": 2670,
+      "security/pbr": 2670,
+      "security/eps": 2670,
+      "security/bps": 2670,
+      "security/div": 2882,
+      "security/dps": 2882
+    },
+    "detailCandidates": 27784,
+    "listingCandidates": 218,
+    "corePages": 2,
+    "beforeEstimatedSinglePayloadGiB": 91.667,
+    "afterEstimatedSinglePayloadGiB": 26.061,
+    "afterEstimatedPayloadCopyPeakGiB": 52.121,
+    "copyEvidence": "Installed Next 16.3.8 node_modules/next/dist/export/index.js lines 762-795 copies HTML, full RSC and every segment to out using fs.promises.copyFile.",
+    "totalRenderCandidates": 28004,
+    "countRevision": "Export metric params now include 68 active common-stock securities without current marketcap; each of four common-stock metric families has 2,670 candidates."
+  },
+  "buildLogs": {
+    "before": {
+      "path": "/private/tmp/cd4-next16-clean-build.log",
+      "compileSeconds": 18.9,
+      "wallSeconds": 151.12
+    },
+    "after": {
+      "path": "/private/tmp/cd4-next16-warm-build.log",
+      "compileSeconds": 20.3,
+      "wallSeconds": 187.46
+    }
+  },
+  "limitations": [
+    "Before figures are rounded recorded values; after byte counts are exact current file stat values.",
+    "Most detail families contain only the prerendered top 10 (PBR 9), so full-export estimates have sample bias and are not measured full-output sizes.",
+    "No compression, APFS clone sharing, HTTP transfer or CDN storage savings are included in logical-byte comparisons.",
+    "Build times include type checking, database/cache behavior and simultaneous source changes; they do not establish an isolated Next.js performance effect.",
+    "Complete 28,004 render candidates remain unvalidated; representative verification limits only returned parameters while preserving original data queries."
+  ]
+}

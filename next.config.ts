@@ -12,14 +12,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // 타입체크 및 린트 설정 (빌드 속도 최적화)
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // Turbopack 설정
   turbopack: {
     root: path.resolve(__dirname),

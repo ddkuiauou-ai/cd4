@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { SecurityMetricEmpty } from "@/components/security-metric-empty";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
@@ -65,7 +67,7 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error("[GENERATE_STATIC_PARAMS] Error generating BPS params:", error);
-    return [];
+    throw error;
   }
 }
 
@@ -77,7 +79,7 @@ interface SecurityBPSPageProps {
 /**
  * Generate metadata for the security BPS page
  */
-export async function generateMetadata({ params }: SecurityBPSPageProps) {
+export async function generateMetadata({ params }: SecurityBPSPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { secCode } = await params;
   const security = await getSecurityByCode(secCode);
 
@@ -88,7 +90,11 @@ export async function generateMetadata({ params }: SecurityBPSPageProps) {
     };
   }
 
+  const canonical = `${siteConfig.url}/security/${secCode}/bps/`;
+
   return {
+    alternates: { canonical },
+    openGraph: { ...(await parent).openGraph, url: canonical },
     title: `${security.korName || security.name} 주당순자산가치 BPS - CD3`,
     description: `${security.korName || security.name}의 연도별 주당순자산가치(BPS) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
@@ -130,12 +136,15 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
     // Get BPS rank
     getBpsRank(security.securityId),
     // Get company marketcap data for Interactive Securities Section
-    security.companyId ? getCompanyAggregatedMarketcap(security.companyId).catch(() => null) : Promise.resolve(null)
+    security.companyId ? getCompanyAggregatedMarketcap(security.companyId) : Promise.resolve(null)
   ]);
 
-  // 🔥 CD3 방어적 프로그래밍: 데이터가 없는 경우 404 처리
   if (!data || data.length === 0) {
-    notFound();
+    return <SecurityMetricEmpty
+      secCode={secCode}
+      displayName={security.korName || security.name || secCode}
+      metricLabel={ACTIVE_METRIC.label}
+    />;
   }
 
   // Find representative security (보통주)
@@ -166,11 +175,7 @@ export default async function SecurityBPSPage({ params }: SecurityBPSPageProps) 
         };
       } catch (error) {
         console.error(`Failed to get BPS data for ${sec.ticker}:`, error);
-        return {
-          ...sec,
-          bps: null,
-          bpsDate: null,
-        };
+        throw error;
       }
     })
   );

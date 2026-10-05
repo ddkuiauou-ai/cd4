@@ -11,6 +11,7 @@ import * as schema from '@/db/schema-postgres';
 // SSG helper imports removed; using direct queries below
 import { and, asc, desc, eq, exists, isNotNull, isNull, ne, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
+import { cachedData, STATIC_CODES_REVALIDATE_SECONDS } from './data/cache-policy';
 
 /**
  * Robust retry helper for SSG build with longer delays
@@ -137,7 +138,7 @@ export const getSecurityById = unstable_cache(
  * @param securityId The security ID to get ranking for
  * @returns Object with current rank, prior rank, and change or null if not found
  */
-export const getSecurityMarketCapRanking = unstable_cache(
+export const getSecurityMarketCapRanking = cachedData(
     async (securityId: string) => {
         try {
             const latestRankDateResult = await db
@@ -179,11 +180,11 @@ export const getSecurityMarketCapRanking = unstable_cache(
             };
         } catch (error) {
             console.error('[GET_SECURITY_MARKET_CAP_RANKING] Error:', error);
-            return null;
+            throw error;
         }
     },
-    ['getSecurityMarketCapRanking'],
-    { tags: ['getSecurityMarketCapRanking'] }
+    "getSecurityMarketCapRanking",
+    ['getSecurityMarketCapRanking']
 );
 
 /**
@@ -192,7 +193,7 @@ export const getSecurityMarketCapRanking = unstable_cache(
  *
  * @returns Array of security objects
  */
-export const getAllSecuritiesWithType = unstable_cache(
+export const getAllSecuritiesWithType = cachedData(
     async (): Promise<{ exchange: string; ticker: string; type: string | null }[]> => {
         return await withRetry(async () => {
             console.log('[GET_ALL_SECURITIES_WITH_TYPE] Attempting to fetch securities from DB');
@@ -208,10 +209,10 @@ export const getAllSecuritiesWithType = unstable_cache(
                     isNotNull(security.ticker),
                     ne(security.exchange, ''),
                     ne(security.ticker, ''),
-                    isNotNull(security.marketcap),
+                    isFullStaticExport() ? undefined : isNotNull(security.marketcap),
                     isNull(security.delistingDate)
                 ),
-                orderBy: [desc(security.marketcap)], // 시가총액 상위부터
+                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
             });
 
             console.log(`[GET_ALL_SECURITIES_WITH_TYPE] Successfully fetched ${securities.length} securities from DB`);
@@ -219,8 +220,8 @@ export const getAllSecuritiesWithType = unstable_cache(
             return securities;
         }, 'getAllSecuritiesWithType');
     },
-    ['getAllSecuritiesWithType'],
-    { tags: ['getAllSecuritiesWithType'], revalidate: 86400 } // 24시간 캐시
+    "getAllSecuritiesWithType",
+    ['getAllSecuritiesWithType'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
 );
 
 /**
@@ -229,7 +230,7 @@ export const getAllSecuritiesWithType = unstable_cache(
  *
  * @returns Array of security codes
  */
-export const getAllSecurityCodes = unstable_cache(
+export const getAllSecurityCodes = cachedData(
     async (): Promise<string[]> => {
         return await withRetry(async () => {
             console.log('[GET_ALL_SECURITY_CODES] Attempting to fetch securities from DB');
@@ -244,12 +245,10 @@ export const getAllSecurityCodes = unstable_cache(
                     isNotNull(security.ticker),
                     ne(security.exchange, ''),
                     ne(security.ticker, ''),
-                    isNotNull(security.marketcap),
+                    isFullStaticExport() ? undefined : isNotNull(security.marketcap),
                     isNull(security.delistingDate)
                 ),
-                orderBy: [desc(security.marketcap)], // 시가총액 상위부터
-                // 청크 빌드 시에는 제한 없이 모든 데이터 가져오기
-                // limit: 100, // 제한 제거
+                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
             });
 
             console.log(`[GET_ALL_SECURITY_CODES] Successfully fetched ${securities.length} securities from DB`);
@@ -261,8 +260,8 @@ export const getAllSecurityCodes = unstable_cache(
             return allSecurityCodes;
         }, 'getAllSecurityCodes');
     },
-    ['getAllSecurityCodes'],
-    { tags: ['getAllSecurityCodes'], revalidate: 86400 } // 24시간 캐시
+    "getAllSecurityCodes",
+    ['getAllSecurityCodes'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
 );
 
 /**
@@ -271,7 +270,7 @@ export const getAllSecurityCodes = unstable_cache(
  * 
  * @returns Array of security codes that have companies
  */
-export const getAllCompanyCodes = unstable_cache(
+export const getAllCompanyCodes = cachedData(
     async (): Promise<string[]> => {
         return await withRetry(async () => {
             console.log('[GET_ALL_COMPANY_CODES] Attempting to fetch company codes from DB');
@@ -287,11 +286,9 @@ export const getAllCompanyCodes = unstable_cache(
                     ne(security.exchange, ''),
                     ne(security.ticker, ''),
                     isNotNull(security.companyId), // 회사가 있는 경우만
-                    isNotNull(security.marketcap) // 시가총액이 있는 경우만
+                    isFullStaticExport() ? isNull(security.delistingDate) : isNotNull(security.marketcap)
                 ),
-                orderBy: [desc(security.marketcap)], // 시가총액 상위부터
-                // 청크 빌드 시에는 제한 없이 모든 데이터 가져오기
-                // limit: 100, // 제한 제거
+                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
             });
 
             console.log(`[GET_ALL_COMPANY_CODES] Successfully fetched ${securities.length} company codes from DB`);
@@ -303,8 +300,8 @@ export const getAllCompanyCodes = unstable_cache(
             return allCompanyCodes;
         }, 'getAllCompanyCodes');
     },
-    ['getAllCompanyCodes'],
-    { tags: ['getAllCompanyCodes'], revalidate: 86400 } // 24시간 캐시
+    "getAllCompanyCodes",
+    ['getAllCompanyCodes'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
 );
 
 
@@ -385,7 +382,7 @@ async function fetchRankedSecurityMeta(
     return result;
 }
 
-export const getTopSecurityCodesByMetric = unstable_cache(
+export const getTopSecurityCodesByMetric = cachedData(
     async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
         return await withRetry(async () => {
             if (isFullStaticExport()) {
@@ -395,11 +392,11 @@ export const getTopSecurityCodesByMetric = unstable_cache(
             return meta.map((item) => item.code);
         }, `getTopSecurityCodesByMetric-${metric}-${limit}`);
     },
-    ['getTopSecurityCodesByMetric'],
-    { tags: ['getTopSecurityCodesByMetric'], revalidate: 86400 },
+    "getTopSecurityCodesByMetric",
+    ['getTopSecurityCodesByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
 );
 
-export const getTopCompanyCodesByMetric = unstable_cache(
+export const getTopCompanyCodesByMetric = cachedData(
     async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
         return await withRetry(async () => {
             if (isFullStaticExport()) {
@@ -422,11 +419,11 @@ export const getTopCompanyCodesByMetric = unstable_cache(
             return codes;
         }, `getTopCompanyCodesByMetric-${metric}-${limit}`);
     },
-    ['getTopCompanyCodesByMetric'],
-    { tags: ['getTopCompanyCodesByMetric'], revalidate: 86400 },
+    "getTopCompanyCodesByMetric",
+    ['getTopCompanyCodesByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
 );
 
-export const getTopSecuritiesWithTypeByMetric = unstable_cache(
+export const getTopSecuritiesWithTypeByMetric = cachedData(
     async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
         return await withRetry(async () => {
             if (isFullStaticExport()) {
@@ -442,8 +439,8 @@ export const getTopSecuritiesWithTypeByMetric = unstable_cache(
             return await fetchRankedSecurityMeta(metric, limit);
         }, `getTopSecuritiesWithTypeByMetric-${metric}-${limit}`);
     },
-    ['getTopSecuritiesWithTypeByMetric'],
-    { tags: ['getTopSecuritiesWithTypeByMetric'], revalidate: 86400 },
+    "getTopSecuritiesWithTypeByMetric",
+    ['getTopSecuritiesWithTypeByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
 );
 
 //

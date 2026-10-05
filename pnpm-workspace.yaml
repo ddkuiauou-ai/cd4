@@ -1,0 +1,10 @@
+useNodeVersion: 22.23.3
+strictPeerDependencies: true
+
+# Native tooling required by the installed compiler, CSS and CLI packages.
+allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  msw: false
