@@ -1,5 +1,7 @@
 # CD3 - Korean Stock Information Service
 
+> **후속 작업 시작 문서:** [문서 안내](docs/README.md)에서 2026-10-04 조사 기준의 [프로젝트 현황](docs/project-current-state.md), [DAG 연동 계약](docs/dag-integration.md), [라이브러리 업데이트 인수인계](docs/upgrade-handoff.md)를 읽으세요. 아래 기존 안내에는 과거 버전의 명칭·명령·배포 설명이 남아 있으며, 구현과 다른 항목은 조사 문서에 기록했습니다.
+
 CD3 is a professional stock information service providing comprehensive financial data, rankings, and analysis tools for Korean stock market investors. Built with Next.js 15 and optimized for mobile-first experiences with institutional-grade credibility.
 
 ## 🎯 Project Overview
