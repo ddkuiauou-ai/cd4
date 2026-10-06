@@ -1,0 +1,86 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "type": "text/html; charset=utf-8"
+  },
+  {
+    "path": "/dashboard/",
+    "status": 200,
+    "type": "text/html; charset=utf-8"
+  },
+  {
+    "path": "/company/KOSPI.005930/marketcap/",
+    "status": 200,
+    "type": "text/html; charset=utf-8"
+  },
+  {
+    "path": "/security/KOSPI.005930/marketcap/",
+    "status": 200,
+    "type": "text/html; charset=utf-8"
+  },
+  {
+    "path": "/ranking-data/companies-marketcap.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2601,
+    "attachment": "attachment; filename=\"marketcap-companies-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-marketcap.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2785,
+    "attachment": "attachment; filename=\"marketcap-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-per.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"per-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-pbr.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"pbr-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-eps.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"eps-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-bps.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"bps-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-div.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"div-securities-2025-09-22.csv\"",
+    "bom": true
+  },
+  {
+    "path": "/ranking-data/securities-dps.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "rows": 2539,
+    "attachment": "attachment; filename=\"dps-securities-2025-09-22.csv\"",
+    "bom": true
+  }
+]

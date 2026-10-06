@@ -13,6 +13,8 @@
 
 이 문서는 코드 조사 결과다. 운영 사이트의 최신 데이터·광고 노출·유입·수익 또는 Dagster의 최근 성공 실행을 확인한 운영 보고서가 아니다. 후속 작업의 구체적인 버전 기준과 검사 결과는 [업그레이드 인수인계](upgrade-handoff.md), 데이터 계약은 [DAG 연동 계약](dag-integration.md)을 함께 읽는다.
 
+**2026-10-06 DB 기준 갱신:** cd4는 PostgreSQL 전용으로 정리했다. 실행 adapter는 `drizzle-orm/postgres-js`, driver는 `postgres`, 유지하는 선언은 `db/schema-postgres.ts`다. cd4의 Turso 스키마·libSQL 의존성과 기존 SQLite migration history는 제거하고 PostgreSQL 초기 migration을 사용한다. 아래 조사 기록의 기준일과 과거 검증 결과는 보존한다. 신규 빈 DB 설치와 기존 DB의 baseline 절차는 [PostgreSQL 안내](postgresql.md)를 따른다. 저장소 정리는 운영 DB의 DDL이나 데이터를 변경했다는 뜻이 아니다.
+
 ## 2. 사용자 제품 의도와 서비스 경계
 
 **사용자 진술(2026-10-04):** 한국 주식의 시가총액 등 사람들이 궁금해하는 정보를 쉽게 확인하게 하고, 단순한 핵심 기능을 통해 검색 유입과 반복 방문을 만들며 Google AdSense를 수익화 수단으로 활용하려는 서비스다. 추가 기능의 가능성은 있지만 이번 대화에서 확장 기능을 채택하거나 우선순위를 확정하지는 않았다.
@@ -56,7 +58,7 @@ Knowledge 기록에는 시총 랭킹·히트맵을 Stock Explainer의 탐색 입
 | [lib/data/ranking.ts](../lib/data/ranking.ts) | 지표별 기준일과 순위 조회 보조 함수 |
 | [lib/select.ts](../lib/select.ts), [lib/getSearch.ts](../lib/getSearch.ts) | 공통 조회, 정적 생성 대상 코드, 검색 데이터 |
 | [db/index.ts](../db/index.ts), [Postgres schema](../db/schema-postgres.ts) | postgres-js·Drizzle를 통한 활성 PostgreSQL 연결과 테이블 정의 |
-| [Turso schema](../db/schema-turso.ts) | 남아 있는 별도 정의; 현재 `db/index.ts`의 활성 연결 경로가 아님 |
+| [PostgreSQL migrations](../drizzle), [설치 안내](postgresql.md) | cd4의 PostgreSQL 초기 스키마와 후속 migration 관리; 기존 DB는 별도 비교·baseline 필요 |
 | 별도 DAG의 CD | 주식 마스터·가격·시총·재무지표 수집/정제, 최신값·합산·순위 계산, 별도 로고 처리 |
 
 앱은 DAG API를 호출하는 구조가 아니라 PostgreSQL의 결과 테이블을 직접 읽는다. 기업 목록은 `company`의 합산값·순위를, 공통 종목 순위는 최신 `security_rank`의 값·순위를, 상세는 `security` 최신값과 `price/marketcap/bppedd` 이력을 소비한다. 서로 다른 조회의 기준일이 자동으로 일치하는 것은 아니다.

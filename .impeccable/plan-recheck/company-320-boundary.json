@@ -1,0 +1,122 @@
+{
+  "charts": [
+    {
+      "clientWidth": 246,
+      "parentOverflow": "visible",
+      "parentWidth": 246,
+      "right": 283,
+      "scrollWidth": 246,
+      "width": 246,
+      "x": 37
+    },
+    {
+      "clientWidth": 221,
+      "parentOverflow": "visible",
+      "parentWidth": 246,
+      "right": 270.6875,
+      "scrollWidth": 221,
+      "width": 221.390625,
+      "x": 49.296875
+    },
+    {
+      "clientWidth": 300,
+      "parentOverflow": "visible",
+      "parentWidth": 270,
+      "right": 325,
+      "scrollWidth": 300,
+      "width": 300,
+      "x": 25
+    }
+  ],
+  "height": 844,
+  "outside": [
+    {
+      "className": "shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors border-transparent text-muted-foreground hover:text-foreground",
+      "right": 385.109375,
+      "tag": "A",
+      "width": 88.5625,
+      "x": 296.546875
+    },
+    {
+      "className": "shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors border-transparent text-muted-foreground hover:text-foreground",
+      "right": 473.671875,
+      "tag": "A",
+      "width": 88.5625,
+      "x": 385.109375
+    },
+    {
+      "className": "recharts-responsive-container",
+      "right": 325,
+      "tag": "DIV",
+      "width": 300,
+      "x": 25
+    },
+    {
+      "className": "recharts-wrapper",
+      "right": 325,
+      "tag": "DIV",
+      "width": 300,
+      "x": 25
+    },
+    {
+      "className": "recharts-surface",
+      "right": 325,
+      "tag": "svg",
+      "width": 300,
+      "x": 25
+    },
+    {
+      "className": "recharts-zIndex-layer_400",
+      "right": 828.364990234375,
+      "tag": "g",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-layer recharts-line",
+      "right": 828.364990234375,
+      "tag": "g",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-layer recharts-shape",
+      "right": 828.364990234375,
+      "tag": "g",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-curve recharts-line-curve",
+      "right": 828.364990234375,
+      "tag": "path",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-layer recharts-line",
+      "right": 828.364990234375,
+      "tag": "g",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-layer recharts-shape",
+      "right": 828.364990234375,
+      "tag": "g",
+      "width": 755.364990234375,
+      "x": 73
+    },
+    {
+      "className": "recharts-curve recharts-line-curve",
+      "right": 828.364990234375,
+      "tag": "path",
+      "width": 755.364990234375,
+      "x": 73
+    }
+  ],
+  "overflow": 5,
+  "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+  "url": "http://127.0.0.1:3100/company/KOSPI.036460/marketcap/",
+  "width": 320
+}

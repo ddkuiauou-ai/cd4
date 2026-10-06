@@ -1,0 +1,57 @@
+{
+  "mode": "standalone production",
+  "indexStatus": 200,
+  "requestOrigin": "http://localhost:3100",
+  "originNote": "Next normalizes its native Request URL hostname to localhost when the standalone server is bound to loopback. This confirms Request.url-based origin and port; it does not assert raw Host-header forwarding behavior.",
+  "indexCache": "public, max-age=0, s-maxage=3600",
+  "chunks": [
+    {
+      "path": "/sitemaps/core-0/sitemap.xml",
+      "status": 200,
+      "urls": 220,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/securities-0/sitemap.xml",
+      "status": 200,
+      "urls": 5000,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/securities-1/sitemap.xml",
+      "status": 200,
+      "urls": 5000,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/securities-2/sitemap.xml",
+      "status": 200,
+      "urls": 5000,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/securities-3/sitemap.xml",
+      "status": 200,
+      "urls": 5000,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/securities-4/sitemap.xml",
+      "status": 200,
+      "urls": 2280,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/companies-0/sitemap.xml",
+      "status": 200,
+      "urls": 5000,
+      "cache": "public, max-age=0, s-maxage=3600"
+    },
+    {
+      "path": "/sitemaps/companies-1/sitemap.xml",
+      "status": 200,
+      "urls": 578,
+      "cache": "public, max-age=0, s-maxage=3600"
+    }
+  ]
+}

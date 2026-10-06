@@ -48,6 +48,7 @@ async function withChartEnvironment(run) {
 
   const { createRoot } = require("react-dom/client");
   const recharts = require("recharts");
+  const heatmap = require("@nivo/heatmap");
   // JSDOM has no layout. Supply only dimensions; use the real Recharts chart,
   // axes, public hooks, legend and SVG rendering to exercise the migration.
   const chartModules = {
@@ -70,6 +71,12 @@ async function withChartEnvironment(run) {
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = (name) => {
       if (name === "recharts") return chartModules;
+      if (name === "@nivo/heatmap") return {
+        ...heatmap,
+        ResponsiveHeatMap: (props) => React.createElement(heatmap.HeatMap, {
+          ...props, width: 640, height: 350, animate: false,
+        }),
+      };
       const local = name.startsWith("@/")
         ? path.join(root, name.slice(2))
         : name.startsWith(".") ? path.resolve(path.dirname(filename), name) : null;
@@ -196,3 +203,20 @@ test("DPS growth chart keeps horizontal grid lines and dividend-first legend wit
     );
   });
 });
+
+for (const metric of ["per", "bps", "dps"]) {
+  test(`${metric} heatmap keeps missing cells renderable with themed axes and legible cell text`, async () => {
+    await withChartEnvironment(async ({ container, render, load }) => {
+      const Heatmap = load(path.join(root, `components/chart-${metric}-heatmap.tsx`)).default;
+      const Chart = ({ data }) => React.createElement(Heatmap, { data, minValue: 1, maxValue: 100 });
+      await render(Chart, [{ id: "1", data: [{ x: "2025", y: null }, { x: "2026", y: 10 }] }]);
+      assert.ok(container.querySelector("svg"));
+      const axis = [...container.querySelectorAll("svg text")].find((node) => node.textContent === "2026");
+      assert.ok(axis);
+      assert.equal(axis.style.fill, "var(--muted-foreground)");
+      const cellLabel = [...container.querySelectorAll("svg text")].find((node) => node.textContent === "10");
+      assert.ok(cellLabel);
+      assert.match(cellLabel.style.fill || cellLabel.getAttribute("fill"), /^#(?:000000|ffffff)$/);
+    });
+  });
+}

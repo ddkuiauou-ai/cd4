@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-05",
+  "scope": "Read-only implementation-plan acceptance recheck requested by the user",
+  "verdict": "not_fully_conformant",
+  "report": "../../docs/ui-plan-acceptance-check-2026-10-05.md",
+  "productSourceEdits": 0,
+  "newDesignHookIgnores": 0,
+  "tests": {
+    "command": "pnpm test",
+    "passed": 155,
+    "failed": 0,
+    "exitCode": 0,
+    "log": "/private/tmp/cd4-plan-recheck-tests.log",
+    "limitation": "One passing fixture expects 404 for a known security without marketcap history, contrary to the plan's empty-state navigation contract."
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "log": "/private/tmp/cd4-plan-recheck-types.log"
+  },
+  "livePage": {
+    "url": "http://127.0.0.1:3100/company/KOSPI.036460/marketcap/",
+    "theme": "light",
+    "baseline": "company-baseline.json",
+    "narrowBoundary": "company-320-boundary.json",
+    "screenshot": "company-320-full.png",
+    "baselineViewport": [1338, 983],
+    "narrowViewport": [320, 844],
+    "baselineDocumentOverflowPx": 0,
+    "narrowDocumentOverflowPx": 5,
+    "temporaryViewportReset": true
+  },
+  "openFindings": [
+    { "id": "R1", "priority": "P1", "summary": "Known security without marketcap history returns a whole-page 404", "evidence": "source and executed test fixture", "attribution": "404 branches also present in Git HEAD" },
+    { "id": "R2", "priority": "P1", "summary": "Current price rates +2.13% and -8.4% use unexplained different comparison bases", "evidence": "live DOM and source", "attribution": "two-record calculation also present in Git HEAD; acceptance gap, not an asserted new arithmetic regression" },
+    { "id": "R3", "priority": "P1", "summary": "Missing supplemental BPS is coerced to actual zero in PBR detail CSV", "evidence": "conditional source path", "attribution": "helper coercion also present in Git HEAD; no live missing-BPS CSV asserted" },
+    { "id": "R4", "priority": "P2", "summary": "Known-security empty metric detail omits share/copy actions", "evidence": "source" },
+    { "id": "R5", "priority": "P2", "summary": "Annual company chart overflows a 320px page by 5px", "evidence": "live DOM, screenshot, and fixed minimum-width source" }
+  ],
+  "reusedChecks": {
+    "record": "../conformance-review/final-checks.json",
+    "standaloneGeneratedPages": 334,
+    "limitedExportGeneratedPages": 240,
+    "fullExportVerified": false,
+    "lintErrors": 73,
+    "lintWarnings": 135,
+    "rerunThisTurn": false
+  },
+  "unverified": [
+    "Full 28020-page deployable static export completion",
+    "Actual operating-system theme changes",
+    "Actual 200-percent text enlargement",
+    "Browser reduced-motion environment",
+    "All chart renderers' live resize, period selection and empty-state transitions",
+    "Actual native share completion on supported devices"
+  ],
+  "deployed": false,
+  "committed": false
+}

@@ -1,0 +1,19 @@
+.detail :global(.detail-content) { padding-block: 16px 24px; }
+.detail :global(.detail-summary-grid) { padding-block: 14px; row-gap: 14px; }
+.detail :global(.detail-metric-nav) { margin-top: 10px; }
+.detail :global(.detail-metric-nav a) { padding: 10px 14px; }
+.detail :global(.detail-section) { padding-block: 20px; }
+.detail :global(.detail-primary-sections) { margin-top: 16px; }
+.detail :global(.detail-primary-sections > #chart-analysis:first-child) { border-top: 0; padding-top: 0; }
+.detail :global(.detail-rail-content) { display: flex; flex-direction: column; gap: 24px; }
+.detail :global(.detail-mobile-context) { padding-block: 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.detail :global(.detail-mobile-context summary) { cursor: pointer; min-height: 28px; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.detail :global(.detail-mobile-context nav) { margin-top: 8px; }
+@media (min-width: 768px) {
+  .detail :global(.detail-content) { padding-block: 24px; }
+}
+@media (max-width: 639px) {
+  .detail :global(.detail-share > div:not(.fixed)) { display: flex; flex-direction: row; width: auto; gap: 4px; }
+  .detail :global(.detail-share > div:not(.fixed) button) { flex: none; width: 40px; min-width: 40px; height: 40px; padding: 8px; }
+  .detail :global(.detail-share > div:not(.fixed) button span.text-xs) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }
+}

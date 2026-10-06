@@ -1,10 +1,12 @@
+import { getSecurityMetricDetailRanking } from '@/lib/data/security-ranking-detail';
+import { DetailMobileNavigation } from '@/components/detail-mobile-navigation';
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { TrendingUp, Building2, FileText, BarChart, ArrowLeftRight, BarChart3 } from "lucide-react";
 import Link from "next/link";
-import { SecurityMetricEmpty } from "@/components/security-metric-empty";
-import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory, getDivRank } from "@/lib/data/security";
+import { SecurityMetricEmpty } from "@/components/detail-metric-empty";
+import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
 import { getTopSecurityCodesByMetric } from "@/lib/select";
 import { coerceVolumeValue } from "@/lib/per-utils";
@@ -22,7 +24,6 @@ import RankHeader from "@/components/header-rank";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
 import { RecentSecurityTracker } from "@/components/recent-security-tracker";
-import { Marquee } from "@/components/ui/marquee";
 import { SecDivPager } from "@/components/pager-marketcap-security";
 import type { Price } from "@/typings";
 
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }: SecurityDIVPageProps, parent:
 
   if (!security) {
     return {
-      title: "종목을 찾을 수 없습니다 - CD3",
+      title: `종목을 찾을 수 없습니다`,
       description: "요청하신 종목을 찾을 수 없습니다.",
     };
   }
@@ -81,7 +82,7 @@ export async function generateMetadata({ params }: SecurityDIVPageProps, parent:
   return {
     alternates: { canonical },
     openGraph: { ...(await parent).openGraph, url: canonical },
-    title: `${security.korName || security.name} 배당수익률 DIV - CD3`,
+    title: `${security.korName || security.name} 배당수익률 DIV`,
     description: `${security.korName || security.name}의 연도별 배당수익률(DIV) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
 }
@@ -109,7 +110,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
   const [
     securities,
     data,
-    divRank,
+    rankingEvidence,
     companyMarketcapData
   ] = await Promise.all([
     // Get company-related securities if this security has a company
@@ -117,10 +118,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
     // Get DIV data
     getSecurityMetricsHistory(security.securityId),
     // Get DIV rank
-    getDivRank(security.securityId),
+    getSecurityMetricDetailRanking(security.securityId, 'div'),
     // Get company marketcap data for Interactive Securities Section
     security.companyId ? getCompanyAggregatedMarketcap(security.companyId) : Promise.resolve(null)
   ]);
+  const { currentRank: divRank, rankDate } = rankingEvidence;
+
 
   const commonSecurities = securities.filter((sec) => sec.type === "보통주");
 
@@ -152,6 +155,8 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
       secCode={secCode}
       displayName={security.korName || security.name || secCode}
       metricLabel={ACTIVE_METRIC.label}
+      metricType="div" security={security} companySecs={securities} companyMarketcapData={companyMarketcapData}
+      rank={divRank} rankDate={rankDate}
     />;
   }
 
@@ -412,14 +417,14 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
         {/* 브레드크럼 네비게이션 */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+          className="mb-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
         >
           <Link href="/" className="transition-colors hover:text-foreground">
             홈
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
-          <Link href="/company" className="transition-colors hover:text-foreground">
-            기업
+          <Link href="/marketcaps" className="transition-colors hover:text-foreground">
+            기업 순위
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
           {security.companyId ? (
@@ -448,12 +453,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           titleBadge={security.type ?? null}
           detail={{
             label: "배당수익률",
-            value: security.div ? `${security.div.toFixed(2)}%` : "—",
+            value: security.div != null ? `${security.div.toFixed(2)}%` : "—",
             badge: security.type,
           }}
           actions={
             <ShareButton
-              title={`${displayName} ${security.type} 배당수익률 분석 | ${siteConfig.name}`}
+              title={`${displayName} ${security.type} 배당수익률 분석`}
               text={`${displayName}의 배당수익률 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`}
               url={`${siteConfig.url}/security/${secCode}/div`}
             />
@@ -462,67 +467,24 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
         <RankHeader rank={divRank} marketcap={security.div ?? undefined} price={security.prices?.[0]?.close}
           exchange={security.exchange || market} isCompanyLevel={false}
           rankLabel="종목 배당수익률 순위" marketcapLabel="현재 배당수익률" marketcapUnit="%" />
-        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 기준일 {security.divDate ? new Date(security.divDate!).toISOString().slice(0, 10) : '확인 중'} · 종목별 지표</p>
+        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 기준일 {security.divDate ? new Date(security.divDate!).toISOString().slice(0, 10) : '확인 중'} · 종목별 지표 · 순위 기준 {rankDate || '—'}</p>
         <CompanyFinancialTabs secCode={secCode} className="mt-4" />
+        <DetailMobileNavigation sections={navigationSections} />
 
-        <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
-          <div className="space-y-3">
-            <p className="text-base text-muted-foreground md:text-lg">
-              <strong>{displayName}의 배당수익률(Dividend Yield)</strong>은 투자한 자본 대비 받을 수 있는 배당금의 비율을 나타내는 중요한 투자 지표입니다. 배당수익률이 높을수록 투자자에게 돌아오는 현금 흐름이 크다는 의미입니다.
-            </p>
-            <div className="sm:hidden">
-              <ShareButton
-                title={`${displayName} ${security.type} 배당수익률 분석 | ${siteConfig.name}`}
-                text={`${displayName}의 배당수익률 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`}
-                url={`${siteConfig.url}/security/${secCode}/div`}
-              />
-            </div>
-          </div>
 
-          <details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div data-slot="alert"  className="relative  w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground  sm:mx-0 rounded-sm sm:px-5">
-            <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mt-0.5 h-5 w-5" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-              </svg>
-              <div data-slot="alert-description" className="space-y-2 text-sm leading-relaxed text-muted-foreground">
-                <p className="font-medium">계산식: 배당수익률 = (연간 배당금 ÷ 현재 주가) × 100</p>
-                <div className="space-y-1">
-                  <p className="font-medium">해석 방법</p>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>배당수익률이 높을수록:</strong> 투자자에게 돌아오는 현금 배당이 많다는 의미이나, 기업의 실적 악화로 주가가 하락한 결과일 수 있습니다.</li>
-                    <li><strong>배당수익률이 낮을수록:</strong> 주가가 상승하여 배당 대비 주가가 고평가되었음을 의미하며, 기업의 성장 잠재력이 반영된 경우가 많습니다.</li>
-                  </ul>
-                </div>
-                <p className="text-xs text-muted-foreground/70 mt-2">
-                  자세한 내용은 <a href="https://www.investopedia.com/terms/d/dividendyield.asp" target="_blank" rel="noopener noreferrer" className="text-foreground text-foreground text-foreground text-foreground underline">Investopedia 배당수익률 설명</a>을 참고하세요.
-                </p>
-              </div>
-            </div>
-          </div></details>
-        </div>
 
-        <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-10">
+        <div className="detail-primary-sections space-y-6 sm:space-y-8">
 
           {/* 종목 개요 섹션 */}
-          <section
+          <details
             id="security-overview"
             className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
             style={SECTION_GRADIENTS.overview}
           >
-            <header className="flex flex-wrap items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <Building2 className="h-6 w-6 text-foreground text-foreground" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 개요</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">배당수익률 순위와 기본 정보를 확인합니다</p>
-              </div>
-            </header>
+            <summary className="cursor-pointer text-sm font-semibold">기본 정보</summary>
 
             <div className="space-y-6">
-              
+
 
               <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
                 <dl className="space-y-2 p-4">
@@ -552,7 +514,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <dt className="text-muted-foreground">현재 배당수익률</dt>
-                    <dd className="font-medium text-right">{security.div ? `${security.div.toFixed(2)}%` : "—"}</dd>
+                    <dd className="font-medium text-right">{security.div != null ? `${security.div.toFixed(2)}%` : "—"}</dd>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <dt className="text-muted-foreground">기준일</dt>
@@ -577,7 +539,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 </dl>
               </div>
             </div>
-          </section>
+          </details>
 
           {/* 차트 분석 섹션 */}
           <section
@@ -586,12 +548,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             style={SECTION_GRADIENTS.charts}
           >
             <header className="flex flex-wrap items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <TrendingUp className="h-6 w-6 text-foreground text-foreground" />
+              <div className="hidden bg-background">
+                <TrendingUp className="h-6 w-6 text-foreground" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold tracking-tight text-foreground">차트 분석</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">{displayName}의 배당수익률 변동 패턴을 차트로 분석합니다</p>
+                <p className="text-sm text-muted-foreground md:text-base">{displayName}의 배당수익률 변동 패턴을 차트로 분석합니다</p>
               </div>
             </header>
 
@@ -599,7 +561,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
               {/* 배당수익률 히스토그램 및 분포 차트 */}
               <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
                 <div className="px-3 pt-3 sm:px-5 sm:pt-5">
-                  <h3 className="text-base font-semibold text-foreground text-foreground">
+                  <h3 className="text-base font-semibold text-foreground">
                     배당수익률 히스토그램 및 분포 차트
                   </h3>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -624,12 +586,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                         <div className="space-y-2">
                           {histogramData.map((bin, index) => (
                             <div key={index} className="flex items-center gap-3">
-                              <div className="w-20 text-xs text-muted-foreground text-muted-foreground flex-shrink-0">
+                              <div className="w-20 text-xs text-muted-foreground flex-shrink-0">
                                 {bin.range}
                               </div>
                               <div className="flex-1">
                                 <div className="relative">
-                                  <div className="h-6 bg-background bg-background rounded-sm overflow-hidden">
+                                  <div className="h-6 bg-background rounded-sm overflow-hidden">
                                     <div
                                       className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-sm transition-all duration-500 ease-out"
                                       style={{
@@ -638,7 +600,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                                     ></div>
                                   </div>
                                   <div className="absolute inset-0 flex items-center justify-end pr-2">
-                                    <span className="text-xs font-medium text-foreground text-foreground">
+                                    <span className="text-xs font-medium text-foreground">
                                       {bin.frequency}일
                                     </span>
                                   </div>
@@ -649,19 +611,19 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                         </div>
 
                         {/* 축 레이블 */}
-                        <div className="mt-4 flex justify-between text-xs text-muted-foreground text-muted-foreground">
+                        <div className="mt-4 flex justify-between text-xs text-muted-foreground">
                           <span>x축: 배당수익률 구간</span>
                           <span>y축: 빈도 (일수)</span>
                         </div>
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center p-4 sm:p-8 space-y-2 sm:space-y-4 text-center">
-                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-background bg-background rounded-full flex items-center justify-center">
-                          <BarChart className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground text-muted-foreground" />
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-background rounded-full flex items-center justify-center">
+                          <BarChart className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground" />
                         </div>
                         <div className="space-y-1 sm:space-y-2">
-                          <p className="text-xs sm:text-sm font-medium text-foreground text-foreground">히스토그램 데이터 없음</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground text-muted-foreground">히스토그램 데이터를 생성할 수 없습니다</p>
+                          <p className="text-xs sm:text-sm font-medium text-foreground">히스토그램 데이터 없음</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">히스토그램 데이터를 생성할 수 없습니다</p>
                         </div>
                       </div>
                     )}
@@ -674,7 +636,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 <div className="px-3 pt-3 sm:px-5 sm:pt-5">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold text-foreground text-foreground">최근 3개월 가격 차트</h3>
+                      <h3 className="text-base font-semibold text-foreground">최근 3개월 가격 차트</h3>
                       <p className="text-xs text-muted-foreground mt-1">
                         {displayName} ({secCode.includes('.') ? secCode.split('.')[1] : secCode})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름을 확인합니다.
                       </p>
@@ -699,12 +661,12 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
               style={SECTION_GRADIENTS.securities}
             >
               <header className="flex flex-wrap items-center gap-4">
-                <div className="hidden bg-background bg-background">
-                  <ArrowLeftRight className="h-6 w-6 text-foreground text-foreground" />
+                <div className="hidden bg-background">
+                  <ArrowLeftRight className="h-6 w-6 text-foreground" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 비교</h2>
-                  <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">해당 기업 내 다른 종목과 배당수익률을 비교합니다</p>
+                  <p className="text-sm text-muted-foreground md:text-base">해당 기업 내 다른 종목과 배당수익률을 비교합니다</p>
                 </div>
               </header>
 
@@ -720,29 +682,19 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             </section>
           )}
 
-          <div className="space-y-4 sm:space-y-8">
 
-            
-          </div>
 
           {/* 핵심 지표 섹션 */}
           {dividendYieldAnalysis && (
             <section
               id="indicators"
-              className={`${EDGE_TO_EDGE_SECTION_BASE} border-yellow-200/70 dark:border-yellow-900/40 dark:bg-yellow-950/20`}
+              className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
               style={SECTION_GRADIENTS.indicators}
             >
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-yellow-700/80 dark:text-yellow-200/80">
-                <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-yellow-700  dark:bg-yellow-900/40 dark:text-yellow-200">
-                  탭 연동
-                </span>
-                <span className="text-sm font-semibold text-yellow-800/90 dark:text-yellow-100/90">
-                  배당수익률 기준 핵심 지표
-                </span>
-              </div>
+
               <header className="flex flex-wrap items-center gap-4">
-                <div className="hidden bg-yellow-100 dark:bg-yellow-900/40">
-                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="hidden bg-background bg-background">
+                  <TrendingUp className="h-6 w-6 text-foreground text-foreground" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold tracking-tight text-foreground">핵심 지표</h2>
@@ -752,105 +704,102 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 </div>
               </header>
 
-              <Marquee
-                pauseOnHover
-                className="[--duration:36s]"
-              >
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {/* 배당수익률 랭킹 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px] gap-1 pb-2" style={{ minWidth: "fit-content" }}>
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{divRank || "—"}</span>
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{divRank || "—"}</span>
                     {divRank && <span className="text-sm sm:text-base ml-1">위</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     배당수익률 랭킹
                   </div>
                 </div>
 
                 {/* 현재 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.latest ? dividendYieldAnalysis.latest.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.latest && <span className="text-sm sm:text-base ml-1">%</span>}
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{security.div != null ? security.div!.toFixed(1) : "—"}</span>
+                    {security.div != null && <span className="text-sm sm:text-base ml-1">%</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     현재 배당수익률
                   </div>
                 </div>
 
                 {/* 12개월 평균 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
-                      return period?.value ? period.value.toFixed(1) : "—";
+                      return period?.value != null ? period.value.toFixed(1) : "—";
                     })()}</span>
                     {(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '12개월 평균');
-                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                      return period?.value != null ? <span className="text-sm sm:text-base ml-1">%</span> : null;
                     })()}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     12개월 평균
                   </div>
                 </div>
 
                 {/* 3년 평균 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
-                      return period?.value ? period.value.toFixed(1) : "—";
+                      return period?.value != null ? period.value.toFixed(1) : "—";
                     })()}</span>
                     {(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '3년 평균');
-                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                      return period?.value != null ? <span className="text-sm sm:text-base ml-1">%</span> : null;
                     })()}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     3년 평균
                   </div>
                 </div>
 
                 {/* 5년 평균 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{(() => {
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
-                      return period?.value ? period.value.toFixed(1) : "—";
+                      return period?.value != null ? period.value.toFixed(1) : "—";
                     })()}</span>
                     {(() => {
                       const period = dividendYieldAnalysis?.periods?.find(p => p?.label === '5년 평균');
-                      return period?.value ? <span className="text-sm sm:text-base ml-1">%</span> : null;
+                      return period?.value != null ? <span className="text-sm sm:text-base ml-1">%</span> : null;
                     })()}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     5년 평균
                   </div>
                 </div>
 
                 {/* 최저 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.minMax.min ? dividendYieldAnalysis.minMax.min.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.minMax.min && <span className="text-sm sm:text-base ml-1">%</span>}
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{dividendYieldAnalysis.minMax.min != null ? dividendYieldAnalysis.minMax.min.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.minMax.min != null && <span className="text-sm sm:text-base ml-1">%</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     최저 배당수익률
                   </div>
                 </div>
 
                 {/* 최고 배당수익률 */}
-                <div className="group rounded-lg border border-border border-border bg-card bg-background p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px]">
-                  <div className="flex items-baseline justify-center font-bold text-primary text-foreground mb-1 leading-none">
-                    <span className="text-xl sm:text-2xl md:text-3xl">{dividendYieldAnalysis.minMax.max ? dividendYieldAnalysis.minMax.max.toFixed(1) : "—"}</span>
-                    {dividendYieldAnalysis.minMax.max && <span className="text-sm sm:text-base ml-1">%</span>}
+                <div className="min-w-0 space-y-2 border-b border-border py-4">
+                  <div className="flex items-baseline justify-center font-bold text-foreground text-foreground mb-1 leading-none">
+                    <span className="text-lg sm:text-xl">{dividendYieldAnalysis.minMax.max != null ? dividendYieldAnalysis.minMax.max.toFixed(1) : "—"}</span>
+                    {dividendYieldAnalysis.minMax.max != null && <span className="text-sm sm:text-base ml-1">%</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                  <div className="text-xs text-muted-foreground leading-tight px-1">
                     최고 배당수익률
                   </div>
                 </div>
-              </Marquee>
+              </div>
             </section>
           )}
 
@@ -860,34 +809,22 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
             className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
             style={SECTION_GRADIENTS.annual}
           >
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground text-foreground">
-              <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-foreground  bg-background text-foreground">
-                탭 연동
-              </span>
-              <span className="text-sm font-semibold text-foreground text-foreground">
-                {ACTIVE_METRIC.label} 연도별 데이터 흐름
-              </span>
-              {ACTIVE_METRIC.description && (
-                <span className="text-[11px] font-medium text-foreground text-foreground">
-                  {ACTIVE_METRIC.description}
-                </span>
-              )}
-            </div>
+
             <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-4">
-                <div className="hidden bg-background bg-background">
-                  <FileText className="h-6 w-6 text-foreground text-foreground" />
+                <div className="hidden bg-background">
+                  <FileText className="h-6 w-6 text-foreground" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold tracking-tight text-foreground">연도별 데이터</h2>
-                  <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">배당수익률 차트와 연말 기준 상세 데이터를 확인합니다</p>
+                  <p className="text-sm text-muted-foreground md:text-base">배당수익률 차트와 연말 기준 상세 데이터를 확인합니다</p>
                 </div>
               </div>
               {annualCsvData.length > 0 && (
                 <CsvDownloadButton
                   data={annualCsvData}
                   filename={annualDownloadFilename}
-                  className="self-start border-border text-foreground bg-background border-border text-foreground bg-background"
+                  className="self-start border-border text-foreground bg-background"
                 />
               )}
             </header>
@@ -897,15 +834,15 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
                 <DIVChartWithPeriodSwitcher initialData={result} />
               ) : (
                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
-                  <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-background bg-background rounded-lg border-2 border-dashed border-border border-border">
-                    <div className="w-12 h-12 bg-background bg-background rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-muted-foreground text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-background rounded-lg border-2 border-dashed border-border">
+                    <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-foreground text-foreground">배당수익률 차트 데이터 없음</p>
-                      <p className="text-xs text-muted-foreground text-muted-foreground">연간 배당수익률 데이터를 불러올 수 없습니다</p>
+                      <p className="text-sm font-medium text-foreground">배당수익률 차트 데이터 없음</p>
+                      <p className="text-xs text-muted-foreground">연간 배당수익률 데이터를 불러올 수 없습니다</p>
                     </div>
                   </div>
                 </div>
@@ -920,14 +857,36 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           </section>
 
           <div className="pt-1 sm:pt-2">
-            <SecDivPager rank={divRank || 1} />
+            {divRank != null && <SecDivPager rank={divRank} currentSecurityId={security.securityId} rankDate={rankDate} />}
           </div>
         </div>
 
+        <div className="mt-6"><details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div data-slot="alert"  className="relative w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground sm:mx-0 rounded-sm sm:px-5">
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mt-0.5 h-5 w-5" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+              <div data-slot="alert-description" className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <p className="font-medium">계산식: 배당수익률 = (연간 배당금 ÷ 현재 주가) × 100</p>
+                <div className="space-y-1">
+                  <p className="font-medium">해석 방법</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>배당수익률이 높을수록:</strong> 투자자에게 돌아오는 현금 배당이 많다는 의미이나, 기업의 실적 악화로 주가가 하락한 결과일 수 있습니다.</li>
+                    <li><strong>배당수익률이 낮을수록:</strong> 주가가 상승하여 배당 대비 주가가 고평가되었음을 의미하며, 기업의 성장 잠재력이 반영된 경우가 많습니다.</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground/70 mt-2">
+                  자세한 내용은 <a href="https://www.investopedia.com/terms/d/dividendyield.asp" target="_blank" rel="noopener noreferrer" className="text-foreground underline">Investopedia 배당수익률 설명</a>을 참고하세요.
+                </p>
+              </div>
+            </div>
+          </div></details></div>
       </div>
 
       {/* 사이드바 네비게이션 (데스크톱) */}
-      <aside className="context-rail order-first xl:order-last">
+      <aside className="context-rail hidden xl:block">
         <SidebarManager
           navigationSections={navigationSections}
           periodAnalysis={dividendYieldAnalysis ? {
@@ -945,6 +904,7 @@ export default async function SecurityDIVPage({ params }: SecurityDIVPageProps) 
           perRank={divRank}
           security={security}
           secCode={secCode}
+          rankDate={rankDate}
           hasCompanyMarketcapData={hasCompanyMarketcapData}
           companySecs={securities}
           comparableSecuritiesWithPER={comparableSecuritiesWithDIV}

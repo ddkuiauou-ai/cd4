@@ -3,6 +3,7 @@
 import { ResponsiveHeatMap } from '@nivo/heatmap';
 import type { HeatMapSerie } from '@nivo/heatmap';
 import { useState, useEffect } from 'react';
+import { heatmapLabelColor, heatmapTheme } from './chart-theme';
 
 interface BPSHeatmapProps {
     data: HeatMapSerie<{ x: string, y: number }, {}>[];
@@ -30,6 +31,9 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
         return (
             <div style={{ height: '200px' }}>
                 <ResponsiveHeatMap
+          theme={heatmapTheme}
+          labelTextColor={heatmapLabelColor}
+          borderColor="transparent"
                     data={mobileData}
                     margin={{ top: 30, right: 20, bottom: 30, left: 20 }}
                     valueFormat=">-.0s"
@@ -47,7 +51,7 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
                         minValue: minValue,
                         maxValue: maxValue
                     }}
-                    emptyColor="#555555"
+                    emptyColor="transparent"
                     legends={[
                         {
                             anchor: 'bottom',
@@ -75,6 +79,9 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
     return (
         <div style={{ height: '400px' }}>
             <ResponsiveHeatMap
+          theme={heatmapTheme}
+          labelTextColor={heatmapLabelColor}
+          borderColor="transparent"
                 data={data}
                 margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
                 valueFormat=">-.0s"
@@ -86,7 +93,7 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
                     minValue: minValue,
                     maxValue: maxValue
                 }}
-                emptyColor="#555555"
+                emptyColor="transparent"
                 legends={[
                     {
                         anchor: 'bottom',

@@ -15,10 +15,12 @@ ${urls
   .join("\n")}
 </sitemapindex>`;
 
-export const revalidate = 0;
+export const revalidate = false;
 
 export async function GET(request: Request) {
-  const origin = new URL(request.url).origin;
+  const origin = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export"
+    ? siteConfig.url
+    : new URL(request.url).origin;
   const now = new Date();
   const lastmod = now.toISOString();
   const chunks = await getSitemapChunks();

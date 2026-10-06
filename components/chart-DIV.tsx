@@ -35,23 +35,16 @@ function ChartPER({ data, format, formatTooltip }: Props) {
     setIsClient(true);
   }, []);
 
-  // 🎨 전문적인 그레이스케일 팔레트 (레이어링 최적화)
   const colors = useMemo(() => [
-    "#000000", // Black - 총합계 (배경 레이어, 가장 진하게)
-    "#222222", // Very dark gray - 보통주 (중요 레이어, 더 진하게)
-    "#AAAAAA", // Light gray - 우선주 (전경 레이어, 밝게)
-    "#333333", // Dark gray - 기타 데이터
-    "#666666", // Medium gray - 추가 데이터
-    "#888888", // Medium gray - 추가 데이터
-    "#CCCCCC", // Light gray - 추가 데이터
-    "#DDDDDD", // Very light gray - 추가 데이터
-    "#EEEEEE", // Near white - 추가 데이터
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--brand-ink)",
   ], []);
 
   if (!isClient || !data || data.length === 0) {
     return (
       <div className="w-full h-[200px] sm:h-[220px] md:h-[250px] lg:h-[280px] xl:h-[300px] flex items-center justify-center">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">
           {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
         </div>
       </div>
@@ -79,7 +72,7 @@ function ChartPER({ data, format, formatTooltip }: Props) {
                 x2="0"
                 y2="1"
               >
-                <stop offset="5%" stopColor={color} stopOpacity={0.9} />
+                <stop offset="5%" stopColor={color} stopOpacity={0.22} />
                 <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             ))}
@@ -98,12 +91,14 @@ function ChartPER({ data, format, formatTooltip }: Props) {
           )}
           <XAxis
             dataKey="date"
+            tick={{ fill: "var(--muted-foreground)" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(date) => date.split("-")[0]}
             interval={50}
           />
           <YAxis
+            tick={{ fill: "var(--muted-foreground)" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={
@@ -117,7 +112,7 @@ function ChartPER({ data, format, formatTooltip }: Props) {
             position={{ y: -54 }}
             isAnimationActive={false}
           />
-          <CartesianGrid opacity={0.8} vertical={false} />
+          <CartesianGrid stroke="var(--border)" vertical={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -142,8 +137,8 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
   const data = payload[0].payload;
 
   return (
-    <div className="flex flex-col items-center justify-end">
-      <div className="text-gray-500">{data.date}</div>
+    <div className="flex flex-col gap-1 rounded-lg border border-border bg-popover px-3 py-2 text-popover-foreground shadow-md">
+      <div className="text-muted-foreground">{data.date}</div>
       <div className="font-sm text-muted-foreground">
         배당수익률: {data.totalValue ? formatTooltipFunction(Number(data.totalValue), formatTooltip) : 'N/A'}
       </div>

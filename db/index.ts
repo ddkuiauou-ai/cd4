@@ -1,39 +1,22 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "@/db/schema-postgres"; // Adjust the import path as needed
+import * as schema from "@/db/schema-postgres";
+import { getPostgresConnection } from "./connection";
 
-// 환경 변수 검증
-if (
-  !process.env.DATABASE_URL &&
-  (!process.env.POSTGRES_HOST ||
-    !process.env.POSTGRES_PORT ||
-    !process.env.POSTGRES_USER ||
-    !process.env.POSTGRES_PASSWORD ||
-    !process.env.POSTGRES_DB)
-) {
-  throw new Error(
-    "DATABASE_URL 또는 POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB를 모두 설정해주세요."
-  );
-}
-
-// Postgres 클라이언트 초기화
-const connectionString =
-  process.env.DATABASE_URL ??
-  `postgres://${process.env.POSTGRES_USER}:${encodeURIComponent(
-    process.env.POSTGRES_PASSWORD!
-  )}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB
-  }`;
+const connection = getPostgresConnection(process.env);
 
 // Postgres 클라이언트 초기화 (병렬 빌드 최적화)
-const sql = postgres(connectionString, {
+const connectionOptions = {
   max: 4, // 병렬 빌드 시 적은 연결 수 (chunk당 2개만 사용)
   idle_timeout: 20, // 더 짧은 idle timeout (빠른 연결 반환)
   connect_timeout: 30, // connection timeout
   max_lifetime: 60 * 30, // 30분 후 연결 재사용
   prepare: false, // prepared statements 비활성화 (병렬 빌드 최적화)
   onnotice: () => { }, // notice 무시
-  ssl: false, // SSL 완전 비활성화 (로컬 DB)
-});
+};
+const sql = "url" in connection
+  ? postgres(connection.url, connectionOptions)
+  : postgres({ ...connectionOptions, ...connection });
 
 // Drizzle ORM 초기화
 export const db = drizzle(sql, {

@@ -1,7 +1,6 @@
 "use client";
 
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart } from "recharts";
-import { useTheme } from "next-themes";
 
 interface ChartBPSDistributionProps {
     data: { date: string; value: number }[];
@@ -117,12 +116,12 @@ function CustomTooltip({ active, payload, label }: any) {
         // 히스토그램 툴팁
         if (data.bin && data.count !== undefined) {
             return (
-                <div className="rounded-lg border bg-background p-2 shadow-md">
+                <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
                         BPS 구간: {data.bin}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                        빈도: <span className="font-semibold text-primary">{data.count}개</span>
+                        빈도: <span className="font-semibold text-foreground">{data.count}개</span>
                         ({data.percentage.toFixed(1)}%)
                     </p>
                 </div>
@@ -132,12 +131,12 @@ function CustomTooltip({ active, payload, label }: any) {
         // KDE 툴팁
         if (data.x !== undefined && data.density !== undefined) {
             return (
-                <div className="rounded-lg border bg-background p-2 shadow-md">
+                <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
                         BPS: {(data.x / 1000).toFixed(0)}K원
                     </p>
                     <p className="text-sm text-muted-foreground">
-                        밀도: <span className="font-semibold text-primary">{data.density.toFixed(3)}</span>
+                        밀도: <span className="font-semibold text-foreground">{data.density.toFixed(3)}</span>
                     </p>
                 </div>
             );
@@ -147,9 +146,6 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function ChartBPSDistribution({ data, className }: ChartBPSDistributionProps) {
-    const { resolvedTheme } = useTheme();
-    const isDark = resolvedTheme === "dark";
-
     const { histogramData, stats } = createHistogramData(data);
 
     if (!histogramData || histogramData.length === 0 || !stats) {
@@ -199,20 +195,6 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
                         bottom: 5,
                     }}
                 >
-                    <defs>
-                        <linearGradient id="histogramGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop
-                                offset="5%"
-                                stopColor="#3b82f6"
-                                stopOpacity={isDark ? 0.7 : 0.8}
-                            />
-                            <stop
-                                offset="95%"
-                                stopColor="#3b82f6"
-                                stopOpacity={isDark ? 0.3 : 0.4}
-                            />
-                        </linearGradient>
-                    </defs>
                     <XAxis
                         dataKey="bin"
                         axisLine={false}
@@ -221,25 +203,27 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
                         textAnchor="end"
                         height={30}
                         interval={0}
-                        className="text-xs fill-muted-foreground"
+                        className="text-xs"
+                        tick={{ fill: "var(--muted-foreground)" }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        className="text-xs fill-muted-foreground"
-                        label={{ value: '빈도', angle: -90, position: 'insideLeft' }}
+                        className="text-xs"
+                        tick={{ fill: "var(--muted-foreground)" }}
+                        label={{ value: '빈도', angle: -90, position: 'insideLeft', fill: 'var(--muted-foreground)' }}
                     />
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--muted)" }} />
                     <Bar
                         dataKey="count"
-                        fill="url(#histogramGradient)"
+                        fill="var(--chart-3)"
                         radius={[2, 2, 0, 0]}
                     />
                     <Line
                         type="monotone"
                         dataKey="density"
                         data={scaledKdeData}
-                        stroke="#ef4444"
+                        stroke="var(--chart-2)"
                         strokeWidth={2}
                         dot={false}
                         connectNulls={false}
@@ -247,7 +231,7 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
                 </ComposedChart>
             </ResponsiveContainer>
             <div className="text-xs text-muted-foreground mt-2 text-center">
-                <span className="text-red-500 font-medium">빨간선: KDE 곡선</span> |
+                <span className="text-chart-2 font-medium">KDE 곡선</span> |
                 평균: {(stats.mean / 1000).toFixed(0)}K원 | 중앙값: {(stats.median / 1000).toFixed(0)}K원 | 데이터: {stats.count}개
             </div>
         </div>

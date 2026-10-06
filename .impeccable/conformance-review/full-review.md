@@ -1,0 +1,54 @@
+disposition: fix
+
+Missing inputs: no formal QUALITY BAR card, dedicated approved main comp, comp spec/state, or pixel-diff artifact exists; this semantic review uses the accepted final white-shell prototypes, the original product decisions, the implementation plan, and the main structure brief. Native share/failure, multi-preferred browser fixtures, and the complete interaction/state matrix are not captured.
+
+## persistence
+
+**fail at whole-surface completion; pass for the corrected main composition and the incumbent visual world.**
+
+This is a fresh full review after the user's rejection. I read PRODUCT.md, DESIGN.md, the implementation plan, both surface briefs, the white-shell refinement record, the craft floor, and finish workflow. I opened every one of the 29 required current PNGs, all seven approved white-shell JPGs, and the capture context. I also inspected the relevant implementation source. No browser, build, detector, or product edit was run by this reviewer.
+
+The required captures are valid. Their surfaces, themes, and dimensions agree with their names and rendered-page context. The superseded 1280px entry remains in capture-context.json, but the actual main-desktop-light.png is the correct 1440×1000 main capture. The fixed bottom navigation appearing at its viewport position inside full-page mobile shots is a disclosed capture behavior, not evidence of a persistent content obstruction. The first-viewport and separately scrolled pinned company shot provide the actual geometry evidence. No recapture is required for this input round.
+
+The user's rejection was substantive: the main had followed the visual concept without preserving its planned role and structure. The prior candidate described in the packet omitted the main-specific structure step, removed overview facts, hid the total count in the desktop rail, and let a long TOP 10 precede trends. That was inconsistent with step 0's surface planning and step 4's preservation of the existing main role. The current candidate restores the four facts in the body at every captured width, qualifies gain/loss as a top-20 sample, separates market-cap and price dates, places trends before TOP 5 on mobile, and uses two modules from 1024px. It now conforms semantically to that plan and the corrective main brief. There is no approved dedicated main raster to claim exact reproduction of, and this does not constitute the user's acceptance of the corrected main.
+
+The red/gold full Korean name, actual Nanum Myeongjo lettering and original star, white light shell, neutral rail, dark counterpart, real navigation, and ranking hierarchy persist. Current source retains the single existing first-page main query. The source also connects share feedback to the mounted Toaster and passes exact security IDs through the populated chart renderers. Those are source findings, not proof of unseen native-share, failure, or multi-preferred interactions.
+
+Whole-surface completion remains held by the four material findings below. The packet's technical checks and documentation work remain separate: the latest reported tests/type check pass, while baseline lint debt and the final build/documentation handoff are not design-review passes. Shipping raster pixels were unchanged in this round; existing origin metadata is disclosed, but exact historical creator attribution is unknown.
+
+## fidelity
+
+| Salient requirement | Result | Evidence and implication |
+| --- | --- | --- |
+| Full name, red/gold Nanum Myeongjo, original central star | match | Every current first viewport preserves the approved brand composition. The local font and SVG source agree with the visual evidence. |
+| **TYPE**: clear page/section/value/meta hierarchy and one rank unit | match | Desktop and mobile ranking keep a strong current rank and smaller neutral movement; current main uses distinct page, section, fact, and note levels. Differences in exact prototype font sizes and sample density are semantic implementation adaptations, not a fidelity failure. |
+| **MATERIAL**: white light body/header, very subtle neutral rail, restrained dark surfaces | match | Current desktop main/ranking/detail and mobile captures use the accepted material grammar. No new decorative raster, gradient hero, icon-card scaffold, or borrowed display face appears. |
+| **GROUND**: desktop uses width with a common right rail; mobile has a coherent single-column order | match | 1440px surfaces share a 300px rail and flexible main column. Main at 1024px has two body modules without a permanent rail; 390px orders facts → trends → TOP 5. |
+| Rejected main compared with approved plan | match after corrective adaptation | All eight current main captures restore the omitted overview and intended task sequence. The actual 2,601-company count is visible in the body; it is not trapped in the desktop rail. The approved white-shell controls and reading grammar carry into the main without inventing a separate comp. |
+| Complete metric/navigation and whole-ranking export role | adaptation | Current ranking displays real data rather than prototype example rows; seven metrics use horizontal navigation. Source preserves the full export contract and list population. Screenshots do not alone prove all seven routes, all pages, or downloaded files. |
+| Truthful sparse history instead of a fake trend | adaptation with a missing selected state | Company single-date history is honestly displayed as registered observations. On the preferred-security route, however, the fallback loses exact selection while the outer title still names the selected security: F1. |
+| Snapshot/current-price facts distinguishable from historical statistics | missing | The main core-metrics section supplies snapshot/rank dates above independently computed historical averages and extrema without a local history/period-basis explanation: F2. The rail note does not cover mobile readers. |
+| Real zero versus missing historical values | contradicted in source | Selected-security average/min/max paths remove recorded zeros along with missing data: F3. Positive screenshot fixtures cannot validate this case. |
+| Operate flow remains about stock data and decisions | contradicted by retained legacy content | The standalone “TAB SYNC” explanation interrupts comparison → core metrics and describes implementation behavior instead of a useful stock-data decision: F4. This is retained legacy UI, not a new corrective-round asset or detector regression. |
+| Mobile pinned share geometry | match at captured scope | company-mobile-dark-pinned.png shows one share group within the sticky header and the bottom navigation in its own viewport position. Pin/unpin transitions and every route/width are not inferred from one shot. |
+
+## ceiling
+
+**Reached for the corrected main and shared Operate shell.** Fluid grids, real text, tabular data, native links/tabs, context rails, meaningful chart states, and sticky mobile context use the web's useful devices for this product. Additional expressive animation or new assets would not resolve the remaining gaps. The unused capability is accurate state continuity and data-basis communication in the detail flow; the findings below address that directly. No new visual world, seed, or wholesale rebuild is warranted.
+
+## material_fixes
+
+1. **[P2] Preserve the selected security in sparse history.** In [InteractiveChartSection](/Users/craigchoi/silla/cd4/components/interactive-chart-section.tsx:156), the single-date branch drops selectedSecurityId and the selected description and returns the generic [observation list](/Users/craigchoi/silla/cd4/components/detail-company-history-observation.tsx:13). The preferred-security captures show “삼성전자우 우선주 시가총액 일간 추이” above company total 1775조 first, then common 1614조 and preferred 161조 with equal treatment. Labels distinguish the numbers, so the defect is selection/scope continuity rather than a falsely labeled value. **Exit:** the sparse state retains exact-ID selection, presents the selected security's recorded value/date as the primary observation, and labels any company total/other securities as comparison; the company route keeps its aggregate state and selected-series absence is explicit.
+
+2. **[P2] State the core-metrics history and period basis locally.** [KeyMetricsSection](/Users/craigchoi/silla/cd4/components/key-metrics-section.tsx:361) shows snapshot/rank date 2025-09-22 above averages/extrema derived from history ending 2026-10-02 in these captures. Average cutoffs are execution-date anchored in source, not latest-history anchored. The rail distinguishes historical statistics; the main section, especially on mobile, does not. **Exit:** the section clearly separates current snapshot and price dates from history statistics, names the actual period calculation basis and history range/last observation, and labels historical extrema as history values while preserving the existing calculations.
+
+3. **[P2] Keep real zero observations in selected-security statistics.** [KeyMetricsSection](/Users/craigchoi/silla/cd4/components/key-metrics-section.tsx:161) and [KeyMetricsSidebar](/Users/craigchoi/silla/cd4/components/key-metrics-sidebar.tsx:122) map missing values to zero and filter with > 0. Recorded history [0, 100] therefore becomes average 100/minimum 100 instead of 50/0; all-zero history becomes missing. This directly contradicts the plan's zero/null contract. This is source-confirmed; incidence in current production data is not claimed. **Exit:** average/min/max include finite recorded zeros, exclude only genuinely missing/invalid observations, and agree between section and rail for mixed-zero and all-zero fixtures.
+
+4. **[P2] Remove the implementation callout from the stock-data flow.** [Security market-cap detail](/Users/craigchoi/silla/cd4/app/security/[secCode]/marketcap/page.tsx:683) retains a bordered explanation and “Tab Sync” badge between comparison and core metrics. The full-page captures and readable crops show an extra 140px mobile block with no action, source/date disclosure, or product decision. It is not part of the accepted detail hierarchy. **Exit:** comparison leads directly into core metrics; the Tab Sync badge and standalone implementation explanation are absent while the real metric navigation still works.
+
+Apply these as one material batch and return the same required capture matrix for a verdict scoring these four findings. Zero-value and absent-selected-series exits additionally need targeted semantic evidence; positive screenshots alone cannot demonstrate them. This review does not create a taste-polish backlog.
+
+## keep
+
+Keep the restored main's four factual summary slots, qualified top-20 trends before TOP 5, shared neutral rail, full red/gold wordmark, and restrained ranking hierarchy; do not dilute those to address the detail fixes.
+

@@ -63,7 +63,7 @@ test("every security metadata function uses its own canonical and OG URL with ex
   }
 });
 
-test("company base and marketcap metadata have separate URLs without adding a DB lookup", async () => {
+test("company base and marketcap metadata have separate URLs and identify the actual company", async () => {
   const secCode = "KOSPI.005935";
   const base = loadMetadata("app/company/[secCode]/page.tsx", fixture);
   const baseMetadata = await base.generateMetadata({ params: Promise.resolve({ secCode }) });
@@ -76,7 +76,8 @@ test("company base and marketcap metadata have separate URLs without adding a DB
   assert.equal(metadata.alternates.canonical, `https://www.chundan.xyz/company/${secCode}/marketcap/`);
   assert.equal(metadata.openGraph.url, metadata.alternates.canonical);
   assert.deepEqual(metadata.openGraph.images, parentGraph.images);
-  assert.deepEqual(marketcap.calls, []);
+  assert.deepEqual(marketcap.calls, [secCode]);
+  assert.equal(metadata.title, "삼성전자 기업 전체 시가총액");
 });
 
 test("dashboard metadata overrides its URL while root canonical stays at home", () => {
@@ -128,7 +129,21 @@ test("security ranking has its own URL while the identical company ranking alias
 test("missing security metadata preserves the existing missing-record response", async () => {
   const loaded = loadMetadata("app/security/[secCode]/marketcap/page.tsx", null);
   const metadata = await loaded.generateMetadata({ params: Promise.resolve({ secCode: "KOSPI.000000" }) }, Promise.resolve({ openGraph: parentGraph }));
-  assert.equal(metadata.title, "종목을 찾을 수 없습니다 - CD3");
+  assert.equal(metadata.title, "종목을 찾을 수 없습니다");
   assert.equal(metadata.alternates, undefined);
   assert.deepEqual(loaded.calls, ["KOSPI.000000"]);
+});
+
+test("dated ranking metadata does not claim real-time data", async () => {
+  const dependencies = {
+    getSecurityRanksPage: async () => ({ items: [{ ...fixture, value: 10 }], latestDate: "2025-09-22" }),
+    getCompanyMarketcapsPage: async () => ({ items: [fixture] }),
+    getLatestDateFromMarketData: () => "2025-09-22",
+  };
+  for (const route of ["", "marketcaps", "marketcap", "per", "pbr", "eps", "bps", "div", "dps"]) {
+    const relative = `app/(market)/${route ? `${route}/` : ""}page.tsx`;
+    const metadata = await loadMetadata(relative, fixture, dependencies).generateMetadata();
+    assert.doesNotMatch(JSON.stringify(metadata), /실시간/, relative);
+    assert.match(metadata.description, /2025-09-22/, relative);
+  }
 });

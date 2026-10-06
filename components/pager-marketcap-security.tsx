@@ -1,20 +1,19 @@
 import Link from "next/link";
+import { getRankNeighbors } from "@/lib/ranking-view";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  getSecurityMarketCapPageData,
-  getSecurityPerPageData,
-  getSecurityPbrPageData,
-  getSecurityDivPageData,
-  getSecurityEpsPageData,
-  getSecurityDpsPageData,
-  getSecurityBpsPageData,
-} from "@/lib/data/security";
+import { getSecurityMetricNeighbors } from "@/lib/data/security-ranking-detail";
 
-export async function SecMarketcapPager({ rank }: { rank: number }) {
-  const data = await getSecurityMarketCapPageData(rank);
-  const { prev, next } = getPagerSecMarketcaps(data, rank);
+interface SecurityPagerProps {
+  rank: number;
+  currentSecurityId?: string;
+  rankDate?: string | null;
+}
+
+export async function SecMarketcapPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "marketcap", rankDate)).map(item => ({ ...item, marketcapRank: item.currentRank }));
+  const { prev, next } = getPagerSecMarketcaps(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -72,23 +71,12 @@ interface SecMarketcapItem {
 }
 
 function getPagerSecMarketcaps(items: SecMarketcapItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.marketcapRank !== rank)
-    .sort((a, b) => (a.marketcapRank || 0) - (b.marketcapRank || 0));
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => (item.marketcapRank || 0) > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.marketcapRank);
 }
 
-export async function SecPerPager({ rank }: { rank: number }) {
-  const data = await getSecurityPerPageData(rank);
-  const { prev, next } = getPagerSecPers(data, rank);
+export async function SecPerPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "per", rankDate)).map(item => ({ ...item, perRank: item.currentRank }));
+  const { prev, next } = getPagerSecPers(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -142,27 +130,16 @@ interface SecPerItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  perRank: number;
+  perRank: number | null;
 }
 
 function getPagerSecPers(items: SecPerItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.perRank !== rank)
-    .sort((a, b) => a.perRank - b.perRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.perRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.perRank);
 }
 
-export async function SecPbrPager({ rank }: { rank: number }) {
-  const data = await getSecurityPbrPageData(rank);
-  const { prev, next } = getPagerSecPbrs(data, rank);
+export async function SecPbrPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "pbr", rankDate)).map(item => ({ ...item, pbrRank: item.currentRank }));
+  const { prev, next } = getPagerSecPbrs(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -208,9 +185,9 @@ export async function SecPbrPager({ rank }: { rank: number }) {
   );
 }
 
-export async function SecDivPager({ rank }: { rank: number }) {
-  const data = await getSecurityDivPageData(rank);
-  const { prev, next } = getPagerSecDivs(data, rank);
+export async function SecDivPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "div", rankDate)).map(item => ({ ...item, divRank: item.currentRank }));
+  const { prev, next } = getPagerSecDivs(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -256,9 +233,9 @@ export async function SecDivPager({ rank }: { rank: number }) {
   );
 }
 
-export async function SecEpsPager({ rank }: { rank: number }) {
-  const data = await getSecurityEpsPageData(rank);
-  const { prev, next } = getPagerSecEpss(data, rank);
+export async function SecEpsPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "eps", rankDate)).map(item => ({ ...item, epsRank: item.currentRank }));
+  const { prev, next } = getPagerSecEpss(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -304,9 +281,9 @@ export async function SecEpsPager({ rank }: { rank: number }) {
   );
 }
 
-export async function SecDpsPager({ rank }: { rank: number }) {
-  const data = await getSecurityDpsPageData(rank);
-  const { prev, next } = getPagerSecDpss(data, rank);
+export async function SecDpsPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "dps", rankDate)).map(item => ({ ...item, dpsRank: item.currentRank }));
+  const { prev, next } = getPagerSecDpss(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -352,9 +329,9 @@ export async function SecDpsPager({ rank }: { rank: number }) {
   );
 }
 
-export async function SecBpsPager({ rank }: { rank: number }) {
-  const data = await getSecurityBpsPageData(rank);
-  const { prev, next } = getPagerSecBpss(data, rank);
+export async function SecBpsPager({ rank, currentSecurityId, rankDate }: SecurityPagerProps) {
+  const data = (await getSecurityMetricNeighbors(rank, "bps", rankDate)).map(item => ({ ...item, bpsRank: item.currentRank }));
+  const { prev, next } = getPagerSecBpss(data.filter(item => item.securityId !== currentSecurityId && item.exchange && item.ticker), rank);
 
   if (!prev && !next) {
     return null;
@@ -408,7 +385,7 @@ interface SecPbrItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  pbrRank: number;
+  pbrRank: number | null;
 }
 
 interface SecDivItem {
@@ -419,7 +396,7 @@ interface SecDivItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  divRank: number;
+  divRank: number | null;
 }
 
 interface SecEpsItem {
@@ -430,7 +407,7 @@ interface SecEpsItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  epsRank: number;
+  epsRank: number | null;
 }
 
 interface SecDpsItem {
@@ -441,7 +418,7 @@ interface SecDpsItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  dpsRank: number;
+  dpsRank: number | null;
 }
 
 interface SecBpsItem {
@@ -452,80 +429,25 @@ interface SecBpsItem {
   ticker: string;
   type: string | null;
   companyId: string | null;
-  bpsRank: number;
+  bpsRank: number | null;
 }
 
 function getPagerSecPbrs(items: SecPbrItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.pbrRank !== rank)
-    .sort((a, b) => a.pbrRank - b.pbrRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.pbrRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.pbrRank);
 }
 
 function getPagerSecDivs(items: SecDivItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.divRank !== rank)
-    .sort((a, b) => a.divRank - b.divRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.divRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.divRank);
 }
 
 function getPagerSecEpss(items: SecEpsItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.epsRank !== rank)
-    .sort((a, b) => a.epsRank - b.epsRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.epsRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.epsRank);
 }
 
 function getPagerSecDpss(items: SecDpsItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.dpsRank !== rank)
-    .sort((a, b) => a.dpsRank - b.dpsRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.dpsRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.dpsRank);
 }
 
 function getPagerSecBpss(items: SecBpsItem[], rank: number) {
-  const sortedItems = items
-    .filter((item) => item.bpsRank !== rank)
-    .sort((a, b) => a.bpsRank - b.bpsRank);
-
-  const currentIndex = sortedItems.findIndex(
-    (item) => item.bpsRank > rank
-  );
-
-  const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-  const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-  return { prev, next };
+    return getRankNeighbors(items, rank, item => item.bpsRank);
 }

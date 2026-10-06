@@ -16,7 +16,7 @@ cd4는 한국 주식의 숫자와 순위를 빠르게 보여주는 웹 서비스
 | cd4 | PostgreSQL 조회, 순위·상세 화면, 차트, 검색, SEO, 정적 빌드 또는 서버 제공 | [DB 연결](../db/index.ts), [조회 계층](../lib/data/security.ts), [기업 조회](../lib/data/company.ts) |
 | DAG / IS | 커뮤니티 게시글·트렌드 처리 | [IS 설명](../../dag/docs/is.md) |
 
-cd4의 활성 DB 코드는 `postgres` + Drizzle PostgreSQL 드라이버와 `schema-postgres`를 사용한다. `schema-turso`가 남아 있고 DAG도 Turso 자산을 등록하지만, 이것을 cd4의 현재 활성 읽기 경로로 해석하면 안 된다.
+**2026-10-06 cd4 DB 기준 갱신:** cd4는 PostgreSQL 전용이며 `postgres` + `drizzle-orm/postgres-js`, `db/schema-postgres.ts`, PostgreSQL migration history를 사용한다. cd4의 Turso 스키마·libSQL 의존성과 기존 SQLite migration history는 제거했다. 신규 설치와 기존 DB baseline은 [PostgreSQL 안내](postgresql.md)를 따른다. 이 저장소 정리는 실제 업무 DB를 변경하거나 외부 DAG의 Turso 자산을 제거한 작업이 아니다.
 
 ## 2. 현재 데이터 흐름
 
@@ -104,9 +104,9 @@ P는 `date`와 `exchange`의 다차원 파티션이다. 거래소는 `KOSPI`, `K
 
 주석의 “42일 가격”·“20년”보다 실행 상수 `DAYS=90`, `BEFORE_YEARS=21`을 우선한다. 과거 잡의 종목 연결은 현재 `security`의 상폐되지 않은 종목을 기준으로 하므로 과거 상폐 종목 전체를 복원하는 기능으로 볼 수 없다. 이력 잡이 끝났다고 `security` 최신값이나 기업·종목 순위가 자동으로 재계산되는 직접 의존성도 없다. 일별 적재와 월말 과거 적재가 같은 이력 테이블에 공존할 수 있으며, 실제 DB의 기간별 빈도·누락·보유 기간은 미검증이다. 장기 차트나 기간 평균을 바꿀 때 매일 관측된 20년 데이터라고 가정하지 않는다.
 
-### 남아 있는 Turso 경로
+### 외부 DAG의 Turso 경로
 
-Turso 자산은 별도 모듈로 등록되어 있다. 아래에서 나열한 자산의 직접 의존성은 화살표의 왼쪽이다.
+다음은 2026-10-04에 조사한 외부 DAG 저장소의 Turso 자산이다. cd4의 지원 DB나 대체 배포 경로를 뜻하지 않는다. 외부 DAG 자산은 별도 모듈로 등록되어 있다. 아래에서 나열한 자산의 직접 의존성은 화살표의 왼쪽이다.
 
 - `cd_stockcode_turso` → `cd_stockcodenames_turso` → `cd_ingest_stockcodenames_turso` → `cd_update_securitytypebyname_turso` → `cd_upsert_company_by_security_turso`.
 - 위의 마지막 자산에서 `cd_prices_turso` → `cd_digest_price_turso` → `cd_sync_price_to_security_turso`, `cd_marketcaps_turso` → `cd_digest_marketcaps_turso` → `cd_sync_marketcaps_to_security_turso`, `cd_bppedds_turso` → `cd_digest_bppedds_turso` → `cd_sync_bppedds_to_security_turso`가 분기한다.

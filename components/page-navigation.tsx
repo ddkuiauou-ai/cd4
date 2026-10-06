@@ -1,129 +1,45 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState, type ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
-interface PageNavigationSection {
-  id: string;
-  label: string;
-  icon?: ReactNode;
-}
-
-interface PageNavigationProps {
-  sections: PageNavigationSection[];
-  /**
-   * Additional offset to account for fixed headers when determining the active section.
-   */
-  offset?: number;
-  /**
-   * Whether the navigation should be collapsible
-   */
-  collapsible?: boolean;
-}
-
-export function PageNavigation({ sections, offset = 160, collapsible = true }: PageNavigationProps) {
-  const [activeSection, setActiveSection] = useState<string | null>(sections[0]?.id ?? null);
-  const activeRef = useRef<string | null>(sections[0]?.id ?? null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    if (sections.length === 0) {
-      setActiveSection(null);
-      activeRef.current = null;
-      return;
-    }
-
-    const updateActiveSection = () => {
-      const scrollPosition = window.scrollY + offset;
-      let currentActive: string | null = sections[0]?.id ?? null;
-
-      for (const section of sections) {
-        const element = document.getElementById(section.id);
-        if (!element) continue;
-        const elementTop = element.getBoundingClientRect().top + window.scrollY;
-
-        if (scrollPosition >= elementTop - 4) {
-          currentActive = section.id;
-        }
-      }
-
-      if (currentActive !== activeRef.current) {
-        activeRef.current = currentActive;
-        setActiveSection(currentActive);
-      }
-    };
-
-    let ticking = false;
-    const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        updateActiveSection();
-        ticking = false;
-      });
-    };
-
-    updateActiveSection();
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, [sections, offset]);
-
-  useEffect(() => {
-    const firstSection = sections[0]?.id ?? null;
-    setActiveSection(firstSection);
-    activeRef.current = firstSection;
-  }, [sections]);
-
-  if (!collapsible) {
-    return (
-      <nav className="space-y-2">
-        {sections.map((section) => {
-          const isActive = activeSection === section.id;
-          return (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              className={cn(
-                "flex items-center gap-2 text-sm transition-colors py-1",
-                isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-current={isActive ? "page" : undefined}
-            >
-              {section.icon}
-              {section.label}
-            </a>
-          );
-        })}
-      </nav>
-    );
-  }
-
-  return (
-    <nav className="space-y-2">
-      {sections.map((section) => {
-        const isActive = activeSection === section.id;
-        return (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            className={cn(
-              "flex items-center gap-2 text-sm transition-colors py-1",
-              isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-            aria-current={isActive ? "page" : undefined}
-          >
-            {section.icon}
+export function PageNavigation({ sections, offset }: {
+    sections: Array<{ id: string; label: string; icon?: ReactNode }>; offset?: number; collapsible?: boolean;
+}) {
+    const [active, setActive] = useState(sections[0]?.id ?? null);
+    useEffect(() => {
+        let frame = 0;
+        const update = () => {
+            frame = 0;
+            const header = document.querySelector<HTMLElement>('[data-site-header]');
+            const detailHeader = document.querySelector<HTMLElement>('[data-detail-header]');
+            const measuredOffset = offset ?? (header?.getBoundingClientRect().height ?? 64) + (detailHeader?.getBoundingClientRect().height ?? 0) + 16;
+            let current = sections[0]?.id ?? null;
+            for (const section of sections) {
+                const target = document.getElementById(section.id);
+                if (target && target.getBoundingClientRect().top <= measuredOffset + 4) current = section.id;
+            }
+            setActive(previous => previous === current ? previous : current);
+        };
+        const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+        update();
+        const observer = new ResizeObserver(schedule);
+        const header = document.querySelector<HTMLElement>('[data-site-header]');
+        const detailHeader = document.querySelector<HTMLElement>('[data-detail-header]');
+        if (header) observer.observe(header);
+        if (detailHeader) observer.observe(detailHeader);
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule);
+        return () => {
+            observer.disconnect(); cancelAnimationFrame(frame);
+            window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule);
+        };
+    }, [sections, offset]);
+    return <nav aria-label="페이지 목차" className="space-y-1">
+        {sections.map(section => <a key={section.id} href={`#${section.id}`} aria-current={active === section.id ? 'location' : undefined}
+            className={cn('block min-h-10 border-l py-2 pl-3 text-sm transition-colors',
+                active === section.id ? 'border-primary font-semibold text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
             {section.label}
-          </a>
-        );
-      })}
-    </nav>
-  );
+        </a>)}
+    </nav>;
 }

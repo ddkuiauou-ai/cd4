@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-05",
+  "scope": "User-requested implementation-plan conformance audit and corrective implementation",
+  "tests": {
+    "command": "pnpm test",
+    "passed": 155,
+    "failed": 0,
+    "exitCode": 0,
+    "log": "/private/tmp/cd4-ui-final-tests-confirmed.log"
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "log": "/private/tmp/cd4-ui-final-types-confirmed.log"
+  },
+  "lint": {
+    "command": "pnpm lint",
+    "exitCode": 1,
+    "errors": 73,
+    "warnings": 135,
+    "log": "/private/tmp/cd4-ui-final-lint-confirmed.log",
+    "disposition": "Remaining lint debt; not a pass; no new suppression added"
+  },
+  "standaloneBuild": {
+    "command": "VERCEL=1 pnpm build",
+    "exitCode": 0,
+    "generatedPages": 334,
+    "sitemapIndexRoute": "dynamic",
+    "sitemapChunkRoute": "dynamic",
+    "log": "/private/tmp/cd4-ui-final-standalone-runtime-fix-build.log"
+  },
+  "limitedExportBuild": {
+    "command": "VERCEL=1 NEXT_OUTPUT_MODE=export pnpm build --debug-build-paths='app/(market)/**/page.tsx,app/dashboard/page.tsx,app/ranking-data/**/route.ts,app/sitemap.xml/route.ts,app/sitemaps/**/route.ts'",
+    "exitCode": 0,
+    "generatedPages": 240,
+    "log": "/private/tmp/cd4-ui-final-export-runtime-fix-build.log",
+    "artifacts": "export-artifacts.json",
+    "scope": "Ranking, dashboard, all eight ranking CSV endpoints, sitemap index and eight nonempty XML chunks; detail paths excluded; debug output is not a deployable full export"
+  },
+  "fullExport": {
+    "plannedPagesInAttempt": 28020,
+    "attemptExitCode": 130,
+    "disposition": "Stopped before completion to preserve remaining disk space. Final source full export is unverified."
+  },
+  "standaloneHttp": {
+    "server": "node .next/standalone/server.js",
+    "binding": "127.0.0.1:3100",
+    "pagesChecked": 4,
+    "rankingCsvChecked": 8,
+    "sitemapIndexChecked": 1,
+    "sitemapChunksChecked": 8,
+    "allStatus": 200,
+    "records": ["final-http.json", "standalone-sitemap-http.json"],
+    "originContract": "Next Request.url origin and port, including native loopback hostname normalization; not raw Host-header forwarding"
+  },
+  "visualReview": {
+    "finalReviewCaptures": 29,
+    "records": ["capture-context.json", "full-review.md", "verdict.md"],
+    "disposition": "Main structure conforms semantically to the implementation plan; follow-up verdict resolves F1-F4 only. Not user acceptance or whole-surface approval."
+  },
+  "handoff": {
+    "url": "http://127.0.0.1:3100/dashboard/",
+    "theme": "light",
+    "viewport": [1280, 720],
+    "image": "main-handoff-light.png",
+    "purpose": "Final production preview for the user, not an additional full design review"
+  },
+  "remaining": [
+    "Full 28020-page static export completion",
+    "Existing global lint debt",
+    "Actual operating-system theme changes",
+    "Actual 200-percent text enlargement",
+    "Browser reduced-motion environment verification"
+  ],
+  "deployed": false,
+  "committed": false,
+  "newDesignHookIgnores": 4,
+  "designHookIgnoreScope": "Follow-up hook triage only: four font-alias values across five locations, restricted to styles.css, scoreboard.css and desktop-shell.css in .impeccable/logo-review. Intentional comparison prototypes; no product file or whole-rule suppression.",
+  "designHookTriageRecord": "prototype-font-hook-triage.md"
+}

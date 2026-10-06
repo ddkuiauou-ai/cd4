@@ -22,13 +22,14 @@ export function RankingPosition({ rank, priorRank }: { rank: number | null; prio
   }, [open]);
 
   return (
-    <div ref={ref} className={styles.positionWrap}>
+    <div ref={ref} className={styles.positionWrap} onMouseEnter={() => setOpen(true)} onMouseLeave={() => {
+      if (!ref.current?.contains(document.activeElement)) setOpen(false);
+    }}>
       <button type="button" className={styles.position} data-rank={rank ?? undefined} data-digits={String(rank ?? "").length}
         aria-label={`${rank == null ? "순위 정보 없음" : `${rank}위`}. ${description}`}
         aria-describedby={open ? id : undefined}
-        onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
-        onClick={() => setOpen(value => !value)} onKeyDown={event => { if (event.key === "Escape") setOpen(false); }}>
+        onClick={() => setOpen(true)} onKeyDown={event => { if (event.key === "Escape") setOpen(false); }}>
         <span className={styles.rank}>{rank?.toLocaleString("ko-KR") ?? "—"}</span>
         {movement != null && <span className={styles.movement} aria-hidden="true">{movement === 0 ? "유지" : <>{movement > 0 ? <ArrowUp /> : <ArrowDown />}<span>{Math.abs(movement).toLocaleString("ko-KR")}</span></>}</span>}
       </button>

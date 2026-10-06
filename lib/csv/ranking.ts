@@ -145,6 +145,30 @@ export interface RankingCsvMetadata {
   filename: string;
 }
 
+export interface RankingCsvExpectedRow {
+  id: string;
+  rank: number | null;
+  priorRank: number | null;
+  value: number | null;
+  metricDate: string | null;
+}
+
+// Compare the visible company's actual rows, rather than treating its first
+// row's date as a shared snapshot date. This also works on later ranking pages.
+export function hasCompanyRankingCsvChanges(csv: string, expectedRows: readonly RankingCsvExpectedRow[]): boolean {
+  const [headers, ...rows] = parseCsvRecords(csv);
+  if (!headers || headers.join("\u0000") !== RANKING_CSV_COLUMNS.join("\u0000")) {
+    throw new Error("전체 순위 CSV 형식이 올바르지 않습니다.");
+  }
+  const exported = new Map(rows.map(row => [row[10], row]));
+  const number = (value: string) => value === "" ? null : Number(value);
+  return expectedRows.some(expected => {
+    const row = exported.get(expected.id);
+    return !row || number(row[7]) !== expected.rank || number(row[8]) !== expected.priorRank
+      || number(row[16]) !== expected.value || (row[17] || null) !== expected.metricDate;
+  });
+}
+
 // Static hosts need not preserve custom response headers. Read the same basis
 // from the CSV itself and reject HTML/error responses or incomplete files.
 export function readRankingCsvMetadata(csv: string): RankingCsvMetadata {

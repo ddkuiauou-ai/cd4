@@ -284,21 +284,22 @@ export default function GlobalError({
 
 ### Database Infrastructure
 
-- **Vercel Postgres**: Managed PostgreSQL with connection pooling
-- **Turso Support**: Alternative SQLite-based deployment option
-- **Migration Management**: Automated schema migrations with Drizzle Kit
+- **PostgreSQL**: The sole supported cd4 database, accessed through Drizzle's `postgres-js` adapter and the `postgres` driver
+- **Schema Management**: `db/schema-postgres.ts` and reviewed PostgreSQL migration SQL under `drizzle/`
+- **Installation**: The initial migration creates an empty database schema; the collection pipeline supplies the market data
+- **Existing Databases**: Compare the actual schema and establish a reviewed migration baseline before applying pending migrations; see the [PostgreSQL guide](postgresql.md)
 
 ### Environment Configuration
 
 ```bash
 # Production environment variables
 DATABASE_URL=postgresql://...
-TURSO_DATABASE_URL=libsql://...
-TURSO_AUTH_TOKEN=...
 NEXTAUTH_SECRET=...
 NEXTAUTH_URL=...
 GOOGLE_ADSENSE_ID=...
 ```
+
+PostgreSQL credentials belong to the server environment and must not use a `NEXT_PUBLIC_` prefix. cd4 has no Turso, libSQL, or SQLite deployment option. External DAG storage paths are documented separately in the [DAG integration contract](dag-integration.md).
 
 ## API Endpoints
 

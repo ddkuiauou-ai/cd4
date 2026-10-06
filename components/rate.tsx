@@ -10,13 +10,12 @@ export type Props = {
 function RateDisplay({ rate, size = "md", showIcon = true }: Props) {
   const isPositive = rate > 0;
   const isNegative = rate < 0;
-  const isZero = rate === 0;
 
   // 한국 주식 시장 색상 관례 적용
   const colorClass = isPositive
-    ? "text-red-500 dark:text-red-400" // 상승: 빨간색 (한국 주식 관례)
+    ? "text-market-up" // 상승: 빨간색 (한국 주식 관례)
     : isNegative
-      ? "text-blue-600 dark:text-blue-400" // 하락: 파란색 (한국 주식 관례)  
+      ? "text-market-down" // 하락: 파란색 (한국 주식 관례)
       : "text-muted-foreground"; // 보합: 기본 회색
 
   const sizeClasses = {
@@ -43,9 +42,9 @@ function RateDisplay({ rate, size = "md", showIcon = true }: Props) {
     if (!showIcon) return null;
 
     if (isPositive) {
-      return <TrendingUp size={iconSize[size]} className="text-red-500 dark:text-red-400" />;
+      return <TrendingUp size={iconSize[size]} />;
     } else if (isNegative) {
-      return <TrendingDown size={iconSize[size]} className="text-blue-600 dark:text-blue-400" />;
+      return <TrendingDown size={iconSize[size]} />;
     } else {
       return <Minus size={iconSize[size]} className="text-muted-foreground" />;
     }

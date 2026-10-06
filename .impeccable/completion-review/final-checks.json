@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-05",
+  "scope": "Follow-up implementation of R1–R5 in docs/ui-plan-acceptance-check-2026-10-05.md; not full-site acceptance",
+  "findings": {
+    "R1": "resolved",
+    "R2": "resolved",
+    "R3": "resolved",
+    "R4": "resolved",
+    "R5": "resolved"
+  },
+  "finalSourceChecks": {
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "pass": 175,
+      "fail": 0,
+      "skip": 0,
+      "log": "tests.log"
+    },
+    "types": {
+      "command": "pnpm exec tsc --noEmit",
+      "exitCode": 0,
+      "log": "types.log"
+    },
+    "standalone": {
+      "command": "VERCEL=1 pnpm build",
+      "exitCode": 0,
+      "staticPages": 334,
+      "log": "standalone-build.log"
+    },
+    "lint": {
+      "command": "pnpm lint",
+      "exitCode": 1,
+      "errors": 73,
+      "warnings": 135,
+      "unchangedFromPriorRecord": true,
+      "log": "lint.log"
+    },
+    "focusedFinancialPriceLint": {
+      "errors": 0,
+      "warnings": 0,
+      "source": "Implementing agent report; shared price, PER/PBR/EPS components and new test"
+    },
+    "independentSourceReview": {
+      "remainingDefectsFoundInReviewedScope": 0,
+      "scope": "Empty preferred family boundary, shared financial daily price and average labels, mobile header structure"
+    }
+  },
+  "browser": {
+    "firstInspection": {
+      "measurements": "capture-context.json",
+      "stage": "Before final financial price extension and mobile header correction; chart source matches final source"
+    },
+    "finalConfirmation": {
+      "measurements": "final-capture-context.json",
+      "screenshots": [
+        "empty-320-light-confirmed.png",
+        "pbr-320-light-confirmed.png",
+        "pbr-desktop-light-confirmed.png"
+      ],
+      "stage": "Final product source"
+    },
+    "documentOverflowAtCompany320": {
+      "before": 5,
+      "after": 0,
+      "annualChartWidth": 270,
+      "parentWidth": 270
+    },
+    "emptyDetail": {
+      "security": "KOSPI.088980",
+      "metric": "pbr",
+      "finalWidth": 320,
+      "documentOverflow": 0,
+      "copyControls": 1,
+      "shareControls": 1,
+      "titleAndActionsOverlap": false,
+      "copyCanonicalVerifiedDuringFirstInspection": true
+    },
+    "dailyPrice": {
+      "security": "KOSPI.036460",
+      "close": 36000,
+      "rate": 2.13,
+      "label": "전일 대비",
+      "date": "2026-10-02",
+      "financialMetricConfirmed": "pbr"
+    },
+    "financialTabCollectedWarnErrorLogs": 0,
+    "temporaryViewportReset": true,
+    "temporaryTabClosed": true,
+    "companyPreviewRetained": "http://127.0.0.1:3100/company/KOSPI.036460/marketcap/"
+  },
+  "csv": {
+    "actualDownloadRows": 307,
+    "bom": true,
+    "metadata": "pbr-history-download.json",
+    "rawFile": "pbr-history.csv",
+    "downloadEventObserver": "timed out; exact actual file verified by filename, modification time and contents",
+    "nullBpsVerification": "Fixture through actual page CSV data and serializer; not asserted for this real dataset"
+  },
+  "knownSecurityEmptyMarketcapVerification": "Page-function fixtures; no actual candidate found in read-only lookup",
+  "newHookIgnores": 0,
+  "remaining": [
+    "Global lint errors/warnings",
+    "Final-source full 28020-page static export",
+    "Actual OS theme change",
+    "200% text enlargement",
+    "Actual browser reduced-motion environment",
+    "Native share completion",
+    "Every chart tooltip/resize/empty transition"
+  ],
+  "deploymentPerformed": false,
+  "commitPerformed": false,
+  "databaseWritesPerformed": false,
+  "preview": {
+    "host": "127.0.0.1",
+    "port": 3100,
+    "mode": "standalone"
+  }
+}

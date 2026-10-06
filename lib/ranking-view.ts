@@ -29,6 +29,7 @@ export interface RankingRow {
   rank: number | null;
   priorRank: number | null;
   value: number | null;
+  metricDate?: string | null;
   close: number | null;
   rate: number | null;
   priceDate: string | null;
@@ -74,6 +75,7 @@ export function createRankingRows(items: readonly unknown[], metric: RankingMetr
       rank: rank && rank > 0 ? rank : null,
       priorRank: priorRank && priorRank > 0 ? priorRank : null,
       value: finiteNumber(item.value ?? item[metric]),
+      metricDate: dateText(item[`${metric}Date`] ?? item.metricDate ?? item.date),
       close: finiteNumber(latest.close),
       rate: finiteNumber(latest.rate),
       priceDate: dateText(latest.date),
@@ -108,6 +110,14 @@ export function getRankingPriceDate(rows: readonly RankingRow[]): string | null 
 export function rankMovement(current: number | null | undefined, prior: number | null | undefined) {
   if (current == null || prior == null || !Number.isFinite(current) || !Number.isFinite(prior) || current <= 0 || prior <= 0) return null;
   return prior - current;
+}
+
+export function getRankingPager(page: number, totalPages?: number) {
+  if (!Number.isSafeInteger(page) || page < 1 || (totalPages != null && (!Number.isSafeInteger(totalPages) || totalPages < 1 || page > totalPages))) return null;
+  return {
+    prev: page > 1 ? page - 1 : null,
+    next: totalPages != null && page >= totalPages ? null : page + 1,
+  };
 }
 
 export function getRankNeighbors<T>(items: readonly T[], rank: number, getRank: (item: T) => number | null | undefined): { prev: T | null; next: T | null } {

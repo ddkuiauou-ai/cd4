@@ -1,11 +1,2 @@
-export function SiteFooter() {
-  return (
-    <footer className="py-6 md:px-8 md:py-0">
-      <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-        <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
-          Built by .
-        </p>
-      </div>
-    </footer>
-  );
-}
+import Link from "next/link";
+export function SiteFooter(){return <footer className="site-footer"><div className="app-container footer-content"><span>천하제일 단타대회</span><span>기업·종목별 숫자와 전체 순위를 확인하세요.</span><Link href="/">전체 랭킹</Link></div></footer>;}

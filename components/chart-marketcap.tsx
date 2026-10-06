@@ -21,6 +21,8 @@ import {
   Legend,
 } from "recharts";
 
+import { getMarketcapSeriesLabel, getMarketcapSelectionColor, isMarketcapSeriesSelected, type MarketcapSeries } from "@/lib/chart-selection";
+
 type MarketcapDataPoint = {
   date: string;
   totalValue?: number;
@@ -32,23 +34,12 @@ type Props = {
   format: string;
   formatTooltip: string;
   selectedType?: string; // 선택된 종목 타입 (보통주, 우선주, 시가총액 구성)
+  selectedSecurityId?: string;
+  series?: readonly MarketcapSeries[];
 };
 
-// 라벨 간소화 함수
-const getSimplifiedLabel = (key: string): string => {
-  if (key === "총합계" || key === "totalValue") {
-    return "전체 시총";
-  }
-  if (key.includes("보통주")) {
-    return "보통주";
-  }
-  if (key.includes("우선주")) {
-    return "우선주";
-  }
-  return key;
-};
 
-function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성" }: Props) {
+function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [] }: Props) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -69,39 +60,26 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   const colors = useMemo(() => {
     // 기본 그레이스케일 (더 시각적으로 구분되는 색상)
     const baseColors = [
-      "#1a1a1a", // Very dark gray - 총합계 (기본)
-      "#404040", // Dark gray - 보통주 (기본)
-      "#666666", // Medium gray - 우선주 (기본)
-      "#808080", // Light gray - 기타
-      "#999999", // Lighter gray - 기타
+      "var(--foreground)", // Very dark gray - 총합계 (기본)
+      "var(--chart-3)", // Dark gray - 보통주 (기본)
+      "var(--muted-foreground)", // Medium gray - 우선주 (기본)
+      "color-mix(in srgb, var(--foreground) 75%, var(--background))", // Light gray - 기타
+      "color-mix(in srgb, var(--foreground) 85%, var(--background))", // Lighter gray - 기타
     ];
 
     // 선택시 브랜드 컬러 (한국 금융 표준)
     const accentColors = {
-      "시가총액 구성": "#d83d1e", // 브랜드 주황색 - 총합계 강조
-      "보통주": "#D60000",        // 한국 상승 빨간색 - 보통주 강조  
-      "우선주": "#0066CC"         // 한국 하락 파란색 - 우선주 강조
+      "시가총액 구성": "var(--brand-ink)", // 브랜드 주황색 - 총합계 강조
+      "보통주": "var(--market-up)",        // 한국 상승 빨간색 - 보통주 강조
+      "우선주": "var(--market-down)"         // 한국 하락 파란색 - 우선주 강조
     };
 
     return { base: baseColors, accent: accentColors };
   }, []);
 
   // 🎯 선택된 타입에 따른 동적 컬러 결정
-  const getLineColor = (key: string, index: number) => {
-    // 선택된 타입에 해당하는 라인만 컬러로 강조
-    if (selectedType === "시가총액 구성" && (key === "총합계" || key === "totalValue")) {
-      return colors.accent["시가총액 구성"];
-    }
-    if (selectedType === "보통주" && key.includes("보통주")) {
-      return colors.accent["보통주"];
-    }
-    if (selectedType === "우선주" && key.includes("우선주")) {
-      return colors.accent["우선주"];
-    }
-
-    // 기본: 그레이스케일 유지
-    return colors.base[index % colors.base.length];
-  };
+  const getLineColor = (key: string, index: number) =>
+    getMarketcapSelectionColor(key, series, selectedSecurityId, selectedType) ?? colors.base[index % colors.base.length];
 
   // 📊 라인 스타일 결정 함수 (선택적 강조)
   const getLineStyle = (key: string) => {
@@ -109,7 +87,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
     return {
       strokeWidth: isHighlighted ? 3 : 1.5, // 더 미묘한 차이
-      strokeOpacity: isHighlighted ? 1 : 0.4, // 배경 라인을 더 연하게
+      strokeOpacity: isHighlighted ? 1 : 0.75, // 배경 라인을 더 연하게
     };
   };
 
@@ -121,23 +99,13 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
       r: isHighlighted ? 6 : 5,
       stroke: color,
       strokeWidth: isHighlighted ? 2 : 1.5,
-      fill: '#ffffff',
+      fill: 'var(--background)',
     };
   };
 
   // 🎯 라인 강조 여부 결정 함수
-  const shouldHighlightLine = (key: string, selectedType: string) => {
-    switch (selectedType) {
-      case "보통주":
-        return key.includes("보통주");
-      case "우선주":
-        return key.includes("우선주");
-      case "시가총액 구성":
-        return key === "총합계" || key === "totalValue";
-      default:
-        return true; // 기본값: 모든 라인 강조
-    }
-  };
+  const shouldHighlightLine = (key: string, type: string) =>
+    isMarketcapSeriesSelected(key, series, selectedSecurityId, type);
 
   // 📈 라인 패턴 결정 함수 (더 간단하게)
   const getStrokePattern = (key: string) => {
@@ -150,7 +118,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   // 📊 데이터 키 추출
   const keys = useMemo(() => {
     if (!safeData.length) return [];
-    return Object.keys(safeData[0]).filter(key => key !== "date");
+    return [...new Set(safeData.flatMap(item => Object.keys(item)))].filter(key => key !== "date");
   }, [safeData]);
 
   // 📊 Y축 도메인 계산 (데이터 범위에 맞게 조정)
@@ -195,7 +163,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   if (!isClient || !data || data.length === 0) {
     return (
       <div className="w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px] flex items-center justify-center">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-sm text-muted-foreground">
           {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
         </div>
       </div>
@@ -203,25 +171,25 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   }
 
   return (
-    <div className="w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px]">
-      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200}>
+    <div className="min-w-0 w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px]">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
         <LineChart
           data={safeData}
           margin={{ top: 8, right: 12, left: 8, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" className="dark:opacity-30" strokeOpacity={0.5} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="date"
             tickFormatter={(value) => {
               const date = new Date(value);
               return formatDateKorean(date, { year: 'numeric', month: 'short', day: 'numeric' });
             }}
-            stroke="#666666"
-            className="dark:stroke-gray-400"
+            stroke="var(--muted-foreground)"
+
             fontSize={12}
-            tick={{ fill: '#666666', className: 'dark:fill-gray-400' }}
-            axisLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
-            tickLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
+            tick={{ fill: 'var(--muted-foreground)' }}
+            axisLine={{ stroke: 'var(--border)' }}
+            tickLine={{ stroke: 'var(--border)' }}
             interval="preserveStartEnd"
           />
           <YAxis
@@ -229,21 +197,21 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             tickFormatter={
               format === "formatNumber" ? formatNumberForChart : formatNumberRawForChart
             }
-            stroke="#666666"
-            className="dark:stroke-gray-400"
+            stroke="var(--muted-foreground)"
+
             fontSize={12}
-            tick={{ fill: '#666666', className: 'dark:fill-gray-400' }}
-            axisLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
-            tickLine={{ stroke: '#E5E5E5', className: 'dark:stroke-gray-600' }}
+            tick={{ fill: 'var(--muted-foreground)' }}
+            axisLine={{ stroke: 'var(--border)' }}
+            tickLine={{ stroke: 'var(--border)' }}
             width={40} // 50 -> 40으로 더 줄임
           />
           <Tooltip
-            content={<CustomTooltip formatTooltip={formatTooltip} selectedType={selectedType} />}
+            content={<CustomTooltip formatTooltip={formatTooltip} series={series} />}
             isAnimationActive={false}
           />
           <Legend
             itemSorter={(entry) => keys.indexOf(String(entry.value))}
-            content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} />}
+            content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} selectedSecurityId={selectedSecurityId} series={series} />}
             wrapperStyle={{
               paddingTop: '2px', // 2px -> 2px 유지
               position: 'relative',
@@ -290,10 +258,10 @@ interface CustomTooltipProps {
     value: number;
   }>;
   formatTooltip: string;
-  selectedType?: string;
+  series?: readonly MarketcapSeries[];
 }
 
-function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, formatTooltip, series = [] }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
@@ -313,15 +281,14 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
 
   // 🔄 중복 데이터 필터링 (payload 기반)
   const filteredEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
-    const label = getSimplifiedLabel(entry.dataKey);
 
     // "value" 키는 제외 (totalValue와 중복됨)
     if (entry.dataKey === "value") {
       return acc;
     }
 
-    // 이미 같은 라벨이 있다면 건너뛰기 (첫 번째 것만 유지)
-    if (!acc.some(item => getSimplifiedLabel(item.dataKey) === label)) {
+    // 같은 데이터 키만 중복 제거 (첫 번째 것만 유지)
+    if (!acc.some(item => item.dataKey === entry.dataKey)) {
       acc.push(entry);
     }
 
@@ -329,8 +296,8 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
   }, [] as typeof payload) : [];
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-2.5 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-32">
-      <div className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1.5">
+    <div className="bg-popover p-2.5 rounded-lg shadow-lg border border-border min-w-32">
+      <div className="text-xs font-medium text-foreground mb-1.5">
         {formatDate(data.date)}
       </div>
       <div className="space-y-1">
@@ -341,11 +308,11 @@ function CustomTooltip({ active, payload, formatTooltip }: CustomTooltipProps) {
                 className="w-2.5 h-0.5 rounded"
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                {getSimplifiedLabel(entry.dataKey)}
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {getMarketcapSeriesLabel(entry.dataKey, series)}
               </span>
             </div>
-            <span className="text-xs font-medium text-gray-900 dark:text-gray-100 text-right">
+            <span className="text-xs font-medium text-foreground text-right">
               {formatTooltipFunction(entry.value, formatTooltip)}
             </span>
           </div>
@@ -363,22 +330,23 @@ interface CustomLegendProps {
     color: string;
   }>;
   selectedType?: string;
+  selectedSecurityId?: string;
+  series?: readonly MarketcapSeries[];
 }
 
-function CustomLegend({ payload, selectedType }: CustomLegendProps) {
+function CustomLegend({ payload, selectedType, selectedSecurityId, series = [] }: CustomLegendProps) {
   if (!payload || !payload.length) return null;
 
   // 🔄 중복 제거 및 불필요한 항목 필터링
   const uniqueEntries = (payload && payload.length > 0) ? (payload || []).reduce((acc, entry) => {
-    const simplifiedLabel = getSimplifiedLabel(entry.value);
 
     // "value" 키는 제외 (totalValue와 중복됨)
     if (entry.value === "value") {
       return acc;
     }
 
-    // 이미 같은 라벨이 있다면 건너뛰기
-    if (!acc.some(item => getSimplifiedLabel(item.value) === simplifiedLabel)) {
+    // 같은 데이터 키만 중복 제거
+    if (!acc.some(item => item.value === entry.value)) {
       acc.push(entry);
     }
 
@@ -387,25 +355,19 @@ function CustomLegend({ payload, selectedType }: CustomLegendProps) {
 
   return (
     <div className="flex flex-wrap justify-center gap-4">  {/* mt-1 제거 */}
-      {uniqueEntries.map((entry, index) => (
-        <div key={index} className="flex items-center gap-1.5">
+      {uniqueEntries.map((entry) => (
+        <div key={entry.value} className="flex items-center gap-1.5">
           <div
             className="w-4 h-0.5 rounded"
             style={{ backgroundColor: entry.color }}
           />
           {(() => {
-            const label = getSimplifiedLabel(entry.value);
-            const isHighlighted = (() => {
-              if (!selectedType) return false;
-              if (selectedType === "시가총액 구성") {
-                return label === "전체 시총";
-              }
-              return label === selectedType;
-            })();
+            const label = getMarketcapSeriesLabel(entry.value, series);
+            const isHighlighted = isMarketcapSeriesSelected(entry.value, series, selectedSecurityId, selectedType);
 
             return (
               <span
-                className={`text-xs ${isHighlighted ? 'font-semibold' : 'text-gray-600 dark:text-gray-400'}`}
+                className={`text-xs ${isHighlighted ? 'font-semibold' : 'text-muted-foreground'}`}
                 style={isHighlighted ? { color: entry.color } : undefined}
               >
                 {label}

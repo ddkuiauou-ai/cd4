@@ -4,7 +4,7 @@ import { useState, type MouseEvent } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { readRankingCsvMetadata, serializeCsvRows } from "@/lib/csv/ranking";
+import { hasCompanyRankingCsvChanges, readRankingCsvMetadata, serializeCsvRows, type RankingCsvExpectedRow } from "@/lib/csv/ranking";
 import {
   getRankingDownloadFilename,
   getRankingDownloadUrl,
@@ -32,10 +32,12 @@ export interface CsvDownloadButtonProps {
   metric?: RankingDownloadMetric;
   // A page's reference date is not a guarantee that all company rows share it.
   expectedDate?: string | null;
+  expectedCompanyRows?: RankingCsvExpectedRow[];
+  expectedTotalCount?: number;
 }
 
 export function CsvDownloadButton({
-  data, filename = "data.csv", className, scope, metric, expectedDate,
+  data, filename = "data.csv", className, scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
 }: CsvDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [message, setMessage] = useState("");
@@ -60,10 +62,15 @@ export function CsvDownloadButton({
         throw new Error("요청한 지표와 파일의 범위가 일치하지 않습니다.");
       }
       downloadCSV(csv, metadata.filename);
-      const changed = Boolean(expectedDate && expectedDate !== metadata.referenceDate);
+      const changed = scope === "company"
+        ? Boolean((expectedTotalCount != null && expectedTotalCount !== metadata.totalCount)
+          || (expectedCompanyRows && hasCompanyRankingCsvChanges(csv, expectedCompanyRows)))
+        : Boolean(expectedDate && expectedDate !== metadata.referenceDate);
       setHasNewBasis(changed);
       setMessage(changed
-        ? `다운로드 시작 · 파일 참고 기준일 ${metadata.referenceDate ?? "미확인"}. 화면의 기준일과 달라요.`
+        ? scope === "company"
+          ? "다운로드 시작 · 파일의 기업 순위·값 또는 기준일이 화면과 달라요. 기업별 기준일은 파일에서 확인하세요."
+          : `다운로드 시작 · 파일 참고 기준일 ${metadata.referenceDate ?? "미확인"}. 화면의 기준일과 달라요.`
         : `다운로드 시작 · 전체 ${metadata.totalCount.toLocaleString("ko-KR")}행${scope === "company" ? " · 기업별 기준일은 파일에서 확인하세요." : ""}`);
     } catch {
       setHasError(true);

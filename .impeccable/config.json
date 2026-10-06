@@ -12,6 +12,43 @@
         ],
         "createdAt": "2026-10-05T06:06:45.557Z",
         "reason": "Agent: browser computed styles at 1440px are h1 32px, h2 21px, body 15px; at 390px h1 is 24px and body 15px. Imported CSS creates a clear hierarchy, while the static detector incorrectly reports all roles as 16px. Evidence: review/white-shell/type-hierarchy-validation.json."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "logo nanum",
+        "files": [
+          ".impeccable/logo-review/styles.css"
+        ],
+        "createdAt": "2026-10-05T10:31:35.034Z",
+        "reason": "Agent: index.html and docs/logo-font-exploration-2026-10-05.md intentionally compare three logo fonts; Logo Nanum is a prototype-only font alias, while production DESIGN.md uses local Nanum Myeongjo ExtraBold."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "logo noto",
+        "files": [
+          ".impeccable/logo-review/styles.css"
+        ],
+        "createdAt": "2026-10-05T10:31:35.118Z",
+        "reason": "Agent: index.html and docs/logo-font-exploration-2026-10-05.md intentionally retain Noto Serif KR as an alternative logo-font specimen; it is a comparison prototype rather than the production typography system."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "logo black",
+        "files": [
+          ".impeccable/logo-review/styles.css"
+        ],
+        "createdAt": "2026-10-05T10:31:35.447Z",
+        "reason": "Agent: index.html and docs/logo-font-exploration-2026-10-05.md intentionally retain Black Han Sans as an alternative logo-font specimen; it is a comparison prototype rather than the production typography system."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "scoreboard logo",
+        "files": [
+          ".impeccable/logo-review/desktop-shell.css",
+          ".impeccable/logo-review/scoreboard.css"
+        ],
+        "createdAt": "2026-10-05T10:31:35.559Z",
+        "reason": "Agent: scoreboard.html and desktop-shell.html are explicitly labeled design-review image prototypes; Scoreboard Logo aliases the same Nanum Myeongjo ExtraBold font bytes used by production. Preserve these comparison artifacts without expanding the product typography system."
       }
     ]
   }

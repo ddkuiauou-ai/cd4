@@ -1,19 +1,24 @@
 "use client";
+import type { MetricPeriodAnalysis } from '@/types/nav';
+import type { DetailSecurity, DetailSecurityRow, DetailCompanyData } from './detail-types';
 
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useMemo } from "react";
 import { TrendingUp } from "lucide-react";
 import { formatNumberWithSeparateUnit, formatChangeRate } from "@/lib/utils";
-import { Marquee } from "@/components/ui/marquee"
+import { getSecurityMarketcapSnapshot } from '@/lib/detail-marketcap-snapshot';
+import { getSecurityMarketcapHistory, describeMarketcapHistory, DETAIL_HISTORY_PERIOD_NOTE } from '@/lib/detail-marketcap-history';
+import { getSnapshotHistoryComparison } from '@/lib/detail-change-basis';
+import Rate from './rate';
 
 interface KeyMetricsSectionProps {
-    companyMarketcapData: any;
-    companySecs: any[];
-    security: any;
-    periodAnalysis: any;
+    companyMarketcapData: DetailCompanyData;
+    companySecs: DetailSecurityRow[];
+    security: DetailSecurity;
+    periodAnalysis: Pick<MetricPeriodAnalysis, 'minMax'> | null;
     marketCapRanking: {
-        currentRank: number;
+        currentRank: number | null;
         priorRank: number | null;
         rankChange: number;
         value: number | null;
@@ -23,22 +28,17 @@ interface KeyMetricsSectionProps {
         label: string;
         description?: string;
     };
+    rankDate?: string | null;
     backgroundStyle?: CSSProperties;
     currentTickerOverride?: string;
     selectedSecurityTypeOverride?: string;
 }
 
-const DEFAULT_BACKGROUND: CSSProperties = {
-    backgroundColor: "rgba(249, 115, 22, 0.02)",
-    backgroundImage:
-        "linear-gradient(180deg, rgba(249,115,22,0.09) 0px, rgba(249,115,22,0.05) 120px, rgba(249,115,22,0.025) 280px, rgba(249,115,22,0) 520px)",
-};
+const DEFAULT_BACKGROUND: CSSProperties = {};
 
-const EDGE_TO_EDGE_SECTION_CLASS =
-    "relative -mx-4 space-y-4 border-y px-4 py-4 shadow-sm sm:mx-0 sm:space-y-8 sm:overflow-hidden sm:rounded-3xl sm:border sm:px-6 sm:py-8";
+const EDGE_TO_EDGE_SECTION_CLASS = "detail-section space-y-5 border-t border-border py-6 sm:py-8";
 
-const MARQUEE_CARD_CLASS =
-    "group rounded-lg border border-border dark:border-gray-700 bg-card dark:bg-gray-800/50 p-2 flex flex-col items-center justify-center text-center hover:shadow-md dark:hover:shadow-lg transition-all duration-200 cursor-pointer flex-shrink-0 snap-center w-fit min-w-[112px] sm:min-w-[140px] lg:min-w-[168px] max-w-[260px] min-h-[96px] gap-1 pb-2";
+const MARQUEE_CARD_CLASS = "min-w-0 space-y-2 border-b border-border py-4";
 
 export function KeyMetricsSection({
     companyMarketcapData,
@@ -48,6 +48,7 @@ export function KeyMetricsSection({
     marketCapRanking,
     activeMetric,
     backgroundStyle,
+    rankDate,
     currentTickerOverride,
     selectedSecurityTypeOverride,
 }: KeyMetricsSectionProps) {
@@ -90,6 +91,22 @@ export function KeyMetricsSection({
         return "시가총액 구성";
     }, [selectedSecurityTypeOverride, companyMarketcapData, companySecs, resolvedTicker, resolvedCurrentSecurity, pathname]);
 
+    const currentMarketcap = selectedSecurityType === '시가총액 구성'
+        ? companyMarketcapData?.totalMarketcap != null
+            ? { value: companyMarketcapData.totalMarketcap, date: companyMarketcapData.totalMarketcapDate }
+            : { value: security.company?.marketcap ?? null, date: security.company?.marketcapDate ?? null }
+        : getSecurityMarketcapSnapshot(resolvedCurrentSecurity ?? security, companyMarketcapData);
+    const marketcapDateLabel = currentMarketcap.date && !Number.isNaN(new Date(currentMarketcap.date).getTime())
+        ? new Date(currentMarketcap.date).toISOString().slice(0, 10) : null;
+    const currentMarketcapLabel = selectedSecurityType === '시가총액 구성'
+        ? '현재 시총'
+        : `${'fromHistory' in currentMarketcap && currentMarketcap.fromHistory ? '이력 마지막' : '현재'} ${selectedSecurityType} 시총`;
+    const selectedHistory = getSecurityMarketcapHistory(companyMarketcapData, (resolvedCurrentSecurity ?? security).securityId);
+    const statisticsHistory = selectedSecurityType === '시가총액 구성'
+        ? companyMarketcapData?.aggregatedHistory.map(item => ({ date: item.date, value: item.totalMarketcap })) ?? []
+        : selectedHistory;
+    const currentMarketcapComparison = getSnapshotHistoryComparison(currentMarketcap, statisticsHistory);
+
     // 날짜 기반 데이터 필터링 헬퍼
     const getDataByPeriod = (months: number) => {
         if (!companyMarketcapData?.aggregatedHistory) return [];
@@ -97,112 +114,75 @@ export function KeyMetricsSection({
         const cutoffDate = new Date();
         cutoffDate.setMonth(cutoffDate.getMonth() - months);
 
-        return companyMarketcapData.aggregatedHistory.filter((item: any) => {
+        return companyMarketcapData.aggregatedHistory.filter((item) => {
             const itemDate = new Date(item.date);
             return itemDate >= cutoffDate;
         });
     };
 
+    const getSelectedDataByPeriod = (months: number) => {
+        const cutoffDate = new Date();
+        cutoffDate.setMonth(cutoffDate.getMonth() - months);
+        return selectedHistory.filter(item => new Date(item.date) >= cutoffDate);
+    };
+
     // 선택된 타입에 따른 데이터 필터링 (개선된 버전)
     const getMetricValue = (type: 'current' | 'avg12m' | 'avg3y' | 'avg5y' | 'avg10y' | 'avgAll' | 'min' | 'max') => {
-        if (!companyMarketcapData?.aggregatedHistory) return null;
-
+        if (type === 'current') return currentMarketcap.value;
         if (selectedSecurityType === "시가총액 구성") {
+            if (!companyMarketcapData?.aggregatedHistory) return null;
             // 시가총액 구성: 전체 시가총액 기준
             switch (type) {
-                case 'current': return periodAnalysis?.periods[0]?.value || 0;
                 case 'avg12m': {
                     const data = getDataByPeriod(12);
                     if (data.length === 0) return null;
-                    const average = data.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / data.length;
+                    const average = data.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / data.length;
                     return average;
                 }
                 case 'avg3y': {
                     const data = getDataByPeriod(36);
                     if (data.length === 0) return null;
-                    const average = data.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / data.length;
+                    const average = data.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / data.length;
                     return average;
                 }
                 case 'avg5y': {
                     const data = getDataByPeriod(60);
                     if (data.length === 0) return null;
-                    const average = data.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / data.length;
+                    const average = data.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / data.length;
                     return average;
                 }
                 case 'avg10y': {
                     const data = getDataByPeriod(120);
                     if (data.length === 0) return null;
-                    const average = data.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / data.length;
+                    const average = data.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / data.length;
                     return average;
                 }
                 case 'avgAll': {
                     if (!companyMarketcapData?.aggregatedHistory) return null;
-                    const allValues = companyMarketcapData.aggregatedHistory.map((item: any) => item.totalMarketcap);
+                    const allValues = companyMarketcapData.aggregatedHistory.map((item) => item.totalMarketcap);
                     return allValues.length > 0 ? allValues.reduce((sum: number, val: number) => sum + val, 0) / allValues.length : null;
                 }
                 case 'min': return periodAnalysis?.minMax.min;
                 case 'max': return periodAnalysis?.minMax.max;
             }
         } else {
-            // 개별 종목: 해당 종목의 시가총액만
-            if (!resolvedCurrentSecurity) return null;
-
-            const history = companyMarketcapData.aggregatedHistory;
-            const securityValues = history
-                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                .filter((value: number) => value > 0);
+            // Actual security records keep zero distinct from an absent observation.
+            const securityValues = selectedHistory.map(item => item.value);
 
             if (securityValues.length === 0) return null;
 
             switch (type) {
-                case 'current':
-                    return securityValues[securityValues.length - 1];
-                case 'avg12m': {
-                    const data = getDataByPeriod(12);
-                    const values = data
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((v: number) => v > 0);
-                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
-                }
-                case 'avg3y': {
-                    const data = getDataByPeriod(36);
-                    const values = data
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((v: number) => v > 0);
-                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
-                }
-                case 'avg5y': {
-                    const data = getDataByPeriod(60);
-                    const values = data
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((v: number) => v > 0);
-                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
-                }
+                case 'avg12m':
+                case 'avg3y':
+                case 'avg5y':
                 case 'avg10y': {
-                    const data = getDataByPeriod(120);
-                    const values = data
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((v: number) => v > 0);
-                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
+                    const months = { avg12m: 12, avg3y: 36, avg5y: 60, avg10y: 120 }[type];
+                    const values = getSelectedDataByPeriod(months).map(item => item.value);
+                    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
                 }
-                case 'avgAll': {
-                    const values = companyMarketcapData.aggregatedHistory
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((value: number) => value > 0);
-                    return values.length > 0 ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length : null;
-                }
-                case 'min': {
-                    const values = companyMarketcapData.aggregatedHistory
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((value: number) => value > 0);
-                    return values.length > 0 ? Math.min(...values) : null;
-                }
-                case 'max': {
-                    const values = companyMarketcapData.aggregatedHistory
-                        .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                        .filter((value: number) => value > 0);
-                    return values.length > 0 ? Math.max(...values) : null;
-                }
+                case 'avgAll': return securityValues.reduce((sum, value) => sum + value, 0) / securityValues.length;
+                case 'min': return Math.min(...securityValues);
+                case 'max': return Math.max(...securityValues);
             }
         }
         return null;
@@ -212,11 +192,11 @@ export function KeyMetricsSection({
     const getCommonStockRatio = (type: 'min' | 'max') => {
         if (!companyMarketcapData?.aggregatedHistory) return 0;
 
-        let ratios: number[] = [];
-        companyMarketcapData.aggregatedHistory.forEach((historyItem: any) => {
+        const ratios: number[] = [];
+        companyMarketcapData.aggregatedHistory.forEach((historyItem) => {
             if (historyItem.securitiesBreakdown) {
-                const commonStockSecurities = companyMarketcapData.securities.filter((sec: any) => sec.type === '보통주');
-                const commonStockValue = commonStockSecurities.reduce((sum: number, sec: any) => {
+                const commonStockSecurities = companyMarketcapData.securities.filter((sec) => sec.type === '보통주');
+                const commonStockValue = commonStockSecurities.reduce((sum: number, sec) => {
                     return sum + (historyItem.securitiesBreakdown[sec.securityId] || 0);
                 }, 0);
                 const ratio = (commonStockValue / historyItem.totalMarketcap) * 100;
@@ -232,29 +212,17 @@ export function KeyMetricsSection({
 
     // 변화율 계산 함수
     const getChangeRate = (current: number | null, comparison: number | null) => {
-        if (!current || !comparison || current === comparison) {
-            return { value: "—", color: "text-gray-500 dark:text-gray-400" };
+        if (current == null || comparison == null || !Number.isFinite(current) || !Number.isFinite(comparison) || comparison === 0 || current === comparison) {
+            return { value: "—", color: "text-muted-foreground" };
         }
         const rate = ((current - comparison) / comparison) * 100;
         const formatted = formatChangeRate(rate);
 
-        // 다크모드 색상 추가
-        let darkModeColor = formatted.color;
-        if (formatted.color.includes('red')) {
-            darkModeColor = formatted.color + ' dark:text-red-400';
-        } else if (formatted.color.includes('blue')) {
-            darkModeColor = formatted.color + ' dark:text-blue-400';
-        } else {
-            darkModeColor = formatted.color + ' dark:text-gray-400';
-        }
-
-        return { value: formatted.value, color: darkModeColor };
+        return { value: formatted.value, color: rate > 0 ? 'market-up' : rate < 0 ? 'market-down' : 'text-muted-foreground' };
     };
 
     // 이전 기간 평균과의 변화율 계산
     const getPreviousPeriodAverage = (type: 'avg12m' | 'avg3y' | 'avg5y' | 'avg10y') => {
-        if (!companyMarketcapData?.aggregatedHistory) return null;
-
         let currentMonths: number, previousMonths: number;
         switch (type) {
             case 'avg12m': currentMonths = 12; previousMonths = 24; break;
@@ -264,7 +232,7 @@ export function KeyMetricsSection({
         }
 
         const currentPeriodData = getDataByPeriod(currentMonths);
-        const previousPeriodData = getDataByPeriod(previousMonths).filter((item: any) => {
+        const previousPeriodData = getDataByPeriod(previousMonths).filter((item) => {
             const itemDate = new Date(item.date);
             const cutoffDate = new Date();
             cutoffDate.setMonth(cutoffDate.getMonth() - currentMonths);
@@ -273,18 +241,15 @@ export function KeyMetricsSection({
 
         if (selectedSecurityType === "시가총액 구성") {
             if (currentPeriodData.length === 0 || previousPeriodData.length === 0) return null;
-            const currentAvg = currentPeriodData.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / currentPeriodData.length;
-            const previousAvg = previousPeriodData.reduce((sum: number, item: any) => sum + item.totalMarketcap, 0) / previousPeriodData.length;
+            const currentAvg = currentPeriodData.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / currentPeriodData.length;
+            const previousAvg = previousPeriodData.reduce((sum: number, item) => sum + item.totalMarketcap, 0) / previousPeriodData.length;
             return { current: currentAvg, previous: previousAvg };
         } else {
-            if (!resolvedCurrentSecurity) return null;
-
-            const currentValues = currentPeriodData
-                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                .filter((v: number) => v > 0);
-            const previousValues = previousPeriodData
-                .map((item: any) => item.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0)
-                .filter((v: number) => v > 0);
+            const currentValues = getSelectedDataByPeriod(currentMonths).map(item => item.value);
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - currentMonths);
+            const previousValues = getSelectedDataByPeriod(previousMonths)
+                .filter(item => new Date(item.date) < cutoffDate).map(item => item.value);
 
             if (currentValues.length === 0 || previousValues.length === 0) return null;
 
@@ -294,52 +259,15 @@ export function KeyMetricsSection({
         }
     };
 
-    // 전일 대비 변화율 계산
-    const getYesterdayChange = () => {
-        if (!companyMarketcapData?.aggregatedHistory || companyMarketcapData.aggregatedHistory.length < 2) return null;
-
-        const sortedData = [...companyMarketcapData.aggregatedHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        const today = sortedData[0];
-        const yesterday = sortedData[1];
-
-        if (selectedSecurityType === "시가총액 구성") {
-            return { current: today.totalMarketcap, previous: yesterday.totalMarketcap };
-        } else {
-            if (!resolvedCurrentSecurity) return null;
-
-            const todayValue = today.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0;
-            const yesterdayValue = yesterday.securitiesBreakdown?.[resolvedCurrentSecurity.securityId] || 0;
-
-            return { current: todayValue, previous: yesterdayValue };
-        }
-    };
-
-    // 전일 대비 주가 변화율 계산
-    const getYesterdayPriceChange = () => {
-        if (selectedSecurityType === "시가총액 구성") {
-            // 시가총액 구성인 경우 대표 종목의 주가 변화율
-            if (!security.prices || security.prices.length < 2) return null;
-            const today = security.prices[0];
-            const yesterday = security.prices[1];
-            return { current: today.close, previous: yesterday.close };
-        } else {
-            // 개별 종목의 경우 해당 종목의 주가 변화율
-            if (!resolvedCurrentSecurity?.prices || resolvedCurrentSecurity.prices.length < 2) return null;
-            const today = resolvedCurrentSecurity.prices[0];
-            const yesterday = resolvedCurrentSecurity.prices[1];
-            return { current: today.close, previous: yesterday.close };
-        }
-    };
-
-    // 현재 보통주 비중 계산
+    // 이력 마지막 보통주 비중 계산
     const getCurrentCommonStockRatio = () => {
         if (!companyMarketcapData?.aggregatedHistory || companyMarketcapData.aggregatedHistory.length === 0) return 0;
 
-        const latestData = [...companyMarketcapData.aggregatedHistory].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        const latestData = [...companyMarketcapData.aggregatedHistory].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 
         if (latestData.securitiesBreakdown) {
-            const commonStockSecurities = companyMarketcapData.securities.filter((sec: any) => sec.type === '보통주');
-            const commonStockValue = commonStockSecurities.reduce((sum: number, sec: any) => {
+            const commonStockSecurities = companyMarketcapData.securities.filter((sec) => sec.type === '보통주');
+            const commonStockValue = commonStockSecurities.reduce((sum: number, sec) => {
                 return sum + (latestData.securitiesBreakdown[sec.securityId] || 0);
             }, 0);
             return (commonStockValue / latestData.totalMarketcap) * 100;
@@ -347,46 +275,37 @@ export function KeyMetricsSection({
         return 0;
     };
 
-    const getCurrentPrice = () => {
-        if (selectedSecurityType === "시가총액 구성") {
-            return security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}` : "—";
-        } else {
-            // 개별 종목의 경우 해당 종목 주가 표시
-            if (resolvedCurrentSecurity?.prices?.[0]?.close) {
-                return resolvedCurrentSecurity.prices[0].close.toLocaleString();
-            }
-            return security.prices?.[0]?.close ? `${security.prices[0].close.toLocaleString()}` : "—";
-        }
-    };
+    const currentPriceRecord = selectedSecurityType === "시가총액 구성"
+        ? security.prices?.[0]
+        : resolvedCurrentSecurity?.prices?.[0] ?? security.prices?.[0];
+    const currentPrice = currentPriceRecord?.close;
+    const hasCurrentPrice = currentPrice != null && Number.isFinite(currentPrice);
+    const currentPriceRate = hasCurrentPrice && currentPriceRecord?.rate != null && Number.isFinite(currentPriceRecord.rate)
+        ? currentPriceRecord.rate : null;
+    const priceDate = hasCurrentPrice ? currentPriceRecord?.date : null;
+    const priceDateLabel = priceDate && !Number.isNaN(new Date(priceDate).getTime()) ? new Date(priceDate).toISOString().slice(0, 10) : null;
 
-    if (!periodAnalysis) return null;
+    if (!periodAnalysis && selectedSecurityType === '시가총액 구성') return null;
 
     return (
         <section
             id="indicators"
-            className={`${EDGE_TO_EDGE_SECTION_CLASS} border-orange-200/70 dark:border-orange-900/40 dark:bg-orange-950/20`}
+            className={`${EDGE_TO_EDGE_SECTION_CLASS} border-border border-border bg-background`}
             style={backgroundStyle ?? DEFAULT_BACKGROUND}
         >
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-orange-700/80">
-                <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-orange-700 shadow-sm">
-                    탭 연동
-                </span>
-                <span className="text-sm font-semibold text-orange-800/90">
-                    {activeMetric.label} 기준 핵심 지표
-                </span>
-                {activeMetric.description && (
-                    <span className="text-[11px] font-medium text-orange-700/70">
-                        {activeMetric.description}
-                    </span>
-                )}
-            </div>
+
+            {rankDate && <p className="text-xs text-muted-foreground">순위 기준 {rankDate}</p>}
+            {marketcapDateLabel && <p className="text-xs text-muted-foreground">시가총액 기준 {marketcapDateLabel}</p>}
+            {hasCurrentPrice && <p className="text-xs text-muted-foreground">{priceDateLabel ? `주가 기준 ${priceDateLabel}` : '주가 기준일 미등록'}</p>}
+            <p className="text-xs text-muted-foreground">{describeMarketcapHistory(statisticsHistory)} {DETAIL_HISTORY_PERIOD_NOTE}</p>
+            <p className="text-xs text-muted-foreground">시총 변화는 표시 기준일보다 앞선 이력과, 기간 평균 변화는 직전 같은 길이의 기간과 비교합니다.</p>
             <header className="flex flex-wrap items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/40">
-                    <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <div className="hidden bg-background bg-background">
+                    <TrendingUp className="h-6 w-6 text-foreground text-foreground" />
                 </div>
                 <div className="space-y-1">
-                    <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 md:text-3xl">핵심 지표</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
+                    <h2 className="text-xl font-semibold tracking-tight text-foreground">핵심 지표</h2>
+                    <p className="text-sm text-muted-foreground text-foreground md:text-base">
                         {selectedSecurityType === "시가총액 구성"
                             ? `${activeMetric.label} 주요 지표와 변화율 현황`
                             : `${selectedSecurityType} · ${activeMetric.label} 지표 변화`
@@ -395,13 +314,10 @@ export function KeyMetricsSection({
                 </div>
             </header>
 
-            <Marquee
-                pauseOnHover
-                className="[--duration:36s]"
-            >
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {/* 시총 랭킹 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             if (selectedSecurityType === "시가총액 구성") {
                                 // 시가총액 구성 모드: 회사 랭킹 사용
@@ -409,23 +325,23 @@ export function KeyMetricsSection({
                                 if (companyRank) {
                                     return (
                                         <>
-                                            <span className="text-xl sm:text-2xl md:text-3xl">{companyRank}</span>
-                                            <span className="text-sm sm:text-base ml-1">위</span>
+                                            <span className="text-lg sm:text-xl">{companyRank}</span>
+                                            <span className="text-xs ml-1">위</span>
                                         </>
                                     );
                                 }
                             } else {
                                 // 개별 종목 모드: 종목 랭킹 사용
-                                if (marketCapRanking) {
+                                if (marketCapRanking?.currentRank != null) {
                                     return (
                                         <>
-                                            <span className="text-xl sm:text-2xl md:text-3xl">{marketCapRanking.currentRank}</span>
-                                            <span className="text-sm sm:text-base ml-1">위</span>
+                                            <span className="text-lg sm:text-xl">{marketCapRanking.currentRank}</span>
+                                            <span className="text-xs ml-1">위</span>
                                         </>
                                     );
                                 }
                             }
-                            return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            return <span className="text-lg sm:text-xl">—</span>;
                         })()}
                     </div>
                     {/* 랭킹 변화 */}
@@ -438,10 +354,10 @@ export function KeyMetricsSection({
                                 if (currentRank && priorRank) {
                                     const rankChange = currentRank - priorRank;
                                     return (
-                                        <span className={rankChange < 0 ? "text-red-600 dark:text-red-400" : rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
+                                        <span className="text-muted-foreground">
                                             {rankChange === 0 ? "—" :
-                                                rankChange < 0 ? `▲${Math.abs(rankChange)}` :
-                                                    `▼${rankChange}`}
+                                                rankChange < 0 ? `↑ +${Math.abs(rankChange)}` :
+                                                    `↓ -${rankChange}`}
                                         </span>
                                     );
                                 }
@@ -449,7 +365,7 @@ export function KeyMetricsSection({
                                 // 개별 종목 모드: 종목 랭킹 변화 사용
                                 if (marketCapRanking && marketCapRanking.priorRank) {
                                     return (
-                                        <span className={marketCapRanking.rankChange < 0 ? "text-red-600 dark:text-red-400" : marketCapRanking.rankChange > 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}>
+                                        <span className="text-muted-foreground">
                                             {marketCapRanking.rankChange === 0 ? "—" :
                                                 marketCapRanking.rankChange < 0 ? `▲${Math.abs(marketCapRanking.rankChange)}` :
                                                     `▼${marketCapRanking.rankChange}`}
@@ -457,71 +373,74 @@ export function KeyMetricsSection({
                                     );
                                 }
                             }
-                            return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            return <span className="text-muted-foreground text-muted-foreground">—</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
                         {selectedSecurityType === "시가총액 구성" ? "시총 랭킹" : `${selectedSecurityType} 랭킹`}
                     </div>
                 </div>
 
                 {/* 현재 시가총액 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('current');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            if (value == null) return <span className="text-lg">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value ?? 0);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
                     </div>
-                    {/* 전일 대비 변화율 */}
-                    <div className="text-xs leading-none mb-1">
+                    {/* 표시된 스냅샷과 같은 날짜·값의 이력만 비교 */}
+                    <div className="text-xs leading-tight mb-1">
                         {(() => {
-                            const change = getYesterdayChange();
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                            const rate = getChangeRate(change.current, change.previous);
-                            return <span className={rate.color}>{rate.value}</span>;
+                            const change = currentMarketcapComparison;
+                            if (!change) return <span className="text-muted-foreground text-muted-foreground">—</span>;
+                            const rate = change.previous > 0 && change.current === change.previous
+                                ? { value: formatChangeRate(0).value, color: 'text-muted-foreground' }
+                                : getChangeRate(change.current, change.previous);
+                            return <>
+                                <span className={rate.color}>{rate.value}</span>
+                                <span className="mt-1 block text-muted-foreground">{change.previousDate} 이력 대비</span>
+                            </>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">
-                        {selectedSecurityType === "시가총액 구성" ? "현재 시총" : `현재 ${selectedSecurityType} 시총`}
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">
+                        {currentMarketcapLabel}
                     </div>
                 </div>
 
                 {/* 현재 주가 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">{getCurrentPrice()}</span>
-                        <span className="text-sm sm:text-base ml-1">원</span>
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
+                        <span className="text-lg sm:text-xl">{hasCurrentPrice ? currentPrice.toLocaleString('ko-KR') : "—"}</span>
+                        {hasCurrentPrice && <span className="text-xs ml-1">원</span>}
                     </div>
                     {/* 전일 대비 주가 변화율 */}
-                    <div className="text-xs leading-none mb-1">
-                        {(() => {
-                            const change = getYesterdayPriceChange();
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
-                            const rate = getChangeRate(change.current, change.previous);
-                            return <span className={rate.color}>{rate.value}</span>;
-                        })()}
+                    <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-xs leading-tight mb-1">
+                        <span className="text-muted-foreground">전일 대비</span>
+                        {currentPriceRate != null ? <Rate rate={currentPriceRate} size="sm" showIcon={false} />
+                            : <span className="text-muted-foreground">—</span>}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">현재 주가</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">현재 주가</div>
                 </div>
 
                 {/* 12개월 평균 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('avg12m');
-                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            if (value == null) return <span className="text-lg sm:text-xl">—</span>;
                             const formatted = formatNumberWithSeparateUnit(value);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
@@ -530,25 +449,25 @@ export function KeyMetricsSection({
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const change = getPreviousPeriodAverage('avg12m');
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (!change) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const rate = getChangeRate(change.current, change.previous);
                             return <span className={rate.color}>{rate.value}</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">12개월 평균</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">12개월 평균</div>
                 </div>
 
                 {/* 3년 평균 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('avg3y');
-                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            if (value == null) return <span className="text-lg sm:text-xl">—</span>;
                             const formatted = formatNumberWithSeparateUnit(value);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
@@ -556,25 +475,25 @@ export function KeyMetricsSection({
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const change = getPreviousPeriodAverage('avg3y');
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (!change) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const rate = getChangeRate(change.current, change.previous);
                             return <span className={rate.color}>{rate.value}</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">3년 평균</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">3년 평균</div>
                 </div>
 
                 {/* 5년 평균 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('avg5y');
-                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            if (value == null) return <span className="text-lg sm:text-xl">—</span>;
                             const formatted = formatNumberWithSeparateUnit(value);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
@@ -582,25 +501,25 @@ export function KeyMetricsSection({
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const change = getPreviousPeriodAverage('avg5y');
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (!change) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const rate = getChangeRate(change.current, change.previous);
                             return <span className={rate.color}>{rate.value}</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">5년 평균</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">5년 평균</div>
                 </div>
 
                 {/* 10년 평균 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('avg10y');
-                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            if (value == null) return <span className="text-lg sm:text-xl">—</span>;
                             const formatted = formatNumberWithSeparateUnit(value);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
@@ -608,116 +527,118 @@ export function KeyMetricsSection({
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const change = getPreviousPeriodAverage('avg10y');
-                            if (!change) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (!change) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const rate = getChangeRate(change.current, change.previous);
                             return <span className={rate.color}>{rate.value}</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">10년 평균</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">10년 평균</div>
                 </div>
 
                 {/* 전체 평균 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('avgAll');
-                            if (!value) return <span className="text-xl sm:text-2xl md:text-3xl">—</span>;
+                            if (value == null) return <span className="text-lg sm:text-xl">—</span>;
                             const formatted = formatNumberWithSeparateUnit(value);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">전체 평균</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">전체 평균</div>
                 </div>
 
                 {/* 최저 시총 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('min');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            if (value == null) return <span className="text-lg">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value ?? 0);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 시총</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">이력 최저 시총</div>
                 </div>
 
                 {/* 최고 시총 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
                         {(() => {
                             const value = getMetricValue('max');
-                            const formatted = formatNumberWithSeparateUnit(value || 0);
+                            if (value == null) return <span className="text-lg">—</span>;
+                            const formatted = formatNumberWithSeparateUnit(value ?? 0);
                             return (
                                 <>
-                                    <span className="text-xl sm:text-2xl md:text-3xl">{formatted.number}</span>
-                                    <span className="text-sm sm:text-base ml-1">{formatted.unit}원</span>
+                                    <span className="text-lg sm:text-xl">{formatted.number}</span>
+                                    <span className="text-xs ml-1">{formatted.unit}원</span>
                                 </>
                             );
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 시총</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">이력 최고 시총</div>
                 </div>
 
                 {/* 최고 보통주 비중 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
+                        <span className="text-lg sm:text-xl">
                             {(() => {
                                 const ratio = getCommonStockRatio('max');
                                 return ratio > 0 ? `${ratio.toFixed(1)}` : "—";
                             })()}
                         </span>
-                        <span className="text-sm sm:text-base ml-1">%</span>
+                        <span className="text-xs ml-1">%</span>
                     </div>
                     {/* 현재 비중과의 차이 */}
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const currentRatio = getCurrentCommonStockRatio();
                             const maxRatio = getCommonStockRatio('max');
-                            if (maxRatio === 0 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (maxRatio === 0 || currentRatio === 0) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const diff = maxRatio - currentRatio;
-                            const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
+                            const color = diff > 0 ? "market-up" : diff < 0 ? "market-down" : "text-muted-foreground text-muted-foreground";
                             return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최고 보통주 비중</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">최고 보통주 비중</div>
                 </div>
 
                 {/* 최저 보통주 비중 */}
                 <div className={MARQUEE_CARD_CLASS}>
-                    <div className="flex items-baseline justify-center font-bold text-primary dark:text-gray-100 mb-1 leading-none">
-                        <span className="text-xl sm:text-2xl md:text-3xl">
+                    <div className="flex items-baseline font-semibold text-foreground text-foreground mb-1 leading-none">
+                        <span className="text-lg sm:text-xl">
                             {(() => {
                                 const ratio = getCommonStockRatio('min');
                                 return ratio < 100 ? `${ratio.toFixed(1)}` : "—";
                             })()}
                         </span>
-                        <span className="text-sm sm:text-base ml-1">%</span>
+                        <span className="text-xs ml-1">%</span>
                     </div>
                     {/* 현재 비중과의 차이 */}
                     <div className="text-xs leading-none mb-1">
                         {(() => {
                             const currentRatio = getCurrentCommonStockRatio();
                             const minRatio = getCommonStockRatio('min');
-                            if (minRatio >= 100 || currentRatio === 0) return <span className="text-gray-500 dark:text-gray-400">—</span>;
+                            if (minRatio >= 100 || currentRatio === 0) return <span className="text-muted-foreground text-muted-foreground">—</span>;
                             const diff = minRatio - currentRatio;
-                            const color = diff > 0 ? "text-red-600 dark:text-red-400" : diff < 0 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400";
+                            const color = diff > 0 ? "market-up" : diff < 0 ? "market-down" : "text-muted-foreground text-muted-foreground";
                             return <span className={color}>{diff > 0 ? '+' : ''}{diff.toFixed(1)}%p</span>;
                         })()}
                     </div>
-                    <div className="text-xs text-muted-foreground dark:text-gray-400 leading-tight px-1">최저 보통주 비중</div>
+                    <div className="text-xs text-muted-foreground text-muted-foreground leading-tight px-1">최저 보통주 비중</div>
                 </div>
-            </Marquee>
+            </div>
         </section>
     );
 }

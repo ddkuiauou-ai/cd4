@@ -1,0 +1,138 @@
+[
+  {
+    "rects": [
+      {
+        "height": 40,
+        "s": "button[aria-label=\"테마 전환\"]",
+        "width": 96,
+        "x": 1312,
+        "y": 18
+      },
+      {
+        "height": 20,
+        "s": ".theme-icon-slot",
+        "width": 20,
+        "x": 1325,
+        "y": 28
+      },
+      {
+        "height": 20,
+        "s": ".theme-label",
+        "width": 42,
+        "x": 1353,
+        "y": 28
+      },
+      {
+        "height": 40,
+        "s": ".header-search",
+        "width": 863.625,
+        "x": 424.375,
+        "y": 18
+      }
+    ],
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+    "width": 1440
+  },
+  {
+    "rects": [
+      {
+        "height": 40,
+        "s": "button[aria-label=\"테마 전환\"]",
+        "width": 96,
+        "x": 1312,
+        "y": 18
+      },
+      {
+        "height": 20,
+        "s": ".theme-icon-slot",
+        "width": 20,
+        "x": 1325,
+        "y": 28
+      },
+      {
+        "height": 20,
+        "s": ".theme-label",
+        "width": 42,
+        "x": 1353,
+        "y": 28
+      },
+      {
+        "height": 40,
+        "s": ".header-search",
+        "width": 863.625,
+        "x": 424.375,
+        "y": 18
+      }
+    ],
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+    "width": 1440
+  },
+  {
+    "rects": [
+      {
+        "height": 40,
+        "s": "button[aria-label=\"테마 전환\"]",
+        "width": 40,
+        "x": 334,
+        "y": 12
+      },
+      {
+        "height": 20,
+        "s": ".theme-icon-slot",
+        "width": 20,
+        "x": 344,
+        "y": 22
+      },
+      {
+        "height": 0,
+        "s": ".theme-label",
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "height": 40,
+        "s": ".header-search",
+        "width": 358,
+        "x": 16,
+        "y": 60
+      }
+    ],
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+    "width": 390
+  },
+  {
+    "rects": [
+      {
+        "height": 40,
+        "s": "button[aria-label=\"테마 전환\"]",
+        "width": 40,
+        "x": 334,
+        "y": 12
+      },
+      {
+        "height": 20,
+        "s": ".theme-icon-slot",
+        "width": 20,
+        "x": 344,
+        "y": 22
+      },
+      {
+        "height": 0,
+        "s": ".theme-label",
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "height": 40,
+        "s": ".header-search",
+        "width": 358,
+        "x": 16,
+        "y": 60
+      }
+    ],
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+    "width": 390
+  }
+]

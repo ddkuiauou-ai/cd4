@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ export function RecentSecuritiesSidebar({ currentSecCode }: { currentSecCode?: s
     const [mounted, setMounted] = useState(false);
     const [rankingOrder, setRankingOrder] = useState(false);
     const pathname = usePathname();
+    const headingId = useId();
     const refresh = useCallback(() => setSecurities(getRecentlyViewedSecurities()), []);
 
     useEffect(() => { setMounted(true); refresh(); }, [pathname, refresh]);
@@ -48,9 +49,9 @@ export function RecentSecuritiesSidebar({ currentSecCode }: { currentSecCode?: s
     }, [securities, rankingOrder]);
 
     return (
-        <section className="recent-securities space-y-3" aria-labelledby="recent-securities-title">
+        <section className="recent-securities space-y-3" aria-labelledby={headingId}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 id="recent-securities-title" className="text-base font-semibold">최근 본 종목</h2>
+                <h2 id={headingId} className="text-base font-semibold">최근 본 종목</h2>
                 {securities.length > 0 && <button type="button" onClick={() => clearRecentlyViewedSecurities()}
                     className="min-h-9 text-xs text-muted-foreground hover:text-foreground">전체 삭제</button>}
             </div>

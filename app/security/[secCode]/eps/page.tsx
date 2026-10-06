@@ -1,12 +1,13 @@
+import { DetailMobileNavigation } from '@/components/detail-mobile-navigation';
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { SecurityMetricEmpty } from "@/components/security-metric-empty";
+import { SecurityMetricEmpty } from "@/components/detail-metric-empty";
 import { Building2, BarChart3, ArrowLeftRight, TrendingUp, FileText } from "lucide-react";
 import { getSecurityByCode, getCompanySecurities, getSecurityMetricsHistory } from "@/lib/data/security";
 import { getCompanyAggregatedMarketcap } from "@/lib/data/company";
-import { getEpsRank } from "@/lib/data/security";
+import { getSecurityMetricDetailRanking } from '@/lib/data/security-ranking-detail';
 import { getTopSecuritiesWithTypeByMetric } from "@/lib/select";
 import ChartEPSEnhanced, { EPSChartWithPeriodSwitcher } from "@/components/chart-EPS-enhanced";
 import ListEPSEnhanced from "@/components/list-EPS-enhanced";
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }: SecurityEPSPageProps, parent:
 
   if (!security) {
     return {
-      title: "종목을 찾을 수 없습니다 - CD3",
+      title: `종목을 찾을 수 없습니다`,
       description: "요청하신 종목을 찾을 수 없습니다.",
     };
   }
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: SecurityEPSPageProps, parent:
   return {
     alternates: { canonical },
     openGraph: { ...(await parent).openGraph, url: canonical },
-    title: `${security.korName || security.name} 주당순이익 EPS - CD3`,
+    title: `${security.korName || security.name} 주당순이익 EPS`,
     description: `${security.korName || security.name}의 연도별 주당순이익(EPS) 변동 차트와 상세 분석 정보를 확인하세요.`,
   };
 }
@@ -147,12 +148,15 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
 
   // Get EPS data
   const data = await getSecurityMetricsHistory(security.securityId);
+  const { currentRank: epsRank, rankDate } = await getSecurityMetricDetailRanking(security.securityId, 'eps');
 
   if (!data || data.length === 0) {
     return <SecurityMetricEmpty
       secCode={secCode}
       displayName={security.korName || security.name || secCode}
       metricLabel={ACTIVE_METRIC.label}
+      metricType="eps" security={security} companySecs={comparableSecuritiesWithEPS}
+      rank={epsRank} rankDate={rankDate}
     />;
   }
 
@@ -165,9 +169,6 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
     representativeSecurity?.exchange && representativeSecurity?.ticker
       ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
       : null;
-
-  // Get EPS rank
-  const epsRank = await getEpsRank(security.securityId);
 
   // Get company marketcap data for Interactive Securities Section
   const companyMarketcapData = security.companyId
@@ -259,13 +260,13 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
 
   const headerDetail = {
     label: "EPS",
-    value: periodAnalysis?.latestEPS != null ? `${periodAnalysis.latestEPS.toFixed(0)}원` : "—",
+    value: security.eps != null ? `${security.eps!.toFixed(0)}원` : "—",
     badge: securityType,
   } as const;
 
   const titleSuffix = "EPS";
 
-  const shareTitle = `${displayName} ${securityType} EPS 분석 | ${siteConfig.name}`;
+  const shareTitle = `${displayName} ${securityType} EPS 분석`;
   const shareText = `${displayName}의 주당순이익(EPS) 변동 차트와 상세 분석 정보를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/eps`;
 
@@ -312,21 +313,21 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
     description: string;
     iconType?: "chart" | "table";
   }) => (
-    <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-background bg-background rounded-lg border-2 border-dashed border-border border-border">
-      <div className="w-12 h-12 bg-background bg-background rounded-full flex items-center justify-center">
+    <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center bg-background rounded-lg border-2 border-dashed border-border">
+      <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center">
         {iconType === "chart" ? (
-          <svg className="w-6 h-6 text-muted-foreground text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         ) : (
-          <svg className="w-6 h-6 text-muted-foreground text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         )}
       </div>
       <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground text-muted-foreground">{description}</p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </div>
   );
@@ -348,14 +349,14 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
         {/* 브레드크럼 네비게이션 */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+          className="mb-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
         >
           <Link href="/" className="transition-colors hover:text-foreground">
             홈
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
-          <Link href="/company" className="transition-colors hover:text-foreground">
-            기업
+          <Link href="/marketcaps" className="transition-colors hover:text-foreground">
+            기업 순위
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
@@ -394,66 +395,23 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
         <RankHeader rank={epsRank} marketcap={security.eps ?? undefined} price={security.prices?.[0]?.close}
           exchange={security.exchange || market} isCompanyLevel={false}
           rankLabel="종목 EPS 순위" marketcapLabel="현재 EPS" marketcapUnit="원" />
-        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 기준일 {security.epsDate ? new Date(security.epsDate!).toISOString().slice(0, 10) : '확인 중'} · 종목별 지표</p>
+        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 기준일 {security.epsDate ? new Date(security.epsDate!).toISOString().slice(0, 10) : '확인 중'} · 종목별 지표 · 순위 기준 {rankDate || '—'}</p>
         <CompanyFinancialTabs secCode={secCode} className="mt-4" />
+        <DetailMobileNavigation sections={navigationSections} />
 
-        <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
-          <div className="space-y-3">
-            <p className="text-base text-muted-foreground md:text-lg">
-              <strong>{displayName}의 EPS(주당순이익, Earnings Per Share)</strong>는 기업의 순이익을 발행주식수로 나눈 값입니다. 높을수록 주주에게 돌아가는 수익이 크며, 연도별 증가 추이가 기업의 성장성과 수익성 변화를 보여주는 중요한 지표입니다.
-            </p>
-            <div className="sm:hidden">
-              <ShareButton
-                title={shareTitle}
-                text={shareText}
-                url={shareUrl}
-              />
-            </div>
-          </div>
 
-          <details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div data-slot="alert"  className="relative  w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground  sm:mx-0 rounded-sm sm:px-5">
-            <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mt-0.5 h-5 w-5" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-              </svg>
-              <div data-slot="alert-description" className="space-y-2 text-sm leading-relaxed text-muted-foreground">
-                <p className="font-medium">계산식: EPS = 순이익 ÷ 발행주식수</p>
-                <div className="space-y-1">
-                  <p className="font-medium">해석 방법</p>
-                  <ul className="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>EPS가 증가할수록:</strong> 기업의 수익성이 개선되고 있음을 의미하며, 주주 가치를 높이는 긍정적 신호입니다.</li>
-                    <li><strong>EPS가 감소할수록:</strong> 기업의 수익성이 악화되고 있음을 의미하며, 경영 효율성 저하의 신호일 수 있습니다.</li>
-                  </ul>
-                </div>
-                <p className="text-xs text-muted-foreground/70 mt-2">
-                  자세한 내용은 <a href="https://www.investopedia.com/terms/e/eps.asp" target="_blank" rel="noopener noreferrer" className="text-foreground text-foreground text-foreground text-foreground underline">Investopedia EPS 설명</a>을 참고하세요.
-                </p>
-              </div>
-            </div>
-          </div></details>
-        </div>
 
-        <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-10">
+        <div className="detail-primary-sections space-y-6 sm:space-y-8">
           {/* 종목 개요 섹션 */}
-          <section
+          <details
             id="security-overview"
             className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
             style={SECTION_GRADIENTS.overview}
           >
-            <header className="flex flex-wrap items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <Building2 className="h-6 w-6 text-foreground text-foreground" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 개요</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">EPS 순위와 기본 정보를 확인합니다</p>
-              </div>
-            </header>
+            <summary className="cursor-pointer text-sm font-semibold">기본 정보</summary>
 
             <div className="space-y-6">
-              
+
 
               <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
                 <dl className="space-y-2 p-4">
@@ -483,7 +441,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <dt className="text-muted-foreground">현재 EPS</dt>
-                    <dd className="font-medium text-right">{periodAnalysis?.latestEPS != null ? `${periodAnalysis.latestEPS.toFixed(0)}원` : "—"}</dd>
+                    <dd className="font-medium text-right">{security.eps != null ? `${security.eps!.toFixed(0)}원` : "—"}</dd>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <dt className="text-muted-foreground">기준일</dt>
@@ -518,7 +476,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
                 </dl>
               </div>
             </div>
-          </section>
+          </details>
 
           {/* 차트 분석 섹션 */}
           <section
@@ -527,12 +485,12 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
             style={SECTION_GRADIENTS.charts}
           >
             <header className="flex flex-wrap items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <BarChart3 className="h-6 w-6 text-foreground text-foreground" />
+              <div className="hidden bg-background">
+                <BarChart3 className="h-6 w-6 text-foreground" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold tracking-tight text-foreground">차트 분석</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">{displayName}의 EPS 변동 패턴과 분포를 다양한 차트로 분석합니다</p>
+                <p className="text-sm text-muted-foreground md:text-base">{displayName}의 EPS 변동 패턴과 분포를 다양한 차트로 분석합니다</p>
               </div>
             </header>
 
@@ -540,7 +498,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
               {/* EPS 히스토그램 / KDE 분포 */}
               <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
                 <div className="px-3 pt-3 sm:px-5 sm:pt-5">
-                  <h3 className="text-base font-semibold text-foreground text-foreground">
+                  <h3 className="text-base font-semibold text-foreground">
                     EPS 히스토그램 / KDE 분포
                   </h3>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -563,14 +521,14 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
                       <ChartEPSEnhanced data={result} />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-4 sm:p-8 space-y-2 sm:space-y-4 text-center">
-                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-background bg-background rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-background rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
                         </div>
                         <div className="space-y-1 sm:space-y-2">
-                          <p className="text-xs sm:text-sm font-medium text-foreground text-foreground">EPS 분포 데이터 없음</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground text-muted-foreground">분포 데이터를 불러올 수 없습니다</p>
+                          <p className="text-xs sm:text-sm font-medium text-foreground">EPS 분포 데이터 없음</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">분포 데이터를 불러올 수 없습니다</p>
                         </div>
                       </div>
                     )}
@@ -583,7 +541,7 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
                 <div className="px-3 pt-3 sm:px-5 sm:pt-5">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold text-foreground text-foreground">최근 3개월 가격 차트</h3>
+                      <h3 className="text-base font-semibold text-foreground">최근 3개월 가격 차트</h3>
                       <p className="text-xs text-muted-foreground mt-1">
                         {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름을 확인합니다.
                       </p>
@@ -608,12 +566,12 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
               style={SECTION_GRADIENTS.securities}
             >
               <header className="flex flex-wrap items-center gap-4">
-                <div className="hidden bg-background bg-background">
-                  <ArrowLeftRight className="h-6 w-6 text-foreground text-foreground" />
+                <div className="hidden bg-background">
+                  <ArrowLeftRight className="h-6 w-6 text-foreground" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 비교</h2>
-                  <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">해당 기업 내 다른 종목과 EPS를 비교합니다</p>
+                  <p className="text-sm text-muted-foreground md:text-base">해당 기업 내 다른 종목과 EPS를 비교합니다</p>
                 </div>
               </header>
 
@@ -629,17 +587,14 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
             </section>
           )}
 
-          <div className="space-y-4 sm:space-y-8">
 
-            
-          </div>
 
           {/* 핵심 지표 섹션 */}
           {periodAnalysis && (
             <KeyMetricsSectionEPS
               security={security}
               epsRank={epsRank}
-              latestEPS={periodAnalysis.latestEPS}
+              latestEPS={security.eps ?? null}
               eps12Month={periodAnalysis.periods.find(p => p.label === '12개월 평균')?.value ?? null}
               eps3Year={periodAnalysis.periods.find(p => p.label === '3년 평균')?.value ?? null}
               eps5Year={periodAnalysis.periods.find(p => p.label === '5년 평균')?.value ?? null}
@@ -657,34 +612,22 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
             className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
             style={SECTION_GRADIENTS.annual}
           >
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground text-foreground">
-              <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-foreground  bg-background text-foreground">
-                탭 연동
-              </span>
-              <span className="text-sm font-semibold text-foreground text-foreground">
-                {ACTIVE_METRIC.label} 연도별 데이터 흐름
-              </span>
-              {ACTIVE_METRIC.description && (
-                <span className="text-[11px] font-medium text-foreground text-foreground">
-                  {ACTIVE_METRIC.description}
-                </span>
-              )}
-            </div>
+
             <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-4">
-                <div className="hidden bg-background bg-background">
-                  <FileText className="h-6 w-6 text-foreground text-foreground" />
+                <div className="hidden bg-background">
+                  <FileText className="h-6 w-6 text-foreground" />
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold tracking-tight text-foreground">연도별 데이터</h2>
-                  <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">EPS 차트와 연말 기준 상세 데이터를 확인합니다</p>
+                  <p className="text-sm text-muted-foreground md:text-base">EPS 차트와 연말 기준 상세 데이터를 확인합니다</p>
                 </div>
               </div>
               {annualCsvData.length > 0 && (
                 <CsvDownloadButton
                   data={annualCsvData}
                   filename={annualDownloadFilename}
-                  className="self-start border-border text-foreground bg-background border-border text-foreground bg-background"
+                  className="self-start border-border text-foreground bg-background"
                 />
               )}
             </header>
@@ -719,19 +662,42 @@ export default async function SecurityEPSPage({ params }: SecurityEPSPageProps) 
           </section>
 
           <div className="pt-1 sm:pt-2">
-            <SecEpsPager rank={epsRank || 1} />
+            {epsRank != null && <SecEpsPager rank={epsRank} currentSecurityId={security.securityId} rankDate={rankDate} />}
           </div>
         </div>
+        <div className="mt-6"><details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div data-slot="alert"  className="relative w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground sm:mx-0 rounded-sm sm:px-5">
+            <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info mt-0.5 h-5 w-5" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+              <div data-slot="alert-description" className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <p className="font-medium">계산식: EPS = 순이익 ÷ 발행주식수</p>
+                <div className="space-y-1">
+                  <p className="font-medium">해석 방법</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>EPS가 증가할수록:</strong> 기업의 수익성이 개선되고 있음을 의미하며, 주주 가치를 높이는 긍정적 신호입니다.</li>
+                    <li><strong>EPS가 감소할수록:</strong> 기업의 수익성이 악화되고 있음을 의미하며, 경영 효율성 저하의 신호일 수 있습니다.</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground/70 mt-2">
+                  자세한 내용은 <a href="https://www.investopedia.com/terms/e/eps.asp" target="_blank" rel="noopener noreferrer" className="text-foreground underline">Investopedia EPS 설명</a>을 참고하세요.
+                </p>
+              </div>
+            </div>
+          </div></details></div>
       </div>
 
       {/* 사이드바 네비게이션 (데스크톱) */}
-      <aside className="context-rail order-first xl:order-last">
+      <aside className="context-rail hidden xl:block">
         <SidebarManager
           navigationSections={navigationSections}
           periodAnalysis={periodAnalysis}
           perRank={epsRank}
           security={security}
           secCode={secCode}
+          rankDate={rankDate}
           hasCompanyMarketcapData={hasCompanyMarketcapData}
           companySecs={companySecs}
           comparableSecuritiesWithPER={comparableSecuritiesWithEPS}

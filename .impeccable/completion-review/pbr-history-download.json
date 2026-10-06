@@ -1,0 +1,12 @@
+{
+  "url": "http://127.0.0.1:3100/security/KOSPI.036460/pbr/",
+  "source": "/Users/craigchoi/Downloads/KOSPI-036460-pbr-2026-10-02.csv",
+  "modified": "2026-10-05T11:18:51.157Z",
+  "receivedFile": ".impeccable/completion-review/pbr-history.csv",
+  "bom": true,
+  "rows": 307,
+  "header": "date,pbr,bps",
+  "first": "2005-01-31,0.69,43128",
+  "last": "2026-10-02,0.29,123774",
+  "downloadObserver": "Browser download-event observer timed out; the actual file at the exact expected filename was verified instead."
+}

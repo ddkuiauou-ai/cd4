@@ -101,6 +101,21 @@ export function processPBRData(data: Array<{ date: Date | string; pbr: number | 
 }
 
 /**
+ * Keep supplemental BPS missing values distinct from zero in history downloads.
+ * Charts retain their existing normalization in processPBRData.
+ */
+export function processPBRCsvData(data: Array<{ date: Date | string; pbr: number | null; bps?: number | null }>): Array<{ date: string; pbr: number; bps: number | null }> {
+    return data
+        .filter((item) => item.pbr !== null && item.pbr !== undefined)
+        .map((item) => ({
+            date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
+            pbr: Number(item.pbr),
+            bps: item.bps == null ? null : Number(item.bps),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+/**
  * Coerce volume value with fallback options
  */
 export function coerceVolumeValue(primary: unknown, secondary?: unknown): number | null {

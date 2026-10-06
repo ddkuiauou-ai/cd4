@@ -25,8 +25,6 @@ export interface ShareButtonProps extends SharePayload {
     copySize?: ButtonProps["size"];
 }
 
-type ButtonMode = "default" | "compact";
-
 export function ShareButton({
     title,
     text,
@@ -42,8 +40,6 @@ export function ShareButton({
     const [isCopying, setIsCopying] = useState(false);
     const [canNativeShare, setCanNativeShare] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
-    const [mode, setMode] = useState<ButtonMode>("default");
-    const [isSmallViewport, setIsSmallViewport] = useState(false);
     const [copyState, setCopyState] = useState<"idle" | "success">("idle");
     const [animateKey, setAnimateKey] = useState(0);
 
@@ -72,30 +68,6 @@ export function ShareButton({
             window.removeEventListener(COMPANY_HEADER_PIN_EVENT, handlePinChange);
         };
     }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined") {
-            setIsSmallViewport(false);
-            setMode("default");
-            return;
-        }
-
-        const query = window.matchMedia("(max-width: 639px)");
-        const handleChange = () => {
-            setIsSmallViewport(query.matches);
-            setMode(query.matches && isPinned ? "compact" : "default");
-        };
-
-        handleChange();
-
-        if (typeof query.addEventListener === "function") {
-            query.addEventListener("change", handleChange);
-            return () => query.removeEventListener("change", handleChange);
-        }
-
-        query.addListener(handleChange);
-        return () => query.removeListener(handleChange);
-    }, [isPinned]);
 
     const resolvedPayload = useMemo<SharePayload>(() => {
         if (typeof window === "undefined") {
@@ -129,8 +101,9 @@ export function ShareButton({
                 document.body.appendChild(textarea);
                 textarea.focus();
                 textarea.select();
-                document.execCommand("copy");
+                const copied = document.execCommand("copy");
                 document.body.removeChild(textarea);
+                if (!copied) throw new Error("브라우저가 링크 복사를 허용하지 않았습니다.");
             }
 
             toast({ description: "페이지 링크가 복사되었습니다." });
@@ -192,109 +165,16 @@ export function ShareButton({
     const resolvedCopyVariant = copyVariant ?? (canNativeShare ? "ghost" : variant);
     const resolvedCopySize = copySize ?? size;
 
-    if (mode === "compact") {
-        return (
-            <div
-                className={cn(
-                    "fixed inset-x-0 bottom-0 z-50 bg-background/95 px-4 py-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80",
-                    className,
-                )}
-            >
-                <div className="flex flex-nowrap gap-2">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="default"
-                        className="min-w-0 flex-1 gap-1.5 px-2 py-2 text-xs"
-                        disabled={isCopying}
-                        onClick={() => void handleCopy()}
-                    >
-                        <AnimateIcon
-                            key={copyState === "success" ? `copy-success-${animateKey}` : "copy-idle"}
-                            animate={copyState === "success" ? "default" : false}
-                            animateOnHover
-                            className="inline-flex items-center gap-1"
-                        >
-                            {copyState === "success" ? <AnimatedCheck size={18} animateOnHover /> : <AnimatedLink size={18} />}
-                            <span className="text-xs font-medium">{copyState === "success" ? "복사 완료" : "링크 복사"}</span>
-                        </AnimateIcon>
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="default"
-                        size="default"
-                        className="min-w-0 flex-1 gap-1.5 px-2 py-2 text-xs"
-                        disabled={isSharing}
-                        onClick={() => (canNativeShare ? void handleShare() : void handleCopy())}
-                    >
-                        <AnimateIcon animateOnHover className="inline-flex items-center gap-1">
-                            <AnimatedCopy size={18} />
-                            <span className="text-xs font-medium">
-                                {canNativeShare ? "공유하기" : "링크 복사"}
-                            </span>
-                        </AnimateIcon>
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
-    if (isSmallViewport) {
-        return (
-            <div className={cn("flex w-full flex-nowrap gap-2", className)}>
-                <Button
-                    type="button"
-                    variant={resolvedCopyVariant}
-                    size={resolvedCopySize}
-                    className="min-w-0 flex-1 gap-1.5 px-2 py-2 text-xs"
-                    disabled={isCopying}
-                    onClick={() => void handleCopy()}
-                >
-                    <AnimateIcon
-                        key={copyState === "success" ? `copy-success-${animateKey}` : "copy-idle"}
-                        animate={copyState === "success" ? "default" : false}
-                        animateOnHover
-                        className="inline-flex items-center gap-1"
-                    >
-                        {copyState === "success" ? <AnimatedCheck size={18} animateOnHover /> : <AnimatedLink size={18} />}
-                        <span className="text-xs font-medium">
-                            {copyState === "success" ? "복사 완료" : "링크 복사"}
-                        </span>
-                    </AnimateIcon>
-                </Button>
-                <Button
-                    type="button"
-                    variant={variant}
-                    size={size}
-                    className="min-w-0 flex-1 gap-1.5 px-2 py-2 text-xs"
-                    disabled={isSharing}
-                    onClick={() => (canNativeShare ? void handleShare() : void handleCopy())}
-                >
-                    <AnimateIcon animateOnHover className="inline-flex items-center gap-1">
-                        <AnimatedCopy size={18} />
-                        <span className="text-xs font-medium">
-                            {canNativeShare ? "공유하기" : "링크 복사"}
-                        </span>
-                    </AnimateIcon>
-                </Button>
-            </div>
-        );
-    }
-
     return (
-        <div
-            className={cn(
-                "flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center",
-                className,
-            )}
-        >
+        <div data-share-actions data-pinned={isPinned} className={cn("flex items-center gap-2", className)}>
             <Button
                 type="button"
                 variant={resolvedCopyVariant}
                 size={resolvedCopySize}
-                className="w-full gap-1.5 sm:w-auto"
+                className="min-h-10 gap-1.5"
                 disabled={isCopying}
                 onClick={() => void handleCopy()}
+                aria-label={copyState === "success" ? "복사 완료" : "링크 복사"}
             >
                 <AnimateIcon
                     key={copyState === "success" ? `copy-success-${animateKey}` : "copy-idle"}
@@ -303,26 +183,23 @@ export function ShareButton({
                     className="inline-flex items-center gap-1.5"
                 >
                     {copyState === "success" ? <AnimatedCheck size={18} animateOnHover /> : <AnimatedLink size={18} />}
-                    <span className="text-xs font-medium sm:text-sm">
-                        {copyState === "success" ? "복사 완료" : "링크 복사"}
-                    </span>
+                    <span className="text-xs font-medium">{copyState === "success" ? "복사 완료" : "링크 복사"}</span>
                 </AnimateIcon>
             </Button>
-            <Button
+            {canNativeShare && <Button
                 type="button"
                 variant={variant}
                 size={size}
-                className="w-full gap-1.5 sm:w-auto"
+                className="min-h-10 gap-1.5"
                 disabled={isSharing}
-                onClick={() => (canNativeShare ? void handleShare() : void handleCopy())}
+                onClick={() => void handleShare()}
+                aria-label="공유하기"
             >
                 <AnimateIcon animateOnHover className="inline-flex items-center gap-1.5">
                     <AnimatedCopy size={18} />
-                    <span className="text-xs font-medium sm:text-sm">
-                        {canNativeShare ? "공유하기" : "링크 복사"}
-                    </span>
+                    <span className="text-xs font-medium">공유하기</span>
                 </AnimateIcon>
-            </Button>
+            </Button>}
         </div>
     );
 }

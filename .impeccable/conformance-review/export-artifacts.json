@@ -1,0 +1,109 @@
+{
+  "mode": "debug-build-paths limited export",
+  "scope": "ranking, dashboard, 8 ranking CSV endpoints, sitemap index and 8 chunks; full 28020-page export not verified",
+  "csv": [
+    {
+      "file": "out/ranking-data/companies-marketcap.csv",
+      "rows": 2601,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-bps.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-div.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-dps.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-eps.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-marketcap.csv",
+      "rows": 2785,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-pbr.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    },
+    {
+      "file": "out/ranking-data/securities-per.csv",
+      "rows": 2539,
+      "bom": true,
+      "columns": 18
+    }
+  ],
+  "sitemapIndex": {
+    "file": "out/sitemap.xml",
+    "chunks": 8
+  },
+  "sitemapChunks": [
+    {
+      "file": "out/sitemaps/core-0/sitemap.xml",
+      "bytes": 24801,
+      "urls": 220,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/securities-0/sitemap.xml",
+      "bytes": 653335,
+      "urls": 5000,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/securities-1/sitemap.xml",
+      "bytes": 654519,
+      "urls": 5000,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/securities-2/sitemap.xml",
+      "bytes": 655199,
+      "urls": 5000,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/securities-3/sitemap.xml",
+      "bytes": 655191,
+      "urls": 5000,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/securities-4/sitemap.xml",
+      "bytes": 399937,
+      "urls": 3056,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/companies-0/sitemap.xml",
+      "bytes": 653341,
+      "urls": 5000,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    },
+    {
+      "file": "out/sitemaps/companies-1/sitemap.xml",
+      "bytes": 75263,
+      "urls": 576,
+      "canonicalOrigin": "https://www.chundan.xyz"
+    }
+  ],
+  "missingSitemapChunks": []
+}

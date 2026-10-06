@@ -1,0 +1,307 @@
+{
+  "phase": "four-material-fixes-verdict",
+  "capturedAt": "2026-10-05T09:44:13.582Z",
+  "captures": [
+    {
+      "name": "main-desktop-light",
+      "heading": "주식 지표 대시보드",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 1440
+    },
+    {
+      "name": "main-desktop-dark",
+      "heading": "주식 지표 대시보드",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 1440
+    },
+    {
+      "name": "main-tablet-dark",
+      "heading": "주식 지표 대시보드",
+      "height": 900,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 1024
+    },
+    {
+      "name": "main-tablet-light",
+      "heading": "주식 지표 대시보드",
+      "height": 900,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 1024
+    },
+    {
+      "name": "main-mobile-light",
+      "heading": "주식 지표 대시보드",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 390
+    },
+    {
+      "name": "main-mobile-light-full",
+      "heading": "주식 지표 대시보드",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 1792,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 390
+    },
+    {
+      "name": "main-mobile-dark",
+      "heading": "주식 지표 대시보드",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 390
+    },
+    {
+      "name": "main-mobile-dark-full",
+      "heading": "주식 지표 대시보드",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 1792,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/dashboard/",
+      "width": 390
+    },
+    {
+      "name": "ranking-mobile-dark",
+      "heading": "시가총액 순위",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/marketcaps/",
+      "width": 390
+    },
+    {
+      "name": "ranking-mobile-light",
+      "heading": "시가총액 순위",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/marketcaps/",
+      "width": 390
+    },
+    {
+      "name": "ranking-desktop-light",
+      "heading": "시가총액 순위",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/marketcaps/",
+      "width": 1440
+    },
+    {
+      "name": "ranking-desktop-dark",
+      "heading": "시가총액 순위",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/marketcaps/",
+      "width": 1440
+    },
+    {
+      "name": "company-desktop-dark",
+      "heading": "삼성전자시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "company-desktop-dark-full",
+      "heading": "삼성전자시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "pageHeight": 3887,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "company-desktop-light",
+      "heading": "삼성전자시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "company-desktop-light-full",
+      "heading": "삼성전자시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "pageHeight": 3887,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "company-mobile-light",
+      "heading": "삼성전자시가총액",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "company-mobile-light-full",
+      "heading": "삼성전자시가총액",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 4858,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "company-mobile-dark",
+      "heading": "삼성전자시가총액",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "company-mobile-dark-full",
+      "heading": "삼성전자시가총액",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 4858,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "company-mobile-dark-pinned",
+      "heading": "삼성전자시가총액",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 1685,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/company/KOSPI.005930/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "security-mobile-dark",
+      "heading": "삼성전자우시가총액",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "security-mobile-dark-full",
+      "heading": "삼성전자우시가총액",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 4960,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "security-mobile-light",
+      "heading": "삼성전자우시가총액",
+      "height": 844,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "security-mobile-light-full",
+      "heading": "삼성전자우시가총액",
+      "height": 844,
+      "overflow": 0,
+      "pageHeight": 4960,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 390
+    },
+    {
+      "name": "security-desktop-light",
+      "heading": "삼성전자우시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "security-desktop-light-full",
+      "heading": "삼성전자우시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "pageHeight": 4041,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "security-desktop-dark",
+      "heading": "삼성전자우시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 1440
+    },
+    {
+      "name": "security-desktop-dark-full",
+      "heading": "삼성전자우시가총액",
+      "height": 1000,
+      "overflow": 0,
+      "pageHeight": 4041,
+      "scrollY": 0,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "url": "http://127.0.0.1:3100/security/KOSPI.005935/marketcap/",
+      "width": 1440
+    }
+  ],
+  "logs": []
+}

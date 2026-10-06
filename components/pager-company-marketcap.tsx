@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { getCompanyMarketCapPageData } from "@/lib/data/company";
+import { getRankNeighbors } from "@/lib/ranking-view";
 
 export async function CompanyMarketcapPager({
     rank,
@@ -64,16 +65,5 @@ interface CompanyMarketcapItem {
 }
 
 function getPagerCompanies(items: CompanyMarketcapItem[], rank: number) {
-    const sortedItems = items
-        .filter((item) => item.marketcapRank !== rank)
-        .sort((a, b) => (a.marketcapRank || 0) - (b.marketcapRank || 0));
-
-    const currentIndex = sortedItems.findIndex(
-        (item) => (item.marketcapRank || 0) > rank
-    );
-
-    const prev = currentIndex > 0 ? sortedItems[currentIndex - 1] : null;
-    const next = currentIndex >= 0 ? sortedItems[currentIndex] : null;
-
-    return { prev, next };
+    return getRankNeighbors(items, rank, item => item.marketcapRank);
 }

@@ -15,7 +15,7 @@ CD3 provides financial data, rankings, and analysis tools for the Korean stock m
 - **Framework**: Next.js (App Router, static export and Node.js server modes)
 - **UI Components**: shadcn/ui (New York style, slate base)
 - **Styling**: Tailwind CSS 4 (mobile-first approach)
-- **Database**: Drizzle ORM with PostgreSQL
+- **Database**: PostgreSQL only, using Drizzle ORM's `postgres-js` adapter and the `postgres` driver
 - **Deployment**: Static export to R2 or Netlify; Vercel is an optional hosting choice
 
 ## 🚀 Getting Started
@@ -37,14 +37,16 @@ cd cd4
 pnpm install --frozen-lockfile
 
 # Set up environment variables
-cp .env.example .env.local
-# Configure your database URL and other required variables
+cp .env.example .env
+# Configure your PostgreSQL connection and other required variables
 
 # Start development server
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+The application reads an existing PostgreSQL data snapshot. To initialize an empty PostgreSQL database, follow the [PostgreSQL installation and migration guide](docs/postgresql.md). Creating tables does not populate the market data. An existing database requires schema comparison and a reviewed migration baseline before applying the initial migration.
 
 ## 📁 Project Structure
 
@@ -91,6 +93,8 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ### Database Operations
 
+The maintained schema is `db/schema-postgres.ts`, the runtime connection is `db/index.ts`, and the committed PostgreSQL migrations are in `drizzle/`. cd4 does not provide a Turso, libSQL, or SQLite deployment path. External collection pipelines have their own storage choices and migration responsibilities; see the [DAG integration contract](docs/dag-integration.md).
+
 All database code must be organized in `/lib` directory:
 
 ```typescript
@@ -123,6 +127,7 @@ pnpm dlx shadcn@latest add [component-name]
 - **[Technical Specifications](docs/spec.md)**: Detailed technology stack and configuration
 - **[UI Guidelines](docs/ui.md)**: Component patterns and responsive design
 - **[Service Documentation](docs/service.md)**: API and service features
+- **[PostgreSQL Guide](docs/postgresql.md)**: Connection configuration, empty database installation, and existing database migration baseline
 
 ## 🚀 Build and Deployment
 
@@ -139,6 +144,25 @@ pnpm lint
 pnpm typecheck
 pnpm test
 ```
+
+### PostgreSQL Commands
+
+```bash
+# Generate and check versioned migrations without a database connection
+pnpm db:generate
+pnpm db:check
+
+# Apply migrations only after following the installation/baseline guide
+pnpm db:migrate
+
+# Open the configured PostgreSQL database in Drizzle Studio
+pnpm db:studio
+
+# Verify installation using an isolated temporary PostgreSQL database
+pnpm test:db
+```
+
+Drizzle's connection commands read `.env` and process environment variables. The application also uses Next.js environment loading. See the [PostgreSQL guide](docs/postgresql.md) before running commands against an existing database.
 
 ### Production Builds
 

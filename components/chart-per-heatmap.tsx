@@ -3,6 +3,7 @@
 import { ResponsiveHeatMap } from '@nivo/heatmap';
 import type { HeatMapSerie } from '@nivo/heatmap';
 import { useState, useEffect } from 'react';
+import { heatmapLabelColor, heatmapTheme } from './chart-theme';
 
 interface PERHeatmapProps {
   data: HeatMapSerie<{ x: string, y: number }, {}>[];
@@ -30,6 +31,9 @@ export default function PERHeatmap({ data, minValue, maxValue }: PERHeatmapProps
     return (
       <div style={{ height: '200px' }}>
         <ResponsiveHeatMap
+          theme={heatmapTheme}
+          labelTextColor={heatmapLabelColor}
+          borderColor="transparent"
           data={mobileData}
           margin={{ top: 30, right: 20, bottom: 30, left: 20 }}
           valueFormat=">-.1s"
@@ -48,7 +52,7 @@ export default function PERHeatmap({ data, minValue, maxValue }: PERHeatmapProps
             minValue: maxValue,
             maxValue: minValue
           }}
-          emptyColor="#555555"
+          emptyColor="transparent"
           legends={[
             {
               anchor: 'bottom',
@@ -76,6 +80,9 @@ export default function PERHeatmap({ data, minValue, maxValue }: PERHeatmapProps
   return (
     <div style={{ height: '400px' }}>
       <ResponsiveHeatMap
+          theme={heatmapTheme}
+          labelTextColor={heatmapLabelColor}
+          borderColor="transparent"
         data={data}
         margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
         valueFormat=">-.2s"
@@ -88,7 +95,7 @@ export default function PERHeatmap({ data, minValue, maxValue }: PERHeatmapProps
           minValue: maxValue,
           maxValue: minValue
         }}
-        emptyColor="#555555"
+        emptyColor="transparent"
         legends={[
           {
             anchor: 'bottom',

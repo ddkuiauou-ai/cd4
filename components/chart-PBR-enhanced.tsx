@@ -1,29 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
-import { createChart, ColorType, LineSeries, Time } from "lightweight-charts";
+import { useTheme } from "next-themes";
+import { readChartColors } from "./chart-theme";
+import { createChart, ColorType, LineSeries, type Time, type IChartApi, type ISeriesApi, type MouseEventParams } from "lightweight-charts";
 import { PBRData, PeriodType, aggregatePBRDataByPeriod } from "@/lib/pbr-utils";
 
 // 차트 설정 상수들
 const CHART_CONFIG = {
     width: 0,
     height: 400,
-    colors: {
-        primary: '#2962FF',
-        background: 'white',
-        text: 'black',
-        border: '#2962FF',
-        subText: '#666',
-    },
     tooltip: {
         width: 96,
         height: 80,
         margin: -720,
     },
     series: {
-        topColor: '#2962FF',
-        bottomColor: 'rgba(41, 98, 255, 0.28)',
-        lineColor: '#2962FF',
         lineWidth: 2,
         scaleMargins: { top: 0.1, bottom: 0.1 },
     },
@@ -36,8 +28,10 @@ interface ChartPBREnhancedProps {
 }
 
 export default function ChartPBREnhanced({ data, period = '1M', className }: ChartPBREnhancedProps) {
+    const { resolvedTheme } = useTheme();
     const chartContainerRef = useRef<HTMLDivElement>(null);
-    const chartRef = useRef<any>(null);
+    const chartRef = useRef<IChartApi | null>(null);
+    const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const tooltipRef = useRef<HTMLDivElement | null>(null);
 
     // 데이터 메모이제이션으로 불필요한 재계산 방지
@@ -65,11 +59,13 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
             chartRef.current = null;
         }
 
+        const colors = readChartColors();
+
         // 최적화된 차트 옵션
         const chart = createChart(container, {
             layout: {
-                textColor: CHART_CONFIG.colors.text,
-                background: { type: ColorType.Solid, color: CHART_CONFIG.colors.background },
+                textColor: colors.foreground,
+                background: { type: ColorType.Solid, color: colors.background },
             },
             width: container.clientWidth || CHART_CONFIG.width,
             height: CHART_CONFIG.height,
@@ -84,10 +80,12 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
 
         // 시리즈 생성 및 설정
         const series = chart.addSeries(LineSeries, {
-            color: CHART_CONFIG.series.lineColor,
+            color: colors.line,
             lineWidth: CHART_CONFIG.series.lineWidth,
             crosshairMarkerVisible: true,
         });
+
+        seriesRef.current = series;
 
         series.priceScale().applyOptions({
             scaleMargins: CHART_CONFIG.series.scaleMargins,
@@ -110,20 +108,21 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
             textAlign: 'left',
             zIndex: '1000',
             pointerEvents: 'none',
-            border: `1px solid ${CHART_CONFIG.colors.border}`,
-            borderRadius: '2px',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgb(0 0 0 / 0.14)',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            background: CHART_CONFIG.colors.background,
-            color: CHART_CONFIG.colors.text,
+            background: 'var(--popover)',
+            color: 'var(--popover-foreground)',
         });
 
         container.appendChild(tooltip);
         tooltipRef.current = tooltip;
 
         // 최적화된 이벤트 핸들러
-        const handleCrosshairMove = (param: any) => {
+        const handleCrosshairMove = (param: MouseEventParams) => {
             const point = param.point;
             if (!point || point.x < 0 || point.x > container.clientWidth || point.y < 0 || point.y > container.clientHeight) {
                 tooltip.style.display = 'none';
@@ -136,7 +135,7 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
                 return;
             }
 
-            const price = (seriesData as any).value;
+            const price = "value" in seriesData ? seriesData.value : undefined;
             if (price == null) {
                 tooltip.style.display = 'none';
                 return;
@@ -144,13 +143,13 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
 
             // 툴팁 표시 및 내용 설정
             tooltip.style.display = 'block';
-            const timeString = param.time ? new Date(param.time * 1000).toISOString().split('T')[0] : '';
+            const timeString = typeof param.time === 'number' ? new Date(param.time * 1000).toISOString().split('T')[0] : '';
             tooltip.innerHTML = `
-                <div style="color: ${CHART_CONFIG.colors.primary}; font-weight: 600; margin-bottom: 4px;">PBR</div>
-                <div style="font-size: 20px; margin: 4px 0px; color: ${CHART_CONFIG.colors.text}; font-weight: 600;">
+                <div style="color: var(--chart-2); font-weight: 600; margin-bottom: 4px;">PBR</div>
+                <div style="font-size: 20px; margin: 4px 0px; color: var(--foreground); font-weight: 600;">
                     ${Math.round(price * 100) / 100}
                 </div>
-                <div style="color: ${CHART_CONFIG.colors.subText}; font-size: 11px;">
+                <div style="color: var(--muted-foreground); font-size: 11px;">
                     ${timeString}
                 </div>
             `;
@@ -193,12 +192,36 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
                 if (tooltip.parentNode) {
                     tooltip.parentNode.removeChild(tooltip);
                 }
+                chart.unsubscribeCrosshairMove(handleCrosshairMove);
                 chart.remove();
+                chartRef.current = null;
+                seriesRef.current = null;
+                tooltipRef.current = null;
             } catch (error) {
                 console.warn('Error cleaning up chart:', error);
             }
         };
     }, [chartData]);
+
+    useEffect(() => {
+        // Read after next-themes applies its root class in the parent effect.
+        const frame = requestAnimationFrame(() => {
+            const chart = chartRef.current;
+            if (!chart) return;
+            const colors = readChartColors();
+            chart.applyOptions({
+                layout: {
+                    textColor: colors.foreground,
+                    background: { type: ColorType.Solid, color: colors.background },
+                },
+                rightPriceScale: { borderColor: colors.border },
+                timeScale: { borderColor: colors.border },
+                crosshair: { vertLine: { color: colors.muted } },
+            });
+            seriesRef.current?.applyOptions({ color: colors.line });
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [resolvedTheme, chartData]);
 
     if (!chartData.length) {
         return (
@@ -213,7 +236,7 @@ export default function ChartPBREnhanced({ data, period = '1M', className }: Cha
 
     return (
         <div className={className}>
-            <div ref={chartContainerRef} className="w-full" />
+            <div ref={chartContainerRef} className="relative w-full" />
         </div>
     );
 }

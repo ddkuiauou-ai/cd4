@@ -1,3 +1,5 @@
+import { getSecurityMetricDetailRanking } from '@/lib/data/security-ranking-detail';
+import { DetailMobileNavigation } from '@/components/detail-mobile-navigation';
 import { notFound } from "next/navigation";
 import type { Metadata, ResolvingMetadata } from "next";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
@@ -14,12 +16,11 @@ import {
   getCompanyAggregatedMarketcap,
   type CompanyMarketcapAggregated,
 } from "@/lib/data/company";
-import { getSecurityRank } from "@/lib/data/ranking";
 import {
-  getSecurityMarketCapRanking,
   getTopSecurityCodesByMetric,
 } from "@/lib/select";
 import { formatNumber, formatDate } from "@/lib/utils";
+import { createMarketcapSeries } from "@/lib/chart-selection";
 
 import CardCompanyMarketcap from "@/components/card-company-marketcap";
 import ListMarketcap from "@/components/list-marketcap";
@@ -36,6 +37,7 @@ import { RecentSecurityTracker } from "@/components/recent-security-tracker";
 import { PageNavigation } from "@/components/page-navigation";
 import { NavigationCollapsible } from "@/components/navigation-collapsible";
 import { StickyCompanyHeader } from "@/components/sticky-company-header";
+import { SecurityMetricEmpty } from "@/components/detail-metric-empty";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import ShareButton from "@/components/share-button";
 import { siteConfig } from "@/config/site";
@@ -69,7 +71,7 @@ export async function generateMetadata({ params }: SecurityMarketcapPageProps, p
 
   if (!security) {
     return {
-      title: "종목을 찾을 수 없습니다 - CD3",
+      title: `종목을 찾을 수 없습니다`,
       description: "요청하신 종목을 찾을 수 없습니다.",
     };
   }
@@ -82,7 +84,7 @@ export async function generateMetadata({ params }: SecurityMarketcapPageProps, p
   return {
     alternates: { canonical },
     openGraph: { ...(await parent).openGraph, url: canonical },
-    title: `${displayName} ${securityType} 시가총액 - CD3`,
+    title: `${displayName} ${securityType} 시가총액`,
     description: `${displayName} ${securityType}의 시가총액 추이와 구성 비중을 확인해 보세요.`,
   };
 }
@@ -196,24 +198,15 @@ export default async function SecurityMarketcapPage({
       ? `${representativeSecurity.exchange}.${representativeSecurity.ticker}`
       : null;
 
-  const marketCapRanking = await getSecurityMarketCapRanking(
-    security.securityId,
-  );
-  const fallbackRank =
-    marketCapRanking?.currentRank ??
-    (await getSecurityRank(security.securityId, "marketcap")) ??
-    null;
+  const { currentRank: fallbackRank, rankDate } = await getSecurityMetricDetailRanking(security.securityId, 'marketcap');
+  const marketCapRanking = { currentRank: fallbackRank, priorRank: null, rankChange: 0, value: security.marketcap ?? null };
 
   const marketcapHistoryRaw = await getMarketCapHistoryBySecurityId(
     security.securityId,
   );
 
-  if (!marketcapHistoryRaw || marketcapHistoryRaw.length === 0) {
-    notFound();
-  }
-
   // 시가총액 데이터 처리 및 최적화
-  const marketcapHistory = marketcapHistoryRaw
+  const marketcapHistory = (marketcapHistoryRaw ?? [])
     .map((entry) =>
       formatHistoryEntry({
         date: entry.date,
@@ -224,12 +217,26 @@ export default async function SecurityMarketcapPage({
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   if (!marketcapHistory.length) {
-    notFound();
+    return <SecurityMetricEmpty
+      secCode={secCode}
+      displayName={displayName || secCode}
+      metricLabel="시가총액"
+      metricType="marketcap"
+      security={security}
+      companySecs={companySecs}
+      companyMarketcapData={companyMarketcapData}
+      rank={fallbackRank}
+      rankDate={rankDate}
+    />;
   }
 
   const latestHistoryPoint = marketcapHistory.at(-1)!;
   const latestMarketcapValue = latestHistoryPoint.value;
   const latestMarketcapDate = latestHistoryPoint.date;
+  const hasCurrentMarketcap = security.marketcap != null;
+  const displayedMarketcap = security.marketcap ?? latestMarketcapValue;
+  const displayedMarketcapDate = hasCurrentMarketcap ? security.marketcapDate : latestMarketcapDate;
+  const displayedMarketcapLabel = hasCurrentMarketcap ? "현재 시가총액" : "이력 마지막 시가총액";
 
   // 차트 데이터 생성을 위한 헬퍼 함수 (중복 제거)
   const createChartData = (data: typeof marketcapHistory) =>
@@ -250,6 +257,11 @@ export default async function SecurityMarketcapPage({
   );
 
   const fullChartData = createChartData(marketcapHistory);
+  const securityChartSeries = createMarketcapSeries([security]);
+  const securityChartData = (data: typeof fullChartData) => data.map(item => ({
+    date: item.date,
+    [securityChartSeries[0].key]: item.totalValue,
+  }));
 
   const listData = marketcapHistory.map((item) => ({
     date: item.date.toISOString().split("T")[0],
@@ -461,7 +473,7 @@ export default async function SecurityMarketcapPage({
           </div>
           <div className="space-y-1">
             <h2 className="text-xl font-semibold tracking-tight text-foreground">핵심 지표</h2>
-            <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">최근 시가총액 흐름 요약</p>
+            <p className="text-sm text-muted-foreground md:text-base">최근 시가총액 흐름 요약</p>
           </div>
         </header>
 
@@ -488,24 +500,16 @@ export default async function SecurityMarketcapPage({
     const candlestickSpan = hasCompanyMarketcapData ? "lg:col-span-2" : "";
 
     return (
-      <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-10">
-        <section
+      <div className="detail-primary-sections space-y-6 sm:space-y-8">
+        <details
           id="security-overview"
           className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.overview}
         >
-          <header className="flex flex-wrap items-center gap-4">
-            <div className="hidden bg-background bg-background">
-              <Building2 className="h-6 w-6 text-foreground text-foreground" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 개요</h2>
-              <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">시가총액 순위와 기본 정보를 확인합니다</p>
-            </div>
-          </header>
+          <summary className="cursor-pointer text-sm font-semibold">기본 정보</summary>
 
           <div className="space-y-6">
-            
+
 
             <div className={`${EDGE_TO_EDGE_CARD_BASE} grid gap-4 sm:grid-cols-2 lg:grid-cols-3`}>
               <dl className="space-y-2 p-4">
@@ -534,7 +538,7 @@ export default async function SecurityMarketcapPage({
                   <dd className="font-medium text-right">{currentTicker}</dd>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <dt className="text-muted-foreground">최근 시총</dt>
+                  <dt className="text-muted-foreground">이력 마지막 시가총액</dt>
                   <dd className="font-medium text-right">{formatNumber(latestMarketcapValue, "원")}</dd>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -570,7 +574,7 @@ export default async function SecurityMarketcapPage({
               </dl>
             </div>
           </div>
-        </section>
+        </details>
 
         <section
           id="chart-analysis"
@@ -578,27 +582,27 @@ export default async function SecurityMarketcapPage({
           style={SECTION_GRADIENTS.charts}
         >
           <header className="flex flex-wrap items-center gap-4">
-            <div className="hidden bg-background bg-background">
-              <BarChart3 className="h-6 w-6 text-foreground text-foreground" />
+            <div className="hidden bg-background">
+              <BarChart3 className="h-6 w-6 text-foreground" />
             </div>
             <div className="space-y-1">
               <h2 className="text-xl font-semibold tracking-tight text-foreground">차트 분석</h2>
-              <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">시가총액 추이와 종목별 구성 변화를 살펴봅니다</p>
+              <p className="text-sm text-muted-foreground md:text-base">시가총액 추이와 종목별 구성 변화를 살펴봅니다</p>
             </div>
           </header>
 
           <div className={`grid gap-6 lg:auto-rows-max ${chartGridColumns} lg:items-stretch lg:gap-8`}>
-            <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
+            <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE} lg:col-span-2`}>
               <div className="px-4 pt-4 sm:px-5 sm:pt-5">
-                <h3 className="text-base font-semibold text-foreground text-foreground">
+                <h3 className="text-base font-semibold text-foreground">
                   {displayName} {securityType} 시가총액 일간 추이
                 </h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  최근 3개월 간의 일별 시가총액 흐름을 확인하고 동일 기업 내 다른 종목 대비 위치를 살펴보세요.
+                  마지막 이력일부터 3개월 범위의 실제 기록을 표시합니다. 요약 값과 이력의 기준일이 다를 수 있습니다.
                 </p>
               </div>
               <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-5 sm:pb-5">
-                <div className="min-h-[260px] flex-1">
+                <div className="flex-1">
                   {hasCompanyMarketcapData && companyMarketcapData ? (
                     <Suspense fallback={<div className="min-h-[260px] flex items-center justify-center">차트 로딩 중...</div>}>
                       <InteractiveChartSection
@@ -606,14 +610,17 @@ export default async function SecurityMarketcapPage({
                         companySecs={companySecs}
                         type="summary"
                         selectedType={selectedType}
+                        selectedSecurityId={security.securityId}
                       />
                     </Suspense>
                   ) : (
                     <ChartMarketcap
-                      data={marketcapChartData}
+                      data={securityChartData(marketcapChartData)}
                       format="formatNumber"
                       formatTooltip="formatNumberTooltip"
-                      selectedType="시가총액 구성"
+                      selectedType={selectedType}
+                      selectedSecurityId={security.securityId}
+                      series={securityChartSeries}
                     />
                   )}
                 </div>
@@ -626,14 +633,15 @@ export default async function SecurityMarketcapPage({
                   data={companyMarketcapData}
                   market={market}
                   selectedType={selectedType}
+                  selectedSecurityId={security.securityId}
                 />
               </div>
             )}
 
-            <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE} ${candlestickSpan}`}>
+            <div className={`flex flex-col ${EDGE_TO_EDGE_CARD_BASE}`}>
               <div className="flex items-start justify-between gap-2 px-4 pt-4 sm:px-5 sm:pt-5">
                 <div>
-                  <h3 className="text-base font-semibold text-foreground text-foreground">최근 3개월 가격 차트</h3>
+                  <h3 className="text-base font-semibold text-foreground">최근 3개월 가격 차트</h3>
                   <p className="text-xs text-muted-foreground">
                     {displayName} ({currentTicker})의 일별 시가 · 고가 · 저가 · 종가와 거래량 흐름을 확인합니다.
                   </p>
@@ -656,12 +664,12 @@ export default async function SecurityMarketcapPage({
             style={SECTION_GRADIENTS.securities}
           >
             <header className="flex flex-wrap items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <ArrowLeftRight className="h-6 w-6 text-foreground text-foreground" />
+              <div className="hidden bg-background">
+                <ArrowLeftRight className="h-6 w-6 text-foreground" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold tracking-tight text-foreground">종목 비교</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">해당 기업 내 다른 종목과 시가총액 구성을 비교합니다</p>
+                <p className="text-sm text-muted-foreground md:text-base">해당 기업 내 다른 종목과 시가총액 구성을 비교합니다</p>
               </div>
             </header>
 
@@ -677,28 +685,6 @@ export default async function SecurityMarketcapPage({
           </section>
         )}
 
-        <div className="space-y-4 sm:space-y-8">
-
-          <div
-            className="relative  overflow-hidden border border-border bg-background px-4 py-4 text-sm  sm:mx-0 rounded-sm sm:px-6 sm:py-5 border-border bg-background"
-            style={SECTION_GRADIENTS.indicators}
-          >
-            <div className="flex flex-col gap-3 text-foreground text-foreground">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-semibold tracking-tight text-foreground text-foreground">
-                  선택한 지표가 아래 분석 카드에 바로 반영됩니다
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground  bg-background text-foreground">
-                  Tab Sync
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-foreground text-foreground md:text-sm">
-                <strong className="font-semibold text-foreground text-foreground">{ACTIVE_METRIC.label}</strong>을 포함한 탭을 선택하면 <strong className="font-semibold text-foreground text-foreground">핵심 지표</strong>와 <strong className="font-semibold text-foreground text-foreground">연도별 데이터</strong> 모듈이 함께 갱신되어, 한 화면에서 흐름을 비교할 수 있습니다.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {hasCompanyMarketcapData ? (
           <KeyMetricsSection
             companyMarketcapData={companyMarketcapData}
@@ -706,6 +692,7 @@ export default async function SecurityMarketcapPage({
             security={security}
             periodAnalysis={periodAnalysis}
             marketCapRanking={marketCapRanking}
+          rankDate={rankDate}
             activeMetric={ACTIVE_METRIC}
             backgroundStyle={SECTION_GRADIENTS.indicators}
             currentTickerOverride={currentTicker}
@@ -720,34 +707,22 @@ export default async function SecurityMarketcapPage({
           className={`${EDGE_TO_EDGE_SECTION_BASE} border-border border-border bg-background`}
           style={SECTION_GRADIENTS.annual}
         >
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-foreground text-foreground">
-            <span className="rounded-full bg-white/70 px-2 py-1 text-[11px] uppercase tracking-widest text-foreground  bg-background text-foreground">
-              탭 연동
-            </span>
-            <span className="text-sm font-semibold text-foreground text-foreground">
-              {ACTIVE_METRIC.label} 연도별 데이터 흐름
-            </span>
-            {ACTIVE_METRIC.description && (
-              <span className="text-[11px] font-medium text-foreground text-foreground">
-                {ACTIVE_METRIC.description}
-              </span>
-            )}
-          </div>
+
           <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <div className="hidden bg-background bg-background">
-                <FileText className="h-6 w-6 text-foreground text-foreground" />
+              <div className="hidden bg-background">
+                <FileText className="h-6 w-6 text-foreground" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold tracking-tight text-foreground">연도별 데이터</h2>
-                <p className="text-sm text-muted-foreground text-muted-foreground md:text-base">시가총액 차트와 연말 기준 상세 데이터를 확인합니다</p>
+                <p className="text-sm text-muted-foreground md:text-base">시가총액 차트와 연말 기준 상세 데이터를 확인합니다</p>
               </div>
             </div>
             {annualCsvData.length > 0 && (
               <CsvDownloadButton
                 data={annualCsvData}
                 filename={annualDownloadFilename}
-                className="self-start border-border text-foreground bg-background border-border text-foreground bg-background"
+                className="self-start border-border text-foreground bg-background"
               />
             )}
           </header>
@@ -761,14 +736,17 @@ export default async function SecurityMarketcapPage({
                     companySecs={companySecs}
                     type="detailed"
                     selectedType={selectedType}
+                    selectedSecurityId={security.securityId}
                   />
                 </Suspense>
               ) : (
                 <ChartMarketcap
-                  data={fullChartData}
+                  data={securityChartData(fullChartData)}
                   format="formatNumber"
                   formatTooltip="formatNumberTooltip"
-                  selectedType="시가총액 구성"
+                  selectedType={selectedType}
+                  selectedSecurityId={security.securityId}
+                  series={securityChartSeries}
                 />
               )}
             </div>
@@ -782,21 +760,21 @@ export default async function SecurityMarketcapPage({
         </section>
 
         <div className="pt-1 sm:pt-2">
-          <SecMarketcapPager rank={fallbackRank || 1} />
+          {fallbackRank != null && <SecMarketcapPager rank={fallbackRank} currentSecurityId={security.securityId} rankDate={rankDate} />}
         </div>
       </div>
     );
   };
 
   const headerDetail = {
-    label: "시가총액",
-    value: formatNumber(latestMarketcapValue, "원"),
+    label: displayedMarketcapLabel,
+    value: formatNumber(displayedMarketcap, "원"),
     badge: securityType,
   } as const;
 
   const titleSuffix = "시가총액";
 
-  const shareTitle = `${displayName} ${securityType} 시가총액 분석 | ${siteConfig.name}`;
+  const shareTitle = `${displayName} ${securityType} 시가총액 분석`;
   const shareText = `${displayName} ${securityType}의 시가총액 추이와 구성 데이터를 ${siteConfig.name}에서 확인하세요.`;
   const shareUrl = `${siteConfig.url}/security/${secCode}/marketcap`;
 
@@ -848,14 +826,14 @@ export default async function SecurityMarketcapPage({
       <div className="detail-content min-w-0">
         <nav
           aria-label="Breadcrumb"
-          className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+          className="mb-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
         >
           <Link href="/" className="transition-colors hover:text-foreground">
             홈
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
-          <Link href="/company" className="transition-colors hover:text-foreground">
-            기업
+          <Link href="/marketcaps" className="transition-colors hover:text-foreground">
+            기업 순위
           </Link>
           <ChevronRightIcon className="h-4 w-4" />
           {companySecCode ? (
@@ -891,30 +869,20 @@ export default async function SecurityMarketcapPage({
             />
           }
         />
-        <RankHeader rank={marketCapRanking?.currentRank ?? security.marketcapRank} marketcap={security.marketcap ?? undefined} price={security.prices?.[0]?.close}
+        <RankHeader rank={fallbackRank} marketcap={displayedMarketcap} price={security.prices?.[0]?.close}
           exchange={security.exchange || market} isCompanyLevel={false}
-          rankLabel="종목 시가총액 순위" marketcapLabel="현재 시가총액" marketcapUnit="원" />
-        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 기준일 {security.marketcapDate ? new Date(security.marketcapDate!).toISOString().slice(0, 10) : '확인 중'} · 종목별 지표</p>
+          rankLabel="종목 시가총액 순위" marketcapLabel={displayedMarketcapLabel} marketcapUnit="원" />
+        <p className="mt-2 text-xs text-muted-foreground">{security.type || "종목"} · {currentTicker} · 시가총액 기준 {displayedMarketcapDate ? new Date(displayedMarketcapDate).toISOString().slice(0, 10) : '—'} · 종목별 지표 · 순위 기준 {rankDate || '—'}</p>
         <CompanyFinancialTabs secCode={secCode} className="mt-4" />
+        <DetailMobileNavigation sections={navigationSections} />
 
-        <div className="mt-5 space-y-4 sm:mt-8 sm:space-y-6">
-          <div className="space-y-3">
-            <p className="text-base text-muted-foreground md:text-lg">
-              종목 가치를 중심으로 동일 기업 내 다른 종목과의 시가총액 구성을 분석합니다.
-            </p>
-            <div className="sm:hidden">
-              <ShareButton
-                title={shareTitle}
-                text={shareText}
-                url={shareUrl}
-              />
-            </div>
-          </div>
 
-          <details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div
+
+        {renderPrimarySections()}
+        <div className="mt-6"><details className="border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div
             data-slot="alert"
-            
-            className="relative  w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground  sm:mx-0 rounded-sm sm:px-5"
+
+            className="relative w-auto border border-border/60 bg-card/80 px-4 py-4 text-sm text-card-foreground sm:mx-0 rounded-sm sm:px-5"
           >
             <div className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1">
               <svg
@@ -939,13 +907,10 @@ export default async function SecurityMarketcapPage({
                 <p>구성비율과 변동 추이를 확인하며 해당 종목의 위치를 비교해 보세요.</p>
               </div>
             </div>
-          </div></details>
-        </div>
-
-        {renderPrimarySections()}
+          </div></details></div>
       </div>
 
-      <aside className="context-rail order-first xl:order-last">
+      <aside className="context-rail hidden xl:block">
         <MarketcapSidebarScrollSync
           navigationSections={navigationSections}
           hasCompanyMarketcapData={hasCompanyMarketcapData}
@@ -953,6 +918,7 @@ export default async function SecurityMarketcapPage({
           companySecs={companySecs}
           security={security}
           marketCapRanking={marketCapRanking}
+          rankDate={rankDate}
           currentTicker={currentTicker}
           selectedType={selectedType}
           secCode={secCode}

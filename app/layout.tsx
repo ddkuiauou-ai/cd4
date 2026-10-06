@@ -2,12 +2,11 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { siteConfig } from "@/config/site";
 import { ThemeProvider } from "@/components/providers";
-import { TailwindIndicator } from "@/components/tailwind-indicator";
+import localFont from "next/font/local";
 import { structuredData, organizationData, financialServiceData, faqData } from "@/lib/structured-data";
 
 // import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import GoogleAdsense from "../components/GoogleAdsense";
+const brandFont = localFont({ src: "./fonts/brand-nanum.woff2", weight: "800", display: "swap", variable: "--font-brand" });
 
 export const metadata: Metadata = {
   title: {
@@ -149,7 +148,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <html lang="ko" suppressHydrationWarning>
+      <html lang="ko" className={brandFont.variable} suppressHydrationWarning>
         <head>
           <script
             type="application/ld+json"
@@ -176,10 +175,6 @@ export default function RootLayout({
             }}
           />
           <link
-            href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap"
-            rel="stylesheet"
-          />
-          <link
             rel="alternate"
             href="https://www.chundan.xyz"
             hrefLang="ko"
@@ -198,8 +193,7 @@ export default function RootLayout({
                 {children}
               </div>
             </div>
-            {/* <TailwindIndicator /> */}
-            <TailwindIndicator />
+
           </ThemeProvider>
         </body>
       </html>

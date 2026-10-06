@@ -43,16 +43,16 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
     }, [data]);
 
     const colors = useMemo(() => ({
-        dps: "#2563eb",
-        growth: "#dc2626",
-        dpsLine: "#2563eb",
-        growthLine: "#dc2626",
+        dps: "var(--chart-2)",
+        growth: "var(--brand-ink)",
+        dpsLine: "var(--chart-2)",
+        growthLine: "var(--brand-ink)",
     }), []);
 
     if (!isClient || !data || data.length === 0) {
         return (
             <div className="w-full h-[200px] sm:h-[220px] md:h-[250px] lg:h-[280px] xl:h-[300px] flex items-center justify-center">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-muted-foreground">
                     {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
                 </div>
             </div>
@@ -66,13 +66,14 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                     data={chartData}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                    <CartesianGrid yAxisId="dps" strokeDasharray="3 3" opacity={0.3} />
+                    <CartesianGrid yAxisId="dps" stroke="var(--border)" vertical={false} />
                     <XAxis
                         dataKey="date"
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(date) => date.split("-")[0]}
                         className="text-xs"
+                        tick={{ fill: "var(--muted-foreground)" }}
                     />
                     <YAxis
                         yAxisId="dps"
@@ -81,7 +82,8 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         tickLine={false}
                         tickFormatter={(value) => `${formatNumber(value)}원`}
                         className="text-xs"
-                        label={{ value: 'DPS (원)', angle: -90, position: 'insideLeft' }}
+                        tick={{ fill: "var(--muted-foreground)" }}
+                        label={{ value: 'DPS (원)', angle: -90, position: 'insideLeft', fill: 'var(--muted-foreground)' }}
                     />
                     <YAxis
                         yAxisId="growth"
@@ -90,7 +92,8 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         tickLine={false}
                         tickFormatter={(value) => `${value}%`}
                         className="text-xs"
-                        label={{ value: '성장률 (%)', angle: 90, position: 'insideRight' }}
+                        tick={{ fill: "var(--muted-foreground)" }}
+                        label={{ value: '성장률 (%)', angle: 90, position: 'insideRight', fill: 'var(--muted-foreground)' }}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend itemSorter={(entry) => entry.dataKey === "value" ? 0 : 1} />
@@ -103,7 +106,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         stroke={colors.dpsLine}
                         strokeWidth={3}
                         dot={{ fill: colors.dpsLine, strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, stroke: colors.dpsLine, strokeWidth: 2, fill: '#fff' }}
+                        activeDot={{ r: 6, stroke: colors.dpsLine, strokeWidth: 2, fill: 'var(--background)' }}
                         name="주당배당금 (DPS)"
                         connectNulls={false}
                     />
@@ -117,7 +120,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         strokeWidth={2}
                         strokeDasharray="5 5"
                         dot={{ fill: colors.growthLine, strokeWidth: 2, r: 3 }}
-                        activeDot={{ r: 5, stroke: colors.growthLine, strokeWidth: 2, fill: '#fff' }}
+                        activeDot={{ r: 5, stroke: colors.growthLine, strokeWidth: 2, fill: 'var(--background)' }}
                         name="전년 대비 성장률 (%)"
                         connectNulls={false}
                     />
@@ -144,8 +147,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const year = String(label ?? "").split("-")[0];
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+        <div className="bg-popover p-3 border border-border rounded-lg shadow-lg">
+            <div className="text-sm font-medium text-foreground mb-2">
                 {year}년
             </div>
             {payload.map((entry, index) => {
@@ -153,10 +156,10 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                     return (
                         <div key={index} className="flex items-center gap-2 text-sm">
                             <div
-                                className="w-3 h-3 rounded-full bg-blue-500"
+                                className="w-3 h-3 rounded-full bg-chart-2"
                             />
-                            <span className="text-gray-600 dark:text-gray-400">DPS:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                            <span className="text-muted-foreground">DPS:</span>
+                            <span className="font-medium text-foreground">
                                 {entry.value === null ? "배당금 없음" : `${formatNumberTooltip(entry.value)}원`}
                             </span>
                         </div>
@@ -166,10 +169,10 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                     return (
                         <div key={index} className="flex items-center gap-2 text-sm">
                             <div
-                                className="w-3 h-3 rounded-full border-2 border-dashed border-orange-400 bg-orange-100"
+                                className="w-3 h-3 rounded-full border-2 border-dashed border-brand-ink bg-background"
                             />
-                            <span className="text-gray-600 dark:text-gray-400">성장률:</span>
-                            <span className={`font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                            <span className="text-muted-foreground">성장률:</span>
+                            <span className={`font-medium ${isPositive ? 'text-market-up' : 'text-market-down'}`}>
                                 {isPositive ? '+' : ''}{entry.value.toFixed(1)}%
                             </span>
                         </div>

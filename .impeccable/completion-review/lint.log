@@ -1,0 +1,873 @@
+
+> cd3@0.1.0 lint /Users/craigchoi/silla/cd4
+> eslint .
+
+
+/Users/craigchoi/silla/cd4/app/(market)/marketcap/page.tsx
+  10:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/app/company/[secCode]/marketcap/page.tsx
+   22:10  warning  'KeyMetricsSidebar' is defined but never used        @typescript-eslint/no-unused-vars
+   23:10  warning  'RecentSecuritiesSidebar' is defined but never used  @typescript-eslint/no-unused-vars
+   25:10  warning  'PageNavigation' is defined but never used           @typescript-eslint/no-unused-vars
+  187:18  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  219:21  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  235:9   error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  235:17  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  246:13  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  253:61  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  342:45  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  627:34  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/bps/page.tsx
+   19:10  warning  'KeyMetricsSidebarBPS' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   20:10  warning  'RecentSecuritiesSidebar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   25:10  warning  'PageNavigation' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   30:15  warning  'Price' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  192:39  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  228:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  258:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  293:25  warning  'sortedPricePoints' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  731:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/bps/page.tsx:731:20
+  729 |               ) : (
+  730 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+> 731 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  732 |                     title="BPS 차트 데이터 없음"
+  733 |                     description="연간 BPS 데이터를 불러올 수 없습니다"
+  734 |                     iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/bps/page.tsx:357:25
+  355 |
+  356 |   // 공통 NoData 컴포넌트
+> 357 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 358 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 359 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 378 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 379 |   );
+      | ^^^^ The component is created during render here
+  380 |
+  381 |   return (
+  382 |     <div className="app-container detail-grid">  react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/div/page.tsx
+   18:10  warning  'PageNavigation' is defined but never used              @typescript-eslint/no-unused-vars
+   25:10  warning  'RecentSecuritiesSidebar' is defined but never used     @typescript-eslint/no-unused-vars
+   28:15  warning  'Price' is defined but never used                       @typescript-eslint/no-unused-vars
+  128:9   warning  'commonSecurities' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  164:36  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  208:11  warning  'binCount' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  297:37  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  327:54  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  362:25  warning  'sortedPricePoints' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  401:9   warning  'hasSidebarContent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/dps/page.tsx
+   16:15  warning  'HeatMapSerie' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   21:10  warning  'KeyMetricsSidebarDPS' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   22:10  warning  'RecentSecuritiesSidebar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   29:15  warning  'Price' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   31:10  warning  'PageNavigation' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  193:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  223:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  258:25  warning  'sortedPricePoints' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  261:39  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  728:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/dps/page.tsx:728:20
+  726 |               ) : (
+  727 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+> 728 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  729 |                     title="DPS 차트 데이터 없음"
+  730 |                     description="연간 DPS 데이터를 불러올 수 없습니다"
+  731 |                     iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/dps/page.tsx:353:25
+  351 |
+  352 |   // Common NoData display component
+> 353 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 354 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 355 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 374 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 375 |   );
+      | ^^^^ The component is created during render here
+  376 |
+  377 |   return (
+  378 |     <div className="app-container detail-grid">  react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx
+   18:10  warning  'KeyMetricsSidebarEPS' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   19:10  warning  'RecentSecuritiesSidebar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   26:15  warning  'Price' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   28:10  warning  'PageNavigation' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   41:78  warning  'EPSData' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   41:87  warning  'PeriodType' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  194:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  224:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  259:25  warning  'sortedPricePoints' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  640:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:640:20
+  638 |               ) : (
+  639 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+> 640 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  641 |                     title="EPS 차트 데이터 없음"
+  642 |                     description="연간 EPS 데이터를 불러올 수 없습니다"
+  643 |                     iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:311:25
+  309 |
+  310 |   // 공통 NoData 컴포넌트
+> 311 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 312 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 313 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 332 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 333 |   );
+      | ^^^^ The component is created during render here
+  334 |
+  335 |   return (
+  336 |     <div className="app-container detail-grid">  react-hooks/static-components
+  654:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:654:20
+  652 |                   <ListEPSEnhanced data={result} />
+  653 |                 ) : (
+> 654 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  655 |                     title="연도별 EPS 데이터 없음"
+  656 |                     description="시계열 데이터를 불러올 수 없습니다"
+  657 |                     iconType="table"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/eps/page.tsx:311:25
+  309 |
+  310 |   // 공통 NoData 컴포넌트
+> 311 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 312 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 313 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 332 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 333 |   );
+      | ^^^^ The component is created during render here
+  334 |
+  335 |   return (
+  336 |     <div className="app-container detail-grid">                       react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/marketcap/page.tsx
+   30:10  warning  'SidebarManager' is defined but never used            @typescript-eslint/no-unused-vars
+   34:10  warning  'KeyMetricsSidebar' is defined but never used         @typescript-eslint/no-unused-vars
+   35:10  warning  'RecentSecuritiesSidebar' is defined but never used   @typescript-eslint/no-unused-vars
+   37:10  warning  'PageNavigation' is defined but never used            @typescript-eslint/no-unused-vars
+   38:10  warning  'NavigationCollapsible' is defined but never used     @typescript-eslint/no-unused-vars
+  500:11  warning  'candlestickSpan' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx
+   12:8   warning  'ChartPBREnhanced' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   18:10  warning  'KeyMetricsSidebarPBR' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   19:10  warning  'RecentSecuritiesSidebar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   26:15  warning  'Price' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   28:10  warning  'PageNavigation' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   41:97  warning  'PBRData' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  198:9   warning  'rangeMin' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  199:9   warning  'rangeMax' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  222:9   warning  'pbr20Year' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  223:9   warning  'pbr10Year' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  224:9   warning  'pbr5Year' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  225:9   warning  'pbr3Year' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  226:9   warning  'pbr12Month' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  229:9   warning  'latestPBR' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  232:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  262:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  297:25  warning  'sortedPricePoints' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  558:22  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:558:22
+  556 |                       </div>
+  557 |                     ) : null}
+> 558 |                     <NoDataDisplay
+      |                      ^^^^^^^^^^^^^ This component is created during render
+  559 |                       title="PBR 히트맵 데이터 없음"
+  560 |                       description="히트맵 데이터를 불러올 수 없습니다"
+  561 |                       iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:349:25
+  347 |
+  348 |   // 공통 NoData 컴포넌트
+> 349 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 350 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 351 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 370 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 371 |   );
+      | ^^^^ The component is created during render here
+  372 |
+  373 |   return (
+  374 |     <div className="app-container detail-grid">                            react-hooks/static-components
+  589:22  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:589:22
+  587 |                       </div>
+  588 |                     ) : null}
+> 589 |                     <NoDataDisplay
+      |                      ^^^^^^^^^^^^^ This component is created during render
+  590 |                       title="PBR 분포 데이터 없음"
+  591 |                       description="분포 데이터를 불러올 수 없습니다"
+  592 |                       iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:349:25
+  347 |
+  348 |   // 공통 NoData 컴포넌트
+> 349 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 350 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 351 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 370 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 371 |   );
+      | ^^^^ The component is created during render here
+  372 |
+  373 |   return (
+  374 |     <div className="app-container detail-grid">                              react-hooks/static-components
+  699:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:699:20
+  697 |               ) : (
+  698 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+> 699 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  700 |                     title="PBR 차트 데이터 없음"
+  701 |                     description="연간 PBR 데이터를 불러올 수 없습니다"
+  702 |                     iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:349:25
+  347 |
+  348 |   // 공통 NoData 컴포넌트
+> 349 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 350 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 351 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 370 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 371 |   );
+      | ^^^^ The component is created during render here
+  372 |
+  373 |   return (
+  374 |     <div className="app-container detail-grid">  react-hooks/static-components
+  713:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:713:20
+  711 |                   <ListPBRMarketcap data={result} />
+  712 |                 ) : (
+> 713 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  714 |                     title="연도별 PBR 데이터 없음"
+  715 |                     description="시계열 데이터를 불러올 수 없습니다"
+  716 |                     iconType="table"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/pbr/page.tsx:349:25
+  347 |
+  348 |   // 공통 NoData 컴포넌트
+> 349 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 350 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 351 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 370 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 371 |   );
+      | ^^^^ The component is created during render here
+  372 |
+  373 |   return (
+  374 |     <div className="app-container detail-grid">                      react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/per/page.tsx
+   15:15  warning  'HeatMapSerie' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   20:10  warning  'KeyMetricsSidebarPER' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   21:10  warning  'RecentSecuritiesSidebar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   27:15  warning  'Price' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   29:10  warning  'PageNavigation' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   30:10  warning  'NavigationCollapsible' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   33:10  warning  'addRecentlyViewedSecurity' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   45:87  warning  'PeriodType' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  208:37  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  238:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  273:25  warning  'sortedPricePoints' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  742:20  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/per/page.tsx:742:20
+  740 |               ) : (
+  741 |                 <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
+> 742 |                   <NoDataDisplay
+      |                    ^^^^^^^^^^^^^ This component is created during render
+  743 |                     title="PER 차트 데이터 없음"
+  744 |                     description="연간 PER 데이터를 불러올 수 없습니다"
+  745 |                     iconType="chart"
+
+/Users/craigchoi/silla/cd4/app/security/[secCode]/per/page.tsx:368:25
+  366 |
+  367 |   // 공통 NoData 컴포넌트
+> 368 |   const NoDataDisplay = ({ title, description, iconType = "chart" }: {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 369 |     title: string;
+      | ^^^^^^^^^^^^^^^^^^
+> 370 |     description: string;
+      …
+      | ^^^^^^^^^^^^^^^^^^
+> 389 |     </div>
+      | ^^^^^^^^^^^^^^^^^^
+> 390 |   );
+      | ^^^^ The component is created during render here
+  391 |
+  392 |   return (
+  393 |     <div className="app-container detail-grid">  react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx
+  209:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:209:5
+  207 |   React.useEffect(() => {
+  208 |     if (animate === undefined) return;
+> 209 |     setCurrentAnimation(typeof animate === 'string' ? animate : animation);
+      |     ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  210 |     if (animate) startAnimation(animate as TriggerProp);
+  211 |     else stopAnimation();
+  212 |     // eslint-disable-next-line react-hooks/exhaustive-deps  react-hooks/set-state-in-effect
+  243:19  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:243:19
+  241 |   React.useEffect(() => {
+  242 |     if (!animateOnView) return;
+> 243 |     if (isInView) startAnimation(animateOnView);
+      |                   ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  244 |     else stopAnimation();
+  245 |   }, [isInView, animateOnView, startAnimation, stopAnimation]);
+  246 |                                                                               react-hooks/set-state-in-effect
+  380:5   warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:380:5
+  378 |   const handleMouseEnter = composeEventHandlers<React.MouseEvent<HTMLElement>>(
+  379 |     childProps.onMouseEnter,
+> 380 |     () => {
+      |     ^^^^^^^
+> 381 |       if (animateOnHover) startAnimation(animateOnHover);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 382 |     },
+      | ^^^^^^ Passing a ref to a function may read its value during render
+  383 |   );
+  384 |
+  385 |   const handleMouseLeave = composeEventHandlers<React.MouseEvent<HTMLElement>>(                                                                                                                                                                                                                                                                              react-hooks/refs
+  387:5   warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:387:5
+  385 |   const handleMouseLeave = composeEventHandlers<React.MouseEvent<HTMLElement>>(
+  386 |     childProps.onMouseLeave,
+> 387 |     () => {
+      |     ^^^^^^^
+> 388 |       if (animateOnHover || animateOnTap) stopAnimation();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 389 |     },
+      | ^^^^^^ Passing a ref to a function may read its value during render
+  390 |   );
+  391 |
+  392 |   const handlePointerDown = composeEventHandlers<                                                                                                                                                                                                                                                                                                          react-hooks/refs
+  394:31  warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:394:31
+  392 |   const handlePointerDown = composeEventHandlers<
+  393 |     React.PointerEvent<HTMLElement>
+> 394 |   >(childProps.onPointerDown, () => {
+      |                               ^^^^^^^
+> 395 |     if (animateOnTap) startAnimation(animateOnTap);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 396 |   });
+      | ^^^^ Passing a ref to a function may read its value during render
+  397 |
+  398 |   const handlePointerUp = composeEventHandlers<React.PointerEvent<HTMLElement>>(
+  399 |     childProps.onPointerUp,                                                                                                                                                                                                                                       react-hooks/refs
+  400:5   warning  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/craigchoi/silla/cd4/components/animate-ui/icons/icon.tsx:400:5
+  398 |   const handlePointerUp = composeEventHandlers<React.PointerEvent<HTMLElement>>(
+  399 |     childProps.onPointerUp,
+> 400 |     () => {
+      |     ^^^^^^^
+> 401 |       if (animateOnTap) stopAnimation();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 402 |     },
+      | ^^^^^^ Passing a ref to a function may read its value during render
+  403 |   );
+  404 |
+  405 |   const content = asChild ? (                                                                                                                                                                                                                                                                                                                                                                  react-hooks/refs
+
+/Users/craigchoi/silla/cd4/components/animate-ui/primitives/animate/slot.tsx
+  86:6  warning  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/craigchoi/silla/cd4/components/animate-ui/primitives/animate/slot.tsx:86:6
+  84 |
+  85 |   return (
+> 86 |     <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />
+     |      ^^^^ This component is created during render
+  87 |   );
+  88 | }
+  89 |
+
+/Users/craigchoi/silla/cd4/components/animate-ui/primitives/animate/slot.tsx:75:11
+  73 |       isAlreadyMotion
+  74 |         ? (children.type as React.ElementType)
+> 75 |         : motion.create(children.type as React.ElementType),
+     |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  76 |     [isAlreadyMotion, children.type],
+  77 |   );
+  78 |  react-hooks/static-components
+
+/Users/craigchoi/silla/cd4/components/bps-chart-with-period-switcher.tsx
+  33:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-BPS-enhanced.tsx
+   15:5   warning  'formatNumberRaw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   17:5   warning  'formatNumberRatio' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   18:5   warning  'formatNumberPercent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   54:11  warning  'FormatFunctionMap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   67:13  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-BPS-enhanced.tsx:67:13
+  65 |
+  66 |         if (typeof window !== 'undefined') {
+> 67 |             setWindowWidth(window.innerWidth);
+     |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  68 |             window.addEventListener('resize', handleResize);
+  69 |             return () => window.removeEventListener('resize', handleResize);
+  70 |         }  react-hooks/set-state-in-effect
+  117:58  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  118:60  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  168:52  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-DIV.tsx
+  35:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-DIV.tsx:35:5
+  33 |
+  34 |   useEffect(() => {
+> 35 |     setIsClient(true);
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |   }, []);
+  37 |
+  38 |   const colors = useMemo(() => [  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/chart-EPS-enhanced.tsx
+   16:5   warning  'formatNumberRaw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   18:5   warning  'formatNumberRatio' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   19:5   warning  'formatNumberPercent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   54:11  warning  'FormatFunctionMap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   67:13  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-EPS-enhanced.tsx:67:13
+  65 |
+  66 |         if (typeof window !== 'undefined') {
+> 67 |             setWindowWidth(window.innerWidth);
+     |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  68 |             window.addEventListener('resize', handleResize);
+  69 |             return () => window.removeEventListener('resize', handleResize);
+  70 |         }  react-hooks/set-state-in-effect
+  110:58  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  111:60  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  168:52  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-a11y-description.tsx
+   7:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-bps-distribution.tsx
+    3:15  warning  'BarChart' is defined but never used      @typescript-eslint/no-unused-vars
+    3:31  warning  'LineChart' is defined but never used     @typescript-eslint/no-unused-vars
+  112:43  warning  'label' is defined but never used         @typescript-eslint/no-unused-vars
+  112:52  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-bps-heatmap.tsx
+  9:50  error  The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+
+/Users/craigchoi/silla/cd4/components/chart-company-marketcap.tsx
+  357:9  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-company-marketcap.tsx:357:9
+  355 |
+  356 |     useEffect(() => {
+> 357 |         setIsClient(true);
+      |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  358 |         const checkMobile = () => setIsMobile(window.innerWidth < 768);
+  359 |         checkMobile();
+  360 |         window.addEventListener('resize', checkMobile);  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/chart-dps-distribution.tsx
+    3:15  warning  'BarChart' is defined but never used      @typescript-eslint/no-unused-vars
+    3:31  warning  'LineChart' is defined but never used     @typescript-eslint/no-unused-vars
+  110:43  warning  'label' is defined but never used         @typescript-eslint/no-unused-vars
+  110:52  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-dps-growth.tsx
+  33:9  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-dps-growth.tsx:33:9
+  31 |
+  32 |     useEffect(() => {
+> 33 |         setIsClient(true);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |     }, []);
+  35 |
+  36 |     const chartData = useMemo(() => {  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/chart-dps-heatmap.tsx
+  9:50  error  The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+
+/Users/craigchoi/silla/cd4/components/chart-loading-skeleton.tsx
+  24:74  warning  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/craigchoi/silla/cd4/components/chart-loading-skeleton.tsx:24:74
+  22 |                             className="bg-gray-300 rounded-t-sm flex-1"
+  23 |                             style={{
+> 24 |                                 height: `${20 + Math.sin(i * 0.5) * 30 + Math.random() * 20}%`,
+     |                                                                          ^^^^^^^^^^^^^ Cannot call impure function
+  25 |                                 animationDelay: `${i * 0.1}s`
+  26 |                             }}
+  27 |                         />  react-hooks/purity
+
+/Users/craigchoi/silla/cd4/components/chart-marketcap.tsx
+  46:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-marketcap.tsx:46:5
+  44 |
+  45 |   useEffect(() => {
+> 46 |     setIsClient(true);
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  47 |   }, []);
+  48 |
+  49 |   // 🛡️ 데이터 안전성 검증  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/chart-per-distribution.tsx
+    3:15  warning  'BarChart' is defined but never used      @typescript-eslint/no-unused-vars
+    3:31  warning  'LineChart' is defined but never used     @typescript-eslint/no-unused-vars
+  112:43  warning  'label' is defined but never used         @typescript-eslint/no-unused-vars
+  112:52  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/components/chart-per-heatmap.tsx
+  9:48  error  The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+
+/Users/craigchoi/silla/cd4/components/chart-pie-marketcap.tsx
+   56:45  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   89:82  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  183:9   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/chart-pie-marketcap.tsx:183:9
+  181 |
+  182 |     useEffect(() => {
+> 183 |         setIsClient(true);
+      |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  184 |     }, []);
+  185 |
+  186 |     const series = useMemo(() => createMarketcapSeries(data), [data]);  react-hooks/set-state-in-effect
+  304:60  warning  'index' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/components/key-metrics-section-bps.tsx
+  43:11  warning  'getBPSChangeRate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/components/key-metrics-section-dps.tsx
+  30:5  warning  'security' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/components/marketcap-summary-expandable.tsx
+   73:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:29  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:47  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:62  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:76  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:43  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  400:51  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  402:47  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  402:55  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  404:48  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  404:53  warning  'index' is defined but never used         @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/components/marketcap/layout.ts
+  5:39  warning  '_color' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/components/navigation-collapsible.tsx
+  29:17  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/navigation-collapsible.tsx:29:17
+  27 |             if (stored !== null) {
+  28 |                 const storedCollapsed = JSON.parse(stored);
+> 29 |                 setIsCollapsed(storedCollapsed);
+     |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |                 onCollapsedChange?.(storedCollapsed);
+  31 |             }
+  32 |         }  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/recent-securities-sidebar.tsx
+  22:23  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/recent-securities-sidebar.tsx:22:23
+  20 |     const refresh = useCallback(() => setSecurities(getRecentlyViewedSecurities()), []);
+  21 |
+> 22 |     useEffect(() => { setMounted(true); refresh(); }, [pathname, refresh]);
+     |                       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |     useEffect(() => {
+  24 |         const onStorage = (event: StorageEvent) => {
+  25 |             if (event.key === 'recently-viewed-securities' || event.key === null) refresh();  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/share-button.tsx
+  48:13  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/components/share-button.tsx:48:13
+  46 |     useEffect(() => {
+  47 |         if (typeof navigator === "undefined") {
+> 48 |             setCanNativeShare(false);
+     |             ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |             return;
+  50 |         }
+  51 |  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/components/spike-chart.tsx
+  23:7   warning  The 'chartData' array makes the dependencies of useEffect Hook (at line 105) change on every render. To fix this, wrap the initialization of 'chartData' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  70:16  error    Unexpected any. Specify a different type                                                                                                                                            @typescript-eslint/no-explicit-any
+  71:16  error    Unexpected any. Specify a different type                                                                                                                                            @typescript-eslint/no-explicit-any
+  76:38  error    Unexpected any. Specify a different type                                                                                                                                            @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/db/schema-postgres.ts
+  109:4  warning  'table' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/hooks/use-collapsed-state.ts
+  16:21  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/craigchoi/silla/cd4/hooks/use-collapsed-state.ts:16:21
+  14 |                 try {
+  15 |                     const storedCollapsed = JSON.parse(stored);
+> 16 |                     setIsCollapsed(storedCollapsed);
+     |                     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |                 } catch (error) {
+  18 |                     console.warn(`Failed to parse stored value for ${storageKey}:`, error);
+  19 |                 }  react-hooks/set-state-in-effect
+
+/Users/craigchoi/silla/cd4/lib/bps-utils.ts
+  111:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/lib/data/company.ts
+  3:51  warning  'desc' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/lib/data/security.ts
+  103:11  error  'pricesBySec' is never reassigned. Use 'const' instead  prefer-const
+  168:81  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  188:37  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  392:80  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  438:80  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  459:88  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/lib/eps-utils.ts
+  202:16  warning  'weekKey' is defined but never used              @typescript-eslint/no-unused-vars
+  235:16  warning  'monthKey' is defined but never used             @typescript-eslint/no-unused-vars
+  250:11  warning  'sortedData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  270:16  warning  'yearKey' is defined but never used              @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/lib/pbr-utils.ts
+  219:16  warning  'weekKey' is defined but never used              @typescript-eslint/no-unused-vars
+  252:16  warning  'monthKey' is defined but never used             @typescript-eslint/no-unused-vars
+  267:11  warning  'sortedData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  287:16  warning  'yearKey' is defined but never used              @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/lib/per-utils.ts
+  209:12  warning  'weekKey' is defined but never used              @typescript-eslint/no-unused-vars
+  242:12  warning  'monthKey' is defined but never used             @typescript-eslint/no-unused-vars
+  257:9   warning  'sortedData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  277:12  warning  'yearKey' is defined but never used              @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/lib/security-utils.ts
+  20:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/lib/select.ts
+   9:29  warning  'price' is defined but never used                @typescript-eslint/no-unused-vars
+  12:20  warning  'desc' is defined but never used                 @typescript-eslint/no-unused-vars
+  12:30  warning  'exists' is defined but never used               @typescript-eslint/no-unused-vars
+  24:25  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  41:7   warning  'formatDate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/lib/utils.ts
+  212:13  warning  'year' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  240:51  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  244:52  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/craigchoi/silla/cd4/tailwind.config.js
+  4:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+/Users/craigchoi/silla/cd4/tests/key-metrics-sidebar.test.cjs
+  190:13  warning  'rawSibling' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  228:11  warning  'rawSibling' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  258:11  warning  'rawSibling' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/tests/security-ranking-detail.test.cjs
+  82:58  warning  '_' is defined but never used    @typescript-eslint/no-unused-vars
+  82:71  warning  '__' is defined but never used   @typescript-eslint/no-unused-vars
+  82:90  warning  '___' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/craigchoi/silla/cd4/types/nav.ts
+  16:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+  18:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+  49:12  error  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  53:24  error  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  59:20  error  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+
+✖ 208 problems (73 errors, 135 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.

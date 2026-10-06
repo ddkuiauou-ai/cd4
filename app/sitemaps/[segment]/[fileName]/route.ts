@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
+import { siteConfig } from "@/config/site";
 import { getSitemapChunks, withBaseUrl } from "@/lib/sitemap/utils";
-
-export const revalidate = 0;
 
 const buildSitemap = (entries: ReturnType<typeof withBaseUrl>) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -17,34 +16,37 @@ ${entries
   .join("\n")}
 </urlset>`;
 
-export async function generateStaticParams() {
-  if ((process.env.NEXT_OUTPUT_MODE || "").toLowerCase() !== "export") {
-    return [];
-  }
-
+async function buildSitemapStaticParams() {
   const chunks = await getSitemapChunks();
-  const params: Array<{ segment: string }> = [];
+  const params: Array<{ segment: string; fileName: string }> = [];
 
   chunks.core.forEach((_, index) => {
-    params.push({ segment: `core-${index}` });
+    params.push({ segment: `core-${index}`, fileName: "sitemap.xml" });
   });
 
   chunks.securities.forEach((_, index) => {
-    params.push({ segment: `securities-${index}` });
+    params.push({ segment: `securities-${index}`, fileName: "sitemap.xml" });
   });
 
   chunks.companies.forEach((_, index) => {
-    params.push({ segment: `companies-${index}` });
+    params.push({ segment: `companies-${index}`, fileName: "sitemap.xml" });
   });
 
   return params;
 }
 
+export const generateStaticParams = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export"
+  ? buildSitemapStaticParams
+  : undefined;
+
 export async function GET(
   request: Request,
-  context: { params: Promise<{ segment: string }> }
+  context: { params: Promise<{ segment: string; fileName: string }> }
 ) {
-  const { segment } = await context.params;
+  const { segment, fileName } = await context.params;
+  if (fileName !== "sitemap.xml") {
+    notFound();
+  }
   const chunks = await getSitemapChunks();
   const [type, rawIndex] = segment.split("-");
   const index = rawIndex ? Number(rawIndex) : 0;
@@ -72,7 +74,9 @@ export async function GET(
     notFound();
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export"
+    ? siteConfig.url
+    : new URL(request.url).origin;
   const urls = withBaseUrl(entries, new Date(), origin);
   const xml = buildSitemap(urls);
 

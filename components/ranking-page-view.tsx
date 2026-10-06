@@ -46,7 +46,7 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
               <span className={styles.basis}>{formatDate(latestDate)}{latestDate && latestDate !== "N/A" ? " 기준" : ""}</span>
             </div>
           </div>
-          {totalCount > 0 && <div className={styles.download}><CsvDownloadButton scope={scope} metric={metric} expectedDate={latestDate} /></div>}
+          {totalCount > 0 && <div className={styles.download}><CsvDownloadButton scope={scope} metric={metric} expectedDate={latestDate} expectedTotalCount={totalCount} expectedCompanyRows={scope === "company" ? rows.map(row => ({ id: row.id, rank: row.rank, priorRank: row.priorRank, value: row.value, metricDate: row.metricDate ?? null })) : undefined} /></div>}
         </header>
         {rows.length ? <>
           <ServerTable rows={rows} metric={metric} scope={scope} />

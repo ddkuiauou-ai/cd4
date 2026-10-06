@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
     BarChart,
     Bar,
+    Cell,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -111,9 +112,9 @@ export default function ChartEPSEnhanced({ data, format = "formatNumber", format
 
     // 차트 색상 결정 (EPS는 높을수록 좋음)
     const getBarColor = (value: number) => {
-        if (value > 0) return "#10B981"; // 플러스는 녹색 (이익)
-        if (value < 0) return "#EF4444"; // 마이너스는 빨간색 (손실)
-        return "#6B7280"; // 0은 회색
+        if (value > 0) return "var(--market-up)"; // 이익
+        if (value < 0) return "var(--market-down)"; // 손실
+        return "var(--chart-3)"; // 손익분기점
     };
 
     return (
@@ -137,27 +138,30 @@ export default function ChartEPSEnhanced({ data, format = "formatNumber", format
                                 bottom: 20,
                             }}
                         >
-                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                            <CartesianGrid stroke="var(--border)" vertical={false} />
                             <XAxis
                                 dataKey="displayDate"
                                 axisLine={false}
                                 tickLine={false}
                                 className="text-xs fill-muted-foreground"
-                                tick={{ fontSize: windowWidth < 640 ? 11 : 12 }}
+                                tick={{ fill: "var(--muted-foreground)", fontSize: windowWidth < 640 ? 11 : 12 }}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
                                 className="text-xs fill-muted-foreground"
-                                tick={{ fontSize: windowWidth < 640 ? 10 : 11 }}
+                                tick={{ fill: "var(--muted-foreground)", fontSize: windowWidth < 640 ? 10 : 11 }}
                                 tickFormatter={(value) => formatFunction(value)}
                                 width={windowWidth < 640 ? 60 : 80}
                             />
                             <Tooltip
                                 labelClassName="text-foreground font-medium"
+                                itemStyle={{ color: "var(--foreground)" }}
+                                cursor={{ fill: "var(--muted)" }}
                                 contentStyle={{
-                                    backgroundColor: "hsl(var(--background))",
-                                    border: "1px solid hsl(var(--border))",
+                                    backgroundColor: "var(--popover)",
+                                    color: "var(--popover-foreground)",
+                                    border: "1px solid var(--border)",
                                     borderRadius: "8px",
                                     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                                 }}
@@ -169,10 +173,14 @@ export default function ChartEPSEnhanced({ data, format = "formatNumber", format
                             />
                             <Bar
                                 dataKey="value"
-                                fill="#10B981"
+                                fill="var(--chart-3)"
                                 radius={[2, 2, 0, 0]}
                                 maxBarSize={60}
-                            />
+                            >
+                                {processedData.map((item, index) => (
+                                    <Cell key={index} fill={getBarColor(item.value)} />
+                                ))}
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -180,15 +188,15 @@ export default function ChartEPSEnhanced({ data, format = "formatNumber", format
                 {processedData.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-sm bg-green-500"></div>
+                            <div className="h-3 w-3 rounded-sm bg-market-up"></div>
                             <span>흑자 (이익)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-sm bg-red-500"></div>
+                            <div className="h-3 w-3 rounded-sm bg-market-down"></div>
                             <span>적자 (손실)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-sm bg-gray-500"></div>
+                            <div className="h-3 w-3 rounded-sm bg-chart-3"></div>
                             <span>손익분기점</span>
                         </div>
                     </div>

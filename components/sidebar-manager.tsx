@@ -1,4 +1,5 @@
 "use client";
+import type { DetailSecurity, DetailSecurityRow, DetailCompanyData, DetailRanking } from './detail-types';
 
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -12,21 +13,24 @@ import { KeyMetricsSidebar } from "./key-metrics-sidebar";
 import { RecentSecuritiesSidebar } from "./recent-securities-sidebar";
 import { PageNavigation } from "./page-navigation";
 import { InteractiveSecuritiesSection } from "./simple-interactive-securities";
-import type { MetricPeriodAnalysis, SecurityData, CompanyMarketcapData, PeriodData } from "@/types/nav";
+import type { MetricPeriodAnalysis, PeriodData } from "@/types/nav";
+import { DetailMetricFacts } from "./detail-metric-facts";
+import { METRIC_CONFIG, formatMetricValue } from "@/lib/recent-securities";
 
 interface SidebarManagerProps {
     navigationSections: Array<{ id: string; label: string; icon?: React.ReactNode }>;
     periodAnalysis: MetricPeriodAnalysis | null;
     perRank: number | null;
-    security: any; // Keep as any for now - complex security object
+    security: DetailSecurity;
     secCode: string;
+    rankDate?: string | null;
     hasCompanyMarketcapData?: boolean;
-    companySecs?: SecurityData[];
-    comparableSecuritiesWithPER?: SecurityData[];
+    companySecs?: DetailSecurityRow[];
+    comparableSecuritiesWithPER?: DetailSecurityRow[];
     currentTicker?: string;
     market?: string;
-    companyMarketcapData?: CompanyMarketcapData | any;
-    marketCapRanking?: any;
+    companyMarketcapData?: DetailCompanyData;
+    marketCapRanking?: DetailRanking;
     selectedSecurityType?: string;
     metricType?: 'per' | 'bps' | 'eps' | 'pbr' | 'dps' | 'div' | 'marketcap';
 }
@@ -37,6 +41,7 @@ export function SidebarManager({
     perRank,
     security,
     secCode,
+    rankDate,
     hasCompanyMarketcapData = false,
     companySecs = [],
     comparableSecuritiesWithPER = [],
@@ -49,6 +54,9 @@ export function SidebarManager({
 }: SidebarManagerProps) {
     const [expanded, setExpanded] = useState(false);
     const panelId = useId();
+    const metricDateValue = security[`${metricType}Date`];
+    const metricDate = metricDateValue && !Number.isNaN(new Date(metricDateValue).getTime())
+        ? new Date(metricDateValue).toISOString().slice(0, 10) : '—';
     return (
         <div className="detail-rail-content space-y-6">
             <div className="hidden xl:block"><RecentSecuritiesSidebar currentSecCode={secCode} /></div>
@@ -57,15 +65,17 @@ export function SidebarManager({
                 페이지 목차 · 핵심 지표<ChevronDown className="h-4 w-4" aria-hidden="true" />
             </button>
             <div id={panelId} className={`${expanded ? 'block' : 'hidden'} space-y-6 xl:block`}>
-            {navigationSections.length > 0 && <section className="border-t border-border pt-5">
-                <h3 className="mb-3 text-base font-semibold">이 페이지에서</h3>
-                <PageNavigation sections={navigationSections} collapsible={false} />
-            </section>}
+            {rankDate && <p className="text-xs text-muted-foreground">순위 기준 {rankDate} · 지표 기준 {metricDate}</p>}
+            {metricType !== 'marketcap' && !periodAnalysis && <DetailMetricFacts rows={[
+                [`${METRIC_CONFIG[metricType].label} 순위`, perRank != null ? `${perRank}위` : '—'],
+                [`현재 ${METRIC_CONFIG[metricType].label}`, formatMetricValue(metricType, security[metricType])],
+                ['현재 주가', formatMetricValue('bps', security.prices?.[0]?.close ?? null)],
+            ]} note="이력 데이터가 등록되면 기간별 평균과 범위가 표시됩니다." />}
             {/* 핵심 지표 사이드바 */}
             {(metricType === 'per' && periodAnalysis) && (
                 <KeyMetricsSidebarPER
                     perRank={perRank}
-                    latestPER={periodAnalysis.latestPER ?? null}
+                    latestPER={security.per ?? null}
                     per12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     per3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     per5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -79,7 +89,7 @@ export function SidebarManager({
             {(metricType === 'bps' && periodAnalysis) && (
                 <KeyMetricsSidebarBPS
                     bpsRank={perRank}
-                    latestBPS={periodAnalysis.latestBPS ?? null}
+                    latestBPS={security.bps ?? null}
                     bps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     bps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     bps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -93,7 +103,7 @@ export function SidebarManager({
             {(metricType === 'eps' && periodAnalysis) && (
                 <KeyMetricsSidebarEPS
                     epsRank={perRank}
-                    latestEPS={periodAnalysis.latestEPS ?? null}
+                    latestEPS={security.eps ?? null}
                     eps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     eps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     eps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -107,7 +117,7 @@ export function SidebarManager({
             {(metricType === 'pbr' && periodAnalysis) && (
                 <KeyMetricsSidebarPBR
                     pbrRank={perRank}
-                    latestPBR={periodAnalysis.latestPBR ?? null}
+                    latestPBR={security.pbr ?? null}
                     pbr12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     pbr3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     pbr5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -121,7 +131,7 @@ export function SidebarManager({
             {(metricType === 'dps' && periodAnalysis) && (
                 <KeyMetricsSidebarDPS
                     dpsRank={perRank}
-                    latestDPS={periodAnalysis.latestDPS ?? null}
+                    latestDPS={security.dps ?? null}
                     dps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     dps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     dps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -135,7 +145,7 @@ export function SidebarManager({
             {(metricType === 'div' && periodAnalysis) && (
                 <KeyMetricsSidebarDIV
                     divRank={perRank}
-                    latestDIV={periodAnalysis.latestDIV ?? null}
+                    latestDIV={security.div ?? null}
                     div12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
                     div3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
                     div5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
@@ -158,10 +168,15 @@ export function SidebarManager({
                         value: null
                     }}
                     selectedSecurityTypeOverride={selectedSecurityType}
+                    rankDate={rankDate}
                     currentTickerOverride={currentTicker}
                 />
             )}
 
+            {navigationSections.length > 0 && <section className="border-t border-border pt-5">
+                <h3 className="mb-3 text-base font-semibold">이 페이지에서</h3>
+                <PageNavigation sections={navigationSections} collapsible={false} />
+            </section>}
             {/* 종목별 비교 */}
             {hasCompanyMarketcapData && companySecs.length > 0 && (
                 <div className="mb-0">

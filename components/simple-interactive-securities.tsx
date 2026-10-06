@@ -1,5 +1,6 @@
 "use client";
 
+import type { DetailCompanyData, DetailSecurityRow } from './detail-types';
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -8,8 +9,8 @@ import CardMarketcap from "@/components/card-marketcap";
 import { cn, formatNumber } from "@/lib/utils";
 
 interface InteractiveSecuritiesSectionProps {
-    companyMarketcapData: any;
-    companySecs: any[];
+    companyMarketcapData: DetailCompanyData;
+    companySecs: DetailSecurityRow[];
     currentTicker: string;
     market: string;
     onTickerChange?: (newTicker: string) => void;

@@ -1,0 +1,157 @@
+
+> cd3@0.1.0 build /Users/craigchoi/silla/cd4
+> NODE_OPTIONS='--max-old-space-size=12288' NEXT_TELEMETRY_DISABLED=1 next build
+
+▲ Next.js 16.3.8 (Turbopack)
+- Environments: .env
+✓ Running next.config.ts took 118ms
+- Experiments (use with caution):
+  · cpus: 4
+  ✓ memoryBasedWorkersCount
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1574ms
+  Running TypeScript ...
+  Finished TypeScript in 3.9s ...
+  Collecting page data using 4 workers ...
+[GENERATE_STATIC_PARAMS] Generating PBR pages for 9 common stocks
+  Generating static pages using 4 workers (0/334) ...
+  Generating static pages using 4 workers (83/334) 
+  Generating static pages using 4 workers (166/334) 
+  Generating static pages using 4 workers (250/334) 
+✓ Generating static pages using 4 workers (334/334) in 22.2s
+  Finalizing page optimization ...
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+Database connections closed successfully
+
+Route (app)                                 Revalidate  Expire
+┌ ○ /                                               5m      1y
+├ ○ /_not-found
+├ ○ /bps                                            5m      1y
+├   /bps/[page]
+│ ├ ● /bps/2                                        5m      1y
+│ ├ ● /bps/3                                        5m      1y
+│ ├ ● /bps/4                                        5m      1y
+│ └ ● [+23 more paths]
+├   /company/[secCode]
+│ ├ ● /company/KOSPI.005930                         5m      1y
+│ ├ ● /company/KOSPI.000660                         5m      1y
+│ ├ ● /company/KOSPI.373220                         5m      1y
+│ └ ● [+7 more paths]
+├   /company/[secCode]/marketcap
+│ ├ ● /company/KOSPI.005930/marketcap               5m      1y
+│ ├ ● /company/KOSPI.000660/marketcap               5m      1y
+│ ├ ● /company/KOSPI.373220/marketcap               5m      1y
+│ └ ● [+7 more paths]
+├ ○ /dashboard                                      5m      1y
+├ ○ /div                                            5m      1y
+├   /div/[page]
+│ ├ ● /div/2                                        5m      1y
+│ ├ ● /div/3                                        5m      1y
+│ ├ ● /div/4                                        5m      1y
+│ └ ● [+23 more paths]
+├ ○ /dps                                            5m      1y
+├   /dps/[page]
+│ ├ ● /dps/2                                        5m      1y
+│ ├ ● /dps/3                                        5m      1y
+│ ├ ● /dps/4                                        5m      1y
+│ └ ● [+23 more paths]
+├ ○ /eps                                            5m      1y
+├   /eps/[page]
+│ ├ ● /eps/2                                        5m      1y
+│ ├ ● /eps/3                                        5m      1y
+│ ├ ● /eps/4                                        5m      1y
+│ └ ● [+23 more paths]
+├ ○ /marketcap                                      5m      1y
+├   /marketcap/[page]
+│ ├ ● /marketcap/2                                  5m      1y
+│ ├ ● /marketcap/3                                  5m      1y
+│ ├ ● /marketcap/4                                  5m      1y
+│ └ ● [+25 more paths]
+├ ○ /marketcaps                                     5m      1y
+├   /marketcaps/[page]
+│ ├ ● /marketcaps/1                                 5m      1y
+│ ├ ● /marketcaps/2                                 5m      1y
+│ ├ ● /marketcaps/3                                 5m      1y
+│ └ ● [+24 more paths]
+├ ○ /opengraph-image.png
+├ ○ /pbr                                            5m      1y
+├   /pbr/[page]
+│ ├ ● /pbr/2                                        5m      1y
+│ ├ ● /pbr/3                                        5m      1y
+│ ├ ● /pbr/4                                        5m      1y
+│ └ ● [+23 more paths]
+├ ○ /per                                            5m      1y
+├   /per/[page]
+│ ├ ● /per/2                                        5m      1y
+│ ├ ● /per/3                                        5m      1y
+│ ├ ● /per/4                                        5m      1y
+│ └ ● [+23 more paths]
+├ ○ /ranking-data/companies-marketcap.csv           5m      1y
+├ ○ /ranking-data/securities-bps.csv                5m      1y
+├ ○ /ranking-data/securities-div.csv                5m      1y
+├ ○ /ranking-data/securities-dps.csv                5m      1y
+├ ○ /ranking-data/securities-eps.csv                5m      1y
+├ ○ /ranking-data/securities-marketcap.csv          5m      1y
+├ ○ /ranking-data/securities-pbr.csv                5m      1y
+├ ○ /ranking-data/securities-per.csv                5m      1y
+├ ○ /search-data.json                               5m      1y
+├   /security/[secCode]
+│ ├ ● /security/KOSPI.005930                        5m      1y
+│ ├ ● /security/KOSPI.000660                        5m      1y
+│ ├ ● /security/KOSPI.373220                        5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/bps
+│ ├ ● /security/KOSPI.003240/bps                    5m      1y
+│ ├ ● /security/KOSPI.005490/bps                    5m      1y
+│ ├ ● /security/KOSPI.002030/bps                    5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/div
+│ ├ ● /security/KOSDAQ.038390/div                   5m      1y
+│ ├ ● /security/KOSPI.009240/div                    5m      1y
+│ ├ ● /security/KOSDAQ.096240/div                   5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/dps
+│ ├ ● /security/KOSPI.002960/dps                    5m      1y
+│ ├ ● /security/KOSPI.000815/dps                    5m      1y
+│ ├ ● /security/KOSPI.000810/dps                    5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/eps
+│ ├ ● /security/KOSPI.003240/eps                    5m      1y
+│ ├ ● /security/KOSPI.306200/eps                    5m      1y
+│ ├ ● /security/KOSPI.000810/eps                    5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/marketcap
+│ ├ ● /security/KOSPI.005930/marketcap              5m      1y
+│ ├ ● /security/KOSPI.000660/marketcap              5m      1y
+│ ├ ● /security/KOSPI.373220/marketcap              5m      1y
+│ └ ● [+7 more paths]
+├   /security/[secCode]/pbr
+│ ├ ● /security/KOSDAQ.226950/pbr                   5m      1y
+│ ├ ● /security/KOSDAQ.196170/pbr                   5m      1y
+│ ├ ● /security/KOSDAQ.082270/pbr                   5m      1y
+│ └ ● [+6 more paths]
+├   /security/[secCode]/per
+│ ├ ● /security/KOSPI.322000/per                    5m      1y
+│ ├ ● /security/KOSDAQ.054210/per                   5m      1y
+│ ├ ● /security/KOSDAQ.277810/per                   5m      1y
+│ └ ● [+7 more paths]
+├ ƒ /sitemap.xml
+└ ƒ /sitemaps/[segment]/[fileName]
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

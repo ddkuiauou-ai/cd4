@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTheme } from "next-themes";
+import { chartColorWithAlpha, readChartColors } from "./chart-theme";
 import type {
   AreaData,
   BusinessDay,
@@ -32,8 +34,8 @@ interface CandlestickPoint {
 }
 
 const MOVING_AVERAGE_CONFIGS = [
-  { period: 5, color: "#f97316", label: "5일 이평" },
-  { period: 10, color: "#0ea5e9", label: "10일 이평" },
+  { period: 5, color: "var(--brand-ink)", label: "5일 이평" },
+  { period: 10, color: "var(--muted-foreground)", label: "10일 이평" },
 ] as const;
 
 type MovingAverageConfig = (typeof MOVING_AVERAGE_CONFIGS)[number];
@@ -135,15 +137,6 @@ function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && error.name === "NotFoundError";
 }
 
-function removeTradingViewAttribution() {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const nodes = document.querySelectorAll("#tv-attr-logo");
-  nodes.forEach((node) => node.remove());
-}
-
 function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null {
   if (volume === null || volume === undefined) {
     return null;
@@ -166,7 +159,6 @@ function normalizeVolumeValue(volume: CandlestickPoint["volume"]): number | null
   return null;
 }
 
-const VOLUME_ACCENT_RGB = "38, 166, 154";
 const VOLUME_UNIT_DIVISOR = 10_000;
 
 const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
@@ -174,7 +166,7 @@ const koreanPriceFormatter = new Intl.NumberFormat("ko-KR", {
   minimumFractionDigits: 0,
 });
 
-const volumeAccent = (alpha: number) => `rgba(${VOLUME_ACCENT_RGB}, ${alpha})`;
+const volumeAccent = (alpha: number) => chartColorWithAlpha(readChartColors().volume, alpha);
 
 const koreanVolumeTenThousandsFormatter = new Intl.NumberFormat("ko-KR", {
   maximumFractionDigits: 1,
@@ -298,6 +290,7 @@ interface CandlestickChartProps {
 }
 
 export function CandlestickChart({ data }: CandlestickChartProps) {
+  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -516,7 +509,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     }
 
     container.replaceChildren();
-    container.replaceChildren();
+    const colors = readChartColors();
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = normalizeColor(
       computedStyle.getPropertyValue("--foreground"),
@@ -538,8 +531,8 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         },
       },
       grid: {
-        horzLines: { color: "rgba(148, 163, 184, 0.16)" },
-        vertLines: { color: "rgba(148, 163, 184, 0.16)" },
+        horzLines: { color: borderColor },
+        vertLines: { color: borderColor },
       },
       leftPriceScale: {
         visible: false,
@@ -565,12 +558,12 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
     });
 
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#D60000",
-      downColor: "#0051C7",
-      borderUpColor: "#B80000",
-      borderDownColor: "#003C9D",
-      wickUpColor: "#D60000",
-      wickDownColor: "#0051C7",
+      upColor: colors.up,
+      downColor: colors.down,
+      borderUpColor: colors.up,
+      borderDownColor: colors.down,
+      wickUpColor: colors.up,
+      wickDownColor: colors.down,
       priceFormat: { type: "price", precision: 0, minMove: 1 },
       priceScaleId: "right",
     });
@@ -580,9 +573,9 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       ISeriesApi<"Line">
     >();
 
-    MOVING_AVERAGE_CONFIGS.forEach(({ period, color }) => {
+    MOVING_AVERAGE_CONFIGS.forEach(({ period }) => {
       const series = chart.addSeries(LineSeries, {
-        color,
+        color: period === 5 ? colors.average : colors.muted,
         lineWidth: 2,
         priceScaleId: "right",
         priceLineVisible: false,
@@ -611,7 +604,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     const tooltip = document.createElement("div");
     tooltip.className =
-      "pointer-events-none absolute z-20 whitespace-nowrap rounded-lg border border-border/80 bg-background/95 px-3 py-2 text-left text-[11px] shadow-lg ring-1 ring-black/5 backdrop-blur-sm";
+      "pointer-events-none absolute z-20 whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-left text-[11px] text-popover-foreground shadow-lg";
     tooltip.style.position = "absolute";
     tooltip.style.left = "0px";
     tooltip.style.top = "0px";
@@ -819,12 +812,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
 
     chart.subscribeCrosshairMove(handleCrosshairMove);
 
-    const removeAttributionFrame = requestAnimationFrame(() => {
-      removeTradingViewAttribution();
-    });
-
     return () => {
-      cancelAnimationFrame(removeAttributionFrame);
       chart.unsubscribeCrosshairMove(handleCrosshairMove);
       if (tooltipRef.current) {
         tooltipRef.current.remove();
@@ -982,15 +970,10 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       chart.timeScale().fitContent();
     }
 
-    const attributionFrame = requestAnimationFrame(() => {
-      removeTradingViewAttribution();
-    });
-
     return () => {
       if (animationFrame !== undefined) {
         cancelAnimationFrame(animationFrame);
       }
-      cancelAnimationFrame(attributionFrame);
     };
   }, [
     candlesticks,
@@ -1003,6 +986,58 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
   ]);
 
 
+  useEffect(() => {
+    // Read after next-themes applies its root class in the parent effect.
+    const frame = requestAnimationFrame(() => {
+      const chart = chartRef.current;
+      if (!chart) return;
+
+      const colors = readChartColors();
+      chart.applyOptions({
+        layout: {
+          textColor: colors.foreground,
+          background: { type: ColorType.Solid, color: "transparent" },
+          panes: {
+            separatorColor: colors.border,
+            separatorHoverColor: colors.muted,
+          },
+        },
+        grid: {
+          horzLines: { color: colors.border },
+          vertLines: { color: colors.border },
+        },
+        leftPriceScale: { borderColor: colors.border },
+        rightPriceScale: { borderColor: colors.border },
+        timeScale: { borderColor: colors.border },
+        crosshair: {
+          horzLine: { color: colors.muted, labelBackgroundColor: colors.muted },
+          vertLine: { color: colors.muted, labelBackgroundColor: colors.muted },
+        },
+      });
+      priceSeriesRef.current?.applyOptions({
+        upColor: colors.up,
+        downColor: colors.down,
+        borderUpColor: colors.up,
+        borderDownColor: colors.down,
+        wickUpColor: colors.up,
+        wickDownColor: colors.down,
+      });
+      movingAverageSeriesRef.current.forEach((series, period) => {
+        series.applyOptions({ color: period === 5 ? colors.average : colors.muted });
+      });
+      volumeSeriesRef.current?.applyOptions({
+        lineColor: colors.volume,
+        topColor: chartColorWithAlpha(colors.volume, 0.28),
+        bottomColor: chartColorWithAlpha(colors.volume, 0.05),
+        baseLineColor: colors.border,
+      });
+      if (volumePaneRef.current) {
+        chart.priceScale("volume", volumePaneRef.current.paneIndex())
+          .applyOptions({ borderColor: colors.border });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [resolvedTheme, hasCandlestickData, hasVolumeData]);
 
   if (!hasCandlestickData) {
     return (

@@ -453,21 +453,31 @@ function loadDetailPage(kind, metric, queries) {
     loaded.set(filename, mod);
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = (name) => {
+      if (name.startsWith(".")) name = `@/${path.relative(root, path.resolve(path.dirname(filename), name))}`;
       if (name === "@/lib/data/company") return queries;
       if (name === "@/lib/data/security") return { ...queries,
         getBpsRank: async () => null, getPerRank: async () => null,
         getPbrRank: async () => null, getEpsRank: async () => null,
         getDivRank: async () => null, getDpsRank: async () => null };
       if (name === "@/lib/data/ranking") return { getSecurityRank: async () => null };
+      if (name === "@/lib/data/security-ranking-detail") return {
+        getSecurityMetricDetailRanking: async () => ({ currentRank: null, rankDate: null }),
+        getSecurityMetricDetailRank: async () => null,
+        getBpsRank: async () => null, getPerRank: async () => null,
+        getPbrRank: async () => null, getEpsRank: async () => null,
+        getDivRank: async () => null, getDpsRank: async () => null,
+      };
       if (name === "@/lib/select") return { ...queries, getSecurityMarketCapRanking: async () => null };
       if (name === "next/navigation") return {
         usePathname: () => `/security/KOSDAQ.0001A0/${metric}`,
         notFound() { throw new Error("fixture-page-not-found"); },
       };
       if (name === "next/link") return { __esModule: true,
-        default: ({ href, children }) => React.createElement("a", { href }, children) };
+        default: ({ href, children, ...attributes }) => React.createElement("a", { ...attributes, href }, children) };
       if ((name.startsWith("@/components/") && !["@/components/marketcap/layout",
-          "@/components/security-metric-empty", "@/components/company-financial-tabs"].includes(name)) ||
+          "@/components/security-metric-empty", "@/components/detail-metric-empty",
+          "@/components/company-financial-tabs", "@/components/simple-interactive-securities",
+          "@/components/card-marketcap"].includes(name)) ||
           ["lucide-react", "@radix-ui/react-icons"].includes(name)) {
         return new Proxy({ __esModule: true }, { get(target, key) {
           if (key in target) return target[key];
@@ -475,7 +485,8 @@ function loadDetailPage(kind, metric, queries) {
             const id = `${name}:${key}`;
             if (!props.has(id)) props.set(id, []);
             props.get(id).push(value);
-            return React.createElement(React.Fragment, null, value.children);
+            return React.createElement(React.Fragment, null, value.children,
+              name === "@/components/sticky-company-header" ? value.actions : null);
           };
         } });
       }
@@ -564,20 +575,140 @@ test("company history periods are measured from the latest data date", async () 
   assert.equal(metrics.companyMarketcapData.totalMarketcapDate, "2025-09-22T00:00:00.000Z");
 });
 
-test("a security marketcap page retains notFound when it has no history", async () => {
+test("a known security without marketcap history keeps its snapshot, metric navigation and one header share action", async () => {
   const { db, state } = historicalFixture();
   state.marketcaps = [];
+  state.security.marketcap = 3_600_000_000;
+  state.security.marketcapDate = new Date("2026-10-02T00:00:00Z");
+  state.security.prices = [{ date: new Date("2026-10-01T00:00:00Z"), close: 36_000 }];
+  state.names = [
+    { ...state.security, companyId: "company-1" },
+    { securityId: "security-preferred", companyId: "company-1", exchange: "KOSDAQ",
+      ticker: "0001B0", type: "우선주", name: "History preferred", korName: "이력기업우",
+      marketcap: 500_000_000, prices: [] },
+  ];
+  const { html, props } = await renderMarketcapPage("security", loadQueries(db, "production", "export"));
+  assert.match(html, /시가총액 이력이 아직 등록되지 않았습니다/);
+  const summary = props.get("@/components/header-rank:default")[0];
+  assert.equal(summary.marketcap, 3_600_000_000);
+  assert.equal(summary.marketcapDate, "2026-10-02T00:00:00.000Z");
+  assert.equal(summary.price, 36_000);
+  assert.equal(summary.priceDate, "2026-10-01T00:00:00.000Z");
+  assert.equal(props.get("@/components/sidebar-manager:SidebarManager")[0].selectedSecurityType, "보통주");
+  for (const metric of ["marketcap", "per", "pbr", "eps", "bps", "div", "dps"]) {
+    assert.match(html, new RegExp(`href="/security/KOSDAQ\\.0001A0/${metric}"`));
+  }
+  assert.match(html, /href="\/company\/KOSDAQ\.0001A0\/marketcap"/);
+  assert.match(html, /href="\/security\/KOSDAQ\.0001B0\/marketcap"/);
+  assert.match(html, /href="\/security\/KOSDAQ\.0001A0"/);
+  assert.equal(props.get("@/components/share-button:default").length, 1);
+  assert.match(props.get("@/components/share-button:default")[0].url, /\/security\/KOSDAQ\.0001A0\/marketcap\/$/);
+  assert.equal(props.has("@/components/CsvDownloadButton:CsvDownloadButton"), false);
+});
+
+for (const snapshot of [null, 0]) {
+  test(`a known security with no marketcap history preserves snapshot ${snapshot} without a fabricated history value`, async () => {
+    const { db, state } = historicalFixture();
+    state.marketcaps = [];
+    state.security.marketcap = snapshot;
+    const { html, props } = await renderMarketcapPage("security", loadQueries(db, "production", "export"));
+    assert.match(html, /시가총액 이력이 아직 등록되지 않았습니다/);
+    assert.equal(props.get("@/components/header-rank:default")[0].marketcap, snapshot ?? undefined);
+    assert.equal(props.get("@/components/recent-security-tracker:RecentSecurityTracker")[0].metricValue, snapshot);
+    assert.equal(props.has("@/components/chart-marketcap:default"), false);
+  });
+}
+
+test("a preferred security with no snapshot, history or family rows keeps its company and current-security links", async () => {
+  const { db, state } = historicalFixture();
+  state.security.type = "우선주";
+  state.security.korName = "이력기업우";
+  state.marketcaps = [];
+  const { html, props } = await renderMarketcapPage("security", loadQueries(db, "production", "export"));
+  assert.match(html, /href="\/company\/KOSDAQ\.0001A0\/marketcap"/);
+  assert.match(html, /href="\/security\/KOSDAQ\.0001A0\/marketcap"/);
+  assert.equal((html.match(/data-sec-id="security-1"/g) || []).length, 1);
+  assert.equal(props.get("@/components/share-button:default").length, 1);
+  const rail = props.get("@/components/sidebar-manager:SidebarManager")[0];
+  assert.deepEqual(rail.companySecs.map(item => item.securityId), ["security-1"]);
+  assert.equal(rail.hasCompanyMarketcapData, true);
+  assert.equal(rail.selectedSecurityType, "우선주");
+});
+
+for (const snapshot of [null, 0]) {
+  test(`an empty preferred detail keeps the common company URL and includes the current snapshot ${snapshot} row exactly once`, async () => {
+    const { db, state } = historicalFixture();
+    state.marketcaps = [];
+    state.security.type = "우선주";
+    state.security.korName = "이력기업우";
+    state.security.marketcap = snapshot;
+    state.names = [
+      { securityId: "security-common", companyId: "company-1", exchange: "KOSDAQ", ticker: "0001C0",
+        type: "보통주", name: "History common", korName: "이력기업", marketcap: 3_600_000_000, prices: [] },
+      state.security,
+    ];
+    const { html, props } = await renderMarketcapPage("security", loadQueries(db, "production", "export"));
+    assert.match(html, /href="\/company\/KOSDAQ\.0001C0\/marketcap"/);
+    assert.doesNotMatch(html, /href="\/company\/KOSDAQ\.0001A0\/marketcap"/);
+    assert.equal((html.match(/data-sec-id="security-1"/g) || []).length, 1);
+    assert.match(html, /aria-current="page"[^>]*data-sec-id="security-1"/);
+    const rail = props.get("@/components/sidebar-manager:SidebarManager")[0];
+    assert.deepEqual(rail.companySecs.map(item => item.securityId), ["security-common", "security-1"]);
+    assert.equal(props.get("@/components/share-button:default").length, 1);
+  });
+}
+
+test("a known security with no valid marketcap history renders the same navigable empty state", async () => {
+  const { db, state } = historicalFixture();
+  state.security.companyId = null;
+  state.marketcaps = [
+    { securityId: "security-1", date: "not-a-date", marketcap: 100 },
+    { securityId: "security-1", date: new Date("2026-10-02T00:00:00Z"), marketcap: null },
+    { securityId: "security-1", date: new Date("2026-10-02T00:00:00Z"), marketcap: "invalid" },
+  ];
+  const { html, props } = await renderMarketcapPage("security", loadQueries(db, "production", "export"));
+  assert.match(html, /시가총액 이력이 아직 등록되지 않았습니다/);
+  assert.match(html, /href="\/security\/KOSDAQ\.0001A0\/per"/);
+  assert.equal(props.get("@/components/share-button:default").length, 1);
+});
+
+test("an unknown security marketcap page retains notFound before reading its history", async () => {
+  const { db, state } = historicalFixture();
+  state.security = null;
   await assert.rejects(renderMarketcapPage("security", loadQueries(db, "production", "export")), /fixture-page-not-found/);
+  assert.equal(state.calls.marketcap, undefined);
+  assert.equal(state.calls.aggregate, undefined);
+});
+
+test("a security marketcap history DB failure propagates, while a later empty result remains navigable", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const { db, state } = historicalFixture();
+  state.security.companyId = null;
+  state.marketcaps = [];
+  const queries = loadQueries(db, "production", "export");
+  state.faults.add("marketcap");
+  await assert.rejects(renderMarketcapPage("security", queries), /fixture-marketcap-unavailable/);
+  state.faults.clear();
+  const { html } = await renderMarketcapPage("security", queries);
+  assert.match(html, /시가총액 이력이 아직 등록되지 않았습니다/);
+  assert.equal(state.calls.marketcap, 2);
 });
 
 for (const metric of ["per", "pbr", "eps", "bps", "div", "dps"]) {
   test(`${metric}: a known security without metrics history renders a normal empty page`, async () => {
     const { db } = historicalFixture();
-    const { html } = await renderDetailPage("security", metric, loadQueries(db, "production", "export"));
+    const { html, props } = await renderDetailPage("security", metric, loadQueries(db, "production", "export"));
     assert.match(html, /이력이 아직 등록되지 않았습니다/);
     assert.match(html, /이력기업/);
     assert.match(html, /href="\/security\/KOSDAQ\.0001A0\/marketcap"/);
-    assert.doesNotMatch(html, /0원|기준|\d{4}-\d{2}-\d{2}/);
+    assert.match(html, /지표 기준 — · 순위 기준 —/);
+    assert.doesNotMatch(html, /0원|\d{4}-\d{2}-\d{2}/);
+    assert.equal(props.get("@/components/sticky-company-header:StickyCompanyHeader").length, 1);
+    assert.equal(props.get("@/components/share-button:default").length, 1);
+    assert.match(props.get("@/components/share-button:default")[0].url,
+      new RegExp(`/security/KOSDAQ\\.0001A0/${metric}/$`));
+    assert.match(html, /href="\/security\/KOSDAQ\.0001A0"/);
+    assert.match(html, /href="\/company\/KOSDAQ\.0001A0\/marketcap"/);
   });
 
   test(`${metric}: an unknown security retains notFound`, async () => {

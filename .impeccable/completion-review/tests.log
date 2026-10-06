@@ -1,0 +1,1070 @@
+
+> cd3@0.1.0 test /Users/craigchoi/silla/cd4
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: same-name preferred securities retain distinct identity, labels and raw values
+ok 1 - same-name preferred securities retain distinct identity, labels and raw values
+  ---
+  duration_ms: 1.709375
+  type: 'test'
+  ...
+# Subtest: selection follows the exact security ID across order changes and never falls back to all preferred shares
+ok 2 - selection follows the exact security ID across order changes and never falls back to all preferred shares
+  ---
+  duration_ms: 0.29725
+  type: 'test'
+  ...
+# Subtest: chart-company-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 3 - chart-company-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 1023.00525
+  type: 'test'
+  ...
+# Subtest: chart-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 4 - chart-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 188.659042
+  type: 'test'
+  ...
+# Subtest: chart-pie-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 5 - chart-pie-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 171.863125
+  type: 'test'
+  ...
+# Subtest: chart-company-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+ok 6 - chart-company-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+  ---
+  duration_ms: 646.899625
+  type: 'test'
+  ...
+# Subtest: chart-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+ok 7 - chart-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+  ---
+  duration_ms: 211.203167
+  type: 'test'
+  ...
+# Subtest: pie selection follows security identity across equal names and reordered slices, and leaves company composition neutral
+ok 8 - pie selection follows security identity across equal names and reordered slices, and leaves company composition neutral
+  ---
+  duration_ms: 287.041166
+  type: 'test'
+  ...
+# Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).
+# Subtest: candlestick: theme changes update canvas colors while preserving data and zoom
+ok 9 - candlestick: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 1161.977375
+  type: 'test'
+  ...
+# Subtest: PER-enhanced: theme changes update canvas colors while preserving data and zoom
+ok 10 - PER-enhanced: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 288.325584
+  type: 'test'
+  ...
+# Subtest: PBR-enhanced: theme changes update canvas colors while preserving data and zoom
+ok 11 - PBR-enhanced: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 167.61875
+  type: 'test'
+  ...
+# Subtest: chart-company-marketcap.tsx: empty → populated → empty data preserves hook order
+ok 12 - chart-company-marketcap.tsx: empty → populated → empty data preserves hook order
+  ---
+  duration_ms: 2820.816125
+  type: 'test'
+  ...
+# Subtest: chart-marketcap.tsx: empty → populated → empty data preserves hook order
+ok 13 - chart-marketcap.tsx: empty → populated → empty data preserves hook order
+  ---
+  duration_ms: 360.093833
+  type: 'test'
+  ...
+# Subtest: company chart renders the axis break at finite coordinates using the Recharts 3 chart context
+ok 14 - company chart renders the axis break at finite coordinates using the Recharts 3 chart context
+  ---
+  duration_ms: 438.34175
+  type: 'test'
+  ...
+# Subtest: DPS growth chart keeps horizontal grid lines and dividend-first legend with named axes
+ok 15 - DPS growth chart keeps horizontal grid lines and dividend-first legend with named axes
+  ---
+  duration_ms: 578.131625
+  type: 'test'
+  ...
+# Subtest: per heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 16 - per heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 338.75275
+  type: 'test'
+  ...
+# Subtest: bps heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 17 - bps heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 63.503292
+  type: 'test'
+  ...
+# Subtest: dps heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 18 - dps heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 179.321875
+  type: 'test'
+  ...
+# Subtest: a completed empty dashboard shows an empty state instead of a loading skeleton
+ok 19 - a completed empty dashboard shows an empty state instead of a loading skeleton
+  ---
+  duration_ms: 818.833917
+  type: 'test'
+  ...
+# Subtest: a company without prices still renders its market cap and marks prices as unavailable
+ok 20 - a company without prices still renders its market cap and marks prices as unavailable
+  ---
+  duration_ms: 348.740083
+  type: 'test'
+  ...
+# Subtest: different market-cap and price dates remain distinct and the total is not the page length
+ok 21 - different market-cap and price dates remain distinct and the total is not the page length
+  ---
+  duration_ms: 85.695917
+  type: 'test'
+  ...
+# Subtest: dashboard keeps the overview in the main content before trends and a five-company preview
+ok 22 - dashboard keeps the overview in the main content before trends and a five-company preview
+  ---
+  duration_ms: 488.290208
+  type: 'test'
+  ...
+# Subtest: a trend with a known change and missing close price keeps the missing price distinct from zero
+ok 23 - a trend with a known change and missing close price keeps the missing price distinct from zero
+  ---
+  duration_ms: 84.457458
+  type: 'test'
+  ...
+# Subtest: PER current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 24 - PER current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 806.543917
+  type: 'test'
+  ...
+# Subtest: PER financial comparisons identify their actual average targets without changing the calculations
+ok 25 - PER financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 205.294958
+  type: 'test'
+  ...
+# Subtest: PBR current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 26 - PBR current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 474.068459
+  type: 'test'
+  ...
+# Subtest: PBR financial comparisons identify their actual average targets without changing the calculations
+ok 27 - PBR financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 390.385791
+  type: 'test'
+  ...
+# Subtest: EPS current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 28 - EPS current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 403.990333
+  type: 'test'
+  ...
+# Subtest: EPS financial comparisons identify their actual average targets without changing the calculations
+ok 29 - EPS financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 144.162666
+  type: 'test'
+  ...
+# Subtest: one real history date renders its recorded values without mounting a trend chart
+ok 30 - one real history date renders its recorded values without mounting a trend chart
+  ---
+  duration_ms: 814.294667
+  type: 'test'
+  ...
+# Subtest: the three-month filter can leave one date and still renders the compact observation state
+ok 31 - the three-month filter can leave one date and still renders the compact observation state
+  ---
+  duration_ms: 91.662042
+  type: 'test'
+  ...
+# Subtest: sparse history keeps exact security selection, including same-name preferred stock, recorded zero and missing values
+ok 32 - sparse history keeps exact security selection, including same-name preferred stock, recorded zero and missing values
+  ---
+  duration_ms: 339.8135
+  type: 'test'
+  ...
+# Subtest: multiple recorded dates retain the chart with their actual range and unchanged values
+ok 33 - multiple recorded dates retain the chart with their actual range and unchanged values
+  ---
+  duration_ms: 106.736042
+  type: 'test'
+  ...
+# Subtest: company snapshot and representative price keep their independent dates beside their values in SSR
+ok 34 - company snapshot and representative price keep their independent dates beside their values in SSR
+  ---
+  duration_ms: 142.895875
+  type: 'test'
+  ...
+# (node:85509) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: sidebar and actual metrics section agree on each current marketcap/date pair, including individual history and zero
+ok 35 - sidebar and actual metrics section agree on each current marketcap/date pair, including individual history and zero
+  ---
+  duration_ms: 2029.229375
+  type: 'test'
+  ...
+# Subtest: actual security history keeps mixed and all-zero statistics while absent or invalid records remain missing in both surfaces
+ok 36 - actual security history keeps mixed and all-zero statistics while absent or invalid records remain missing in both surfaces
+  ---
+  duration_ms: 1519.07125
+  type: 'test'
+  ...
+# Subtest: selected period comparisons include zero, retain execution-day cutoffs and company statistics retain aggregate totals
+ok 37 - selected period comparisons include zero, retain execution-day cutoffs and company statistics retain aggregate totals
+  ---
+  duration_ms: 494.516292
+  type: 'test'
+  ...
+# Subtest: history period means stay empty when stale records fall outside today's cutoff rather than the final history date
+ok 38 - history period means stay empty when stale records fall outside today's cutoff rather than the final history date
+  ---
+  duration_ms: 535.565792
+  type: 'test'
+  ...
+# Subtest: current price uses the same stored daily rate as the actual security card instead of comparing sparse closes
+ok 39 - current price uses the same stored daily rate as the actual security card instead of comparing sparse closes
+  ---
+  duration_ms: 280.332583
+  type: 'test'
+  ...
+# Subtest: an individual selection keeps its own daily rate while company composition uses its representative security
+ok 40 - an individual selection keeps its own daily rate while company composition uses its representative security
+  ---
+  duration_ms: 272.107334
+  type: 'test'
+  ...
+# Subtest: current marketcap comparison is tied to the displayed snapshot's own date and value, not later history
+ok 41 - current marketcap comparison is tied to the displayed snapshot's own date and value, not later history
+  ---
+  duration_ms: 852.89
+  type: 'test'
+  ...
+# Subtest: company composition comparison uses its dated total while historical fallback uses the actual final selected record
+ok 42 - company composition comparison uses its dated total while historical fallback uses the actual final selected record
+  ---
+  duration_ms: 181.705833
+  type: 'test'
+  ...
+# Subtest: a cold company failure is not cached as an empty company page; retry recovers
+ok 43 - a cold company failure is not cached as an empty company page; retry recovers
+  ---
+  duration_ms: 608.744
+  type: 'test'
+  ...
+# Subtest: a cold count failure is not cached as an empty company page; retry recovers
+ok 44 - a cold count failure is not cached as an empty company page; retry recovers
+  ---
+  duration_ms: 268.086208
+  type: 'test'
+  ...
+# Subtest: a cold price failure is not cached as an empty company page; retry recovers
+ok 45 - a cold price failure is not cached as an empty company page; retry recovers
+  ---
+  duration_ms: 260.308333
+  type: 'test'
+  ...
+# Subtest: search query failure propagates and the same request recovers
+ok 46 - search query failure propagates and the same request recovers
+  ---
+  duration_ms: 238.024667
+  type: 'test'
+  ...
+# Subtest: development reads reflect DB changes without retaining an empty result
+ok 47 - development reads reflect DB changes without retaining an empty result
+  ---
+  duration_ms: 292.878209
+  type: 'test'
+  ...
+# Subtest: a legitimate empty result is distinguishable from a failure and expires
+ok 48 - a legitimate empty result is distinguishable from a failure and expires
+  ---
+  duration_ms: 386.75675
+  type: 'test'
+  ...
+# Subtest: failed warm revalidation preserves good data and a later refresh recovers
+ok 49 - failed warm revalidation preserves good data and a later refresh recovers
+  ---
+  duration_ms: 236.591208
+  type: 'test'
+  ...
+# Subtest: the new cache namespace does not reuse an old empty entry
+ok 50 - the new cache namespace does not reuse an old empty entry
+  ---
+  duration_ms: 241.619375
+  type: 'test'
+  ...
+# Subtest: financial dates have the same ISO DTO on cold, warm and development reads
+ok 51 - financial dates have the same ISO DTO on cold, warm and development reads
+  ---
+  duration_ms: 428.256416
+  type: 'test'
+  ...
+# Subtest: a top-level undefined result is retained without a serialization error
+ok 52 - a top-level undefined result is retained without a serialization error
+  ---
+  duration_ms: 120.3625
+  type: 'test'
+  ...
+# Subtest: getSecurityByCode: a DB failure rejects, leaves no cache and can recover
+ok 53 - getSecurityByCode: a DB failure rejects, leaves no cache and can recover
+  ---
+  duration_ms: 343.32375
+  type: 'test'
+  ...
+# Subtest: getMarketCapHistoryBySecurityId: a DB failure rejects, leaves no cache and can recover
+ok 54 - getMarketCapHistoryBySecurityId: a DB failure rejects, leaves no cache and can recover
+  ---
+  duration_ms: 216.4585
+  type: 'test'
+  ...
+# Subtest: getSecurityMetricsHistory: a DB failure rejects, leaves no cache and can recover
+ok 55 - getSecurityMetricsHistory: a DB failure rejects, leaves no cache and can recover
+  ---
+  duration_ms: 226.617333
+  type: 'test'
+  ...
+# Subtest: getCompanyAggregatedMarketcap: a DB failure rejects, leaves no cache and can recover
+ok 56 - getCompanyAggregatedMarketcap: a DB failure rejects, leaves no cache and can recover
+  ---
+  duration_ms: 173.680375
+  type: 'test'
+  ...
+# Subtest: an absent security is a normal cached null and becomes available after revalidation
+ok 57 - an absent security is a normal cached null and becomes available after revalidation
+  ---
+  duration_ms: 192.918583
+  type: 'test'
+  ...
+# Subtest: static export reads a fresh build snapshot and never reuses the server cache
+ok 58 - static export reads a fresh build snapshot and never reuses the server cache
+  ---
+  duration_ms: 1000.778916
+  type: 'test'
+  ...
+# Subtest: failed static export reads are evicted and retried, and large query retention is bounded
+ok 59 - failed static export reads are evicted and retried, and large query retention is bounded
+  ---
+  duration_ms: 234.460083
+  type: 'test'
+  ...
+# Subtest: static export name-list failure propagates instead of generating missing pages
+ok 60 - static export name-list failure propagates instead of generating missing pages
+  ---
+  duration_ms: 224.158792
+  type: 'test'
+  ...
+# Subtest: export code queries include active history-only securities and omit delisted company URLs
+ok 61 - export code queries include active history-only securities and omit delisted company URLs
+  ---
+  duration_ms: 219.956417
+  type: 'test'
+  ...
+# Subtest: server static params retain their ten ranked securities and ten distinct companies
+ok 62 - server static params retain their ten ranked securities and ten distinct companies
+  ---
+  duration_ms: 195.278792
+  type: 'test'
+  ...
+# Subtest: a company without a current snapshot uses its latest real history value and date
+ok 63 - a company without a current snapshot uses its latest real history value and date
+  ---
+  duration_ms: 181.08525
+  type: 'test'
+  ...
+# Subtest: a company with neither a current snapshot nor history is normally absent
+ok 64 - a company with neither a current snapshot nor history is normally absent
+  ---
+  duration_ms: 211.121667
+  type: 'test'
+  ...
+# Subtest: all four common-stock metric params include export securities without current marketcap
+ok 65 - all four common-stock metric params include export securities without current marketcap
+  ---
+  duration_ms: 709.507917
+  type: 'test'
+  ...
+# Subtest: security marketcap page displays history when current marketcap is missing
+ok 66 - security marketcap page displays history when current marketcap is missing
+  ---
+  duration_ms: 233.222125
+  type: 'test'
+  ...
+# Subtest: company marketcap page displays history when current marketcap is missing
+ok 67 - company marketcap page displays history when current marketcap is missing
+  ---
+  duration_ms: 201.021958
+  type: 'test'
+  ...
+# Subtest: a company marketcap page retains its normal empty state without current data or history
+ok 68 - a company marketcap page retains its normal empty state without current data or history
+  ---
+  duration_ms: 140.352667
+  type: 'test'
+  ...
+# Subtest: company history periods are measured from the latest data date
+ok 69 - company history periods are measured from the latest data date
+  ---
+  duration_ms: 152.526
+  type: 'test'
+  ...
+# Subtest: a known security without marketcap history keeps its snapshot, metric navigation and one header share action
+ok 70 - a known security without marketcap history keeps its snapshot, metric navigation and one header share action
+  ---
+  duration_ms: 141.998
+  type: 'test'
+  ...
+# Subtest: a known security with no marketcap history preserves snapshot null without a fabricated history value
+ok 71 - a known security with no marketcap history preserves snapshot null without a fabricated history value
+  ---
+  duration_ms: 124.0015
+  type: 'test'
+  ...
+# Subtest: a known security with no marketcap history preserves snapshot 0 without a fabricated history value
+ok 72 - a known security with no marketcap history preserves snapshot 0 without a fabricated history value
+  ---
+  duration_ms: 107.695875
+  type: 'test'
+  ...
+# Subtest: a preferred security with no snapshot, history or family rows keeps its company and current-security links
+ok 73 - a preferred security with no snapshot, history or family rows keeps its company and current-security links
+  ---
+  duration_ms: 125.271458
+  type: 'test'
+  ...
+# Subtest: an empty preferred detail keeps the common company URL and includes the current snapshot null row exactly once
+ok 74 - an empty preferred detail keeps the common company URL and includes the current snapshot null row exactly once
+  ---
+  duration_ms: 110.257542
+  type: 'test'
+  ...
+# Subtest: an empty preferred detail keeps the common company URL and includes the current snapshot 0 row exactly once
+ok 75 - an empty preferred detail keeps the common company URL and includes the current snapshot 0 row exactly once
+  ---
+  duration_ms: 127.746875
+  type: 'test'
+  ...
+# Subtest: a known security with no valid marketcap history renders the same navigable empty state
+ok 76 - a known security with no valid marketcap history renders the same navigable empty state
+  ---
+  duration_ms: 142.837042
+  type: 'test'
+  ...
+# Subtest: an unknown security marketcap page retains notFound before reading its history
+ok 77 - an unknown security marketcap page retains notFound before reading its history
+  ---
+  duration_ms: 327.394291
+  type: 'test'
+  ...
+# Subtest: a security marketcap history DB failure propagates, while a later empty result remains navigable
+ok 78 - a security marketcap history DB failure propagates, while a later empty result remains navigable
+  ---
+  duration_ms: 204.979291
+  type: 'test'
+  ...
+# Subtest: per: a known security without metrics history renders a normal empty page
+ok 79 - per: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 119.645209
+  type: 'test'
+  ...
+# Subtest: per: an unknown security retains notFound
+ok 80 - per: an unknown security retains notFound
+  ---
+  duration_ms: 101.745667
+  type: 'test'
+  ...
+# Subtest: per: a DB history failure propagates and a later request recovers
+ok 81 - per: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 172.409834
+  type: 'test'
+  ...
+# Subtest: pbr: a known security without metrics history renders a normal empty page
+ok 82 - pbr: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 104.144959
+  type: 'test'
+  ...
+# Subtest: pbr: an unknown security retains notFound
+ok 83 - pbr: an unknown security retains notFound
+  ---
+  duration_ms: 110.336792
+  type: 'test'
+  ...
+# Subtest: pbr: a DB history failure propagates and a later request recovers
+ok 84 - pbr: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 153.297333
+  type: 'test'
+  ...
+# Subtest: eps: a known security without metrics history renders a normal empty page
+ok 85 - eps: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 96.383334
+  type: 'test'
+  ...
+# Subtest: eps: an unknown security retains notFound
+ok 86 - eps: an unknown security retains notFound
+  ---
+  duration_ms: 103.244166
+  type: 'test'
+  ...
+# Subtest: eps: a DB history failure propagates and a later request recovers
+ok 87 - eps: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 158.175041
+  type: 'test'
+  ...
+# Subtest: bps: a known security without metrics history renders a normal empty page
+ok 88 - bps: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 127.41525
+  type: 'test'
+  ...
+# Subtest: bps: an unknown security retains notFound
+ok 89 - bps: an unknown security retains notFound
+  ---
+  duration_ms: 142.304792
+  type: 'test'
+  ...
+# Subtest: bps: a DB history failure propagates and a later request recovers
+ok 90 - bps: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 188.142708
+  type: 'test'
+  ...
+# Subtest: div: a known security without metrics history renders a normal empty page
+ok 91 - div: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 113.88625
+  type: 'test'
+  ...
+# Subtest: div: an unknown security retains notFound
+ok 92 - div: an unknown security retains notFound
+  ---
+  duration_ms: 116.11425
+  type: 'test'
+  ...
+# Subtest: div: a DB history failure propagates and a later request recovers
+ok 93 - div: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 173.021833
+  type: 'test'
+  ...
+# Subtest: dps: a known security without metrics history renders a normal empty page
+ok 94 - dps: a known security without metrics history renders a normal empty page
+  ---
+  duration_ms: 126.136375
+  type: 'test'
+  ...
+# Subtest: dps: an unknown security retains notFound
+ok 95 - dps: an unknown security retains notFound
+  ---
+  duration_ms: 109.788292
+  type: 'test'
+  ...
+# Subtest: dps: a DB history failure propagates and a later request recovers
+ok 96 - dps: a DB history failure propagates and a later request recovers
+  ---
+  duration_ms: 160.691209
+  type: 'test'
+  ...
+# Subtest: every security metadata function uses its own canonical and OG URL with existing OG fields retained
+ok 97 - every security metadata function uses its own canonical and OG URL with existing OG fields retained
+  ---
+  duration_ms: 406.320458
+  type: 'test'
+  ...
+# Subtest: company base and marketcap metadata have separate URLs and identify the actual company
+ok 98 - company base and marketcap metadata have separate URLs and identify the actual company
+  ---
+  duration_ms: 122.946958
+  type: 'test'
+  ...
+# Subtest: dashboard metadata overrides its URL while root canonical stays at home
+ok 99 - dashboard metadata overrides its URL while root canonical stays at home
+  ---
+  duration_ms: 45.505
+  type: 'test'
+  ...
+# Subtest: security ranking has its own URL while the identical company ranking alias keeps the home canonical
+ok 100 - security ranking has its own URL while the identical company ranking alias keeps the home canonical
+  ---
+  duration_ms: 21.408
+  type: 'test'
+  ...
+# Subtest: missing security metadata preserves the existing missing-record response
+ok 101 - missing security metadata preserves the existing missing-record response
+  ---
+  duration_ms: 6.434625
+  type: 'test'
+  ...
+# Subtest: dated ranking metadata does not claim real-time data
+ok 102 - dated ranking metadata does not claim real-time data
+  ---
+  duration_ms: 48.319916
+  type: 'test'
+  ...
+# Subtest: the actual PBR page exports all eligible history with empty missing BPS, real zero, dates and filename
+ok 103 - the actual PBR page exports all eligible history with empty missing BPS, real zero, dates and filename
+  ---
+  duration_ms: 604.682875
+  type: 'test'
+  ...
+# Subtest: CSV preserves the chart path's history eligibility and ordering without inheriting its BPS zero fallback
+ok 104 - CSV preserves the chart path's history eligibility and ordering without inheriting its BPS zero fallback
+  ---
+  duration_ms: 280.604458
+  type: 'test'
+  ...
+# Subtest: CSV preserves UTF-8 BOM, real newlines, quotes, leading-zero ticker, zero and negative values
+ok 105 - CSV preserves UTF-8 BOM, real newlines, quotes, leading-zero ticker, zero and negative values
+  ---
+  duration_ms: 3.148375
+  type: 'test'
+  ...
+# Subtest: detail serialization escapes headers and keeps the supplied row/column order
+ok 106 - detail serialization escapes headers and keeps the supplied row/column order
+  ---
+  duration_ms: 0.09275
+  type: 'test'
+  ...
+# Subtest: company CSV compares visible rows across mixed dates and later pages without assuming one reference date
+ok 107 - company CSV compares visible rows across mixed dates and later pages without assuming one reference date
+  ---
+  duration_ms: 0.443667
+  type: 'test'
+  ...
+# Subtest: all metric units and eight fixed download URLs are scope-specific
+ok 108 - all metric units and eight fixed download URLs are scope-specific
+  ---
+  duration_ms: 0.417
+  type: 'test'
+  ...
+# Subtest: company files retain mixed row dates without inventing a company rank snapshot
+ok 109 - company files retain mixed row dates without inventing a company rank snapshot
+  ---
+  duration_ms: 0.147416
+  type: 'test'
+  ...
+# Subtest: empty, HTML, truncated and inconsistent ranking files are rejected
+ok 110 - empty, HTML, truncated and inconsistent ranking files are rejected
+  ---
+  duration_ms: 0.181542
+  type: 'test'
+  ...
+# Subtest: whole security export pins the date once, preserves all 205 ranks and excludes delisted/unranked rows
+ok 111 - whole security export pins the date once, preserves all 205 ranks and excludes delisted/unranked rows
+  ---
+  duration_ms: 600.420833
+  type: 'test'
+  ...
+# Subtest: company export uses the listed common-stock predicate and retains zero/null/mixed-date values
+ok 112 - company export uses the listed common-stock predicate and retains zero/null/mixed-date values
+  ---
+  duration_ms: 388.245458
+  type: 'test'
+  ...
+# Subtest: security metric order shares the existing value-descending vs rank-ascending contract
+ok 113 - security metric order shares the existing value-descending vs rank-ascending contract
+  ---
+  duration_ms: 159.08875
+  type: 'test'
+  ...
+# Subtest: empty exports return an error status and DB failures propagate instead of a successful CSV
+ok 114 - empty exports return an error status and DB failures propagate instead of a successful CSV
+  ---
+  duration_ms: 215.840375
+  type: 'test'
+  ...
+# Subtest: all eight fixed GET handlers produce the matching CSV response without request values
+ok 115 - all eight fixed GET handlers produce the matching CSV response without request values
+  ---
+  duration_ms: 36.04275
+  type: 'test'
+  ...
+# Subtest: countSecurityRanks: latest failure is not cached; retry recovers
+ok 116 - countSecurityRanks: latest failure is not cached; retry recovers
+  ---
+  duration_ms: 1128.446041
+  type: 'test'
+  ...
+# Subtest: countSecurityRanks: count failure is not cached; retry recovers
+ok 117 - countSecurityRanks: count failure is not cached; retry recovers
+  ---
+  duration_ms: 297.9615
+  type: 'test'
+  ...
+# Subtest: getSecurityRanksPage: latest failure is not cached; retry recovers
+ok 118 - getSecurityRanksPage: latest failure is not cached; retry recovers
+  ---
+  duration_ms: 227.083916
+  type: 'test'
+  ...
+# Subtest: getSecurityRanksPage: rows failure is not cached; retry recovers
+ok 119 - getSecurityRanksPage: rows failure is not cached; retry recovers
+  ---
+  duration_ms: 337.930542
+  type: 'test'
+  ...
+# Subtest: getSecurityRanksPage: price failure is not cached; retry recovers
+ok 120 - getSecurityRanksPage: price failure is not cached; retry recovers
+  ---
+  duration_ms: 283.346125
+  type: 'test'
+  ...
+# Subtest: normal absence of a ranking expires and resolves to the new snapshot
+ok 121 - normal absence of a ranking expires and resolves to the new snapshot
+  ---
+  duration_ms: 215.864375
+  type: 'test'
+  ...
+# Subtest: development rereads the rank date, list and count after an empty result
+ok 122 - development rereads the rank date, list and count after an empty result
+  ---
+  duration_ms: 260.769083
+  type: 'test'
+  ...
+# Subtest: failed revalidation preserves the previous ranking, then refreshes after recovery
+ok 123 - failed revalidation preserves the previous ranking, then refreshes after recovery
+  ---
+  duration_ms: 168.349292
+  type: 'test'
+  ...
+# Subtest: company basis and update timestamp do not come from newer representative prices
+ok 124 - company basis and update timestamp do not come from newer representative prices
+  ---
+  duration_ms: 179.652458
+  type: 'test'
+  ...
+# Subtest: missing or invalid timestamps are unavailable, without a fabricated update time
+ok 125 - missing or invalid timestamps are unavailable, without a fabricated update time
+  ---
+  duration_ms: 140.300375
+  type: 'test'
+  ...
+# Subtest: fallback security rank: latest failure rejects instead of caching a missing rank
+ok 126 - fallback security rank: latest failure rejects instead of caching a missing rank
+  ---
+  duration_ms: 108.646916
+  type: 'test'
+  ...
+# Subtest: fallback security rank: rank failure rejects instead of caching a missing rank
+ok 127 - fallback security rank: rank failure rejects instead of caching a missing rank
+  ---
+  duration_ms: 184.896792
+  type: 'test'
+  ...
+# Subtest: a missing effective rank date stays absent, then the cached fallback rank refreshes
+ok 128 - a missing effective rank date stays absent, then the cached fallback rank refreshes
+  ---
+  duration_ms: 179.094208
+  type: 'test'
+  ...
+# Subtest: company aggregate links and values stay distinct from the representative common stock
+ok 129 - company aggregate links and values stay distinct from the representative common stock
+  ---
+  duration_ms: 2.455417
+  type: 'test'
+  ...
+# Subtest: missing prices or representative security do not remove a ranked entity or fabricate links
+ok 130 - missing prices or representative security do not remove a ranked entity or fabricate links
+  ---
+  duration_ms: 0.588333
+  type: 'test'
+  ...
+# Subtest: every metric preserves null, zero, negative values, its detail URL, and raw security identity
+ok 131 - every metric preserves null, zero, negative values, its detail URL, and raw security identity
+  ---
+  duration_ms: 24.721875
+  type: 'test'
+  ...
+# Subtest: rank movement separates unchanged, unknown, improvement, decline, and large moves from prices
+ok 132 - rank movement separates unchanged, unknown, improvement, decline, and large moves from prices
+  ---
+  duration_ms: 0.268625
+  type: 'test'
+  ...
+# Subtest: page boundaries expose all first twenty then the next hundred without overlap or an empty next link
+ok 133 - page boundaries expose all first twenty then the next hundred without overlap or an empty next link
+  ---
+  duration_ms: 0.315834
+  type: 'test'
+  ...
+# Subtest: detail neighbor selection independently handles first, middle, last, gaps, and missing ranks
+ok 134 - detail neighbor selection independently handles first, middle, last, gaps, and missing ranks
+  ---
+  duration_ms: 0.221292
+  type: 'test'
+  ...
+# Subtest: both actual first-page company routes render all twenty entries and export the whole scoped ranking
+ok 135 - both actual first-page company routes render all twenty entries and export the whole scoped ranking
+  ---
+  duration_ms: 917.927792
+  type: 'test'
+  ...
+# Subtest: all seven actual metric pages keep security scope, sort semantics, and every first-page row
+ok 136 - all seven actual metric pages keep security scope, sort semantics, and every first-page row
+  ---
+  duration_ms: 1892.225375
+  type: 'test'
+  ...
+# Subtest: all seven metric page-two routes render the complete hundred rows and last-page previous URL
+ok 137 - all seven metric page-two routes render the complete hundred rows and last-page previous URL
+  ---
+  duration_ms: 1354.580125
+  type: 'test'
+  ...
+# Subtest: completed empty rankings show absence without a loading claim or download/pager action
+ok 138 - completed empty rankings show absence without a loading claim or download/pager action
+  ---
+  duration_ms: 47.895917
+  type: 'test'
+  ...
+# Subtest: company page two keeps one hundred entities and routes back to the first-page base
+ok 139 - company page two keeps one hundred entities and routes back to the first-page base
+  ---
+  duration_ms: 160.786416
+  type: 'test'
+  ...
+# Subtest: invalid and absent metric pages cannot render an impossible ranking page
+ok 140 - invalid and absent metric pages cannot render an impossible ranking page
+  ---
+  duration_ms: 142.301584
+  type: 'test'
+  ...
+# Subtest: search waits for menu activation and deduplicates concurrent requests and reopenings
+ok 141 - search waits for menu activation and deduplicates concurrent requests and reopenings
+  ---
+  duration_ms: 254.470833
+  type: 'test'
+  ...
+# Subtest: the client revalidates after 300 seconds instead of retaining old search data forever
+ok 142 - the client revalidates after 300 seconds instead of retaining old search data forever
+  ---
+  duration_ms: 18.9425
+  type: 'test'
+  ...
+# Subtest: HTTP errors and malformed JSON evict failed requests and allow retry
+ok 143 - HTTP errors and malformed JSON evict failed requests and allow retry
+  ---
+  duration_ms: 41.31975
+  type: 'test'
+  ...
+# Subtest: unsubscribing one menu does not abort the request or prevent another menu receiving data
+ok 144 - unsubscribing one menu does not abort the request or prevent another menu receiving data
+  ---
+  duration_ms: 42.463708
+  type: 'test'
+  ...
+# Subtest: the static GET exports only the search fields and preserves the ticker route identity
+ok 145 - the static GET exports only the search fields and preserves the ticker route identity
+  ---
+  duration_ms: 4.567125
+  type: 'test'
+  ...
+# Subtest: company and common-stock selections reach different real routes and close the menu
+ok 146 - company and common-stock selections reach different real routes and close the menu
+  ---
+  duration_ms: 371.692708
+  type: 'test'
+  ...
+# Subtest: preferred stocks and every other search security category use the exchange and ticker
+ok 147 - preferred stocks and every other search security category use the exchange and ticker
+  ---
+  duration_ms: 246.564375
+  type: 'test'
+  ...
+# Subtest: a common stock without a company only exposes the security destination
+ok 148 - a common stock without a company only exposes the security destination
+  ---
+  duration_ms: 40.445542
+  type: 'test'
+  ...
+# Subtest: search shows loading and a usable retry instead of an empty-result message on failure
+ok 149 - search shows loading and a usable retry instead of an empty-result message on failure
+  ---
+  duration_ms: 80.858209
+  type: 'test'
+  ...
+# Subtest: detail rank uses stored latest metric snapshot, never an index or a current-value count
+ok 150 - detail rank uses stored latest metric snapshot, never an index or a current-value count
+  ---
+  duration_ms: 817.086292
+  type: 'test'
+  ...
+# Subtest: detail rank and date come from the same fixed evidence even if a newer snapshot arrives during lookup
+ok 151 - detail rank and date come from the same fixed evidence even if a newer snapshot arrives during lookup
+  ---
+  duration_ms: 502.52625
+  type: 'test'
+  ...
+# Subtest: every metric alias uses its own latest snapshot and common listed population
+ok 152 - every metric alias uses its own latest snapshot and common listed population
+  ---
+  duration_ms: 217.217125
+  type: 'test'
+  ...
+# Subtest: nearest neighbors handle gaps independently and exclude current/tied, stale, delisted and unranked rows
+ok 153 - nearest neighbors handle gaps independently and exclude current/tied, stale, delisted and unranked rows
+  ---
+  duration_ms: 123.908666
+  type: 'test'
+  ...
+# Subtest: first and last metric ranks retain the independently available side
+ok 154 - first and last metric ranks retain the independently available side
+  ---
+  duration_ms: 159.37425
+  type: 'test'
+  ...
+# Subtest: both neighbor queries keep the same date when a newer snapshot arrives after date lookup
+ok 155 - both neighbor queries keep the same date when a newer snapshot arrives after date lookup
+  ---
+  duration_ms: 153.783292
+  type: 'test'
+  ...
+# Subtest: detail evidence date pins both neighbor queries to its snapshot without a second latest-date lookup
+ok 156 - detail evidence date pins both neighbor queries to its snapshot without a second latest-date lookup
+  ---
+  duration_ms: 138.125917
+  type: 'test'
+  ...
+# Subtest: normal absence and invalid ranks perform no impossible neighbor reads
+ok 157 - normal absence and invalid ranks perform no impossible neighbor reads
+  ---
+  duration_ms: 163.742333
+  type: 'test'
+  ...
+# Subtest: query failures reject instead of becoming successful empty results, then a retry recovers
+ok 158 - query failures reject instead of becoming successful empty results, then a retry recovers
+  ---
+  duration_ms: 103.2935
+  type: 'test'
+  ...
+# Subtest: the real toast renderer exposes copy/share failures and pinning keeps a single control group
+ok 159 - the real toast renderer exposes copy/share failures and pinning keeps a single control group
+  ---
+  duration_ms: 1292.804042
+  type: 'test'
+  ...
+# Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).
+# Subtest: site provider follows system changes and persists a manual choice across mounts
+ok 160 - site provider follows system changes and persists a manual choice across mounts
+  ---
+  duration_ms: 1091.902875
+  type: 'test'
+  ...
+# (node:85603) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: sitemap index in export lists every generated chunk with the correct origin
+ok 161 - sitemap index in export lists every generated chunk with the correct origin
+  ---
+  duration_ms: 358.82
+  type: 'test'
+  ...
+# Subtest: core, security and company sitemap responses in export preserve all paths and headers
+ok 162 - core, security and company sitemap responses in export preserve all paths and headers
+  ---
+  duration_ms: 128.249625
+  type: 'test'
+  ...
+# Subtest: sitemap chunk boundaries in export retain the final security and company entries
+ok 163 - sitemap chunk boundaries in export retain the final security and company entries
+  ---
+  duration_ms: 46.39175
+  type: 'test'
+  ...
+# Subtest: generateStaticParams in export enumerates every chunk
+ok 164 - generateStaticParams in export enumerates every chunk
+  ---
+  duration_ms: 82.403333
+  type: 'test'
+  ...
+# Subtest: invalid sitemap filenames in export return Next's 404 before any queries
+ok 165 - invalid sitemap filenames in export return Next's 404 before any queries
+  ---
+  duration_ms: 55.687292
+  type: 'test'
+  ...
+# Subtest: sitemap index in standalone lists every generated chunk with the correct origin
+ok 166 - sitemap index in standalone lists every generated chunk with the correct origin
+  ---
+  duration_ms: 59.816458
+  type: 'test'
+  ...
+# Subtest: core, security and company sitemap responses in standalone preserve all paths and headers
+ok 167 - core, security and company sitemap responses in standalone preserve all paths and headers
+  ---
+  duration_ms: 29.640375
+  type: 'test'
+  ...
+# Subtest: sitemap chunk boundaries in standalone retain the final security and company entries
+ok 168 - sitemap chunk boundaries in standalone retain the final security and company entries
+  ---
+  duration_ms: 76.113042
+  type: 'test'
+  ...
+# Subtest: generateStaticParams in standalone is absent without queries
+ok 169 - generateStaticParams in standalone is absent without queries
+  ---
+  duration_ms: 26.585458
+  type: 'test'
+  ...
+# Subtest: invalid sitemap filenames in standalone return Next's 404 before any queries
+ok 170 - invalid sitemap filenames in standalone return Next's 404 before any queries
+  ---
+  duration_ms: 77.341583
+  type: 'test'
+  ...
+# Subtest: an unset output mode keeps the request origin and does not generate static chunk params
+ok 171 - an unset output mode keeps the request origin and does not generate static chunk params
+  ---
+  duration_ms: 49.390958
+  type: 'test'
+  ...
+# Subtest: installed Next skips static-param collection for standalone sitemap chunks
+ok 172 - installed Next skips static-param collection for standalone sitemap chunks
+  ---
+  duration_ms: 141.517583
+  type: 'test'
+  ...
+# Subtest: native standalone route handling reads each request origin without static-generation errors
+ok 173 - native standalone route handling reads each request origin without static-generation errors
+  ---
+  duration_ms: 251.70325
+  type: 'test'
+  ...
+# Subtest: installed Next collects both sitemap params instead of treating the route as a static metadata file
+ok 174 - installed Next collects both sitemap params instead of treating the route as a static metadata file
+  ---
+  duration_ms: 48.28025
+  type: 'test'
+  ...
+# Subtest: static sitemap excludes both exported error layouts while preserving real pages
+ok 175 - static sitemap excludes both exported error layouts while preserving real pages
+  ---
+  duration_ms: 22.679417
+  type: 'test'
+  ...
+1..175
+# tests 175
+# suites 0
+# pass 175
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12715.195584

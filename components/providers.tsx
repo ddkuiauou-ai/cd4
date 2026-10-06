@@ -6,12 +6,13 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return (
     <JotaiProvider>
       <NextThemesProvider {...props}>
-        <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+        <TooltipProvider delayDuration={0}>{children}<Toaster /></TooltipProvider>
       </NextThemesProvider>
     </JotaiProvider>
   );

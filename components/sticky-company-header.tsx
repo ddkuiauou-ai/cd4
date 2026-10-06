@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import CompanyLogo from '@/components/CompanyLogo';
 import { useMobileHeader } from '@/components/mobile-header-context';
 import { COMPANY_HEADER_PIN_EVENT } from '@/components/share-events';
 import { cn } from '@/lib/utils';
@@ -69,14 +68,13 @@ export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyO
 
     return <>
         <div ref={sentinel} aria-hidden="true" className="h-px" />
-        <div ref={bar} data-detail-header className={cn('sticky z-30 bg-background py-4', pinned && 'border-b border-border py-2')}
+        <div ref={bar} data-detail-header className={cn('sticky z-30 bg-background py-2', pinned && 'border-b border-border py-2')}
             style={{ top: offset }}>
             <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                    <CompanyLogo companyName={companyName || displayName} logoUrl={logoUrl} size={pinned ? 36 : 48} className="shrink-0" />
                     <div className="min-w-0">
-                        <h1 className={cn('break-keep font-bold tracking-tight', pinned ? 'text-lg sm:text-xl' : 'text-2xl sm:text-[32px]')}>
-                            {displayName}<span className="ml-2 text-sm font-medium text-muted-foreground">{titleSuffix}</span>
+                        <h1 className={cn('break-keep [overflow-wrap:anywhere] font-bold tracking-tight sm:[overflow-wrap:normal]', pinned ? 'text-lg sm:text-xl' : 'text-2xl sm:text-[32px]')}>
+                            {displayName}<span className="mt-1 block text-sm font-medium text-muted-foreground sm:ml-2 sm:mt-0 sm:inline">{titleSuffix}</span>
                         </h1>
                         <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             {titleBadge && <span>{titleBadge}</span>}
@@ -85,7 +83,7 @@ export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyO
                         </div>
                     </div>
                 </div>
-                {actions && <div className="hidden shrink-0 sm:block">{actions}</div>}
+                {actions && <div className="detail-share shrink-0">{actions}</div>}
             </div>
         </div>
     </>;

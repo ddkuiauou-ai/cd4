@@ -17,6 +17,7 @@ import {
 import { useTheme } from "next-themes";
 
 import { cn } from "@/lib/utils";
+import { Search } from "lucide-react";
 import { useSearchData } from "@/components/search-data";
 
 import { Button } from "@/components/ui/button";
@@ -57,8 +58,10 @@ export function CommandMenu() {
       }
     };
 
+    const openSearch = () => setOpen(true);
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    window.addEventListener("app:open-search", openSearch);
+    return () => { document.removeEventListener("keydown", down); window.removeEventListener("app:open-search", openSearch); };
   }, []);
 
   const runCommand = React.useCallback((command: () => unknown) => {
@@ -71,14 +74,13 @@ export function CommandMenu() {
       <Button
         variant="outline"
         className={cn(
-          "relative h-10 w-full justify-start rounded-md bg-background text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64"
+          "relative h-10 w-full justify-start rounded-md bg-background text-sm font-normal text-muted-foreground shadow-none sm:pr-12 "
         )}
         onClick={() => setOpen(true)}
       >
         <div className="flex items-center space-x-2 w-full">
-          <span className="text-lg">🔍</span>
-          <span className="hidden lg:inline-flex">기업 · 종목 검색...</span>
-          <span className="inline-flex lg:hidden">검색...</span>
+          <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>기업 · 종목 검색</span>
         </div>
         <kbd className="pointer-events-none absolute right-[0.3rem] top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K

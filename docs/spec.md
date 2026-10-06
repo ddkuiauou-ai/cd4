@@ -39,10 +39,12 @@
 
 ### Database
 
-- **Drizzle ORM**: v0.43.1
-- **PostgreSQL**: @libsql/client v0.15.7
-- **drizzle-kit**: v0.31.1 (Migration tools)
-- **Additional DB drivers**: pg v8.16.0, postgres v3.4.6
+- **Database**: PostgreSQL only
+- **Drizzle ORM**: v0.45.3, using `drizzle-orm/postgres-js`
+- **PostgreSQL driver**: `postgres` v3.4.9
+- **drizzle-kit**: v0.31.11 (SQL generation and migration tools)
+- **Schema**: `db/schema-postgres.ts`; committed PostgreSQL migrations in `drizzle/`
+- **Installation and existing database baseline**: [PostgreSQL guide](postgresql.md)
 - **Context7**: MCP server for technical guidance and clarification
 
 ### Performance & Optimization
@@ -71,10 +73,9 @@
 - **ESLint**: v9.x
 - **@eslint/eslintrc**: v3.x
 - **@types/node**: v20.x
-- **@types/pg**: v8.15.2
 - **@types/react**: v19.1.5
 - **@types/react-dom**: v19.1.5
-- **drizzle-kit**: v0.31.1
+- **drizzle-kit**: v0.31.11
 - **@tailwindcss/postcss**: v4.x
 - **tailwindcss**: v4.x
 - **tw-animate-css**: v1.3.0
@@ -233,9 +234,9 @@
 │   ├── docs.ts                    # Documentation configuration
 │   └── site.ts                    # Site configuration
 ├── db/                            # Database schema and utilities
-│   ├── index.ts                   # Database connection
-│   ├── schema-postgres.ts         # PostgreSQL schema
-│   └── schema-turso.ts            # Turso/SQLite schema
+│   ├── connection.ts              # Shared PostgreSQL connection resolver
+│   ├── index.ts                   # PostgreSQL connection using postgres-js
+│   └── schema-postgres.ts         # Maintained PostgreSQL schema
 ├── docs/                          # Documentation
 │   ├── ui.md                      # UI guidelines, shadcn/ui components and responsive design patterns
 │   ├── spec.md                    # This technical specification
@@ -253,7 +254,8 @@
 │   ├── site.webmanifest           # Web app manifest
 │   └── images/                    # Image assets
 ├── components.json                # shadcn/ui configuration
-├── drizzle.config.ts              # Drizzle ORM configuration
+├── drizzle.config.ts              # Offline PostgreSQL schema/migration configuration
+├── drizzle.connection.config.ts   # Connected PostgreSQL migration/Studio configuration
 ├── eslint.config.mjs              # ESLint configuration
 ├── next-env.d.ts                  # Next.js TypeScript declarations
 ├── next.config.ts                 # Next.js configuration
@@ -355,10 +357,13 @@ All scripts should be run using pnpm:
 
 ### Database
 
-- `pnpm drizzle-kit generate`: Generate database migrations
-- `pnpm drizzle-kit migrate`: Run database migrations
-- `pnpm drizzle-kit push`: Push schema changes to database
-- `pnpm drizzle-kit studio`: Open Drizzle Studio
+- `pnpm db:generate`: Generate PostgreSQL migration SQL without connecting to a database
+- `pnpm db:check`: Check the committed migration history without connecting to a database
+- `pnpm db:migrate`: Apply pending PostgreSQL migrations to the configured database
+- `pnpm db:studio`: Connect Drizzle Studio to the configured PostgreSQL database
+- `pnpm test:db`: Verify schema installation against an isolated temporary PostgreSQL database
+
+Review generated SQL before applying it. The initial migration is for an empty database. For existing tables and data, follow the comparison and baseline process in the [PostgreSQL guide](postgresql.md); the package scripts do not establish a baseline automatically. `db:check` does not compare the live database schema with the TypeScript schema.
 
 ### Component Management
 
@@ -378,8 +383,11 @@ All scripts should be run using pnpm:
 
 ### Database Configuration
 
-- **Drizzle**: PostgreSQL with @libsql/client adapter
-- **PostgreSQL and Turso**: Supporting both database providers
+- **Drizzle**: PostgreSQL with the `drizzle-orm/postgres-js` adapter and `postgres` driver
+- **Supported database**: PostgreSQL only; no cd4 Turso, libSQL, or SQLite schema/driver path
+- **Schema and migrations**: `db/schema-postgres.ts` and the PostgreSQL history under `drizzle/`; see [installation and baseline procedure](postgresql.md)
+- **Offline configuration**: `drizzle.config.ts` for generation and migration-history checks
+- **Connection configuration**: `drizzle.connection.config.ts` for migration and Studio; uses the same `db/connection.ts` resolver as the runtime
 
 ## Design Philosophy
 

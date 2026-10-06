@@ -2,6 +2,8 @@
 
 기준일: 2026-10-04, Asia/Seoul. cd4 기준 커밋은 `5ceb6c2`(커밋일 2025-10-04)이다. 이 문서는 현재 체크아웃의 소스·설정·lockfile·설치된 패키지를 확인한 기록이다. 이후 별도 채팅에서 라이브러리를 업데이트하고 기존 문서를 현행화할 때 출발점으로 사용한다. 여기에 적힌 버전은 조사 당시 프로젝트 버전이며, 인터넷에서 확인한 최신 버전이 아니다.
 
+**2026-10-06 후속 DB 정리:** cd4는 PostgreSQL 전용으로 정리했다. 현재 adapter는 `drizzle-orm/postgres-js`, driver는 `postgres`이며, `db/schema-postgres.ts`와 PostgreSQL migration history를 유지한다. cd4의 Turso 스키마·libSQL 의존성과 기존 SQLite migration history는 제거했다. 아래 버전 표·scripts·불일치 목록은 2026-10-04의 역사적 기준선이므로 현재 지원 기능이나 실행 명령으로 사용하지 않는다. 현재 DB 명령과 빈 DB 설치·기존 DB baseline은 [PostgreSQL 안내](postgresql.md)가 기준이다. 외부 DAG의 Turso 경로와 과거 SQLite fixture 검증 기록은 별도 범위로 남는다.
+
 - 서비스 목적·화면·현재 이슈: [프로젝트 현황](./project-current-state.md)
 - 수집·계산·DB·웹 반영 계약: [DAG 연동](./dag-integration.md)
 - 주식 파이프라인 소스: [DAG의 CD 처리](../../dag/dag/cd_metrics_processing.py), [DAG 스케줄](../../dag/dag/schedules.py)
@@ -44,7 +46,7 @@
 
 Radix UI 패키지는 별도 버전으로 선언되어 있으며, UI 전체를 하나의 버전으로 취급하면 안 된다. 선언·lockfile에는 dialog `1.1.14`, dropdown-menu `2.1.15`, tabs `1.1.12`, tooltip `1.2.7` 등이 있다. 전체 직접 의존성과 peer dependency 조합은 package.json과 lockfile이 기준이다. `shadcn` 패키지 업데이트만으로 [components/ui](../components/ui)의 복사된 컴포넌트 코드가 자동으로 최신화되지는 않는다.
 
-실제 앱 DB 연결은 [db/index.ts](../db/index.ts)의 `drizzle-orm/postgres-js` + `postgres`이다. PostgreSQL 설정은 [drizzle.config.ts](../drizzle.config.ts)를 사용한다. `@libsql/client`와 [Turso 스키마](../db/schema-turso.ts)가 남아 있다는 사실만으로 현재 운영이 Turso를 사용하는 것으로 판단하지 않는다.
+조사 당시에도 실제 앱 DB 연결은 [db/index.ts](../db/index.ts)의 `drizzle-orm/postgres-js` + `postgres`였다. 당시 남아 있던 `@libsql/client`와 `db/schema-turso.ts`는 활성 읽기 경로가 아니었고, 2026-10-06 PostgreSQL 전용 정리에서 제거했다. 현재 설정과 migration 운용은 [PostgreSQL 안내](postgresql.md)를 따른다.
 
 ### Node·pnpm 기준
 
@@ -61,9 +63,9 @@ Radix UI 패키지는 별도 버전으로 선언되어 있으며, UI 전체를 �
 
 후속 최신화에서는 먼저 목표 프레임워크가 지원하는 Node·pnpm 조합을 공식 문서로 확인하고 로컬·CI 기준을 맞춘다. 현재 설치된 `@types/node`가 24라는 사실은 Node 런타임을 24로 사용한다는 뜻이 아니다.
 
-## 실행 스크립트와 설정의 실제 상태
+## 2026-10-04 실행 스크립트와 설정 조사 기록
 
-현재 package.json에 있는 scripts는 아래 5개뿐이다.
+조사 당시 package.json에 있는 scripts는 아래 5개뿐이었다.
 
 | 명령 | 실제 내용 | 후속 작업에서 확인할 점 |
 |---|---|---|
@@ -73,7 +75,7 @@ Radix UI 패키지는 별도 버전으로 선언되어 있으며, UI 전체를 �
 | `pnpm lint` | `next lint` | 목표 Next 버전에서 CLI 지원과 ESLint 실행 방식을 확인 |
 | `pnpm sitemap` | `node scripts/generate-sitemap.js` | `NEXT_OUTPUT_MODE=export`일 때만 실행 |
 
-README·기존 문서의 `db:migrate`, `cache:revalidate`, `build:ssg`, `build:chunks`, `build:staggered`, `build:parallel-real`, `deploy`, `lint:fix`는 현재 package.json에 정의되어 있지 않다. 이 명령들을 검증 명령으로 복사해서 사용하면 안 된다. 현재 scripts 디렉터리에는 병렬·청크 빌드용 shell 파일도 없다.
+조사 당시 README·기존 문서의 `db:migrate`, `cache:revalidate`, `build:ssg`, `build:chunks`, `build:staggered`, `build:parallel-real`, `deploy`, `lint:fix`는 package.json에 정의되어 있지 않았다. 이 역사적 목록을 현재 검증 명령으로 복사하지 않는다. 당시 scripts 디렉터리에는 병렬·청크 빌드용 shell 파일도 없었다. 2026-10-06에 추가한 DB 명령은 [PostgreSQL 안내](postgresql.md)에 기록한다.
 
 [next.config.ts](../next.config.ts)는 `typescript.ignoreBuildErrors: true`와 `eslint.ignoreDuringBuilds: true`를 설정한다. 따라서 빌드 성공만으로 타입 검사·린트 통과를 판단할 수 없다. `tsconfig.json`은 strict와 noEmit이 켜져 있고 기존 `.next/types/**/*.ts`를 검사 대상에 포함한다.
 
@@ -130,7 +132,7 @@ DB 연결 실패 때문에 최근 거래일, 테이블별 최신 날짜, 실제 
 
 아래는 이번에 찾은 문서 현행화 대상이다. 기존 문서 전체를 옳다고 인증하거나 모든 불일치를 빠짐없이 검사한 목록은 아니다. 이 작업에서는 원본 문서를 일괄 수정하지 않고 후속 변경의 근거로 보존했다.
 
-| 문서 | 문서의 내용 | 현재 코드·설정과의 차이 | 후속 갱신 방향 |
+| 문서 | 조사 당시 문서의 내용 | 조사 당시 코드·설정과의 차이 | 후속 갱신 방향 |
 |---|---|---|---|
 | [README](../README.md) | CD3, Next 15, SSR 우선, Vercel, Node 18+ | 실제 폴더는 cd4; package name은 `cd3`; 기본 standalone + export workflow가 공존 | 서비스 명칭·저장소 명칭을 구분하고 실제 운영 모드·런타임을 확정 |
 | README | DB migration·cache revalidate·SSG 병렬·deploy 명령 | 현재 package scripts에 없음 | 실제 실행 가능한 명령만 안내 |

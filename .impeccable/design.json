@@ -1,0 +1,696 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T09:49:54.890259+00:00",
+  "title": "Design System: 천하제일 단타대회",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "role": "primary",
+        "displayName": "전광판 금색",
+        "tonalRamp": [
+          "oklch(15% 0.1667 77.37)",
+          "oklch(26% 0.1667 77.37)",
+          "oklch(38% 0.1667 77.37)",
+          "oklch(49% 0.1667 77.37)",
+          "oklch(60% 0.1667 77.37)",
+          "oklch(72% 0.1667 77.37)",
+          "oklch(84% 0.1667 77.37)",
+          "oklch(95% 0.1667 77.37)"
+        ]
+      },
+      "brand-hover": {
+        "role": "primary",
+        "displayName": "다운로드 호버 금색",
+        "tonalRamp": [
+          "oklch(15% 0.1623 73.24)",
+          "oklch(26% 0.1623 73.24)",
+          "oklch(38% 0.1623 73.24)",
+          "oklch(49% 0.1623 73.24)",
+          "oklch(60% 0.1623 73.24)",
+          "oklch(72% 0.1623 73.24)",
+          "oklch(84% 0.1623 73.24)",
+          "oklch(95% 0.1623 73.24)"
+        ]
+      },
+      "brand-ink": {
+        "role": "primary",
+        "displayName": "읽는 금색",
+        "tonalRamp": [
+          "oklch(15% 0.1227 67.44)",
+          "oklch(26% 0.1227 67.44)",
+          "oklch(38% 0.1227 67.44)",
+          "oklch(49% 0.1227 67.44)",
+          "oklch(60% 0.1227 67.44)",
+          "oklch(72% 0.1227 67.44)",
+          "oklch(84% 0.1227 67.44)",
+          "oklch(95% 0.1227 67.44)"
+        ]
+      },
+      "brand-ink-dark": {
+        "role": "primary",
+        "displayName": "읽는 금색 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.1618 91.78)",
+          "oklch(26% 0.1618 91.78)",
+          "oklch(38% 0.1618 91.78)",
+          "oklch(49% 0.1618 91.78)",
+          "oklch(60% 0.1618 91.78)",
+          "oklch(72% 0.1618 91.78)",
+          "oklch(84% 0.1618 91.78)",
+          "oklch(95% 0.1618 91.78)"
+        ]
+      },
+      "brand-red": {
+        "role": "secondary",
+        "displayName": "브랜드 빨강",
+        "tonalRamp": [
+          "oklch(15% 0.2077 26.53)",
+          "oklch(26% 0.2077 26.53)",
+          "oklch(38% 0.2077 26.53)",
+          "oklch(49% 0.2077 26.53)",
+          "oklch(60% 0.2077 26.53)",
+          "oklch(72% 0.2077 26.53)",
+          "oklch(84% 0.2077 26.53)",
+          "oklch(95% 0.2077 26.53)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "본문",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "background-dark": {
+        "role": "neutral",
+        "displayName": "본문 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0050 248.06)",
+          "oklch(26% 0.0050 248.06)",
+          "oklch(38% 0.0050 248.06)",
+          "oklch(49% 0.0050 248.06)",
+          "oklch(60% 0.0050 248.06)",
+          "oklch(72% 0.0050 248.06)",
+          "oklch(84% 0.0050 248.06)",
+          "oklch(95% 0.0050 248.06)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "본문 잉크",
+        "tonalRamp": [
+          "oklch(15% 0.0050 248.06)",
+          "oklch(26% 0.0050 248.06)",
+          "oklch(38% 0.0050 248.06)",
+          "oklch(49% 0.0050 248.06)",
+          "oklch(60% 0.0050 248.06)",
+          "oklch(72% 0.0050 248.06)",
+          "oklch(84% 0.0050 248.06)",
+          "oklch(95% 0.0050 248.06)"
+        ]
+      },
+      "foreground-dark": {
+        "role": "neutral",
+        "displayName": "본문 잉크 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0034 247.86)",
+          "oklch(26% 0.0034 247.86)",
+          "oklch(38% 0.0034 247.86)",
+          "oklch(49% 0.0034 247.86)",
+          "oklch(60% 0.0034 247.86)",
+          "oklch(72% 0.0034 247.86)",
+          "oklch(84% 0.0034 247.86)",
+          "oklch(95% 0.0034 247.86)"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "옅은 레일",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "sidebar-dark": {
+        "role": "neutral",
+        "displayName": "옅은 레일 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0136 239.10)",
+          "oklch(26% 0.0136 239.10)",
+          "oklch(38% 0.0136 239.10)",
+          "oklch(49% 0.0136 239.10)",
+          "oklch(60% 0.0136 239.10)",
+          "oklch(72% 0.0136 239.10)",
+          "oklch(84% 0.0136 239.10)",
+          "oklch(95% 0.0136 239.10)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "보조 잉크",
+        "tonalRamp": [
+          "oklch(15% 0.0178 242.05)",
+          "oklch(26% 0.0178 242.05)",
+          "oklch(38% 0.0178 242.05)",
+          "oklch(49% 0.0178 242.05)",
+          "oklch(60% 0.0178 242.05)",
+          "oklch(72% 0.0178 242.05)",
+          "oklch(84% 0.0178 242.05)",
+          "oklch(95% 0.0178 242.05)"
+        ]
+      },
+      "muted-foreground-dark": {
+        "role": "neutral",
+        "displayName": "보조 잉크 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0096 242.86)",
+          "oklch(26% 0.0096 242.86)",
+          "oklch(38% 0.0096 242.86)",
+          "oklch(49% 0.0096 242.86)",
+          "oklch(60% 0.0096 242.86)",
+          "oklch(72% 0.0096 242.86)",
+          "oklch(84% 0.0096 242.86)",
+          "oklch(95% 0.0096 242.86)"
+        ]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "상호작용 표면",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "accent-dark": {
+        "role": "neutral",
+        "displayName": "상호작용 표면 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0122 243.23)",
+          "oklch(26% 0.0122 243.23)",
+          "oklch(38% 0.0122 243.23)",
+          "oklch(49% 0.0122 243.23)",
+          "oklch(60% 0.0122 243.23)",
+          "oklch(72% 0.0122 243.23)",
+          "oklch(84% 0.0122 243.23)",
+          "oklch(95% 0.0122 243.23)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "구분선",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "구분선 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0133 248.21)",
+          "oklch(26% 0.0133 248.21)",
+          "oklch(38% 0.0133 248.21)",
+          "oklch(49% 0.0133 248.21)",
+          "oklch(60% 0.0133 248.21)",
+          "oklch(72% 0.0133 248.21)",
+          "oklch(84% 0.0133 248.21)",
+          "oklch(95% 0.0133 248.21)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "입력 경계",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "input-dark": {
+        "role": "neutral",
+        "displayName": "입력 경계 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0147 248.17)",
+          "oklch(26% 0.0147 248.17)",
+          "oklch(38% 0.0147 248.17)",
+          "oklch(49% 0.0147 248.17)",
+          "oklch(60% 0.0147 248.17)",
+          "oklch(72% 0.0147 248.17)",
+          "oklch(84% 0.0147 248.17)",
+          "oklch(95% 0.0147 248.17)"
+        ]
+      },
+      "rank-neutral": {
+        "role": "neutral",
+        "displayName": "순위 잉크",
+        "tonalRamp": [
+          "oklch(15% 0.0230 250.56)",
+          "oklch(26% 0.0230 250.56)",
+          "oklch(38% 0.0230 250.56)",
+          "oklch(49% 0.0230 250.56)",
+          "oklch(60% 0.0230 250.56)",
+          "oklch(72% 0.0230 250.56)",
+          "oklch(84% 0.0230 250.56)",
+          "oklch(95% 0.0230 250.56)"
+        ]
+      },
+      "rank-neutral-dark": {
+        "role": "neutral",
+        "displayName": "순위 잉크 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0112 243.67)",
+          "oklch(26% 0.0112 243.67)",
+          "oklch(38% 0.0112 243.67)",
+          "oklch(49% 0.0112 243.67)",
+          "oklch(60% 0.0112 243.67)",
+          "oklch(72% 0.0112 243.67)",
+          "oklch(84% 0.0112 243.67)",
+          "oklch(95% 0.0112 243.67)"
+        ]
+      },
+      "market-up": {
+        "role": "secondary",
+        "displayName": "가격 상승 빨강",
+        "tonalRamp": [
+          "oklch(15% 0.2077 26.53)",
+          "oklch(26% 0.2077 26.53)",
+          "oklch(38% 0.2077 26.53)",
+          "oklch(49% 0.2077 26.53)",
+          "oklch(60% 0.2077 26.53)",
+          "oklch(72% 0.2077 26.53)",
+          "oklch(84% 0.2077 26.53)",
+          "oklch(95% 0.2077 26.53)"
+        ]
+      },
+      "market-up-dark": {
+        "role": "secondary",
+        "displayName": "가격 상승 빨강 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.1662 23.30)",
+          "oklch(26% 0.1662 23.30)",
+          "oklch(38% 0.1662 23.30)",
+          "oklch(49% 0.1662 23.30)",
+          "oklch(60% 0.1662 23.30)",
+          "oklch(72% 0.1662 23.30)",
+          "oklch(84% 0.1662 23.30)",
+          "oklch(95% 0.1662 23.30)"
+        ]
+      },
+      "market-down": {
+        "role": "secondary",
+        "displayName": "가격 하락 파랑",
+        "tonalRamp": [
+          "oklch(15% 0.1646 258.66)",
+          "oklch(26% 0.1646 258.66)",
+          "oklch(38% 0.1646 258.66)",
+          "oklch(49% 0.1646 258.66)",
+          "oklch(60% 0.1646 258.66)",
+          "oklch(72% 0.1646 258.66)",
+          "oklch(84% 0.1646 258.66)",
+          "oklch(95% 0.1646 258.66)"
+        ]
+      },
+      "market-down-dark": {
+        "role": "secondary",
+        "displayName": "가격 하락 파랑 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.1299 259.70)",
+          "oklch(26% 0.1299 259.70)",
+          "oklch(38% 0.1299 259.70)",
+          "oklch(49% 0.1299 259.70)",
+          "oklch(60% 0.1299 259.70)",
+          "oklch(72% 0.1299 259.70)",
+          "oklch(84% 0.1299 259.70)",
+          "oklch(95% 0.1299 259.70)"
+        ]
+      },
+      "chart-volume": {
+        "role": "secondary",
+        "displayName": "거래량 녹색",
+        "tonalRamp": [
+          "oklch(15% 0.0435 148.36)",
+          "oklch(26% 0.0435 148.36)",
+          "oklch(38% 0.0435 148.36)",
+          "oklch(49% 0.0435 148.36)",
+          "oklch(60% 0.0435 148.36)",
+          "oklch(72% 0.0435 148.36)",
+          "oklch(84% 0.0435 148.36)",
+          "oklch(95% 0.0435 148.36)"
+        ]
+      },
+      "chart-volume-dark": {
+        "role": "secondary",
+        "displayName": "거래량 녹색 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0563 148.24)",
+          "oklch(26% 0.0563 148.24)",
+          "oklch(38% 0.0563 148.24)",
+          "oklch(49% 0.0563 148.24)",
+          "oklch(60% 0.0563 148.24)",
+          "oklch(72% 0.0563 148.24)",
+          "oklch(84% 0.0563 148.24)",
+          "oklch(95% 0.0563 148.24)"
+        ]
+      },
+      "destructive": {
+        "role": "secondary",
+        "displayName": "오류 빨강",
+        "tonalRamp": [
+          "oklch(15% 0.1821 29.51)",
+          "oklch(26% 0.1821 29.51)",
+          "oklch(38% 0.1821 29.51)",
+          "oklch(49% 0.1821 29.51)",
+          "oklch(60% 0.1821 29.51)",
+          "oklch(72% 0.1821 29.51)",
+          "oklch(84% 0.1821 29.51)",
+          "oklch(95% 0.1821 29.51)"
+        ]
+      },
+      "destructive-dark": {
+        "role": "secondary",
+        "displayName": "오류 빨강 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.1420 25.57)",
+          "oklch(26% 0.1420 25.57)",
+          "oklch(38% 0.1420 25.57)",
+          "oklch(49% 0.1420 25.57)",
+          "oklch(60% 0.1420 25.57)",
+          "oklch(72% 0.1420 25.57)",
+          "oklch(84% 0.1420 25.57)",
+          "oklch(95% 0.1420 25.57)"
+        ]
+      },
+      "popover": {
+        "role": "neutral",
+        "displayName": "떠 있는 정보",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(60% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "popover-dark": {
+        "role": "neutral",
+        "displayName": "떠 있는 정보 · 다크",
+        "tonalRamp": [
+          "oklch(15% 0.0136 239.10)",
+          "oklch(26% 0.0136 239.10)",
+          "oklch(38% 0.0136 239.10)",
+          "oklch(49% 0.0136 239.10)",
+          "oklch(60% 0.0136 239.10)",
+          "oklch(72% 0.0136 239.10)",
+          "oklch(84% 0.0136 239.10)",
+          "oklch(95% 0.0136 239.10)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "브랜드 · 데스크톱",
+        "purpose": "768px 이상 전체 이름의 로컬 나눔명조800."
+      },
+      "display-mobile": {
+        "displayName": "브랜드 · 모바일",
+        "purpose": "390px 이상 모바일 워드마크."
+      },
+      "display-compact": {
+        "displayName": "브랜드 · 작은 모바일",
+        "purpose": "390px 미만 전체 이름을 보존하는 워드마크."
+      },
+      "headline": {
+        "displayName": "조회 제목",
+        "purpose": "데스크톱 순위 페이지 제목."
+      },
+      "headline-mobile": {
+        "displayName": "조회 제목 · 모바일",
+        "purpose": "모바일 순위 페이지 제목."
+      },
+      "title": {
+        "displayName": "영역 제목",
+        "purpose": "공통 데이터 섹션 제목."
+      },
+      "body": {
+        "displayName": "기본 본문",
+        "purpose": "공통 한국어 데이터 UI."
+      },
+      "body-small": {
+        "displayName": "작은 본문",
+        "purpose": "순위 요약·보조 설명."
+      },
+      "label": {
+        "displayName": "메타데이터",
+        "purpose": "종목 코드·기준일·단위."
+      },
+      "rank": {
+        "displayName": "현재 순위",
+        "purpose": "데스크톱 순위와 중립 이동량의 큰 숫자."
+      },
+      "rank-mobile": {
+        "displayName": "현재 순위 · 모바일",
+        "purpose": "한 중심축에 놓인 모바일 현재 순위."
+      },
+      "value": {
+        "displayName": "주요 값",
+        "purpose": "데스크톱 순위의 오른쪽 정렬 값."
+      },
+      "headline-strong": {
+        "displayName": "강조 제목",
+        "purpose": "768px 이상 공통 page-heading의 굵기 800 제목."
+      },
+      "headline-strong-mobile": {
+        "displayName": "강조 제목 · 모바일",
+        "purpose": "768px 미만 공통 page-heading의 굵기 800 제목."
+      }
+    },
+    "shadows": [
+      {
+        "name": "recent-panel",
+        "value": "0 12px 28px #00000018",
+        "purpose": "헤더에서 열린 최근 기록 패널."
+      },
+      {
+        "name": "rank-note",
+        "value": "0 4px 14px #0002",
+        "purpose": "순위 기준 설명 팝오버."
+      },
+      {
+        "name": "heatmap-tooltip",
+        "value": "0 4px 12px rgb(0 0 0 / 0.14)",
+        "purpose": "히트맵의 데이터 툴팁."
+      },
+      {
+        "name": "card-low",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "purpose": "기존 공통 카드·선택 기간 컨트롤의 작은 깊이."
+      }
+    ],
+    "motion": [
+      {
+        "name": "theme-icon",
+        "value": "opacity .15s ease-out",
+        "purpose": "20px의 같은 grid 슬롯에서 sun/moon 교체."
+      },
+      {
+        "name": "control-colors",
+        "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "공통 버튼·상세 지표 탭·기간 선택의 색 상태 전환."
+      },
+      {
+        "name": "reduced-motion",
+        "value": ".01ms",
+        "purpose": "prefers-reduced-motion에서 애니메이션·전환을 종료."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-mobile-ceiling",
+        "value": "359px"
+      },
+      {
+        "name": "wordmark-mobile",
+        "value": "390px"
+      },
+      {
+        "name": "detail-padding-summary-annual-table",
+        "value": "640px"
+      },
+      {
+        "name": "desktop-controls",
+        "value": "768px"
+      },
+      {
+        "name": "ranking-trend-column",
+        "value": "1000px"
+      },
+      {
+        "name": "inline-header-search",
+        "value": "1024px"
+      },
+      {
+        "name": "shared-context-rail",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Brand Wordmark",
+      "kind": "custom",
+      "refersTo": "brand-wordmark",
+      "description": "components/site-header.tsx와 app/globals.css의 실제 나눔명조800·전체 이름·원본 별 SVG. 동일 타원과 별 path를 inline으로 보존하며 폰트 변수는 로컬 next/font가 제공한다.",
+      "html": "<a class=\"ds-wordmark\" href=\"/\" aria-label=\"천하제일 단타대회 · 랭킹\"><span class=\"ds-brand-first\">천하제일</span><svg class=\"ds-brand-star\" viewBox=\"0 0 40.97 40.15\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><ellipse class=\"ds-star-disc\" cx=\"20.48\" cy=\"20.08\" rx=\"19.48\" ry=\"19.08\"></ellipse><path class=\"ds-star-symbol\" d=\"M21.15,7.55l.07.04,2.91,8.63.1.15,9.65.29-7.79,5.67c.8,3.11,1.65,6.21,2.33,9.34-2.5-1.86-4.93-3.83-7.38-5.75l-.2.08-7.38,5.45c.72-3.09,1.66-6.13,2.44-9.21l-7.65-5.64,9.68-.24c1.12-2.93,2.02-5.93,3.21-8.83Z\"></path></svg><span class=\"ds-brand-last\">단타대회</span></a>",
+      "css": ".ds-wordmark{display:inline-flex;align-items:center;gap:4px;width:max-content;font-family:var(--font-brand,\"Nanum Myeongjo\"),serif;font-weight:800;font-synthesis:none;font-size:20px;line-height:1.2;white-space:nowrap;letter-spacing:-.025em;text-decoration:none}.ds-wordmark>span{-webkit-text-stroke:.25px #181a1c}.ds-brand-first{color:var(--brand-red,#dc3030)}.ds-brand-last{color:var(--brand,#f8ad02)}.ds-brand-star{width:23px;height:23px;flex:none}.ds-star-disc{fill:#f8ad02;stroke:#000;stroke-miterlimit:10;stroke-width:2px}.ds-star-symbol{fill:#dc3030;stroke-width:0}.ds-wordmark:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}@media(min-width:390px){.ds-wordmark{font-size:22px}.ds-brand-star{width:25px;height:25px}}@media(min-width:768px){.ds-wordmark{font-size:26px;gap:6px}.ds-brand-star{width:28px;height:28px}}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "components/ui/button.tsx의 기본 금색 버튼. 호버는 primary 90%, 포커스 링·비활성 상태를 보존한다.",
+      "html": "<button class=\"ds-primary\">확인</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:14px;font-weight:500;border-radius:calc(var(--radius,.5rem) - 2px);height:40px;padding:8px 16px;text-decoration:none;cursor:pointer;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);border:0;background:var(--primary,#f8ad02);color:var(--primary-foreground,#181a1c)}.ds-primary:hover{background:color-mix(in oklab,var(--primary,#f8ad02) 90%,transparent)}.ds-primary:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}.ds-primary:disabled{opacity:.5;pointer-events:none}@media(prefers-reduced-motion:reduce){.ds-primary{transition-duration:.01ms}}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "components/ui/button.tsx의 outline 버튼. 공유·검색 진입·재시도에 쓰는 입력 경계와 accent 호버.",
+      "html": "<button class=\"ds-outline\">다시 시도</button>",
+      "css": ".ds-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:14px;font-weight:500;border-radius:calc(var(--radius,.5rem) - 2px);height:40px;padding:8px 16px;text-decoration:none;cursor:pointer;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);border:1px solid var(--input,#d6d6d6);background:var(--background,#fff);color:var(--foreground,#181a1c)}.ds-outline:hover{background:var(--accent,#f1f1f1);color:var(--accent-foreground,#181a1c)}.ds-outline:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}.ds-outline:disabled{opacity:.5;pointer-events:none}@media(prefers-reduced-motion:reduce){.ds-outline{transition-duration:.01ms}}"
+    },
+    {
+      "name": "Ghost Theme Button",
+      "kind": "button",
+      "refersTo": "theme-trigger",
+      "description": "components/mode-toggle.tsx와 app/globals.css의 ghost 테마 진입. 같은 20px 슬롯에 sun/moon을 겹치며 40px/96px 버튼 폭을 유지한다. 표본은 모양만 제공하고 실제 메뉴·설정 저장은 제품 코드가 담당한다.",
+      "html": "<button class=\"ds-theme\" aria-label=\"테마 전환\"><span class=\"ds-theme-icons\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-sun\" aria-hidden=\"true\"><path d=\"M7.5 0C7.77614 0 8 0.223858 8 0.5V2.5C8 2.77614 7.77614 3 7.5 3C7.22386 3 7 2.77614 7 2.5V0.5C7 0.223858 7.22386 0 7.5 0ZM2.1967 2.1967C2.39196 2.00144 2.70854 2.00144 2.90381 2.1967L4.31802 3.61091C4.51328 3.80617 4.51328 4.12276 4.31802 4.31802C4.12276 4.51328 3.80617 4.51328 3.61091 4.31802L2.1967 2.90381C2.00144 2.70854 2.00144 2.39196 2.1967 2.1967ZM0.5 7C0.223858 7 0 7.22386 0 7.5C0 7.77614 0.223858 8 0.5 8H2.5C2.77614 8 3 7.77614 3 7.5C3 7.22386 2.77614 7 2.5 7H0.5ZM2.1967 12.8033C2.00144 12.608 2.00144 12.2915 2.1967 12.0962L3.61091 10.682C3.80617 10.4867 4.12276 10.4867 4.31802 10.682C4.51328 10.8772 4.51328 11.1938 4.31802 11.3891L2.90381 12.8033C2.70854 12.9986 2.39196 12.9986 2.1967 12.8033ZM12.5 7C12.2239 7 12 7.22386 12 7.5C12 7.77614 12.2239 8 12.5 8H14.5C14.7761 8 15 7.77614 15 7.5C15 7.22386 14.7761 7 14.5 7H12.5ZM10.682 4.31802C10.4867 4.12276 10.4867 3.80617 10.682 3.61091L12.0962 2.1967C12.2915 2.00144 12.608 2.00144 12.8033 2.1967C12.9986 2.39196 12.9986 2.70854 12.8033 2.90381L11.3891 4.31802C11.1938 4.51328 10.8772 4.51328 10.682 4.31802ZM8 12.5C8 12.2239 7.77614 12 7.5 12C7.22386 12 7 12.2239 7 12.5V14.5C7 14.7761 7.22386 15 7.5 15C7.77614 15 8 14.7761 8 14.5V12.5ZM10.682 10.682C10.8772 10.4867 11.1938 10.4867 11.3891 10.682L12.8033 12.0962C12.9986 12.2915 12.9986 12.608 12.8033 12.8033C12.608 12.9986 12.2915 12.9986 12.0962 12.8033L10.682 11.3891C10.4867 11.1938 10.4867 10.8772 10.682 10.682ZM5.5 7.5C5.5 6.39543 6.39543 5.5 7.5 5.5C8.60457 5.5 9.5 6.39543 9.5 7.5C9.5 8.60457 8.60457 9.5 7.5 9.5C6.39543 9.5 5.5 8.60457 5.5 7.5ZM7.5 4.5C5.84315 4.5 4.5 5.84315 4.5 7.5C4.5 9.15685 5.84315 10.5 7.5 10.5C9.15685 10.5 10.5 9.15685 10.5 7.5C10.5 5.84315 9.15685 4.5 7.5 4.5Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-moon\" aria-hidden=\"true\"><path d=\"M2.89998 0.499976C2.89998 0.279062 2.72089 0.0999756 2.49998 0.0999756C2.27906 0.0999756 2.09998 0.279062 2.09998 0.499976V1.09998H1.49998C1.27906 1.09998 1.09998 1.27906 1.09998 1.49998C1.09998 1.72089 1.27906 1.89998 1.49998 1.89998H2.09998V2.49998C2.09998 2.72089 2.27906 2.89998 2.49998 2.89998C2.72089 2.89998 2.89998 2.72089 2.89998 2.49998V1.89998H3.49998C3.72089 1.89998 3.89998 1.72089 3.89998 1.49998C3.89998 1.27906 3.72089 1.09998 3.49998 1.09998H2.89998V0.499976ZM5.89998 3.49998C5.89998 3.27906 5.72089 3.09998 5.49998 3.09998C5.27906 3.09998 5.09998 3.27906 5.09998 3.49998V4.09998H4.49998C4.27906 4.09998 4.09998 4.27906 4.09998 4.49998C4.09998 4.72089 4.27906 4.89998 4.49998 4.89998H5.09998V5.49998C5.09998 5.72089 5.27906 5.89998 5.49998 5.89998C5.72089 5.89998 5.89998 5.72089 5.89998 5.49998V4.89998H6.49998C6.72089 4.89998 6.89998 4.72089 6.89998 4.49998C6.89998 4.27906 6.72089 4.09998 6.49998 4.09998H5.89998V3.49998ZM1.89998 6.49998C1.89998 6.27906 1.72089 6.09998 1.49998 6.09998C1.27906 6.09998 1.09998 6.27906 1.09998 6.49998V7.09998H0.499976C0.279062 7.09998 0.0999756 7.27906 0.0999756 7.49998C0.0999756 7.72089 0.279062 7.89998 0.499976 7.89998H1.09998V8.49998C1.09998 8.72089 1.27906 8.89997 1.49998 8.89997C1.72089 8.89997 1.89998 8.72089 1.89998 8.49998V7.89998H2.49998C2.72089 7.89998 2.89998 7.72089 2.89998 7.49998C2.89998 7.27906 2.72089 7.09998 2.49998 7.09998H1.89998V6.49998ZM8.54406 0.98184L8.24618 0.941586C8.03275 0.917676 7.90692 1.1655 8.02936 1.34194C8.17013 1.54479 8.29981 1.75592 8.41754 1.97445C8.91878 2.90485 9.20322 3.96932 9.20322 5.10022C9.20322 8.37201 6.82247 11.0878 3.69887 11.6097C3.45736 11.65 3.20988 11.6772 2.96008 11.6906C2.74563 11.702 2.62729 11.9535 2.77721 12.1072C2.84551 12.1773 2.91535 12.2458 2.98667 12.3128L3.05883 12.3795L3.31883 12.6045L3.50684 12.7532L3.62796 12.8433L3.81491 12.9742L3.99079 13.089C4.11175 13.1651 4.23536 13.2375 4.36157 13.3059L4.62496 13.4412L4.88553 13.5607L5.18837 13.6828L5.43169 13.7686C5.56564 13.8128 5.70149 13.8529 5.83857 13.8885C5.94262 13.9155 6.04767 13.9401 6.15405 13.9622C6.27993 13.9883 6.40713 14.0109 6.53544 14.0298L6.85241 14.0685L7.11934 14.0892C7.24637 14.0965 7.37436 14.1002 7.50322 14.1002C11.1483 14.1002 14.1032 11.1453 14.1032 7.50023C14.1032 7.25044 14.0893 7.00389 14.0623 6.76131L14.0255 6.48407C13.991 6.26083 13.9453 6.04129 13.8891 5.82642C13.8213 5.56709 13.7382 5.31398 13.6409 5.06881L13.5279 4.80132L13.4507 4.63542L13.3766 4.48666C13.2178 4.17773 13.0353 3.88295 12.8312 3.60423L12.6782 3.40352L12.4793 3.16432L12.3157 2.98361L12.1961 2.85951L12.0355 2.70246L11.8134 2.50184L11.4925 2.24191L11.2483 2.06498L10.9562 1.87446L10.6346 1.68894L10.3073 1.52378L10.1938 1.47176L9.95488 1.3706L9.67791 1.2669L9.42566 1.1846L9.10075 1.09489L8.83599 1.03486L8.54406 0.98184ZM10.4032 5.30023C10.4032 4.27588 10.2002 3.29829 9.83244 2.40604C11.7623 3.28995 13.1032 5.23862 13.1032 7.50023C13.1032 10.593 10.596 13.1002 7.50322 13.1002C6.63646 13.1002 5.81597 12.9036 5.08355 12.5522C6.5419 12.0941 7.81081 11.2082 8.74322 10.0416C8.87963 10.2284 9.10028 10.3497 9.34928 10.3497C9.76349 10.3497 10.0993 10.0139 10.0993 9.59971C10.0993 9.24256 9.84965 8.94373 9.51535 8.86816C9.57741 8.75165 9.63653 8.63334 9.6926 8.51332C9.88358 8.63163 10.1088 8.69993 10.35 8.69993C11.0403 8.69993 11.6 8.14028 11.6 7.44993C11.6 6.75976 11.0406 6.20024 10.3505 6.19993C10.3853 5.90487 10.4032 5.60464 10.4032 5.30023Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg></span><span class=\"ds-theme-label\"><span class=\"ds-theme-light\">라이트</span><span class=\"ds-theme-dark\">다크</span></span></button>",
+      "css": ".ds-theme{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:14px;font-weight:500;border-radius:calc(var(--radius,.5rem) - 2px);height:40px;padding:8px 16px;text-decoration:none;cursor:pointer;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);width:40px;padding:8px;flex:none;gap:8px;border:0;background:transparent;color:var(--foreground,#181a1c)}.ds-theme:hover{background:var(--accent,#f1f1f1)}.ds-theme:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}.ds-theme-icons{display:grid;place-items:center;width:20px;height:20px;flex:none}.ds-theme-icons svg{grid-area:1/1;width:20px;height:20px;transition:opacity .15s ease-out}.ds-theme-sun{opacity:1;color:var(--brand-ink,#a26300)}.ds-theme-moon{opacity:0;color:var(--foreground,#181a1c)}.ds-theme-label{display:none}.ds-theme-light,.ds-theme-dark{grid-area:1/1}.ds-theme-dark{visibility:hidden}:host-context(.dark) .ds-theme-sun{opacity:0}:host-context(.dark) .ds-theme-moon{opacity:1}:host-context(.dark) .ds-theme-light{visibility:hidden}:host-context(.dark) .ds-theme-dark{visibility:visible}@media(min-width:768px){.ds-theme{width:96px}.ds-theme-label{display:grid;width:3em;flex:none;font-size:14px}}@media(prefers-reduced-motion:reduce){.ds-theme-icons svg{transition-duration:.01ms}}.ds-theme[data-theme=dark] .ds-theme-sun{opacity:0}.ds-theme[data-theme=dark] .ds-theme-moon{opacity:1}.ds-theme[data-theme=dark] .ds-theme-light{visibility:hidden}.ds-theme[data-theme=dark] .ds-theme-dark{visibility:visible}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "components/ui/command.tsx와 command-menu.tsx의 실제 검색 입력. 검색 진입 버튼과 구분하며 popover 표면·48px 필드·placeholder·포커스·비활성을 보존한다.",
+      "html": "<div class=\"ds-search-field\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><path d=\"m21 21-4.3-4.3\"></path></svg><input class=\"ds-search-input\" aria-label=\"기업 · 종목 검색\" placeholder=\"검색할 기업 또는 종목을 입력하세요\"></div>",
+      "css": ".ds-search-field{display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--border,#e6e6e6);background:var(--popover,#fff);color:var(--popover-foreground,#181a1c)}.ds-search-field svg{flex:none;opacity:.5}.ds-search-input{font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:14px;width:100%;height:48px;border:0;border-radius:calc(var(--radius,.5rem) - 2px);background:transparent;color:var(--popover-foreground,#181a1c);padding:12px 0;caret-color:var(--brand-ink,#a26300)}.ds-search-input::placeholder{color:var(--muted-foreground,#59636b)}.ds-search-input:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}.ds-search-input:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Metric Navigation",
+      "kind": "nav",
+      "refersTo": "metric-navigation",
+      "description": "app/globals.css의 일곱 지표 순위 탐색. 수평 스크롤·금색 3px 활성선·굵기·호버·포커스; 실제 상세의 별도 2px 탭과 구분한다.",
+      "html": "<nav class=\"ds-metrics\" aria-label=\"순위 지표\"><a href=\"/marketcaps\" aria-current=\"page\">시가총액</a><a href=\"/per\">PER</a><a href=\"/pbr\">PBR</a><a href=\"/eps\">EPS</a><a href=\"/bps\">BPS</a><a href=\"/div\">배당수익률</a><a href=\"/dps\">주당배당금</a></nav>",
+      "css": ".ds-metrics{display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid var(--border,#e6e6e6);font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:15px}.ds-metrics a{display:flex;align-items:center;flex:none;min-height:48px;padding:0 16px;border-bottom:3px solid transparent;color:var(--muted-foreground,#59636b);font-weight:500;white-space:nowrap;text-decoration:none}.ds-metrics a[aria-current=page]{border-bottom-color:var(--brand,#f8ad02);color:var(--foreground,#181a1c);font-weight:700}.ds-metrics a:hover{color:var(--foreground,#181a1c);background:var(--muted,#f7f7f7)}.ds-metrics a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}"
+    },
+    {
+      "name": "Period Chip",
+      "kind": "chip",
+      "refersTo": "period-chip",
+      "description": "components/per-chart-with-period-switcher.tsx의 월간·년간 상태 선택. 선택 클래스는 표본의 aria-pressed로 나타낸다. 실제 선택 변경은 제품의 상태 처리에 연결돼 있다.",
+      "html": "<div class=\"ds-periods\"><button class=\"ds-period\" aria-pressed=\"true\">월간</button><button class=\"ds-period\" aria-pressed=\"false\">년간</button></div>",
+      "css": ".ds-periods{display:flex;gap:4px}.ds-period{font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:12px;font-weight:500;border:0;border-radius:calc(var(--radius,.5rem) - 2px);padding:6px 12px;background:var(--background,#fff);color:var(--muted-foreground,#59636b);cursor:pointer;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1)}.ds-period[aria-pressed=false]{border:1px solid var(--border,#e6e6e6)}.ds-period[aria-pressed=true]{background:var(--primary,#f8ad02);color:var(--primary-foreground,#181a1c);box-shadow:0 1px 3px 0 rgb(0 0 0 / .1),0 1px 2px -1px rgb(0 0 0 / .1)}.ds-period[aria-pressed=false]:hover{background:var(--accent,#f1f1f1);color:var(--accent-foreground,#181a1c)}.ds-period:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}@media(prefers-reduced-motion:reduce){.ds-period{transition-duration:.01ms}}"
+    },
+    {
+      "name": "Detail Container",
+      "kind": "card",
+      "refersTo": "detail-card",
+      "description": "components/marketcap/layout.ts의 실제 detail-card와 PER 기간 차트 wrapper. 직선형 본문색·단일 경계선·8px/16px 패딩이며 상자 자체에 인터랙션이나 그림자가 없다.",
+      "html": "<section class=\"ds-detail-card\"><h3 class=\"ds-detail-title\">이력 데이터</h3><p class=\"ds-detail-note\">등록된 날짜와 값을 기준으로 표시합니다.</p></section>",
+      "css": ".ds-detail-card{font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);min-width:0;border:1px solid var(--border,#e6e6e6);background:var(--background,#fff);color:var(--foreground,#181a1c);padding:8px}.ds-detail-title{font-size:16px;line-height:1.5;font-weight:600;margin:0 0 8px}.ds-detail-note{font-size:12px;line-height:1.5;color:var(--muted-foreground,#59636b);margin:0}@media(min-width:640px){.ds-detail-card{padding:16px}}"
+    },
+    {
+      "name": "Ranking Position",
+      "kind": "custom",
+      "refersTo": "ranking-position",
+      "description": "components/ranking-position.tsx와 ranking-view.module.css의 현재 순위·중립 이동량 묶음. 표본은 CSS hover/focus 설명을 제공한다. 제품은 클릭·Escape·외부 클릭과 비교값 없음도 처리한다.",
+      "html": "<div class=\"ds-position-wrap\"><button type=\"button\" class=\"ds-position\" data-rank=\"6\" data-digits=\"1\" aria-label=\"6위. 이전 7위 → 현재 6위 · 1계단 상승\" aria-describedby=\"ds-rank-note\"><span class=\"ds-rank\">6</span><span class=\"ds-movement\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7M12 19V5\"></path></svg>1</span></button><div id=\"ds-rank-note\" role=\"tooltip\" class=\"ds-rank-note\">이전 7위 → 현재 6위 · 1계단 상승<span>이전 순위 대비 · 주가 등락과 별개</span></div></div>",
+      "css": ".ds-position-wrap{position:relative;width:max-content;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-position{display:flex;align-items:center;justify-content:flex-start;gap:6px;min-height:44px;padding:0;background:none;border:0;cursor:help;font-variant-numeric:tabular-nums;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-rank{font-size:30px;font-weight:650;line-height:1;letter-spacing:-.025em;color:var(--rank-neutral,#66717d)}.ds-position[data-rank=\"1\"] .ds-rank{color:var(--brand-ink,#a26300)}.ds-position[data-digits=\"3\"] .ds-rank{font-size:26px}.ds-position[data-digits=\"4\"] .ds-rank{font-size:22px}.ds-position[data-digits=\"5\"] .ds-rank{font-size:18px}.ds-movement{display:inline-flex;align-items:center;justify-content:center;gap:2px;color:var(--muted-foreground,#59636b);font-size:12px;line-height:1.2;font-weight:400;white-space:nowrap}.ds-movement svg{display:block;width:12px;height:12px;stroke-width:1.7;flex:none}.ds-position:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;border-radius:3px}.ds-rank-note{display:none;position:absolute;left:0;top:100%;width:max-content;max-width:min(260px,calc(100vw - 36px));z-index:20;padding:10px 12px;background:var(--popover,#fff);color:var(--popover-foreground,#181a1c);border:1px solid var(--border,#e6e6e6);border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 4px 14px #0002}.ds-rank-note span{display:block;margin-top:2px;color:var(--muted-foreground,#59636b);font-size:11px}.ds-position-wrap:hover .ds-rank-note,.ds-position-wrap:focus-within .ds-rank-note{display:block}@media(max-width:767px){.ds-position{width:44px;flex-direction:column;justify-content:center;gap:1px}.ds-rank{font-size:26px;line-height:1.05}.ds-position[data-digits=\"3\"] .ds-rank{font-size:22px}.ds-position[data-digits=\"4\"] .ds-rank,.ds-position[data-digits=\"5\"] .ds-rank{font-size:18px}.ds-movement{font-size:11px;line-height:1.1;gap:1px}.ds-movement svg{width:10px;height:10px}}@media(max-width:359px){.ds-position{width:40px}}"
+    },
+    {
+      "name": "Sparse Company History",
+      "kind": "custom",
+      "description": "components/detail-company-history-observation.tsx의 단일 날짜·선택 종목 미등록 상태. 선택 행을 먼저 두고 등록된 합계와 비교 종목을 읽는다. 날짜와 금액은 상태 구성 예시이며 조회 결과가 아니다. 이 정보 구획 자체에는 인터랙션이 없다.",
+      "html": "<section class=\"ds-observation\" data-history-state=\"sparse\"><p class=\"ds-observation-basis\">이력 기준 YYYY-MM-DD · 기록 1개</p><p class=\"ds-observation-note\">추이를 그릴 이력이 부족합니다. 등록된 날짜의 값을 표시합니다.</p><p class=\"ds-observation-note\">선택한 종목의 이력이 이 날짜에 등록되어 있지 않습니다. 기업 합산과 다른 종목의 비교값을 함께 표시합니다.</p><dl class=\"ds-observation-values\"><div data-selected=\"true\"><dt>예시 우선주 · 000001<span class=\"ds-observation-context\">선택 종목</span></dt><dd><span class=\"ds-observation-value\">미등록</span></dd></div><div data-selected=\"false\"><dt>등록된 시가총액 합계<span class=\"ds-observation-context\">기업 합산 비교</span></dt><dd><span class=\"ds-observation-value\">10.0억원</span><span class=\"ds-observation-raw\">1,000,000,000원</span></dd></div><div data-selected=\"false\"><dt>예시 보통주 · 000000<span class=\"ds-observation-context\">비교 종목</span></dt><dd><span class=\"ds-observation-value\">10.0억원</span><span class=\"ds-observation-raw\">1,000,000,000원</span></dd></div></dl><p class=\"ds-observation-footnote\">합계는 해당 날짜에 등록된 종목 값 기준입니다. 미등록 종목의 값은 포함되지 않습니다.</p></section>",
+      "css": ".ds-observation{font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);color:var(--foreground,#181a1c);font-size:14px;line-height:1.5}.ds-observation-basis{font-weight:500;font-variant-numeric:tabular-nums;margin:0 0 12px}.ds-observation-note{color:var(--muted-foreground,#59636b);margin:0 0 12px}.ds-observation-values{margin:0 0 12px;font-size:14px;line-height:1.5}.ds-observation-values>div{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:12px 0}.ds-observation-values>div+div{border-top:1px solid var(--border,#e6e6e6)}.ds-observation-values dt{min-width:0;color:var(--muted-foreground,#59636b)}.ds-observation-values dd{min-width:0;margin:0;text-align:right;font-variant-numeric:tabular-nums}.ds-observation-value{display:block;font-weight:400;color:var(--muted-foreground,#59636b)}.ds-observation-values [data-selected=true] dt,.ds-observation-values [data-selected=true] .ds-observation-value{font-weight:600;color:var(--foreground,#181a1c)}.ds-observation-context,.ds-observation-raw{display:block;margin-top:4px;font-size:12px;font-weight:400;color:var(--muted-foreground,#59636b)}.ds-observation-raw{overflow-wrap:anywhere;word-break:break-all}.ds-observation-footnote{font-size:12px;line-height:1.625;color:var(--muted-foreground,#59636b);margin:0}",
+      "refersTo": "history-observation"
+    }
+  ],
+  "narrative": {
+    "northStar": "황금 전광판",
+    "overview": "전체 이름과 원본 별 아이콘이 만드는 레트로의 재미를, 차분한 숫자와 넓은 중립 표면 위에 놓는다. 빨강 ‘천하제일’과 금색 ‘단타대회’는 실제 나눔명조 ExtraBold로 이어지고, 조회 화면은 한국어 산세리프와 표 형태의 행으로 읽힌다.\n\n순위·종목명·값을 먼저 읽을 수 있는 밀도를 유지한다. 라이트는 화이트 본문과 옅은 중립 레일, 다크는 어두운 중립 본문과 한 단계 밝은 레일로 구성한다. 금색 선택과 다운로드, 중립 순위 이동, 빨강·파랑 가격 등락이 각각 의미를 가진다.",
+    "keyCharacteristics": [
+      "전체 이름·원본 별 SVG·실제 나눔명조800의 브랜드 조합.",
+      "화이트 본문과 중립 보조 레일을 공유하는 조회 화면.",
+      "큰 현재 순위와 작은 중립 이동량을 한 묶음으로 읽는 숫자 위계.",
+      "선과 표면색 중심의 깊이, 짧은 상태 전환, 실제 데이터에 맞는 차트와 상태 화면."
+    ],
+    "rules": [
+      {
+        "name": "The Separate Signals Rule",
+        "body": "순위 이동은 중립 화살표와 이동한 계단 수로 표시한다. 주가의 빨강·파랑 등락 색을 순위 이동에 적용하지 않는다.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Rank Unit Rule",
+        "body": "현재 순위와 이동량은 한 읽기 단위다. 데스크톱에서는 옆으로, 모바일에서는 같은 중심축 위아래로 배치하며 숫자와 화살표를 분리된 배지로 만들지 않는다.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stable Theme Slot Rule",
+        "body": "테마 진입은 768px 미만(40×40px), 그 이상(96×40px)의 고정 크기를 유지한다. sun/moon은 동일한 20×20px grid 슬롯에 겹치고 라벨도 같은 슬롯에서 바뀐다. 아이콘이나 테마 이름의 교체 때문에 검색과 인접 컨트롤이 이동해서는 안 된다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 전체 이름과 원본 별 SVG를 실제 나눔명조800의 빨강/금색 글자 사이에 유지한다.",
+      "Do 라이트 본문을 화이트로 유지하고 최근·기준 정보를 옅은 중립 레일에 배치한다.",
+      "Do 현재 순위와 중립 이동량을 한 묶음으로 정렬하고 가격 등락의 의미를 분리한다.",
+      "Do 고정 테마 버튼·아이콘·라벨 슬롯을 유지하고 기기 기본 테마와 저장된 사용자 선택을 이어간다.",
+      "Do 숫자에는 tabular numerals, 기준일·단위에는 읽을 수 있는 보조 글자를 사용한다.",
+      "Do 실제 데이터와 날짜에 맞춰 차트·등록 값·빈 상태를 전환한다.",
+      "Do 검색·최근 기록·일곱 지표·CSV를 작동하는 코드와 링크로 제공한다."
+    ],
+    "donts": [
+      "Don't 빨강·파랑 가격 등락 색으로 순위 이동을 표시한다.",
+      "Don't 모바일에서 순위와 이동량의 중심축을 어긋나게 하거나 서로 떨어진 배지로 만든다.",
+      "Don't 테마 이름이나 아이콘 교체로 헤더 검색의 위치와 폭을 바꾼다.",
+      "Don't 단일 날짜를 추이처럼 그리거나 미등록 종목을 0·추정값으로 채운다.",
+      "Don't 스냅샷·가격·이력의 서로 다른 기준일을 같은 날짜로 암시한다.",
+      "Don't 캡처 이미지나 래스터 오버레이를 실제 UI·텍스트·탐색 대신 사용한다."
+    ]
+  }
+}

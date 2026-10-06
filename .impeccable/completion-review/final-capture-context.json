@@ -1,0 +1,70 @@
+[
+  {
+    "actions": {
+      "bottom": 232,
+      "height": 40,
+      "right": 304,
+      "width": 84,
+      "x": 220,
+      "y": 192
+    },
+    "copyControls": 1,
+    "height": 844,
+    "overflow": 0,
+    "shareControls": 1,
+    "suffix": {
+      "bottom": 230,
+      "height": 20,
+      "right": 136.96875,
+      "width": 120.96875,
+      "x": 16,
+      "y": 210
+    },
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+    "title": {
+      "bottom": 230,
+      "height": 56,
+      "right": 136.96875,
+      "width": 120.96875,
+      "x": 16,
+      "y": 174
+    },
+    "titleRightBeforeActions": true,
+    "url": "http://127.0.0.1:3100/security/KOSPI.088980/pbr/",
+    "width": 320
+  },
+  {
+    "comparison": "종목 비교\n\n해당 기업 내 다른 종목과 PBR을 비교합니다\n\n종목별 비교\n1개 종목\n기업 전체 시가총액\n보통주·우선주 합산\n3.6조원\n한국가스공사\n036460 · 보통주\n0.32배\n36,000원 \n+2.13%",
+    "core": "핵심 지표\n\nPBR 분석과 주요 투자 지표\n\n2327\n위\nPBR 랭킹\n0.32\n배\n+10.3%\n12개월 평균 대비\n현재 PBR\n36,000\n원\n전일 대비\n+2.13%\n현재 주가\n주가 기준 2026-10-02\n0.29\n배\n-12.1%\n3년 평균 대비\n12개월 평균\n0.33\n배\n-1.6%\n5년 평균 대비\n3년 평균\n0.34\n배\n-11.5%\n10년 평균 대비\n5년 평균\n0.38\n배\n-25.0%\n20년 평균 대비\n10년 평균\n0.50\n배\n20년 평균\n0.19\n배\n최저 PBR\n1.52\n배\n최고 PBR",
+    "height": 844,
+    "overflow": 0,
+    "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+    "url": "http://127.0.0.1:3100/security/KOSPI.036460/pbr/#indicators",
+    "width": 320
+  },
+  {
+    "actions": {
+      "height": 40,
+      "width": 192.21875,
+      "x": 883.78125,
+      "y": 89
+    },
+    "core": "핵심 지표\n\nPBR 분석과 주요 투자 지표\n\n2327\n위\nPBR 랭킹\n0.32\n배\n+10.3%\n12개월 평균 대비\n현재 PBR\n36,000\n원\n전일 대비\n+2.13%\n현재 주가\n주가 기준 2026-10-02\n0.29\n배\n-12.1%\n3년 평균 대비\n12개월 평균\n0.33\n배\n-1.6%\n5년 평균 대비\n3년 평균\n0.34\n배\n-11.5%\n10년 평균 대비\n5년 평균\n0.38\n배\n-25.0%\n20년 평균 대비\n10년 평균\n0.50\n배\n20년 평균\n0.19\n배\n최저 PBR\n1.52\n배\n최고 PBR",
+    "height": 1000,
+    "overflow": 0,
+    "suffix": {
+      "bottom": 109,
+      "x": 140.8125,
+      "y": 92
+    },
+    "title": {
+      "bottom": 113,
+      "right": 175.359375,
+      "x": 32,
+      "y": 85
+    },
+    "titleRightBeforeActions": true,
+    "url": "http://127.0.0.1:3100/security/KOSPI.036460/pbr/#indicators",
+    "width": 1440
+  }
+]

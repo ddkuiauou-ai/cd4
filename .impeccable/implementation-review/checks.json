@@ -1,0 +1,52 @@
+{
+  "tests": {
+    "command": "pnpm test",
+    "passed": 119,
+    "failed": 0,
+    "note": "Before final finish-review corrections; rerun scheduled"
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0
+  },
+  "lint": {
+    "command": "pnpm exec eslint . --format json",
+    "errors": 73,
+    "warnings": 136,
+    "baselineErrors": 205,
+    "baselineWarnings": 213,
+    "note": "Existing technical debt remains; not a global lint pass"
+  },
+  "standaloneBuild": {
+    "command": "VERCEL=1 pnpm build",
+    "exitCode": 0,
+    "staticPages": 334,
+    "note": "Before final review corrections; 8 workers failed from ENOSPC, stopped dev and cleared only generated .next, 4 workers completed"
+  },
+  "csvDownload": {
+    "scope": "company",
+    "metric": "marketcap",
+    "rows": 2601,
+    "bom": true,
+    "numericValues": true,
+    "leadingTickerZerosPreserved": true
+  },
+  "browserInteractions": {
+    "search": "mobile bottom Search → 삼성전자 → 삼성전자우 preferred security marketcap detail confirmed",
+    "themeGeometry": "same slot, button, label, adjacent search bounding boxes light/dark at390 and1440",
+    "widthsWithoutDocumentOverflow": [
+      320,
+      390,
+      768,
+      1024,
+      1280,
+      1440,
+      1920
+    ]
+  },
+  "limitations": [
+    "OS preference changes tested using actual ThemeProvider in JSDOM; OS settings not changed",
+    "200% text zoom/reduced-motion live emulation not yet verified",
+    "No deployment or commit requested"
+  ]
+}

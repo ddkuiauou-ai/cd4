@@ -1,18 +1,19 @@
 "use client";
+import type { DetailSecurity, DetailSecurityRow, DetailCompanyData, DetailRanking } from './detail-types';
 
 import { SidebarManager } from './sidebar-manager';
-import type { CompanyMarketcapData, SecurityData } from '@/types/nav';
 
 interface MarketcapSidebarScrollSyncProps {
     navigationSections: Array<{ id: string; label: string; icon?: React.ReactNode }>;
     hasCompanyMarketcapData: boolean;
-    companyMarketcapData: CompanyMarketcapData | null;
-    companySecs: SecurityData[];
-    security: any;
-    marketCapRanking: any;
+    companyMarketcapData: DetailCompanyData;
+    companySecs: DetailSecurityRow[];
+    security: DetailSecurity;
+    marketCapRanking: DetailRanking;
     currentTicker: string;
     selectedType: string;
     secCode: string;
+    rankDate?: string | null;
     market: string;
 }
 

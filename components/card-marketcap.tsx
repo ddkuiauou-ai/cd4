@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { formatNumber, cn } from "@/lib/utils";
-import type { Security } from "@/typings";
+import type { DetailSecurityRow } from './detail-types';
 import Rate from "@/components/rate";
 
 export default function CardMarketcap({ security, name, href, market = 'KOSPI', isSelected = false,
     isCompanyPage = false, currentMetric = 'marketcap' }: {
-    security: Security; name?: string; href?: string; market?: string; isSelected?: boolean;
+    security: DetailSecurityRow; name?: string; href?: string; market?: string; isSelected?: boolean;
     isCompanyPage?: boolean; currentMetric?: string;
 }) {
-    const metric = currentMetric as keyof Security;
-    const rawValue = (security as any)[metric] as number | null | undefined;
+    const metrics: Record<string, number | null | undefined> = { marketcap: security.marketcap, per: security.per, pbr: security.pbr, eps: security.eps, bps: security.bps, div: security.div, dps: security.dps };
+    const rawValue = metrics[currentMetric];
     const value = rawValue == null || !Number.isFinite(rawValue) ? '—'
         : currentMetric === 'marketcap' ? `${formatNumber(rawValue)}원`
         : ['per', 'pbr'].includes(currentMetric) ? `${rawValue.toFixed(2)}배`
