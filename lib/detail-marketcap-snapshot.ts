@@ -9,7 +9,7 @@ export function getSecurityMarketcapSnapshot(security: SecuritySnapshot, data: D
     }
     const normalized = data?.securities.find(item => item.securityId === security.securityId);
     const latest = normalized?.marketcapHistory.reduce<(typeof normalized.marketcapHistory)[number] | undefined>((last, item) => {
-        if (item.marketcap == null || !Number.isFinite(item.marketcap) || Number.isNaN(new Date(item.date).getTime())) return last;
+        if (item.marketcap == null || !Number.isFinite(Number(item.marketcap)) || Number.isNaN(new Date(item.date).getTime())) return last;
         return !last || new Date(item.date).getTime() > new Date(last.date).getTime() ? item : last;
     }, undefined);
     return latest

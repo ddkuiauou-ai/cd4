@@ -1,18 +1,18 @@
-import type { DetailSecurityRow } from './detail-types';
+import { formatBusinessValue, type BusinessValue } from '@/lib/business-analysis';
 import Rate from './rate';
 
-type DetailPriceRecord = NonNullable<DetailSecurityRow['prices']>[number];
+type DetailPriceRecord = { close: BusinessValue; rate?: BusinessValue; date?: Date | string | null };
 
 export function DetailCurrentPrice({ price }: { price?: DetailPriceRecord }) {
     const close = price?.close;
-    const hasPrice = close != null && Number.isFinite(close);
-    const rate = hasPrice && price?.rate != null && Number.isFinite(price.rate) ? price.rate : null;
+    const hasPrice = close != null && formatBusinessValue(close) !== '—';
+    const rate = hasPrice && price?.rate != null && Number.isFinite(Number(price.rate)) ? Number(price.rate) : null;
     const date = hasPrice && price?.date != null ? new Date(price.date) : null;
     const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toISOString().slice(0, 10) : null;
 
     return <>
         <div className="flex items-baseline font-semibold text-foreground mb-1 leading-none">
-            <span className="text-lg sm:text-xl">{hasPrice ? close.toLocaleString('ko-KR') : '—'}</span>
+            <span className="text-lg sm:text-xl">{hasPrice ? formatBusinessValue(close) : '—'}</span>
             {hasPrice && <span className="text-xs ml-1">원</span>}
         </div>
         <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-xs leading-tight mb-1">

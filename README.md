@@ -1,22 +1,24 @@
-# CD3 - Korean Stock Information Service
+# CD - Korean Stock Information Service
 
-> **업그레이드와 운영 기준:** [Next.js 16 변경·검증 결과](docs/next16-upgrade-verification-2026-10-05.md), [문서 안내](docs/README.md), [DAG 연동 계약](docs/dag-integration.md)을 함께 읽으세요. 설치 버전과 실행 명령은 `package.json`, 고정 의존성은 `pnpm-lock.yaml`이 기준입니다.
+> **현재 업무 데이터 기준:** [CD → tem 저장 계약 v2](docs/cd-business-schema-contract-2026-10-07.md), [PostgreSQL 18 설치 안내](docs/postgresql.md), [검증 기록](docs/cd-business-schema-verification-2026-10-07.md), [문서 안내](docs/README.md)를 먼저 읽으세요. 설치 버전과 명령은 `package.json`, 의존성은 `pnpm-lock.yaml`이 기준입니다. 이전 DAG/Next.js 조사 문서는 해당 날짜의 기록입니다.
 
-CD3 provides financial data, rankings, and analysis tools for the Korean stock market. It uses the Next.js App Router and supports static export for CDN hosting alongside a Node.js server build.
+CD provides raw Korean stock history and the currently published official metrics, company market caps, and rankings. It uses the Next.js App Router and a Node.js standalone server for the current request-time database views.
+
+tem collects and corrects source data, resolves dated security identities, and calculates, validates, and publishes official results. CD owns the business schema, exact DTOs, queries and display. Period averages, minimum/maximum values and changes are calculated by CD for the selected screen window.
 
 ## 🎯 Project Overview
 
-- **Target Market**: Korean stock market (KOSPI/KOSDAQ)
+- **Target Market**: Korean stock market (KOSPI/KOSDAQ/KONEX, subject to source coverage)
 - **Design Philosophy**: Professional, quantitative, mobile-optimized
 - **Primary Goal**: Information delivery with SEO optimization for search discovery
 
 ## 🛠 Technology Stack
 
-- **Framework**: Next.js (App Router, static export and Node.js server modes)
+- **Framework**: Next.js App Router, Node.js standalone server
 - **UI Components**: shadcn/ui (New York style, slate base)
 - **Styling**: Tailwind CSS 4 (mobile-first approach)
-- **Database**: PostgreSQL only, using Drizzle ORM's `postgres-js` adapter and the `postgres` driver
-- **Deployment**: Static export to R2 or Netlify; Vercel is an optional hosting choice
+- **Database**: PostgreSQL 18, Drizzle ORM `postgres-js` adapter and the `postgres` driver
+- **Deployment**: Node.js server for current views; historical static export workflows require a separate review
 
 ## 🚀 Getting Started
 
@@ -24,7 +26,7 @@ CD3 provides financial data, rankings, and analysis tools for the Korean stock m
 
 - Node.js 22 (use the exact version in `.nvmrc`)
 - pnpm 10 (required package manager; follow `packageManager` in `package.json`)
-- Read access to a completed PostgreSQL data snapshot for development and production builds
+- PostgreSQL 18 with the committed schema; tem prepares source rows and published official results
 
 ### Installation
 
@@ -46,18 +48,24 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-The application reads an existing PostgreSQL data snapshot. To initialize an empty PostgreSQL database, follow the [PostgreSQL installation and migration guide](docs/postgresql.md). Creating tables does not populate the market data. An existing database requires schema comparison and a reviewed migration baseline before applying the initial migration.
+To initialize a **new empty PostgreSQL 18 database**, follow the [installation guide](docs/postgresql.md). Install `0000_postgresql_init.sql` → `0001_business_result_contract.sql` → `0002_simplify_publication.sql` for the final **14 tables**. The one new table, `result_publication`, describes the currently published official result; the existing security/company/rank tables hold its values. 0002 removes four custom functions and eight triggers and adds three row CHECKs, without changing columns or input formats. tem validates each result bundle before publishing its rows and header in one transaction. Creating tables does not populate market data. Existing data migration and baseline are outside this change.
+
+KRX daily timestamps represent Asia/Seoul midnight, while business-date DTOs use Korean `YYYY-MM-DD`. Actual zero and negative indicator values are preserved; missing fields are NULL with explicit states. `bigint`, `numeric`, and revision values remain exact decimal strings in JSON/CSV. Latest missing values and last provided values are shown separately. See the [input and publication contract](docs/cd-business-schema-contract-2026-10-07.md).
+
+The schema is **installed in DCD** at `192.168.50.27:25433/dcd`, using `silla` on PostgreSQL 18.6. The target was confirmed empty before the initial installation; 0002 then applied successfully and a repeat run made no changes (both exit 0). At 2026-10-07 05:16:56 KST, the final catalog and all three migration hashes matched: 14 tables, 286 columns, 71 secondary indexes, 12 FKs, 168 CHECKs and six enums. No CD custom guard functions or public custom triggers remain; three publication FKs remain initially deferred. All 14 business tables are empty. PCD was neither accessed nor changed.
+
+The isolated PG18 test passed (1 pass, 0 fail, 0 skip), including a test writer's key locking, expected revision checks, final validation and rollback. All 130 unit/regression tests, typecheck and `db:check` passed. A production build using actual DCD passed, followed by 13 HTTP checks each on development port 3001 and standalone port 3107 (26 passes): ten unpublished ranking pages returned 200, two unpublished CSV endpoints returned 404, and search returned 200 with `[]`. Development port 3001 is running after restart. Actual tem collection, writer and official calculation integration still await data; the test writer and empty-state checks do not establish that integration.
 
 ## 📁 Project Structure
 
 ```
 ├── app/                    # Next.js App Router pages
 ├── components/             # Reusable UI components
-├── lib/                   # Database operations (strict organization)
-│   ├── select.ts          # All SELECT queries
-│   ├── insert.ts          # All INSERT queries
-│   ├── update.ts          # All UPDATE queries
-│   └── delete.ts          # All DELETE queries
+├── lib/
+│   ├── data/              # Published snapshots, raw history queries and exact DTOs
+│   ├── business-analysis.ts  # Selected-window screen analysis
+│   └── business-metadata.ts  # Identity-based page metadata
+├── drizzle/               # 0000 → 0001 → 0002 installation SQL and snapshots
 ├── docs/                  # Project documentation
 │   ├── development-guidelines.md  # Comprehensive development guide
 │   ├── spec.md            # Technical specifications
@@ -93,15 +101,13 @@ The application reads an existing PostgreSQL data snapshot. To initialize an emp
 
 ### Database Operations
 
-The maintained schema is `db/schema-postgres.ts`, the runtime connection is `db/index.ts`, and the committed PostgreSQL migrations are in `drizzle/`. cd4 does not provide a Turso, libSQL, or SQLite deployment path. External collection pipelines have their own storage choices and migration responsibilities; see the [DAG integration contract](docs/dag-integration.md).
+The maintained schema is `db/schema-postgres.ts`, the runtime connection is `db/index.ts`, and the installation SQL is in `drizzle/`. Apply the committed migration chain: 0002 removes the custom publication guards while preserving PK/UNIQUE/FK and row CHECKs. A schema push does not replace the migration ledger or the three initially deferred publication FK declarations. tem checks input validity, revision and result coverage, serializes writers for the same publication key, and publishes rows and header in one transaction. cd4 does not provide a Turso, libSQL, or SQLite deployment path. tem follows the [current CD business contract](docs/cd-business-schema-contract-2026-10-07.md).
 
-All database code must be organized in `/lib` directory:
+Current read queries and DTO conversion are in `lib/data`. Official values are written by tem, then read with matching publication identifiers and a consistent request snapshot:
 
 ```typescript
-// lib/select.ts - All SELECT operations
-export async function getMarketCapRankings(page: number) {
-  // Implementation
-}
+// Read the published result; CD does not recalculate official company totals/ranks.
+// lib/data/company.ts, lib/data/security.ts, lib/data/publication.ts
 
 // Use snake_case in database, camelCase in TypeScript
 ```
@@ -116,10 +122,11 @@ pnpm dlx shadcn@latest add [component-name]
 ## 🔍 Key Features
 
 - **Market Cap Rankings**: Company and security rankings
-- **Financial Metrics**: PER, PBR, EPS, BPS, Dividend analysis
+- **Financial Metrics**: Latest and last provided PER, PBR, EPS, BPS, DIV and DPS, with dates and missing states
+- **Source History**: Selected-period source observations and screen analysis
 - **Mobile Optimization**: Responsive design for all screen sizes
 - **SEO Optimization**: Generated HTML, metadata, sitemap, and structured data
-- **Market Data**: Published data from the collection and aggregation pipeline
+- **Market Data**: tem source data and currently published official calculation results
 
 ## 📚 Documentation
 
@@ -127,7 +134,9 @@ pnpm dlx shadcn@latest add [component-name]
 - **[Technical Specifications](docs/spec.md)**: Detailed technology stack and configuration
 - **[UI Guidelines](docs/ui.md)**: Component patterns and responsive design
 - **[Service Documentation](docs/service.md)**: API and service features
-- **[PostgreSQL Guide](docs/postgresql.md)**: Connection configuration, empty database installation, and existing database migration baseline
+- **[CD → tem Contract](docs/cd-business-schema-contract-2026-10-07.md)**: Exact inputs, missing states, correction and atomic publication rules
+- **[PostgreSQL Guide](docs/postgresql.md)**: PostgreSQL 18 connection and new empty DB installation
+- **[Verification Record](docs/cd-business-schema-verification-2026-10-07.md)**: Actual isolated checks and remaining integration limits
 
 ## 🚀 Build and Deployment
 
@@ -152,17 +161,19 @@ pnpm test
 pnpm db:generate
 pnpm db:check
 
-# Apply migrations only after following the installation/baseline guide
+# Apply pending committed migrations; fresh installation is 0000 → 0001 → 0002
 pnpm db:migrate
 
 # Open the configured PostgreSQL database in Drizzle Studio
 pnpm db:studio
 
-# Verify installation using an isolated temporary PostgreSQL database
+# PostgreSQL 18 is required; missing/unsupported tools fail rather than silently skip
 pnpm test:db
+# For a version-specific native installation:
+# CD_TEST_PG_BIN=/opt/homebrew/opt/postgresql@18/bin pnpm test:db
 ```
 
-Drizzle's connection commands read `.env` and process environment variables. The application also uses Next.js environment loading. See the [PostgreSQL guide](docs/postgresql.md) before running commands against an existing database.
+Drizzle's connection commands read `.env` and process environment variables. A nonempty `DATABASE_URL` takes precedence over individual PostgreSQL fields. Confirm host, port, database and account before applying the installation SQL. `test:db` ignores application connection settings and uses its own temporary local cluster. See the [PostgreSQL guide](docs/postgresql.md).
 
 ### Production Builds
 
@@ -181,15 +192,15 @@ cp -R .next/static .next/standalone/.next/static
 PORT=3000 HOSTNAME=127.0.0.1 pnpm exec node .next/standalone/server.js
 ```
 
-#### Static export — default deployment plan
+#### Historical static export workflows
 
-The R2 and Netlify workflows build with `NEXT_OUTPUT_MODE=export`, remove the request-dependent sitemap Route Handlers in the deployment checkout, then run `NEXT_OUTPUT_MODE=export pnpm sitemap` to generate sitemap files from `out`.
+The existing R2/Netlify workflows and export setting describe the earlier fixed-snapshot deployment. Current pages query the database at request time and use dynamic route behavior. The current implementation targets server mode; an export requires a separately agreed snapshot/export design. Automated rebuild, upload and deployment are outside this change.
 
-For a local export check, use a separate checkout or copy and reproduce those workflow steps there. Preserve the original `app/sitemap.xml` and `app/sitemaps` sources. Serve the completed `out` directory with a static web server to verify direct URL navigation and assets.
+For the previous mode's history, read [Next.js 16 upgrade verification](docs/next16-upgrade-verification-2026-10-05.md) and [Vercel setup](VERCEL_SETUP.md). Those records do not establish that the new dynamic views can be exported unchanged.
 
-An export publishes a fixed data snapshot. New data appears after a successful rebuild and deployment; runtime ISR and Cache Components are unavailable in this mode. The CI cache stores only `.next/cache/turbopack` compiler artifacts. Keep financial query results separate from that cache.
+Financial result revisions are separate from compiler artifacts and source-history corrections. The initial implementation does not add long-lived data caching; page and CSV requests detect a replaced result revision.
 
-The workflows remain manually triggered. Uploading `out` or running a Vercel deployment is a separate operation from local build verification. See [Vercel setup](VERCEL_SETUP.md) for the optional Vercel path.
+Deployment is a separate operation from local tests and builds. The current change does not publish the site or change deployment workflows.
 
 Measure current generated URLs, total files, output size, peak memory, and build/upload times against the same data snapshot. Historical page counts and build durations are not current performance guarantees.
 

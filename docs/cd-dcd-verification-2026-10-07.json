@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 2,
+  "schema": {
+    "verifiedAt": "2026-10-06T20:16:56.253Z",
+    "identity": {
+      "database": "dcd",
+      "username": "silla",
+      "version": "18.6",
+      "address": "192.168.50.27",
+      "port": 25433
+    },
+    "tables": 14,
+    "columns": 286,
+    "indexes": 71,
+    "foreignKeys": 12,
+    "checks": 168,
+    "enums": 6,
+    "guardFunctions": 0,
+    "guardTriggers": 0,
+    "allConstraintsValidated": true,
+    "allIndexesReady": true,
+    "addedChecks": [
+      {
+        "name": "company_publication_kind_check",
+        "definition": "CHECK (((publication_key IS NULL) OR (split_part(publication_key, '/'::text, 1) = 'company_marketcap'::text)))"
+      },
+      {
+        "name": "security_publication_kind_check",
+        "definition": "CHECK (((publication_key IS NULL) OR (split_part(publication_key, '/'::text, 1) = 'security_latest'::text)))"
+      },
+      {
+        "name": "security_rank_publication_key_check",
+        "definition": "CHECK ((publication_key = ((('security_rank/'::text || scope_key) || '/'::text) || (metric_type)::text)))"
+      }
+    ],
+    "migrations": [
+      {
+        "tag": "0000_postgresql_init",
+        "hash": "9fa9e9eb88b6c20aa30f8a3333ffe51cdc15c909d304167e496f2f3eb868b38a",
+        "created_at": "1791297751101"
+      },
+      {
+        "tag": "0001_business_result_contract",
+        "hash": "74d433fa0a0514c1c0cd41c806750245218c30b2f13470f5fb4dad426dc430a7",
+        "created_at": "1791312651783"
+      },
+      {
+        "tag": "0002_simplify_publication",
+        "hash": "2824fef82ae5387a28da5c4961aef206c76a28f8b92d8494a63e833c993b5dde",
+        "created_at": "1791317406439"
+      }
+    ],
+    "rowCounts": {
+      "bppedd": "0",
+      "company": "0",
+      "display_name": "0",
+      "marketcap": "0",
+      "pension": "0",
+      "price": "0",
+      "result_publication": "0",
+      "search_name": "0",
+      "security": "0",
+      "security_rank": "0",
+      "stockcodename": "0",
+      "tmp_bppedds": "0",
+      "tmp_marketcaps": "0",
+      "tmp_prices": "0"
+    }
+  },
+  "web": {
+    "verifiedAt": "2026-10-06T20:17:42.572Z",
+    "results": [
+      {
+        "origin": "http://127.0.0.1:3001",
+        "result": "pass",
+        "checks": [
+          {
+            "path": "/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/dashboard/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/marketcaps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/marketcap/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/per/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/pbr/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/bps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/eps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/div/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/dps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/ranking-data/companies-marketcap.csv/",
+            "status": 404,
+            "state": "unpublished"
+          },
+          {
+            "path": "/ranking-data/securities-per.csv/",
+            "status": 404,
+            "state": "unpublished"
+          },
+          {
+            "path": "/search-data.json/",
+            "status": 200,
+            "rows": 0
+          }
+        ]
+      },
+      {
+        "origin": "http://127.0.0.1:3107",
+        "result": "pass",
+        "checks": [
+          {
+            "path": "/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/dashboard/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/marketcaps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/marketcap/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/per/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/pbr/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/bps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/eps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/div/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/dps/",
+            "status": 200,
+            "state": "unpublished"
+          },
+          {
+            "path": "/ranking-data/companies-marketcap.csv/",
+            "status": 404,
+            "state": "unpublished"
+          },
+          {
+            "path": "/ranking-data/securities-per.csv/",
+            "status": 404,
+            "state": "unpublished"
+          },
+          {
+            "path": "/search-data.json/",
+            "status": 200,
+            "rows": 0
+          }
+        ]
+      }
+    ]
+  },
+  "preflight": {
+    "verifiedAt": "2026-10-06T20:14:15.454Z",
+    "identity": {
+      "database": "dcd",
+      "username": "silla",
+      "version": "18.6",
+      "address": "192.168.50.27",
+      "port": 25433
+    },
+    "appliedMigrations": 2,
+    "guardFunctions": 4,
+    "guardTriggers": 8,
+    "rowCounts": {
+      "bppedd": "0",
+      "company": "0",
+      "display_name": "0",
+      "marketcap": "0",
+      "pension": "0",
+      "price": "0",
+      "result_publication": "0",
+      "search_name": "0",
+      "security": "0",
+      "security_rank": "0",
+      "stockcodename": "0",
+      "tmp_bppedds": "0",
+      "tmp_marketcaps": "0",
+      "tmp_prices": "0"
+    }
+  },
+  "build": {
+    "next": "16.3.8",
+    "node": "22.23.3",
+    "target": "dcd",
+    "result": "pass"
+  },
+  "tests": {
+    "unit": {
+      "passed": 130,
+      "failed": 0,
+      "skipped": 0
+    },
+    "isolatedPg18": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Database row constraints and test-only reference writer; actual tem writer unverified"
+    }
+  },
+  "scope": "Fresh DCD schema and empty-state web; no KRX or synthetic market data inserted",
+  "limitations": [
+    "CHECK expressions were not independently semantically normalized",
+    "Actual tem ingestion and official calculation integration remain unverified",
+    "Revision/CAS/final scope checks are tem writer responsibilities, not automatic DB trigger guards"
+  ]
+}

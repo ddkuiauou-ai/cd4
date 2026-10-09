@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useSyncExternalStore } from "react";
 import {
     LineChart,
     Line,
@@ -16,6 +16,8 @@ import {
     formatNumberTooltip,
 } from "../lib/utils";
 
+const subscribeMounted = () => () => {};
+
 interface Props {
     data: DPSGrowthItem[];
 }
@@ -27,19 +29,12 @@ interface DPSGrowthItem {
 }
 
 const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const isClient = useSyncExternalStore(subscribeMounted, () => true, () => false);
 
     const chartData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        return data.filter((item, index) => {
-            if (index === 0) return true;
-            return item.growthRate !== null && item.growthRate !== 0;
-        });
+        return data;
     }, [data]);
 
     const colors = useMemo(() => ({
@@ -121,7 +116,7 @@ const ChartDPSGrowth: React.FC<Props> = ({ data }) => {
                         strokeDasharray="5 5"
                         dot={{ fill: colors.growthLine, strokeWidth: 2, r: 3 }}
                         activeDot={{ r: 5, stroke: colors.growthLine, strokeWidth: 2, fill: 'var(--background)' }}
-                        name="전년 대비 성장률 (%)"
+                        name="직전 제공 기록 대비 (%)"
                         connectNulls={false}
                     />
                 </LineChart>

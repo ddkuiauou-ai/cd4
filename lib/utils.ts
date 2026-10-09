@@ -1,125 +1,38 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatBusinessValue, formatCompactBusinessValue, type BusinessValue } from "./business-analysis";
+import { businessDate } from "./data/dto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatNumberRaw(num: number) {
-  if (num === 0) return "";
-  return `${num}`;
+export function formatNumberRaw(num: BusinessValue | undefined): string {
+  return formatBusinessValue(num);
 }
 
-export function formatNumberRatio(num: number) {
-  if (num === 0) return "";
-
-  if (num > 1000) {
-    return `${num.toFixed(0)}배`;
-  }
-
-  return `${num}배`;
+export function formatNumberRatio(num: BusinessValue | undefined): string {
+  const value = formatBusinessValue(num);
+  return value === "—" ? value : `${value}배`;
 }
 
-export function formatNumberPercent(num: number) {
-  if (num === 0) return "";
-
-  if (num > 1000) {
-    return `${num.toFixed(0)}%`;
-  }
-
-  return `${num}%`;
+export function formatNumberPercent(num: BusinessValue | undefined): string {
+  const value = formatBusinessValue(num);
+  return value === "—" ? value : `${value}%`;
 }
 
-/**
- * Format a number with customizable output including optional units
- * Follows CD3 formatting standards for Korean audience
- *
- * @param num - Number to format
- * @param unit - Optional unit to append (e.g., '%', '원', '억원')
- * @param digits - Number of decimal digits (default: determined automatically)
- * @returns Formatted string
- */
-export function formatNumber(
-  num: number | null | undefined,
-  unit?: string,
-  digits?: number
-): string {
-  if (num === null || num === undefined || Number.isNaN(num)) return "-";
-  if (num === 0) return unit ? `0${unit}` : "0";
-
-  if (Math.abs(num) < 1) {
-    const d = digits !== undefined ? digits : 2;
-    return `${num.toFixed(d)}${unit || ""}`;
-  }
-
-  if (Math.abs(num) < 100_000) {
-    const d = digits !== undefined ? digits : (Math.abs(num) >= 10_000 ? 0 : 1);
-    return `${(num / 1000).toFixed(d)}천${unit || ""}`;
-  }
-
-  if (Math.abs(num) < 1_000_000) {
-    const d = digits !== undefined ? digits : (Math.abs(num) >= 100_000 ? 0 : 1);
-    return `${(num / 10_000).toFixed(d)}만${unit || ""}`;
-  }
-
-  // 백만 (Million)
-  if (Math.abs(num) < 100_000_000) {
-    const d = digits !== undefined ? digits : (Math.abs(num) >= 10_000_000 ? 0 : 1);
-    return `${(num / 1_000_000).toFixed(d)}백만${unit || ""}`;
-  }
-
-  // 억 (Hundred Million)
-  if (Math.abs(num) < 1_000_000_000_000) {
-    const d = digits !== undefined ? digits : (Math.abs(num) >= 10_000_000_000 ? 0 : 1);
-    return `${(num / 100_000_000).toFixed(d)}억${unit || ""}`;
-  }
-
-  // 조 (Trillion)
-  const d = digits !== undefined ? digits : (Math.abs(num) >= 10_000_000_000_000 ? 0 : 1);
-  return `${(num / 1_000_000_000_000).toFixed(d)}조${unit || ""}`;
+export function formatNumber(num: BusinessValue | undefined, unit?: string, digits?: number): string {
+  const value = formatCompactBusinessValue(num, digits);
+  return value === "—" ? value : `${value}${unit || ""}`;
 }
 
-export function formatNumberBPS(num: number) {
-  if (num === 0) return "";
-
-  if (num < 1) {
-    return `0`;
-  }
-
-  if (num < 1_000_000) {
-    return `${num.toLocaleString()}`;
-  }
-
-  if (num < 100_000_000) {
-    return `${(num / 10_000).toFixed(num >= 100_000 ? 0 : 1)}만`;
-  }
+export function formatNumberBPS(num: BusinessValue | undefined): string {
+  return formatCompactBusinessValue(num);
 }
 
-export function formatNumberTooltip(num: number) {
-  if (num === 0) return "";
-
-  if (num < 100_000) {
-    return `${num.toLocaleString()}원`;
-  }
-
-  if (num < 1_000_000) {
-    return `${(num / 10_000).toFixed(num >= 100_000 ? 0 : 1)}만원`;
-  }
-
-  // 백만 (Million)
-  if (num < 100_000_000) {
-    return `${(num / 1_000_000).toFixed(num >= 10_000_000 ? 0 : 1)}백만원`;
-  }
-
-  // 억 (Hundred Million)
-  if (num < 1_000_000_000_000) {
-    return `${(num / 100_000_000).toFixed(num >= 100_000_000 ? 0 : 1)}억원`;
-  }
-
-  // 조 (Trillion)
-  return `${(num / 1_000_000_000_000).toFixed(
-    num > 10_000_000_000_000 ? 0 : 1
-  )}조원`;
+export function formatNumberTooltip(num: BusinessValue | undefined): string {
+  const value = formatBusinessValue(num);
+  return value === "—" ? value : `${value}원`;
 }
 
 /**
@@ -163,9 +76,9 @@ export function formatDate(
   if (!date) return "-";
 
   try {
-    return date.toLocaleDateString(locale, options);
+    return date.toLocaleDateString(locale, { timeZone: "Asia/Seoul", ...options });
   } catch {
-    return date.toISOString().split("T")[0]; // Fallback to ISO date
+    return businessDate(date) ?? "—"; // Fallback to ISO date
   }
 }
 
@@ -178,14 +91,7 @@ export function formatDate(
 export function getISODateString(
   dateInput: Date | string | null | undefined
 ): string | null {
-  const date = safeDateConvert(dateInput);
-  if (!date) return null;
-
-  try {
-    return date.toISOString().split("T")[0];
-  } catch {
-    return null;
-  }
+  try { return businessDate(dateInput); } catch { return null; }
 }
 
 /**
@@ -209,7 +115,7 @@ export function formatDateKorean(
   if (!date) return "-";
 
   try {
-    const { year = 'numeric', month = 'short', includeDay = true } = options;
+    const { month = 'short', includeDay = true } = options;
 
     // Korean month names
     const koreanMonths = {
@@ -218,7 +124,9 @@ export function formatDateKorean(
       narrow: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     };
 
-    const monthIndex = date.getMonth();
+    const day = businessDate(date)!;
+    const [businessYear, businessMonth, businessDay] = day.split('-').map(Number);
+    const monthIndex = businessMonth - 1;
     let monthName: string;
 
     if (month === 'numeric') {
@@ -227,21 +135,21 @@ export function formatDateKorean(
       monthName = koreanMonths[month as keyof typeof koreanMonths]?.[monthIndex] || koreanMonths.short[monthIndex];
     }
 
-    const yearStr = date.getFullYear();
-    const dayStr = includeDay ? `${date.getDate()}일` : '';
+    const yearStr = businessYear;
+    const dayStr = includeDay ? `${businessDay}일` : '';
 
     return `${yearStr}년 ${monthName}${dayStr}`.trim();
   } catch {
-    return date.toISOString().split("T")[0];
+    return businessDate(date) ?? "—";
   }
 }
 
 // Date processing utilities for market data
-export function getLatestDateFromMarketData(data: any[]): string {
-  return getISODateString(data[0]?.marketcapDate) ?? "N/A";
+export function getLatestDateFromMarketData(data: readonly { marketcapDate?: Date | string | null }[]): string {
+  return data.flatMap(row => { const date = getISODateString(row.marketcapDate); return date ? [date] : []; }).sort().at(-1) ?? "N/A";
 }
 
-export function getUpdatedDateFromMarketData(data: any[]): string {
+export function getUpdatedDateFromMarketData(data: readonly { updatedAt?: Date | string | null }[]): string {
   let latestUpdate: Date | null = null;
   for (const item of data) {
     const date = safeDateConvert(item.updatedAt);
@@ -320,89 +228,15 @@ export const formatFunctionMapForChart = {
 /**
  * 시가총액 전용 포맷 함수 - 큰 금액에 대해 조, 백조 단위 표시
  */
-export function formatMarketcapWithUnit(
-  num: number | null | undefined
-): { main: string; unit: string; detail: string } {
-  if (num === null || num === undefined || Number.isNaN(num))
-    return { main: "-", unit: "", detail: "" };
-  if (num === 0)
-    return { main: "0", unit: "원", detail: "" };
-
-  // 조 (Trillion) 단위
-  if (Math.abs(num) >= 1_000_000_000_000) {
-    const trillion = num / 1_000_000_000_000;
-    if (Math.abs(trillion) >= 100) {
-      // 백조 이상
-      const hundredTrillion = trillion / 100;
-      return {
-        main: hundredTrillion.toFixed(hundredTrillion >= 10 ? 0 : 1),
-        unit: "백조원",
-        detail: `(${trillion.toFixed(0)}조원)`
-      };
-    } else {
-      // 조 단위
-      return {
-        main: trillion.toFixed(trillion >= 10 ? 0 : 1),
-        unit: "조원",
-        detail: num.toLocaleString() + "원"
-      };
-    }
-  }
-
-  // 억 (Hundred Million) 단위
-  if (Math.abs(num) >= 100_000_000) {
-    const hundredMillion = num / 100_000_000;
-    return {
-      main: hundredMillion.toFixed(hundredMillion >= 10 ? 0 : 1),
-      unit: "억원",
-      detail: num.toLocaleString() + "원"
-    };
-  }
-
-  // 그 외는 기본 포맷
-  return {
-    main: num.toLocaleString(),
-    unit: "원",
-    detail: ""
-  };
+export function formatMarketcapWithUnit(num: BusinessValue | undefined): { main: string; unit: string; detail: string } {
+  const formatted = formatNumberWithSeparateUnit(num);
+  return { main: formatted.number, unit: formatted.number === "—" ? "" : `${formatted.unit}원`, detail: formatted.number === "—" ? "" : `${formatBusinessValue(num)}원` };
 }
 
-/**
- * Format number with separate unit for compact display in cards
- */
-export function formatNumberWithSeparateUnit(num: number | null | undefined): { number: string; unit: string } {
-  if (num === null || num === undefined || Number.isNaN(num)) return { number: "—", unit: "" };
-  if (num === 0) return { number: "0", unit: "" };
-
-  if (Math.abs(num) < 1) {
-    return { number: num.toFixed(2), unit: "" };
-  }
-
-  if (Math.abs(num) < 100_000) {
-    const d = Math.abs(num) >= 10_000 ? 0 : 1;
-    return { number: (num / 1000).toFixed(d), unit: "천" };
-  }
-
-  if (Math.abs(num) < 1_000_000) {
-    const d = Math.abs(num) >= 100_000 ? 0 : 1;
-    return { number: (num / 10_000).toFixed(d), unit: "만" };
-  }
-
-  // 백만 (Million)
-  if (Math.abs(num) < 100_000_000) {
-    const d = Math.abs(num) >= 10_000_000 ? 0 : 1;
-    return { number: (num / 1_000_000).toFixed(d), unit: "백만" };
-  }
-
-  // 억 (Hundred Million)
-  if (Math.abs(num) < 1_000_000_000_000) {
-    const d = Math.abs(num) >= 10_000_000_000 ? 0 : 1;
-    return { number: (num / 100_000_000).toFixed(d), unit: "억" };
-  }
-
-  // 조 (Trillion)
-  const d = Math.abs(num) >= 10_000_000_000_000 ? 0 : 1;
-  return { number: (num / 1_000_000_000_000).toFixed(d), unit: "조" };
+export function formatNumberWithSeparateUnit(num: BusinessValue | undefined): { number: string; unit: string } {
+  const value = formatCompactBusinessValue(num);
+  const match = value.match(/^(.*?)(백만|조|억|만|천)$/);
+  return match ? { number: match[1], unit: match[2] } : { number: value, unit: "" };
 }
 
 /**
@@ -430,7 +264,7 @@ export function formatDifference(diff: number | null | undefined): { value: stri
   }
 
   const formatted = formatNumberWithSeparateUnit(Math.abs(diff));
-  const sign = diff > 0 ? "+" : "-";
+  const sign = diff > 0 ? "+" : diff < 0 ? "-" : "";
   const value = `${sign}${formatted.number}${formatted.unit}`;
 
   if (diff > 0) return { value, color: "text-red-600" };

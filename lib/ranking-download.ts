@@ -8,6 +8,7 @@ export type RankingDownloadScope = "company" | "security";
 export function getRankingDownloadUrl(
   scope: RankingDownloadScope,
   metric: RankingDownloadMetric,
+  basis?: { revision?: string | null; scopeKey?: string },
 ): string {
   if (!RANKING_DOWNLOAD_METRICS.includes(metric)) {
     throw new Error("지원하지 않는 순위 지표입니다.");
@@ -16,12 +17,18 @@ export function getRankingDownloadUrl(
     if (metric !== "marketcap") {
       throw new Error("기업 합산 순위는 시가총액만 제공됩니다.");
     }
-    return "/ranking-data/companies-marketcap.csv";
+    return withBasis("/ranking-data/companies-marketcap.csv", basis);
   }
   if (scope !== "security") {
     throw new Error("지원하지 않는 순위 범위입니다.");
   }
-  return `/ranking-data/securities-${metric}.csv`;
+  return withBasis(`/ranking-data/securities-${metric}.csv`, basis);
+}
+
+function withBasis(path: string, basis?: { revision?: string | null; scopeKey?: string }): string {
+  if (!basis) return path;
+  const query = new URLSearchParams({ ...(basis.revision ? { revision: basis.revision } : {}), scope: basis.scopeKey ?? "krx-all" });
+  return `${path}?${query}`;
 }
 
 export function getRankingDownloadFilename(

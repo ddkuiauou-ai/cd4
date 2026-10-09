@@ -1,0 +1,127 @@
+{
+  "ranking": [
+    {
+      "page": "ranking",
+      "scroll": 1280,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 1280
+    },
+    {
+      "page": "ranking",
+      "scroll": 768,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 768
+    },
+    {
+      "page": "ranking",
+      "scroll": 390,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 390
+    },
+    {
+      "page": "ranking",
+      "scroll": 320,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 320
+    },
+    {
+      "page": "ranking",
+      "scroll": 320,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 320
+    },
+    {
+      "page": "ranking",
+      "scroll": 390,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 390
+    },
+    {
+      "page": "ranking",
+      "scroll": 768,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 768
+    },
+    {
+      "page": "ranking",
+      "scroll": 1280,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 1280
+    },
+    {
+      "page": "ranking",
+      "scroll": 1440,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 1440
+    },
+    {
+      "page": "ranking",
+      "width": 1440,
+      "scroll": 1440,
+      "theme": "light",
+      "capture": "after-ranking-desktop.jpg"
+    }
+  ],
+  "company": [
+    {
+      "page": "company-marketcap",
+      "scroll": 320,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 320
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 390,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 390
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 768,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 768
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 1280,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 1280
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 1440,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable light",
+      "width": 1440
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 1440,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 1440
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 1280,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 1280
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 768,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 768
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 390,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 390
+    },
+    {
+      "page": "company-marketcap",
+      "scroll": 320,
+      "theme": "brandfont_3e52b7eb-module__eyRnLa__variable dark",
+      "width": 320
+    }
+  ]
+}

@@ -5,12 +5,15 @@ import { addRecentlyViewedSecurity, MetricType } from "@/lib/recent-securities";
 
 interface RecentSecurityTrackerProps {
     secCode: string;
+    securityId?: string;
+    routeCode?: string | null;
+    lastPath?: string;
     name: string;
     korName?: string;
     ticker: string;
     exchange: string;
     metricType: MetricType;
-    metricValue?: number | null;
+    metricValue?: number | string | null;
 }
 
 /**
@@ -19,6 +22,9 @@ interface RecentSecurityTrackerProps {
  */
 export function RecentSecurityTracker({
     secCode,
+    securityId,
+    routeCode,
+    lastPath,
     name,
     korName,
     ticker,
@@ -31,6 +37,9 @@ export function RecentSecurityTracker({
         if (secCode && name && ticker && exchange) {
             addRecentlyViewedSecurity({
                 secCode,
+                securityId,
+                routeCode,
+                lastPath,
                 name,
                 korName,
                 ticker,
@@ -38,7 +47,7 @@ export function RecentSecurityTracker({
             }, metricType, metricValue);
 
         }
-    }, [secCode, name, korName, ticker, exchange, metricType, metricValue]);
+    }, [secCode, securityId, routeCode, lastPath, name, korName, ticker, exchange, metricType, metricValue]);
 
     // 아무것도 렌더링하지 않음
     return null;

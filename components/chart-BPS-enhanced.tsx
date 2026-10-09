@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
+import { useViewportWidth } from '@/hooks/use-viewport-width';
 import {
     BarChart,
     Bar,
@@ -12,10 +13,7 @@ import {
 } from "recharts";
 import {
     formatNumber,
-    formatNumberRaw,
     formatNumberTooltip,
-    formatNumberRatio,
-    formatNumberPercent,
     formatFunctionMapForChart,
 } from "../lib/utils";
 import {
@@ -51,24 +49,8 @@ function getLatestDecemberDates(data: Item[]): string[] {
     return Object.values(lastDecDates);
 }
 
-interface FormatFunctionMap {
-    [key: string]: (value: number, index?: number) => string;
-}
-
 export default function ChartBPSEnhanced({ data, format, formatTooltip, period = '1Y' }: Props) {
-    const [windowWidth, setWindowWidth] = useState(0);
-
-    useEffect(() => {
-        function handleResize() {
-            setWindowWidth(window.innerWidth);
-        }
-
-        if (typeof window !== 'undefined') {
-            setWindowWidth(window.innerWidth);
-            window.addEventListener('resize', handleResize);
-            return () => window.removeEventListener('resize', handleResize);
-        }
-    }, []);
+    const windowWidth = useViewportWidth();
 
     const processedData = useMemo(() => {
         if (!data || data.length === 0) return [];
@@ -80,7 +62,7 @@ export default function ChartBPSEnhanced({ data, format, formatTooltip, period =
 
         // Apply period filtering
         const periodYears = period === '1Y' ? 1 : period === '5Y' ? 5 : period === '10Y' ? 10 : 20;
-        const currentYear = new Date().getFullYear();
+        const currentYear = Number(filteredData.at(-1)?.date.slice(0,4));
         const startYear = currentYear - periodYears + 1;
 
         filteredData = filteredData.filter((item) => {
@@ -100,7 +82,7 @@ export default function ChartBPSEnhanced({ data, format, formatTooltip, period =
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>주당순자산가치 BPS 연도별 추이</CardTitle>
+                    <CardTitle>주당순자산가치 BPS 연말 관측값 추이</CardTitle>
                     <CardDescription>
                         Book Value Per Share - 기업의 연간 주당순자산가치 변화를 나타냅니다.
                     </CardDescription>
@@ -114,13 +96,13 @@ export default function ChartBPSEnhanced({ data, format, formatTooltip, period =
         );
     }
 
-    const formatFunction = (formatFunctionMapForChart as any)[format] || formatNumber;
-    const tooltipFormatter = (formatFunctionMapForChart as any)[formatTooltip] || formatNumberTooltip;
+    const formatFunction = formatFunctionMapForChart[format as keyof typeof formatFunctionMapForChart] || formatNumber;
+    const tooltipFormatter = formatFunctionMapForChart[formatTooltip as keyof typeof formatFunctionMapForChart] || formatNumberTooltip;
 
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>주당순자산가치 BPS 연도별 추이</CardTitle>
+                <CardTitle>주당순자산가치 BPS 연말 관측값 추이</CardTitle>
                 <CardDescription>
                     Book Value Per Share - 기업의 연간 주당순자산가치 변화를 나타냅니다.
                     높은 값일수록 기업의 자산 가치가 높음을 의미합니다.
@@ -165,8 +147,8 @@ export default function ChartBPSEnhanced({ data, format, formatTooltip, period =
                                     borderRadius: "8px",
                                     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                                 }}
-                                formatter={(value: any) => [
-                                    tooltipFormatter(Number(value)),
+                                formatter={(value) => [
+                                    tooltipFormatter(Number(Array.isArray(value) ? value[0] : value)),
                                     "주당순자산가치",
                                 ]}
                                 labelFormatter={(label) => `${label}년`}

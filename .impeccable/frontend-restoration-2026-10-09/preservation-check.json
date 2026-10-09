@@ -1,0 +1,10 @@
+{
+  "db/schema-postgres.ts": true,
+  "drizzle/meta/_journal.json": true,
+  "tsconfig.json": true,
+  ".impeccable/design.json": true,
+  "drizzle/0001_business_result_contract.sql": true,
+  "drizzle/0002_simplify_publication.sql": true,
+  "drizzle/meta/0001_snapshot.json": true,
+  "drizzle/meta/0002_snapshot.json": true
+}

@@ -1,43 +1,10 @@
 const assert = require("node:assert/strict");
-const { existsSync, readFileSync } = require("node:fs");
-const Module = require("node:module");
-const path = require("node:path");
 const test = require("node:test");
-const React = require("react");
-const { renderToStaticMarkup } = require("react-dom/server");
-const ts = require("typescript");
+const { JSDOM } = require("jsdom");
+const { createBusinessPageLoader } = require("./helpers/business-page-loader.cjs");
 
-const root = path.resolve(__dirname, "..");
-function loader(overrides = {}) {
-  const loaded = new Map();
-  function load(filename) {
-    if (loaded.has(filename)) return loaded.get(filename).exports;
-    const mod = new Module(filename);
-    loaded.set(filename, mod);
-    mod.filename = filename;
-    mod.paths = Module._nodeModulePaths(path.dirname(filename));
-    mod.require = name => {
-      if (overrides[name]) return { __esModule: true, ...overrides[name] };
-      if (name.endsWith(".module.css")) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
-      const local = name.startsWith("@/") ? path.join(root, name.slice(2))
-        : name.startsWith(".") ? path.resolve(path.dirname(filename), name) : null;
-      if (!local) return require(name);
-      const resolved = [local, `${local}.ts`, `${local}.tsx`].find(existsSync);
-      assert.ok(resolved, `Missing module ${name}`);
-      return load(resolved);
-    };
-    const { outputText } = ts.transpileModule(readFileSync(filename, "utf8"), {
-      fileName: filename,
-      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-    });
-    mod._compile(outputText, filename);
-    return mod.exports;
-  }
-  return name => load(path.join(root, name));
-}
-
-const view = loader()("lib/ranking-view.ts");
-const pagination = loader()("lib/data/pagination.ts");
+const view = createBusinessPageLoader().load("lib/ranking-view.ts");
+const pagination = createBusinessPageLoader().load("lib/data/pagination.ts");
 const security = (rank, overrides = {}) => ({
   securityId: `s-${rank}`, companyId: `c-${rank}`, korName: `예시종목${rank}`,
   exchange: "KOSPI", ticker: String(rank).padStart(6, "0"), type: "보통주",
@@ -53,10 +20,10 @@ const company = (rank, overrides = {}) => ({
 });
 
 test("company aggregate links and values stay distinct from the representative common stock", () => {
-  const row = view.createRankingRows([company(1, { marketcap: 549e12, securities: [{ exchange: "KOSPI", ticker: "005930", marketcap: 494.3e12, prices: [{ close: 83_000, rate: -4.51, date: "2025-09-23" }] }] })], "marketcap", "company")[0];
-  assert.equal(row.value, 549e12);
+  const row = view.createRankingRows([company(1, { routeCode: "KOSPI.005930", marketcap: "549000000000000", securities: [{ securityId: "common-1", type: "보통주", exchange: "KOSPI", ticker: "005930", marketcap: "494300000000000", prices: [{ close: "83000", rate: "-4.51", date: "2025-09-23" }] }] })], "marketcap", "company")[0];
+  assert.equal(row.value, "549000000000000");
   assert.equal(row.href, "/company/KOSPI.005930/marketcap");
-  assert.equal(row.close, 83_000);
+  assert.equal(row.close, "83000");
   assert.equal(row.rate, -4.51);
   assert.equal(row.priceDate, "2025-09-23");
 });
@@ -67,14 +34,15 @@ test("missing prices or representative security do not remove a ranked entity or
   assert.equal(rows[0].value, 1e12);
   assert.equal(rows[0].rate, null);
   assert.deepEqual(rows[0].prices, []);
-  assert.equal(rows[1].href, null);
+  assert.equal(rows[1].href, "/company/c-2/marketcap");
   assert.equal(rows[1].value, 2e12);
 });
 
 test("every metric preserves null, zero, negative values, its detail URL, and raw security identity", () => {
   for (const metric of Object.keys(view.RANKING_METRICS)) {
-    const rows = view.createRankingRows([security(1, { value: null }), security(2, { value: 0 }), security(3, { value: -12.3 })], metric, "security");
+    const rows = view.createRankingRows([security(1, { value: null, [metric]: 42, valueObservedAt: null, [`${metric}Date`]: "2026-10-06" }), security(2, { value: 0 }), security(3, { value: -12.3 })], metric, "security");
     assert.deepEqual(rows.map(row => row.value), [null, 0, -12.3]);
+    assert.equal(rows[0].metricDate, null);
     assert.equal(rows[2].href, `/security/KOSPI.000003/${metric}`);
     assert.equal(rows[2].id, "s-3");
     assert.equal(view.formatRankingValue(metric, null), "—");
@@ -91,6 +59,13 @@ test("rank movement separates unchanged, unknown, improvement, decline, and larg
   assert.equal(view.rankMovement(0, 1), null);
   assert.equal(view.rankMovement(2, Infinity), null);
   assert.equal(view.rankMovement(103, 2_601), 2_498);
+});
+
+test("finite source decimals written in exponent form remain values rather than missing observations", () => {
+  const row = view.createRankingRows([security(1, { value: "3.82158e-05", prices: [{ date: "2026-10-06", close: "1.23e5", rate: "2.5e-1" }] })], "per", "security")[0];
+  assert.equal(row.value, "3.82158e-05"); assert.equal(row.close, "1.23e5"); assert.equal(row.rate, .25);
+  assert.equal(view.exactRankingValue("per", row.value), "0.0000382158배");
+  assert.equal(view.formatRankingValue("per", row.value), "0.00배");
 });
 
 test("page boundaries expose all first twenty then the next hundred without overlap or an empty next link", () => {
@@ -113,104 +88,201 @@ test("detail neighbor selection independently handles first, middle, last, gaps,
   assert.deepEqual(view.getRankNeighbors(items, 3, getRank), { prev: { rank: 2 }, next: { rank: 4 } });
 });
 
-async function renderPage(route, { items, total = 120, date = "2025-09-22", page = 1, scope = "security" }) {
+const publication = {
+  asOf: "2026-10-06", revision: "9007199254740993", scopeKey: "krx-all",
+  calculationId: "calc-ranking-1", publishedAt: "2026-10-06T08:00:00Z",
+};
+const publishedSecurity = (rank, overrides = {}) => ({
+  securityId: `security-${rank}`, companyId: `company-${rank}`, korName: `공식종목${rank}`,
+  exchange: "KOSPI", ticker: "005930", type: "보통주", currentRank: rank, priorRank: rank + 2,
+  value: "9007199254740993", valueObservedAt: "2000-01-04", rankingState: "included", ...overrides,
+});
+const publishedCompany = (rank, overrides = {}) => ({
+  companyId: `company-${rank}`, korName: `공식기업${rank}`, marketcap: "9007199254740993",
+  marketcapRank: rank, marketcapPriorRank: rank + 2, marketcapDate: "2026-10-06",
+  rankingState: "included", marketcapCompleteness: "complete", securities: [], ...overrides,
+});
+
+async function renderPage(route, {
+  items = [], total = 120, page = 1, searchParams = {}, state = "published", revisionChanged = false,
+  resultPublication = publication,
+} = {}) {
   const calls = [];
-  const downloads = [];
-  const load = loader({
-    "next/link": { default: ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children) },
-    "next/navigation": { notFound: () => { throw new Error("NOT_FOUND"); }, redirect: href => { throw new Error(`REDIRECT:${href}`); } },
-    "@/components/spike-chart": { default: () => React.createElement("svg", { "data-testid": "trend" }) },
-    "@/components/recent-securities-sidebar": { RecentSecuritiesSidebar: () => React.createElement("section", null, "최근 본 종목") },
-    "@/components/CsvDownloadButton": { CsvDownloadButton: props => {
-      downloads.push(props);
-      return React.createElement("a", { href: "csv" }, "전체 순위 CSV");
-    } },
-    "@/lib/data/security": {
-      getSecurityRanksPage: async (...args) => { calls.push(args); return { items, latestDate: date }; },
-      countSecurityRanks: async metric => { calls.push(["count", metric]); return total; },
-    },
-    "@/lib/data/company": {
-      getCompanyMarketcapsPage: async value => {
-        calls.push([value]);
-        return { items, totalCount: total, totalPages: pagination.computeTotalPagesMixed(total) };
-      },
-      countCompanyMarketcaps: async () => total,
-    },
+  const result = { items, totalCount: total, totalPages: pagination.computeTotalPagesMixed(total),
+    publication: resultPublication, state, revisionChanged };
+  const loader = createBusinessPageLoader({
+    "@/lib/data/security": { getSecurityRanksPage: async (...args) => { calls.push(["security", ...args]); return result; } },
+    "@/lib/data/company": { getCompanyRankingPage: async (...args) => { calls.push(["company", ...args]); return result; } },
   });
-  const { default: Page } = load(route);
-  const html = renderToStaticMarkup(await Page({ params: Promise.resolve({ page: String(page) }) }));
-  return { html, calls, downloads, text: html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(), scope };
+  return { ...await loader.renderRoute(route, { params: { page: String(page) }, searchParams }), calls };
 }
 
-test("both actual first-page company routes render all twenty entries and export the whole scoped ranking", async () => {
-  const items = Array.from({ length: 20 }, (_, i) => company(i + 1, i === 10 ? { securities: [] } : {}));
+function documentOf(html) { return new JSDOM(html).window.document; }
+function desktopRows(document) { return [...document.querySelectorAll(".desktopTable tbody tr")]; }
+function mobileRows(document) { return [...document.querySelectorAll(".mobileTable tbody tr")]; }
+
+test("actual company routes render the twenty official entities with stable links and a revision-pinned export", async () => {
+  const items = Array.from({ length: 20 }, (_, index) => publishedCompany(index + 1));
   for (const route of ["app/(market)/page.tsx", "app/(market)/marketcaps/page.tsx"]) {
-    const { html, text, calls, downloads } = await renderPage(route, { items, total: 121, scope: "company" });
-    assert.deepEqual(calls, [[1]]);
-    assert.equal((html.match(/<tbody>/g) || []).length, 2);
-    assert.equal((html.match(/<tr>/g) || []).length, 42);
-    assert.match(text, /예시기업20/);
+    const { html, text, calls } = await renderPage(route, { items, total: 121 });
+    const document = documentOf(html);
+    assert.deepEqual(calls, [["company", 1, undefined]]);
+    assert.equal(desktopRows(document).length, 20);
+    assert.equal(mobileRows(document).length, 20);
+    assert.match(text, /공식기업20/);
     assert.match(text, /전체 121개 기업 · 1–20위/);
-    assert.match(html, /href="\/marketcaps\/2"/);
-    assert.equal(downloads.length, 1);
-    assert.equal(downloads[0].scope, "company");
-    assert.equal(downloads[0].metric, "marketcap");
-    assert.equal(downloads[0].expectedDate, "2025-09-22");
-    assert.equal(downloads[0].expectedTotalCount, 121);
-    assert.equal(downloads[0].expectedCompanyRows.length, 20);
-    assert.deepEqual(downloads[0].expectedCompanyRows[10], { id: "c-11", rank: 11, priorRank: 13, value: 11e12, metricDate: "2025-09-22" });
-    assert.doesNotMatch(text, /준비 중|불러오는 중/);
+    assert.ok(document.querySelector('a[href="/company/company-20/marketcap"]'));
+    assert.equal(document.querySelector('a[href^="/marketcaps/2"]').getAttribute("href"), `/marketcaps/2?revision=${publication.revision}`);
+    assert.equal(document.querySelector('a[href^="/ranking-data/"]').getAttribute("href"), `/ranking-data/companies-marketcap.csv?revision=${publication.revision}&scope=krx-all`);
+    assert.match(text, /9,007,199,254,740,993/);
   }
 });
 
-test("all seven actual metric pages keep security scope, sort semantics, and every first-page row", async () => {
-  const items = Array.from({ length: 20 }, (_, i) => security(i + 1));
+test("all seven actual metric pages use tem ranks without replacing their order or raw identity", async () => {
+  const items = Array.from({ length: 20 }, (_, index) => publishedSecurity(index + 1));
   for (const metric of Object.keys(view.RANKING_METRICS)) {
-    const { html, calls, downloads } = await renderPage(`app/(market)/${metric}/page.tsx`, { items });
-    const order = ["marketcap", "per", "pbr"].includes(metric) ? "asc" : "desc";
-    assert.deepEqual(calls, [["count", metric], [metric, 1, order]]);
-    assert.equal((html.match(/<tr>/g) || []).length, 42);
-    assert.match(html, new RegExp(`href="/security/KOSPI\\.000020/${metric}"`));
-    assert.equal(downloads.length, 1);
-    assert.equal(downloads[0].scope, "security");
-    assert.equal(downloads[0].metric, metric);
-    assert.equal(downloads[0].expectedDate, "2025-09-22");
-    assert.equal(downloads[0].expectedTotalCount, 120);
-    assert.equal(downloads[0].expectedCompanyRows, undefined);
+    const { html, text, calls } = await renderPage(`app/(market)/${metric}/page.tsx`, { items });
+    const document = documentOf(html);
+    assert.deepEqual(calls, [["security", metric, 1, "asc", "krx-all", undefined]]);
+    assert.equal(desktopRows(document).length, 20);
+    assert.equal(mobileRows(document).length, 20);
+    assert.ok(document.querySelector(`a[href="/security/KOSPI.005930/${metric}"]`));
+    const exportURL = new URL(document.querySelector('a[href^="/ranking-data/"]').getAttribute("href"), "https://example.test");
+    assert.equal(exportURL.pathname, `/ranking-data/securities-${metric}.csv`);
+    assert.equal(exportURL.searchParams.get("revision"), publication.revision);
+    assert.equal(exportURL.searchParams.get("scope"), "krx-all");
+    assert.match(text, /공개 기준일 2026-10-06/);
+    assert.match(text, /2000-01-04/);
+    assert.match(text, /9,007,199,254,740,993/);
   }
 });
 
-test("all seven metric page-two routes render the complete hundred rows and last-page previous URL", async () => {
-  const items = Array.from({ length: 100 }, (_, i) => security(i + 21));
+test("official ranking values preserve supplied zero and negatives and are not filtered by current master status", async () => {
+  const { html } = await renderPage("app/(market)/per/page.tsx", { items: [
+    publishedSecurity(1, { value: "0", type: "우선주", delistedAt: "2020-01-01" }),
+    publishedSecurity(6, { value: "-12.30", priorRank: 4, delistedAt: "2025-01-01" }),
+    publishedSecurity(9, { value: "9007199254740993.125", priorRank: null }),
+  ], total: 3 });
+  const document = documentOf(html);
+  const rows = desktopRows(document);
+  assert.deepEqual(rows.map(row => row.querySelector("button[data-rank]").dataset.rank), ["1", "6", "9"]);
+  assert.deepEqual(rows.map(row => row.querySelector(".valueDetails p").textContent), [
+    "0배지표 관측일 2000-01-04", "-12.3배지표 관측일 2000-01-04", "9,007,199,254,740,993.125배지표 관측일 2000-01-04",
+  ]);
+  assert.match(rows[0].textContent, /우선주/);
+  assert.match(rows[1].querySelector("button").getAttribute("aria-label"), /2계단 하락/);
+  assert.match(rows[2].querySelector("button").getAttribute("aria-label"), /이전 순위 정보가 없습니다/);
+  assert.equal(mobileRows(document).length, 3);
+});
+
+test("metric page two renders the hundred-item next window and carries both revision and scope", async () => {
+  const scope = "kosdaq-preferred";
+  const resultPublication = { ...publication, scopeKey: scope };
+  const items = Array.from({ length: 100 }, (_, index) => publishedSecurity(index + 21));
   for (const metric of Object.keys(view.RANKING_METRICS)) {
-    const { html, text } = await renderPage(`app/(market)/${metric}/[page]/page.tsx`, { items, page: 2 });
-    assert.equal((html.match(/<tr>/g) || []).length, 202);
-    assert.match(text, /21–120위/);
-    assert.match(html, new RegExp(`href="/${metric}"[^>]*rel="prev"`));
-    assert.doesNotMatch(html, new RegExp(`href="/${metric}/3"`));
+    const { html, text, calls } = await renderPage(`app/(market)/${metric}/[page]/page.tsx`, {
+      items, page: 2, searchParams: { scope, revision: publication.revision }, resultPublication,
+    });
+    const document = documentOf(html);
+    assert.deepEqual(calls, [["security", metric, 2, "asc", scope, publication.revision]]);
+    assert.equal(desktopRows(document).length, 100);
+    assert.equal(mobileRows(document).length, 100);
+    assert.match(text, /공식종목21/);
+    assert.match(text, /공식종목120/);
+    assert.match(text, /전체 120개 종목 · 21–120위/);
+    const pager = document.querySelector('nav[aria-label="순위 목록 페이지"]');
+    assert.equal(pager.querySelector("a").getAttribute("href"), `/${metric}?revision=${publication.revision}&scope=${scope}`);
+    assert.equal(pager.querySelectorAll("a").length, 1);
   }
 });
 
-test("completed empty rankings show absence without a loading claim or download/pager action", async () => {
-  const { html, text, downloads } = await renderPage("app/(market)/per/page.tsx", { items: [], total: 0, date: null });
-  assert.match(text, /표시할 순위 데이터가 없습니다/);
-  assert.match(text, /정보 없음/);
-  assert.doesNotMatch(html, /준비 중|불러오는 중|rel="next"/);
-  assert.deepEqual(downloads, []);
-});
-
-test("company page two keeps one hundred entities and routes back to the first-page base", async () => {
-  const { html, text } = await renderPage("app/(market)/marketcaps/[page]/page.tsx", {
-    items: Array.from({ length: 100 }, (_, i) => company(i + 21)), page: 2, scope: "company",
+test("company page two renders one hundred official totals with a first-page previous link", async () => {
+  const { html, calls } = await renderPage("app/(market)/marketcaps/[page]/page.tsx", {
+    items: Array.from({ length: 100 }, (_, index) => publishedCompany(index + 21)), page: 2,
+    searchParams: { revision: publication.revision },
   });
-  assert.equal((html.match(/<tr>/g) || []).length, 202);
-  assert.match(text, /21–120위/);
-  assert.match(html, /href="\/marketcaps"[^>]*rel="prev"/);
-  assert.doesNotMatch(html, /href="\/marketcaps\/3"/);
+  const document = documentOf(html);
+  assert.deepEqual(calls, [["company", 2, publication.revision]]);
+  assert.equal(desktopRows(document).length, 100);
+  assert.equal(mobileRows(document).length, 100);
+  const pager = document.querySelector('nav[aria-label="순위 목록 페이지"]');
+  assert.equal(pager.querySelector("a").getAttribute("href"), `/marketcaps?revision=${publication.revision}`);
+  assert.equal(pager.querySelectorAll("a").length, 1);
 });
 
-test("invalid and absent metric pages cannot render an impossible ranking page", async () => {
-  await assert.rejects(renderPage("app/(market)/per/[page]/page.tsx", { items: [], page: 2, total: 20 }), /NOT_FOUND/);
-  await assert.rejects(renderPage("app/(market)/per/[page]/page.tsx", { items: [], page: "2x", total: 200 }), /NOT_FOUND/);
-  await assert.rejects(renderPage("app/(market)/per/[page]/page.tsx", { items: [], page: 0, total: 200 }), /NOT_FOUND/);
+test("published zero-member rankings allow a header-only export while unpublished rankings have no export", async () => {
+  const completed = await renderPage("app/(market)/per/page.tsx", { total: 0 });
+  assert.match(completed.text, /공개된 순위 대상은 0개/);
+  assert.match(completed.text, /자료 갱신 번호 9007199254740993/);
+  assert.match(completed.html, /securities-per\.csv\?revision=9007199254740993/);
+  assert.doesNotMatch(completed.html, /다음 페이지|<tbody>/);
+  const unpublished = await renderPage("app/(market)/per/page.tsx", { total: 0, state: "unpublished", resultPublication: null });
+  assert.match(unpublished.text, /아직 공개된 순위가 없습니다/);
+  assert.doesNotMatch(unpublished.text, /완료됐으며.*0건/);
+  assert.doesNotMatch(unpublished.html, /ranking-data\/|다음 페이지|<tbody>/);
+});
+
+test("a replaced revision refreshes from the same scope and does not display new rows under an old URL", async () => {
+  const { html, text, calls } = await renderPage("app/(market)/per/[page]/page.tsx", {
+    total: 1, page: 2, revisionChanged: true,
+    searchParams: { revision: "1", scope: "kospi" }, resultPublication: { ...publication, scopeKey: "kospi" },
+  });
+  assert.deepEqual(calls, [["security", "per", 2, "asc", "kospi", "1"]]);
+  assert.match(text, /자료가 갱신되었습니다/);
+  assert.match(html, /href="\/per\?scope=kospi"[^>]*>최신 자료 보기/);
+  assert.doesNotMatch(html, /<tbody>|ranking-data\/|다음 페이지/);
+});
+
+test("invalid page numbers and nonexistent current pages produce 404 rather than an empty result", async () => {
+  for (const page of ["2x", 0, -1, 1.5, "Infinity", "9007199254740993"]) {
+    await assert.rejects(renderPage("app/(market)/per/[page]/page.tsx", { page, total: 200 }), /NOT_FOUND/);
+  }
+  await assert.rejects(renderPage("app/(market)/per/[page]/page.tsx", { page: 2, total: 20 }), /NOT_FOUND/);
+  await assert.rejects(renderPage("app/(market)/marketcaps/[page]/page.tsx", { page: 3, total: 120 }), /NOT_FOUND/);
+});
+
+test("ambiguous aliases use immutable IDs, prices stay exact, and dated chart gaps are preserved", async () => {
+  const rows = view.createRankingRows([publishedSecurity(1, { routeCode: null, prices: [
+    { date: "2026-10-06", close: "9007199254740993", rate: "-1.23", volume: "9007199254740993" },
+    { date: "2026-10-02", close: "100", rate: "2", volume: "0" },
+    { date: "2026-10-03", close: null, rate: null, volume: null },
+  ] })], "marketcap", "security");
+  assert.equal(rows[0].href, "/security/security-1/marketcap");
+  assert.equal(rows[0].close, "9007199254740993");
+  assert.equal(rows[0].volume, "9007199254740993");
+  assert.equal(rows[0].rate, -1.23);
+  assert.equal(rows[0].prices.at(-1).close, "9007199254740993");
+  assert.deepEqual(rows[0].prices.map(price => price.date), ["2026-10-02", "2026-10-03", "2026-10-06"]);
+  const loader = createBusinessPageLoader();
+  const React = require("react");
+  const { RankingRate, RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
+  const rate = documentOf((await loader.renderElement(React.createElement(RankingRate, { row: rows[0] }))).html);
+  assert.match(rate.querySelector("span").getAttribute("aria-label"), /9,007,199,254,740,993원.*2026-10-06.*-1\.23%/);
+  const sparkline = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row: rows[0] }))).html);
+  assert.equal(sparkline.querySelectorAll("polyline").length, 2);
+  assert.equal(sparkline.querySelectorAll("circle").length, 2);
+  assert.match(sparkline.querySelector('[role="img"]').getAttribute("aria-label"), /2026-10-02–2026-10-06/);
+  const adjacent = view.createRankingRows([publishedSecurity(2, { prices: [
+    { date: "2026-10-02", close: "9007199254740992" }, { date: "2026-10-03", close: "9007199254740993" },
+  ] })], "marketcap", "security")[0];
+  const exactChart = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row: adjacent }))).html);
+  assert.equal(exactChart.querySelector("polyline").getAttribute("points"), "0.00,20.00 108.00,0.00");
+});
+
+test("partial and missing company inputs remain ranked and the price basis states the actual range", async () => {
+  const common = date => ({ securityId: `common-${date}`, exchange: "KOSPI", ticker: "005930", type: "보통주",
+    prices: [{ date, close: "83000", rate: "2", volume: "1200" }] });
+  const { html, text } = await renderPage("app/(market)/marketcaps/page.tsx", { items: [
+    publishedCompany(1, { value: null, marketcap: null, securities: [common("2026-10-02")], marketcapCompleteness: "missing_input" }),
+    publishedCompany(2, { securities: [common("2026-10-06")], marketcapCompleteness: "insufficient_link" }),
+    publishedCompany(3),
+  ], total: 3 });
+  const document = documentOf(html);
+  assert.equal(desktopRows(document).length, 3);
+  assert.match(text, /합산 자료 부족/);
+  assert.match(text, /합산 자료 연결 근거 부족/);
+  assert.match(text, /가격 관측일 2026-10-02–2026-10-06/);
+  assert.match(desktopRows(document)[2].textContent, /대표 종목 없음/);
+  assert.ok(desktopRows(document)[2].querySelector('a[href="/company/company-3/marketcap"]'));
+  assert.match(desktopRows(document)[0].querySelector(".valueDetails summary").getAttribute("aria-label"), /지표 정보 없음/);
 });

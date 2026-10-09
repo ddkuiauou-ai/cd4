@@ -1,73 +1,10 @@
 "use client";
-import { useMemo } from 'react';
 import { DetailAnnualTable } from './detail-annual-table';
+import { detailAnnualRows } from '@/lib/detail-presentation';
+import { formatBusinessValue, formatCompactBusinessValue, type BusinessValue } from '@/lib/business-analysis';
 
-interface Props {
-    data: Item[];
-}
-
-interface Item {
-    date: string;
-    value: number;
-    changeRate?: number;
-}
-
-/**
- * PBR을 간단하고 읽기 쉬운 형태로 포맷
- */
-function formatPBRSimple(num: number): { main: string; unit: string } {
-    if (num === null || num === undefined || Number.isNaN(num))
-        return { main: "-", unit: "" };
-    if (num === 0)
-        return { main: "0", unit: "배" };
-
-    // 소수점 둘째 자리까지 표시
-    return {
-        main: num.toFixed(2),
-        unit: "배"
-    };
-}
-
-function formatDetailValue(value: number): string {
-    return `${value.toFixed(2)}배`;
-}
-
-function getLatestDecemberDates(data: Item[]): string[] {
-    const lastDecDates: Record<string, string> = {};
-    data.forEach(({ date }) => {
-        const [year, month] = date.split("-");
-        if (month === "12") {
-            if (!lastDecDates[year] || date > lastDecDates[year]) {
-                lastDecDates[year] = date;
-            }
-        }
-    });
-    return Object.values(lastDecDates);
-}
-
-const calculateChangeRates = (data: Item[], lastDatesOfDec: string[]) => {
-    const filteredData = data.filter((data) => lastDatesOfDec.includes(data.date));
-
-    // 날짜순으로 정렬 (오래된 것부터)
-    const sortedData = filteredData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    // 변경률 계산
-    const dataWithRate = sortedData.map((data, index, array) => {
-        const prevMarketcap = array[index - 1];
-        return {
-            ...data,
-            changeRate: prevMarketcap
-                ? ((data.value - prevMarketcap.value) / prevMarketcap.value) * 100
-                : undefined,
-        };
-    });
-
-    // 최신 데이터가 맨 위로 오도록 역순 정렬
-    return dataWithRate.reverse();
-};
-
-export default function ListPBRMarketcap({ data }: Props) {
-    const lastDatesOfDec = useMemo(() => getLatestDecemberDates(data), [data]);
-    const rows = useMemo(() => calculateChangeRates(data, lastDatesOfDec), [data, lastDatesOfDec]);
-    return <DetailAnnualTable rows={rows} label="PBR" formatDetailValue={value => value == null || !Number.isFinite(value) ? '—' : formatDetailValue(value)} formatValue={value => { if (value == null || !Number.isFinite(value)) return '—'; const formatted = formatPBRSimple(value); return `${formatted.main}${formatted.unit}`; }} />;
+export default function ListPBRMarketcap({ data }: { data: Array<{ date: string; value: BusinessValue }> }) {
+  return <DetailAnnualTable rows={detailAnnualRows(data,'pbr')} label="PBR"
+    formatValue={value => value == null ? '—' : `${formatCompactBusinessValue(value)}배`}
+    formatDetailValue={value => value == null ? '—' : `${formatBusinessValue(value)}배`} />;
 }

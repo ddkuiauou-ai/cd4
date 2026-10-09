@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DPSData, PeriodType } from "@/lib/dps-utils";
 import ChartDPSGrowth from "@/components/chart-dps-growth";
 import { EDGE_TO_EDGE_CARD_BASE } from "@/components/marketcap/layout";
@@ -20,6 +20,14 @@ export default function DPSChartWithPeriodSwitcher({ initialData }: DPSChartWith
         { key: '20Y', label: '20년', description: '최근 20년' },
     ];
 
+    const selectedData = useMemo(() => {
+        const end = initialData.at(-1)?.date;
+        if (!end) return [];
+        const date = new Date(`${end}T00:00:00Z`);
+        date.setUTCFullYear(date.getUTCFullYear() - (selectedPeriod === '12M' ? 1 : Number.parseInt(selectedPeriod)));
+        const start = date.toISOString().slice(0,10);
+        return initialData.filter(row => row.date >= start && row.date <= end);
+    }, [initialData, selectedPeriod]);
     return (
         <div className="space-y-4">
             {/* Period Switcher */}
@@ -31,8 +39,9 @@ export default function DPSChartWithPeriodSwitcher({ initialData }: DPSChartWith
                     {periods.map((period) => (
                         <button
                             key={period.key}
+                            aria-pressed={selectedPeriod === period.key}
                             onClick={() => setSelectedPeriod(period.key)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${selectedPeriod === period.key
+                            className={`min-h-10 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${selectedPeriod === period.key
                                 ? 'bg-primary text-primary-foreground shadow-sm'
                                 : 'bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-border'
                                 }`}
@@ -46,7 +55,7 @@ export default function DPSChartWithPeriodSwitcher({ initialData }: DPSChartWith
             {/* Chart with selected period */}
             <div className={`${EDGE_TO_EDGE_CARD_BASE} p-2 sm:p-4`}>
                 <ChartDPSGrowth
-                    data={initialData}
+                    data={selectedData}
                 />
             </div>
         </div>

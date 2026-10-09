@@ -3,19 +3,14 @@ import type { DetailSecurity, DetailSecurityRow, DetailCompanyData, DetailRankin
 
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { KeyMetricsSidebarPER } from "./key-metrics-sidebar-per";
-import { KeyMetricsSidebarBPS } from "./key-metrics-sidebar-bps";
-import { KeyMetricsSidebarEPS } from "./key-metrics-sidebar-eps";
-import { KeyMetricsSidebarPBR } from "./key-metrics-sidebar-pbr";
-import { KeyMetricsSidebarDPS } from "./key-metrics-sidebar-dps";
-import { KeyMetricsSidebarDIV } from "./key-metrics-sidebar-div";
 import { KeyMetricsSidebar } from "./key-metrics-sidebar";
 import { RecentSecuritiesSidebar } from "./recent-securities-sidebar";
 import { PageNavigation } from "./page-navigation";
 import { InteractiveSecuritiesSection } from "./simple-interactive-securities";
-import type { MetricPeriodAnalysis, PeriodData } from "@/types/nav";
+import type { MetricPeriodAnalysis } from "@/types/nav";
 import { DetailMetricFacts } from "./detail-metric-facts";
 import { METRIC_CONFIG, formatMetricValue } from "@/lib/recent-securities";
+import { formatBusinessValue } from "@/lib/business-analysis";
 
 interface SidebarManagerProps {
     navigationSections: Array<{ id: string; label: string; icon?: React.ReactNode }>;
@@ -72,90 +67,12 @@ export function SidebarManager({
                 ['현재 주가', formatMetricValue('bps', security.prices?.[0]?.close ?? null)],
             ]} note="이력 데이터가 등록되면 기간별 평균과 범위가 표시됩니다." />}
             {/* 핵심 지표 사이드바 */}
-            {(metricType === 'per' && periodAnalysis) && (
-                <KeyMetricsSidebarPER
-                    perRank={perRank}
-                    latestPER={security.per ?? null}
-                    per12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    per3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    per5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    per10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    per20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
-            {(metricType === 'bps' && periodAnalysis) && (
-                <KeyMetricsSidebarBPS
-                    bpsRank={perRank}
-                    latestBPS={security.bps ?? null}
-                    bps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    bps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    bps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    bps10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    bps20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
-            {(metricType === 'eps' && periodAnalysis) && (
-                <KeyMetricsSidebarEPS
-                    epsRank={perRank}
-                    latestEPS={security.eps ?? null}
-                    eps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    eps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    eps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    eps10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    eps20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
-            {(metricType === 'pbr' && periodAnalysis) && (
-                <KeyMetricsSidebarPBR
-                    pbrRank={perRank}
-                    latestPBR={security.pbr ?? null}
-                    pbr12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    pbr3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    pbr5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    pbr10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    pbr20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
-            {(metricType === 'dps' && periodAnalysis) && (
-                <KeyMetricsSidebarDPS
-                    dpsRank={perRank}
-                    latestDPS={security.dps ?? null}
-                    dps12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    dps3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    dps5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    dps10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    dps20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
-            {(metricType === 'div' && periodAnalysis) && (
-                <KeyMetricsSidebarDIV
-                    divRank={perRank}
-                    latestDIV={security.div ?? null}
-                    div12Month={periodAnalysis.periods.find((p: PeriodData) => p.label === '12개월 평균')?.value ?? null}
-                    div3Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '3년 평균')?.value ?? null}
-                    div5Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '5년 평균')?.value ?? null}
-                    div10Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '10년 평균')?.value ?? null}
-                    div20Year={periodAnalysis.periods.find((p: PeriodData) => p.label === '20년 평균')?.value ?? null}
-                    rangeMin={periodAnalysis.minMax.min}
-                    rangeMax={periodAnalysis.minMax.max}
-                    currentPrice={security.prices?.[0]?.close ?? null}
-                />
-            )}
+            {metricType !== 'marketcap' && periodAnalysis && <DetailMetricFacts rows={[
+                ['현재 ' + metricType.toUpperCase(), formatBusinessValue(security[metricType])],
+                ...periodAnalysis.periods.map(period => [period.label, formatBusinessValue(period.value)] as [string,string]),
+                ['최저값', formatBusinessValue(periodAnalysis.minMax.min)], ['최고값', formatBusinessValue(periodAnalysis.minMax.max)],
+                ['현재 주가', security.price == null ? '—' : formatBusinessValue(security.price) + '원'],
+            ]} note={'지표 기준 ' + metricDate} />}
             {metricType === 'marketcap' && (
                 <KeyMetricsSidebar
                     companyMarketcapData={companyMarketcapData}

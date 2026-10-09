@@ -1,144 +1,130 @@
-const assert = require('node:assert/strict');
-const { existsSync, readFileSync } = require('node:fs');
-const Module = require('node:module');
-const path = require('node:path');
-const test = require('node:test');
-const React = require('react');
-const ts = require('typescript');
+const assert = require("node:assert/strict");
+const test = require("node:test");
+const React = require("react");
+const { JSDOM } = require("jsdom");
+const { createBusinessPageLoader } = require("./helpers/business-page-loader.cjs");
+const { fixture, publication: makePublication, day } = require("./helpers/business-data.cjs");
 
-const root = path.resolve(__dirname, '..');
+const publication = { asOf: "2026-10-02", revision: "3", scopeKey: "krx-all", calculationId: "fixture", publishedAt: "2026-10-03T01:00:00Z" };
+const security = {
+  securityId: "historical-security", companyId: null, name: "Example", korName: "예시종목",
+  exchange: "KOSPI", ticker: "005930", routeCode: null, state: "published", publication,
+  pbr: "2", pbrDate: "2026-10-02", pbrState: "provided",
+  pbrLastProvided: "2", pbrLastProvidedDate: "2026-10-02",
+  bps: null, bpsDate: "2026-10-02", bpsState: "source_missing",
+  bpsLastProvided: "125", bpsLastProvidedDate: "2026-09-30",
+};
 
-// Keep the actual page, PBR transforms and CSV serializer. Substitute only data
-// queries and visual children so no database, server or browser is required.
-function loadPage(history) {
-  const loaded = new Map();
-  const visuals = new Map();
-  const security = {
-    securityId: 'security-1', companyId: null, name: 'Example', korName: '예시종목',
-    exchange: 'KOSPI', ticker: '005930', type: '보통주', pbr: 2, bps: null,
-    pbrDate: '2026-10-02', prices: [],
-  };
-  const queries = {
-    getSecurityByCode: async () => security,
-    getCompanySecurities: async () => [],
-    getSecurityMetricsHistory: async () => history,
-  };
-
-  function visual(name) {
-    if (!visuals.has(name)) visuals.set(name, () => null);
-    return visuals.get(name);
-  }
-
-  function load(filename) {
-    if (loaded.has(filename)) return loaded.get(filename).exports;
-    const mod = new Module(filename);
-    loaded.set(filename, mod);
-    mod.filename = filename;
-    mod.paths = Module._nodeModulePaths(path.dirname(filename));
-    mod.require = name => {
-      if (name === '@/lib/data/security') return queries;
-      if (name === '@/lib/data/company') return { getCompanyAggregatedMarketcap: async () => null };
-      if (name === '@/lib/data/security-ranking-detail') return {
-        getSecurityMetricDetailRanking: async () => ({ currentRank: 1, rankDate: '2026-10-02' }),
-      };
-      if (name === '@/lib/select') return { getTopSecuritiesWithTypeByMetric: async () => [] };
-      if (name === 'next/navigation') return {
-        notFound() { throw new Error('Unexpected notFound for a valid PBR history'); },
-      };
-      if (name === 'next/link') return { __esModule: true, default: visual(name) };
-      if ((name.startsWith('@/components/') && name !== '@/components/marketcap/layout')
-          || name === 'lucide-react' || name === '@radix-ui/react-icons') {
-        return new Proxy({ __esModule: true }, {
-          get: (target, key) => key in target ? target[key] : visual(`${name}:${String(key)}`),
-        });
-      }
-      const local = name.startsWith('@/') ? path.join(root, name.slice(2))
-        : name.startsWith('.') ? path.resolve(path.dirname(filename), name) : null;
-      if (!local) return require(name);
-      const resolved = [`${local}.ts`, `${local}.tsx`].find(existsSync);
-      assert.ok(resolved, `Local module not found: ${name}`);
-      return load(resolved);
-    };
-    const { outputText } = ts.transpileModule(readFileSync(filename, 'utf8'), {
-      fileName: filename,
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
-        jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
-      },
-    });
-    mod._compile(outputText, filename);
-    return mod.exports;
-  }
-
-  return {
-    page: load(path.join(root, 'app/security/[secCode]/pbr/page.tsx')).default,
-    utils: load(path.join(root, 'lib/pbr-utils.ts')),
-    csv: load(path.join(root, 'lib/csv/ranking.ts')),
-    visual,
-  };
+async function renderPbr(history, search = {}, identity = security) {
+  const { state, load } = fixture();
+  const header = { ...makePublication("security_latest", "pbr", 3n), calculationId: "fixture" };
+  const rankHeader = { ...makePublication("security_rank", "pbr", 3n), calculationId: "fixture" };
+  const row = { ...state.securities[0], ...identity, company: null, prices: [], marketcaps: [],
+    publicationKey: header.publicationKey, resultRevision: identity.state === "published" ? 3n : 4n, calculationId: "fixture",
+    price: null, priceState: "no_observation", priceLastProvided: null, delistingDate: null };
+  for (const key of Object.keys(row)) if (key.endsWith("Date") && typeof row[key] === "string") row[key] = day(row[key]);
+  state.securities = [row]; state.companies = []; state.publications = [header, rankHeader]; state.ranks = [];
+  state.metrics = history.map(observation => ({ ...observation, securityId: identity.securityId, date: day(observation.date) }));
+  const data = load("lib/data/detail-snapshot.ts");
+  const calls = [], downloads = [];
+  let snapshot, RealCsvButton;
+  const loader = createBusinessPageLoader({
+    "@/lib/data/detail-snapshot": {
+      getSecurityDetailSnapshot: async (...args) => { calls.push(args); snapshot = await data.getSecurityDetailSnapshot(...args); return snapshot; },
+    },
+    "./CsvDownloadButton": { CsvDownloadButton: props => { downloads.push(props); return React.createElement(RealCsvButton, props); } },
+  });
+  RealCsvButton = loader.load("components/CsvDownloadButton.tsx").CsvDownloadButton;
+  const rendered = await loader.renderRoute("app/security/[secCode]/pbr/page.tsx", {
+    params: { secCode: "historical-security" }, searchParams: search,
+  });
+  const dom = new JSDOM(rendered.html);
+  const csv = downloads[0] ? loader.load("lib/csv/ranking.ts").serializeCsvRows(downloads[0].data) : null;
+  return { ...rendered, calls, downloads, csv, snapshot, state, dom, document: dom.window.document };
 }
 
-function findElements(node, type) {
-  const found = [];
-  function visit(value) {
-    if (Array.isArray(value)) return value.forEach(visit);
-    if (!React.isValidElement(value)) return;
-    if (value.type === type) found.push(value);
-    visit(value.props.children);
-  }
-  visit(node);
-  return found;
+function metricCard(document, label) {
+  return [...document.querySelectorAll("#indicators div")]
+    .find(row => row.children[0]?.tagName === "P" && row.children[0].textContent === label)?.children[1].textContent;
 }
 
-test('the actual PBR page exports all eligible history with empty missing BPS, real zero, dates and filename', async () => {
-  const history = [
-    { date: '2026-10-02', pbr: 2, bps: null },
-    { date: new Date('2020-01-02T00:00:00Z'), pbr: 0, bps: 0 },
-    { date: '2010-12-31', pbr: 1.5, bps: 2000 },
-    { date: '2015-12-31T00:00:00Z', pbr: 1 },
-    { date: '2022-12-31', pbr: 3, bps: 12.5 },
-    { date: '2021-12-31', pbr: null, bps: 55 },
-    { date: '2023-12-31', pbr: 4, bps: -5 },
-    { date: '2024-12-31', pbr: 5, bps: 100 },
-  ];
+test("actual PBR detail keeps a supplied PBR independent from missing BPS and its last value, including the full source CSV", async () => {
+  const history = [{ date: "2026-10-02", pbr: "2", pbrState: "provided", bps: null, bpsState: "source_missing" }];
   const original = structuredClone(history);
-  const { page, csv, visual } = loadPage(history);
-  const tree = await page({ params: Promise.resolve({ secCode: 'KOSPI.005930' }) });
-  const downloads = findElements(tree, visual('@/components/CsvDownloadButton:CsvDownloadButton'));
-  assert.equal(downloads.length, 1);
-  assert.equal(downloads[0].props.filename, 'KOSPI-005930-pbr-2026-10-02.csv');
-  assert.equal(downloads[0].props.data.length, 7);
-  assert.equal(csv.serializeCsvRows(downloads[0].props.data), [
-    'date,pbr,bps',
-    '2010-12-31,1.5,2000',
-    '2015-12-31,1,',
-    '2020-01-02,0,0',
-    '2022-12-31,3,12.5',
-    '2023-12-31,4,-5',
-    '2024-12-31,5,100',
-    '2026-10-02,2,',
-  ].join('\n'));
+  const { document, calls, csv, snapshot, state, dom } = await renderPbr(history);
+  assert.equal(metricCard(document, "현재 PBR"), "2배");
+  assert.equal(snapshot.security.pbr, "2");
+  assert.equal(snapshot.security.bps, null);
+  assert.equal(snapshot.security.bpsState, "source_missing");
+  assert.equal(snapshot.security.bpsLastProvided, "125");
+  assert.equal(snapshot.security.bpsLastProvidedDate, "2026-09-30");
+  assert.equal(snapshot.security.securityId, "historical-security");
+  assert.equal(snapshot.security.routeCode, "KOSPI.005930");
+  assert.ok(document.querySelector('form[action="/security/KOSPI.005930/pbr"]'));
+  assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'));
+  assert.deepEqual(calls, [["historical-security", "pbr"]]);
+  assert.deepEqual(state.transactions, [{ isolationLevel: "repeatable read", accessMode: "read only" }]);
+  assert.match(csv, /^date,pbr,bps,state\r?\n2026-10-02,2,,provided/);
+  assert.match(document.body.textContent, /선택 기간과 관계없이 전체 제공 이력/);
   assert.deepEqual(history, original);
-
-  const charts = findElements(tree, visual('@/components/pbr-chart-with-period-switcher:default'));
-  assert.equal(charts.length, 1);
-  assert.deepEqual(charts[0].props.initialData.map(row => row.bps), [2000, 0, 0, 12.5, -5, 100, 0]);
+  dom.window.close();
 });
 
-test('CSV preserves the chart path\'s history eligibility and ordering without inheriting its BPS zero fallback', () => {
+test("selected PBR history preserves zero and negative observations, skips missing fields, and exports the complete provided history", async () => {
   const history = [
-    { date: '2026-03-03', pbr: 1, bps: null },
-    { date: '2026-03-02', pbr: null, bps: 4 },
-    { date: '2026-03-01', pbr: 0, bps: 0 },
+    { date: "2026-09-29", pbr: "999", pbrState: "provided" },
+    { date: "2026-09-30", pbr: "-2", pbrState: "provided", bps: null },
+    { date: "2026-10-01", pbr: "0", pbrState: "provided", bps: null },
+    { date: "2026-10-02", pbr: null, pbrState: "unsupported" },
+    { date: "2026-10-03", pbr: "999", pbrState: "provided" },
   ];
-  const { utils, csv } = loadPage(history);
-  const chartRows = utils.processPBRData(history);
-  const downloadRows = utils.processPBRCsvData(history);
-  assert.deepEqual(chartRows, [
-    { date: '2026-03-01', value: 0, bps: 0 },
-    { date: '2026-03-03', value: 1, bps: 0 },
+  const { document, text, calls, csv, downloads, snapshot, dom } = await renderPbr(history, { start: "2026-09-30", end: "2026-10-02" });
+  assert.deepEqual(calls, [["historical-security", "pbr"]]);
+  assert.equal(document.querySelector('input[name="start"]').value, "2026-09-30");
+  assert.equal(document.querySelector('input[name="end"]').value, "2026-10-02");
+  assert.equal(metricCard(document, "12개월 평균"), "-1배");
+  assert.equal(metricCard(document, "최저값"), "-2배");
+  assert.equal(metricCard(document, "최고값"), "0배");
+  assert.match(text, /분석 범위 2026-09-30 ~ 2026-10-01 · 실제 제공 2개/);
+  assert.deepEqual(snapshot.history.map(row => row.pbr), ["999", "-2", "0", null]);
+  assert.deepEqual(downloads[0].data.map(row => [row.date, row.pbr, row.state]), [
+    ["2026-09-29", "999", "provided"], ["2026-09-30", "-2", "provided"],
+    ["2026-10-01", "0", "provided"], ["2026-10-02", null, "unsupported"],
   ]);
-  assert.equal(csv.serializeCsvRows(downloadRows), 'date,pbr,bps\n2026-03-01,0,0\n2026-03-03,1,');
-  assert.equal(utils.calculatePBRPeriodAnalysis(chartRows, '예시종목', 'KOSPI').latestPBR, 1);
-  assert.deepEqual(utils.processPBRCsvData([]), []);
+  assert.match(csv, /2026-10-01,0,,provided/);
+  assert.match(csv, /2026-10-02,,,unsupported/);
+  assert.doesNotMatch(csv, /2026-10-03/);
+  assert.doesNotMatch(document.querySelector("#indicators").textContent, /999/);
+  dom.window.close();
+});
+
+test("an invalid period never reaches a SQL bound or produces analysis and remains distinct from an empty valid period", async () => {
+  const invalid = await renderPbr([{ date: "2026-10-02", pbr: "2", pbrState: "provided" }], { start: "2026-02-30", end: "2026-10-02" });
+  assert.deepEqual(invalid.calls, [["historical-security", "pbr"]]);
+  assert.ok(invalid.document.querySelector('[role="alert"]'));
+  assert.equal(metricCard(invalid.document, "12개월 평균"), "—");
+  assert.ok(invalid.state.queries.every(query => !query.params.includes("2026-02-30")));
+  invalid.dom.window.close();
+  const empty = await renderPbr([], { start: "2026-09-30", end: "2026-10-02" });
+  assert.deepEqual(empty.calls, [["historical-security", "pbr"]]);
+  assert.equal(empty.document.querySelector('[role="alert"]'), null);
+  assert.match(empty.text, /선택 기간에 제공된 관측값이 없습니다/);
+  assert.equal(empty.downloads.length, 0);
+  empty.dom.window.close();
+});
+
+test("unpublished PBR values are hidden while available raw history and zero-valued CSV remain visible", async () => {
+  const { document, text, csv, snapshot, dom } = await renderPbr(
+    [{ date: "2026-10-02", pbr: "0", pbrState: "provided" }],
+    { start: "2026-10-01", end: "2026-10-02" },
+    { ...security, state: "unpublished", publication: null, pbr: "987654" },
+  );
+  assert.equal(metricCard(document, "현재 PBR"), "—");
+  assert.equal(snapshot.security.state, "unpublished");
+  assert.equal(snapshot.security.pbr, null);
+  assert.equal(snapshot.security.pbrLastProvided, null);
+  assert.doesNotMatch(text, /987654/);
+  assert.match(text, /실제 제공 1개/);
+  assert.match(csv, /2026-10-02,0,,provided/);
+  dom.window.close();
 });

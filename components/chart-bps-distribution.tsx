@@ -1,28 +1,21 @@
 "use client";
 
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart } from "recharts";
+import { Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart } from "recharts";
 
 interface ChartBPSDistributionProps {
     data: { date: string; value: number }[];
     className?: string;
+    sourceSummary?: string;
+    formatCoordinate?: (value: number) => string;
+    formatDetailCoordinate?: (value: number) => string;
 }
 
 // 간단한 히스토그램 데이터 생성
-function createHistogramData(data: { date: string; value: number }[]) {
+function createHistogramData(data: { date: string; value: number }[], formatCoordinate?: (value: number) => string) {
     if (!data || data.length === 0) return { histogramData: [], stats: null };
 
-    // 유효한 BPS 값만 필터링 (양수 BPS만, 합리적인 범위)
-    let validValues = data
-        .map(item => item.value)
-        .filter(value => value !== null && !isNaN(value) && value > 0 && value < 1000000); // 합리적인 범위 제한
-
-    if (validValues.length === 0) return { histogramData: [], stats: null };
-
-    // 상위 1% 클리핑
-    const sortedValues = [...validValues].sort((a, b) => a - b);
-    const clipIndex = Math.floor(sortedValues.length * 0.99);
-    const maxAllowed = sortedValues[clipIndex];
-    validValues = validValues.filter(value => value <= maxAllowed);
+    const validValues = data.map(item => item.value).filter(value => Number.isFinite(value));
+    if (!validValues.length) return { histogramData: [], stats: null };
 
     // 기본 통계
     const mean = validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
@@ -32,17 +25,19 @@ function createHistogramData(data: { date: string; value: number }[]) {
     // 히스토그램 빈 생성 (간단하게 10개 빈으로)
     const minValue = Math.min(...validValues);
     const maxValue = Math.max(...validValues);
-    const binCount = 10;
-    const binSize = (maxValue - minValue) / binCount;
+    const binCount = maxValue === minValue ? 1 : 10;
+    const binSize = (maxValue - minValue || 1) / binCount;
 
     const histogramData = [];
     for (let i = 0; i < binCount; i++) {
         const binStart = minValue + (i * binSize);
         const binEnd = minValue + ((i + 1) * binSize);
-        const count = validValues.filter(value => value >= binStart && value < binEnd).length;
+        const count = validValues.filter(value => value >= binStart && (value < binEnd || i === binCount - 1 && value <= maxValue)).length;
 
         histogramData.push({
-            bin: `${(binStart / 1000).toFixed(0)}K-${(binEnd / 1000).toFixed(0)}K`,
+            bin: formatCoordinate ? `${formatCoordinate(binStart)}–${formatCoordinate(binEnd)}` : `${(binStart / 1000).toFixed(0)}K-${(binEnd / 1000).toFixed(0)}K`,
+            binStart,
+            binEnd,
             count,
             percentage: (count / validValues.length) * 100,
             binCenter: (binStart + binEnd) / 2
@@ -109,16 +104,16 @@ function calculateKDE(values: number[], bandwidth: number = 0.3) {
 
 
 // 툴팁 컴포넌트
-function CustomTooltip({ active, payload, label }: any) {
-    if (active && payload && payload.length) {
+function CustomTooltip({ active, payload, formatDetailCoordinate }: { active?: boolean; formatDetailCoordinate?: (value: number) => string; payload?: ReadonlyArray<{ payload?: { bin: string; binStart: number; binEnd: number; count: number; percentage: number } | { x: number; density: number } }> }) {
+    if (active && payload?.[0]?.payload) {
         const data = payload[0].payload;
 
         // 히스토그램 툴팁
-        if (data.bin && data.count !== undefined) {
+        if ('bin' in data) {
             return (
                 <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
-                        BPS 구간: {data.bin}
+                        BPS 구간: {formatDetailCoordinate ? `${formatDetailCoordinate(data.binStart)}–${formatDetailCoordinate(data.binEnd)}` : data.bin}
                     </p>
                     <p className="text-sm text-muted-foreground">
                         빈도: <span className="font-semibold text-foreground">{data.count}개</span>
@@ -129,11 +124,11 @@ function CustomTooltip({ active, payload, label }: any) {
         }
 
         // KDE 툴팁
-        if (data.x !== undefined && data.density !== undefined) {
+        if ('x' in data) {
             return (
                 <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
-                        BPS: {(data.x / 1000).toFixed(0)}K원
+                        BPS: {formatDetailCoordinate ? formatDetailCoordinate(data.x) : `${(data.x / 1000).toFixed(0)}K`}원
                     </p>
                     <p className="text-sm text-muted-foreground">
                         밀도: <span className="font-semibold text-foreground">{data.density.toFixed(3)}</span>
@@ -145,8 +140,8 @@ function CustomTooltip({ active, payload, label }: any) {
     return null;
 }
 
-export default function ChartBPSDistribution({ data, className }: ChartBPSDistributionProps) {
-    const { histogramData, stats } = createHistogramData(data);
+export default function ChartBPSDistribution({ data, className, sourceSummary, formatCoordinate, formatDetailCoordinate }: ChartBPSDistributionProps) {
+    const { histogramData, stats } = createHistogramData(data, formatCoordinate);
 
     if (!histogramData || histogramData.length === 0 || !stats) {
         return (
@@ -166,7 +161,7 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
     // KDE 데이터 계산
     const validValues = data
         .map(item => item.value)
-        .filter(value => value !== null && !isNaN(value) && value > 0 && value < 1000000);
+        .filter(value => Number.isFinite(value));
 
     const kdeData = calculateKDE(validValues, 0.2);
 
@@ -213,7 +208,7 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
                         tick={{ fill: "var(--muted-foreground)" }}
                         label={{ value: '빈도', angle: -90, position: 'insideLeft', fill: 'var(--muted-foreground)' }}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--muted)" }} />
+                    <Tooltip content={<CustomTooltip formatDetailCoordinate={formatDetailCoordinate} />} cursor={{ fill: "var(--muted)" }} />
                     <Bar
                         dataKey="count"
                         fill="var(--chart-3)"
@@ -232,7 +227,7 @@ export default function ChartBPSDistribution({ data, className }: ChartBPSDistri
             </ResponsiveContainer>
             <div className="text-xs text-muted-foreground mt-2 text-center">
                 <span className="text-chart-2 font-medium">KDE 곡선</span> |
-                평균: {(stats.mean / 1000).toFixed(0)}K원 | 중앙값: {(stats.median / 1000).toFixed(0)}K원 | 데이터: {stats.count}개
+                {sourceSummary || "제공 관측 " + stats.count + "개"}
             </div>
         </div>
     );

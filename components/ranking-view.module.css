@@ -36,6 +36,9 @@
 .rate[data-direction="up"] { color:var(--market-up,#dc3030); }
 .rate[data-direction="down"] { color:var(--market-down,#1d5fbf); }
 .sparkline { display:inline-flex; max-width:100%; vertical-align:middle; }
+.sparkline[data-direction="up"] { color:var(--market-up,#dc3030); }
+.sparkline[data-direction="down"] { color:var(--market-down,#1d5fbf); }
+.sparkline[data-direction="flat"] { color:var(--muted-foreground); }
 .sparkline svg { display:block; max-width:100%; }
 .sparkline[data-direction="up"] svg>path,.sparkline[data-direction="up"] svg>ellipse { stroke:var(--market-up,#dc3030); }
 .sparkline[data-direction="down"] svg>path,.sparkline[data-direction="down"] svg>ellipse { stroke:var(--market-down,#1d5fbf); }
@@ -76,7 +79,16 @@
 .empty h2 { font-size:18px; margin-bottom:8px; font-weight:600; }
 .empty p { font-size:14px; color:var(--muted-foreground); }
 .mobileTable { display:none; }
-.position:focus-visible,.nameLink:focus-visible,.scopeMenu summary:focus-visible,.scopeOptions a:focus-visible { outline:2px solid var(--ring); outline-offset:3px; border-radius:3px; }
+.publicationDetails { grid-column:1/-1; margin:12px 0 24px; color:var(--muted-foreground); font-size:12px; line-height:1.7; }
+.publicationDetails summary { cursor:pointer; width:max-content; min-height:36px; display:flex; align-items:center; }
+.publicationDetails p { overflow-wrap:anywhere; }
+.valueDetails { display:inline-block; max-width:100%; vertical-align:middle; }
+.valueDetails summary { cursor:pointer; list-style:none; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+.valueDetails summary:hover,.valueDetails[open] summary { text-decoration:underline; text-decoration-style:dotted; text-underline-offset:4px; }
+.valueDetails summary::-webkit-details-marker { display:none; }
+.valueDetails p { margin-top:6px; font-size:12px; line-height:1.5; white-space:normal; overflow-wrap:anywhere; font-weight:400; color:var(--muted-foreground); }
+.completeness { display:block; color:var(--muted-foreground); font-size:11px; line-height:1.5; margin-top:3px; }
+.position:focus-visible,.nameLink:focus-visible,.scopeMenu summary:focus-visible,.scopeOptions a:focus-visible,.valueDetails summary:focus-visible,.publicationDetails summary:focus-visible { outline:2px solid var(--ring); outline-offset:3px; border-radius:3px; }
 @media(max-width:999px) {
   .trendColumn { display:none; }
   .tableInlineTrend { display:block; height:22px; }

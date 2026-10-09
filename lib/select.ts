@@ -1,446 +1,64 @@
-/**
- * CD3 Project - Database Select Operations
- * 
- * This file contains all database select operations for the CD3 project
- * according to the coding standards. All operations use Drizzle ORM.
- */
+import { db } from "@/db";
+import * as schema from "@/db/schema-postgres";
+import { asc, eq } from "drizzle-orm";
+import { toDataDTO } from "./data/dto";
+import { getEntityRouteInventory } from "./entity-route-inventory";
+import { getSecurityByCode } from "./data/security";
+import { getSecurityMetricDetailRanking } from "./data/security-ranking-detail";
+import { currentRankFilter, readPublication, readSnapshot, securityRankPublicationKey } from "./data/publication";
 
-import { db } from '@/db';
-import { company, security, price } from '@/db/schema-postgres';
-import * as schema from '@/db/schema-postgres';
-// SSG helper imports removed; using direct queries below
-import { and, asc, desc, eq, exists, isNotNull, isNull, ne, sql } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
-import { cachedData, STATIC_CODES_REVALIDATE_SECONDS } from './data/cache-policy';
+export async function getCompanies(skip = 0, limit = 100) {
+  return toDataDTO(await db.query.company.findMany({
+    columns: { companyId: true, name: true, korName: true, logo: true },
+    orderBy: [asc(schema.company.name)], limit, offset: skip,
+  }));
+}
+export const getSecurityById = getSecurityByCode;
 
-/**
- * Robust retry helper for SSG build with longer delays
- */
-async function withRetry<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
-    const maxRetries = 5; // 더 많은 시도
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            return await operation();
-        } catch (error: any) {
-            console.error(`[${operationName}] Attempt ${attempt}/${maxRetries} failed:`, error.message);
-
-            if (attempt === maxRetries) {
-                throw new Error(`Database connection failed after ${maxRetries} attempts. Operation: ${operationName}`);
-            }
-
-            // 지수적 백오프: 2초, 4초, 8초, 16초
-            const delay = Math.pow(2, attempt) * 1000;
-            console.log(`[${operationName}] Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-    throw new Error(`Unexpected error in ${operationName}`);
+export async function getSecurityMarketCapRanking(securityId: string) {
+  const row = await getSecurityMetricDetailRanking(securityId, "marketcap");
+  if (row.currentRank == null) return null;
+  return { ...row, rankChange: row.priorRank == null ? null : row.currentRank - row.priorRank };
 }
 
-// Helper function for date formatting
-const formatDate = (date: Date) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    let month = "" + (d.getMonth() + 1);
-    let day = "" + d.getDate();
-
-    if (month.length < 2) month = "0" + month;
-    if (day.length < 2) day = "0" + day;
-
-    return [year, month, day].join("-");
-};
-
-/**
- * Get all companies with pagination
- * 
- * @param skip Number of records to skip for pagination
- * @param limit Maximum number of records to return
- * @returns Array of companies
- */
-export const getCompanies = unstable_cache(
-    async (skip = 0, limit = 100) => {
-        try {
-            const companies = await db.query.company.findMany({
-                limit,
-                offset: skip,
-                orderBy: [asc(company.name)],
-            });
-            return companies;
-        } catch (error) {
-            console.error('[GET_COMPANIES] Error:', error);
-            return [];
-        }
-    },
-    ['getCompanies'],
-    { tags: ['getCompanies'] }
-);
-
-/**
- * Get market capitalization data with pagination
- * 
- * @param skip Number of records to skip for pagination
- * @returns Array of companies with market cap data
- */
-// [Removed] Duplicated company marketcap listing; use lib/data/company.ts
-
-/**
- * Get security by ID
- * 
- * @param securityId ID of the security to retrieve
- * @returns Security data or null if not found
- */
-export const getSecurityById = unstable_cache(
-    async (securityId: string) => {
-        try {
-            const securityData = await db.query.security.findFirst({
-                where: eq(security.securityId, securityId),
-                with: {
-                    company: true,
-                },
-            });
-            return securityData;
-        } catch (error) {
-            console.error('[GET_SECURITY_BY_ID] Error:', error);
-            return null;
-        }
-    },
-    ['getSecurityById'],
-    { tags: ['getSecurityById'] }
-);
-
-// Metrics ranking functions moved to lib/data/security.ts
-
-/**
- * Get market index data (KOSPI, KOSDAQ, etc)
- * 
- * @returns Array of market indices with current values and changes
- */
-// Market indices moved to lib/data/indices.ts
-
-/**
- * Get trending stocks (top gainers, losers, and volume)
- * 
- * @returns Object containing gainers, losers, and volume leaders
- */
-// Trending/Recommended moved to lib/data/discovery.ts
-
-/**
- * Get recommended stocks based on specified criteria
- * 
- * @returns Array of recommended stocks
- */
-//
-
-//
-
-/**
- * Get security market cap ranking by security ID
- * @param securityId The security ID to get ranking for
- * @returns Object with current rank, prior rank, and change or null if not found
- */
-export const getSecurityMarketCapRanking = cachedData(
-    async (securityId: string) => {
-        try {
-            const latestRankDateResult = await db
-                .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
-                .from(schema.securityRank)
-                .where(eq(schema.securityRank.metricType, 'marketcap'))
-                .limit(1);
-
-            const latestRankDate = latestRankDateResult[0]?.maxDate;
-
-            if (!latestRankDate) {
-                return null;
-            }
-
-            const result = await db.query.securityRank.findFirst({
-                where: and(
-                    eq(schema.securityRank.securityId, securityId),
-                    eq(schema.securityRank.metricType, 'marketcap'),
-                    eq(schema.securityRank.rankDate, latestRankDate)
-                ),
-                columns: {
-                    currentRank: true,
-                    priorRank: true,
-                    value: true
-                }
-            });
-
-            if (!result || !result.currentRank) {
-                return null;
-            }
-
-            const rankChange = result.priorRank ? result.currentRank - result.priorRank : 0;
-
-            return {
-                currentRank: result.currentRank,
-                priorRank: result.priorRank,
-                rankChange,
-                value: result.value
-            };
-        } catch (error) {
-            console.error('[GET_SECURITY_MARKET_CAP_RANKING] Error:', error);
-            throw error;
-        }
-    },
-    "getSecurityMarketCapRanking",
-    ['getSecurityMarketCapRanking']
-);
-
-/**
- * Get all security codes with type information for SSG (Static Site Generation)
- * Returns security objects with exchange, ticker, and type for filtering
- *
- * @returns Array of security objects
- */
-export const getAllSecuritiesWithType = cachedData(
-    async (): Promise<{ exchange: string; ticker: string; type: string | null }[]> => {
-        return await withRetry(async () => {
-            console.log('[GET_ALL_SECURITIES_WITH_TYPE] Attempting to fetch securities from DB');
-
-            const securities = await db.query.security.findMany({
-                columns: {
-                    exchange: true,
-                    ticker: true,
-                    type: true,
-                },
-                where: and(
-                    isNotNull(security.exchange),
-                    isNotNull(security.ticker),
-                    ne(security.exchange, ''),
-                    ne(security.ticker, ''),
-                    isFullStaticExport() ? undefined : isNotNull(security.marketcap),
-                    isNull(security.delistingDate)
-                ),
-                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
-            });
-
-            console.log(`[GET_ALL_SECURITIES_WITH_TYPE] Successfully fetched ${securities.length} securities from DB`);
-
-            return securities;
-        }, 'getAllSecuritiesWithType');
-    },
-    "getAllSecuritiesWithType",
-    ['getAllSecuritiesWithType'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
-);
-
-/**
- * Get all security codes for SSG (Static Site Generation)
- * Returns all security codes in the format "EXCHANGE.TICKER" for generateStaticParams
- *
- * @returns Array of security codes
- */
-export const getAllSecurityCodes = cachedData(
-    async (): Promise<string[]> => {
-        return await withRetry(async () => {
-            console.log('[GET_ALL_SECURITY_CODES] Attempting to fetch securities from DB');
-
-            const securities = await db.query.security.findMany({
-                columns: {
-                    exchange: true,
-                    ticker: true,
-                },
-                where: and(
-                    isNotNull(security.exchange),
-                    isNotNull(security.ticker),
-                    ne(security.exchange, ''),
-                    ne(security.ticker, ''),
-                    isFullStaticExport() ? undefined : isNotNull(security.marketcap),
-                    isNull(security.delistingDate)
-                ),
-                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
-            });
-
-            console.log(`[GET_ALL_SECURITY_CODES] Successfully fetched ${securities.length} securities from DB`);
-
-            const allSecurityCodes = securities.map(sec => `${sec.exchange}.${sec.ticker}`);
-
-            console.log(`[GET_ALL_SECURITY_CODES] Returning ${allSecurityCodes.length} securities`);
-
-            return allSecurityCodes;
-        }, 'getAllSecurityCodes');
-    },
-    "getAllSecurityCodes",
-    ['getAllSecurityCodes'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
-);
-
-/**
- * Get all company codes for SSG (Static Site Generation)
- * Returns all company codes based on securities with companyId
- * 
- * @returns Array of security codes that have companies
- */
-export const getAllCompanyCodes = cachedData(
-    async (): Promise<string[]> => {
-        return await withRetry(async () => {
-            console.log('[GET_ALL_COMPANY_CODES] Attempting to fetch company codes from DB');
-
-            const securities = await db.query.security.findMany({
-                columns: {
-                    exchange: true,
-                    ticker: true,
-                },
-                where: and(
-                    isNotNull(security.exchange),
-                    isNotNull(security.ticker),
-                    ne(security.exchange, ''),
-                    ne(security.ticker, ''),
-                    isNotNull(security.companyId), // 회사가 있는 경우만
-                    isFullStaticExport() ? isNull(security.delistingDate) : isNotNull(security.marketcap)
-                ),
-                orderBy: [sql`${security.marketcap} DESC NULLS LAST`, asc(security.securityId)],
-            });
-
-            console.log(`[GET_ALL_COMPANY_CODES] Successfully fetched ${securities.length} company codes from DB`);
-
-            const allCompanyCodes = securities.map(sec => `${sec.exchange}.${sec.ticker}`);
-
-            console.log(`[GET_ALL_COMPANY_CODES] Returning ${allCompanyCodes.length} company codes`);
-
-            return allCompanyCodes;
-        }, 'getAllCompanyCodes');
-    },
-    "getAllCompanyCodes",
-    ['getAllCompanyCodes'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS } // 24시간 캐시
-);
-
-
-// ---- Targeted helpers for selective static generation ----
-
-const DEFAULT_STATIC_LIMIT = 10;
-
-type RankedSecurityMeta = {
-    code: string;
-    type: string | null;
-    companyId: string | null;
-};
-
-const isFullStaticExport = () => process.env.NEXT_OUTPUT_MODE?.toLowerCase() === 'export';
-
-async function fetchRankedSecurityMeta(
-    metric: schema.MetricType,
-    limit: number,
-) {
-    const latestRankDateResult = await db
-        .select({ maxDate: sql<string>`max(${schema.securityRank.rankDate})` })
-        .from(schema.securityRank)
-        .where(eq(schema.securityRank.metricType, metric))
-        .limit(1);
-
-    const latestRankDate = latestRankDateResult[0]?.maxDate;
-
-    if (!latestRankDate) {
-        return [] as RankedSecurityMeta[];
-    }
-
-    const rows = await db
-        .select({
-            exchange: schema.security.exchange,
-            ticker: schema.security.ticker,
-            type: schema.security.type,
-            companyId: schema.security.companyId,
-            currentRank: schema.securityRank.currentRank,
-        })
-        .from(schema.securityRank)
-        .innerJoin(
-            schema.security,
-            eq(schema.securityRank.securityId, schema.security.securityId),
-        )
-        .where(
-            and(
-                eq(schema.securityRank.metricType, metric),
-                eq(schema.securityRank.rankDate, latestRankDate),
-                isNotNull(schema.securityRank.currentRank),
-                isNotNull(schema.security.exchange),
-                isNotNull(schema.security.ticker),
-                ne(schema.security.exchange, ''),
-                ne(schema.security.ticker, ''),
-                isNull(schema.security.delistingDate),
-            ),
-        )
-        .orderBy(asc(schema.securityRank.currentRank))
-        .limit(Math.max(limit * 2, limit));
-
-    const seen = new Set<string>();
-    const result: RankedSecurityMeta[] = [];
-
-    for (const row of rows) {
-        const exchange = row.exchange ?? '';
-        const ticker = row.ticker ?? '';
-
-        if (!exchange || !ticker) continue;
-
-        const code = `${exchange}.${ticker}`;
-        if (seen.has(code)) continue;
-
-        seen.add(code);
-        result.push({ code, type: row.type ?? null, companyId: row.companyId ?? null });
-
-        if (result.length >= limit) break;
-    }
-
-    return result;
+export async function getAllSecuritiesWithType() {
+  return db.query.security.findMany({
+    columns: { securityId: true, exchange: true, ticker: true, type: true },
+    orderBy: [asc(schema.security.securityId)],
+  });
 }
 
-export const getTopSecurityCodesByMetric = cachedData(
-    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
-        return await withRetry(async () => {
-            if (isFullStaticExport()) {
-                return await getAllSecurityCodes();
-            }
-            const meta = await fetchRankedSecurityMeta(metric, limit);
-            return meta.map((item) => item.code);
-        }, `getTopSecurityCodesByMetric-${metric}-${limit}`);
-    },
-    "getTopSecurityCodesByMetric",
-    ['getTopSecurityCodesByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
-);
+/** Detail links use stable IDs, including historical/delisted and reused-code securities. */
+export async function getAllSecurityCodes(): Promise<string[]> {
+  const inventory = await getEntityRouteInventory();
+  return inventory.identities.map(row => inventory.securities.get(row.securityId) || row.securityId);
+}
+export async function getAllCompanyCodes(): Promise<string[]> {
+  const inventory = await getEntityRouteInventory();
+  return (await db.query.company.findMany({ columns: { companyId: true }, orderBy: [asc(schema.company.companyId)] })).map(row => inventory.companies.get(row.companyId) || row.companyId);
+}
 
-export const getTopCompanyCodesByMetric = cachedData(
-    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
-        return await withRetry(async () => {
-            if (isFullStaticExport()) {
-                return await getAllCompanyCodes();
-            }
-            const meta = await fetchRankedSecurityMeta(metric, limit * 2);
-            const seenCompanies = new Set<string>();
-            const codes: string[] = [];
+async function rankedMeta(metric: schema.MetricType, limit: number) {
+  return readSnapshot(async (tx) => {
+    const publication = await readPublication(tx, securityRankPublicationKey(metric));
+    if (!publication) return [];
+    return tx.select({ securityId: schema.security.securityId, companyId: schema.security.companyId, type: schema.security.type })
+      .from(schema.securityRank).innerJoin(schema.security, eq(schema.securityRank.securityId, schema.security.securityId))
+      .where(currentRankFilter(publication))
+      .orderBy(asc(schema.securityRank.currentRank), asc(schema.security.securityId))
+      .limit(Math.max(1, Math.min(1000, limit)));
+  });
+}
 
-            for (const item of meta) {
-                if (!item.companyId) continue;
-                if (seenCompanies.has(item.companyId)) continue;
-
-                seenCompanies.add(item.companyId);
-                codes.push(item.code);
-
-                if (codes.length >= limit) break;
-            }
-
-            return codes;
-        }, `getTopCompanyCodesByMetric-${metric}-${limit}`);
-    },
-    "getTopCompanyCodesByMetric",
-    ['getTopCompanyCodesByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
-);
-
-export const getTopSecuritiesWithTypeByMetric = cachedData(
-    async (metric: schema.MetricType, limit: number = DEFAULT_STATIC_LIMIT) => {
-        return await withRetry(async () => {
-            if (isFullStaticExport()) {
-                const securities = await getAllSecuritiesWithType();
-                return securities
-                    .filter((sec) => sec.exchange && sec.ticker)
-                    .map((sec) => ({
-                        code: `${sec.exchange}.${sec.ticker}`,
-                        type: sec.type ?? null,
-                        companyId: null,
-                    }));
-            }
-            return await fetchRankedSecurityMeta(metric, limit);
-        }, `getTopSecuritiesWithTypeByMetric-${metric}-${limit}`);
-    },
-    "getTopSecuritiesWithTypeByMetric",
-    ['getTopSecuritiesWithTypeByMetric'], { revalidate: STATIC_CODES_REVALIDATE_SECONDS },
-);
-
-//
+export async function getTopSecurityCodesByMetric(metric: schema.MetricType, limit = 10) {
+  const inventory = await getEntityRouteInventory();
+  return (await rankedMeta(metric, limit)).map(row => inventory.securities.get(row.securityId) || row.securityId);
+}
+export async function getTopCompanyCodesByMetric(metric: schema.MetricType, limit = 10) {
+  const inventory = await getEntityRouteInventory();
+  return [...new Set((await rankedMeta(metric, limit * 2)).map(row => row.companyId).filter((id): id is string => id != null))].slice(0, limit).map(id => inventory.companies.get(id) || id);
+}
+export async function getTopSecuritiesWithTypeByMetric(metric: schema.MetricType, limit = 10) {
+  const inventory = await getEntityRouteInventory();
+  return (await rankedMeta(metric, limit)).map(row => ({ code: inventory.securities.get(row.securityId) || row.securityId, type: row.type, companyId: row.companyId }));
+}

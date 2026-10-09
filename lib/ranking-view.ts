@@ -1,5 +1,11 @@
+import { companyPath, securityPath } from "./entity-paths";
+import { formatBusinessValue } from "./business-analysis";
+
 export type RankingMetric = "marketcap" | "per" | "pbr" | "eps" | "bps" | "div" | "dps";
 export type RankingScope = "company" | "security";
+export type RankingSearch = Record<string, string | string[] | undefined>;
+export interface RankingPublication { asOf: string; revision: string; scopeKey: string; calculationId: string; publishedAt: string }
+export type RankingAmount = number | string | null;
 
 export const RANKING_METRICS: Record<RankingMetric, { label: string; title: string; unit: string; description: string }> = {
   marketcap: { label: "시가총액", title: "시가총액 순위", unit: "원", description: "시가총액은 발행주식수와 주가를 곱한 값입니다." },
@@ -12,9 +18,11 @@ export const RANKING_METRICS: Record<RankingMetric, { label: string; title: stri
 };
 
 export interface RankingPrice {
-  close: number;
+  close: RankingAmount;
   open?: number;
   date?: string;
+  rate?: number | null;
+  volume?: RankingAmount;
 }
 
 export interface RankingRow {
@@ -28,11 +36,15 @@ export interface RankingRow {
   href: string | null;
   rank: number | null;
   priorRank: number | null;
-  value: number | null;
+  value: RankingAmount;
+  securityId: string | null;
+  securityHref: string | null;
+  completeness: string | null;
   metricDate?: string | null;
-  close: number | null;
+  close: RankingAmount;
   rate: number | null;
   priceDate: string | null;
+  volume: RankingAmount;
   prices: RankingPrice[];
 }
 
@@ -42,6 +54,18 @@ function record(value: unknown): Record<string, unknown> {
 
 function finiteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+function amount(value: unknown): RankingAmount {
+  return typeof value === "string" && formatBusinessValue(value) !== "—" ? value : finiteNumber(value);
+}
+function visualNumber(value: unknown): number | null {
+  const exact = amount(value);
+  if (exact == null) return null;
+  const number = Number(exact);
+  return Number.isFinite(number) ? number : null;
+}
+function routeCode(value: unknown): string | null | undefined {
+  return value === null ? null : text(value) || undefined;
 }
 
 function text(value: unknown): string {
@@ -59,43 +83,71 @@ export function createRankingRows(items: readonly unknown[], metric: RankingMetr
   return items.map((input, index) => {
     const item = record(input);
     const securities = Array.isArray(item.securities) ? item.securities : [];
-    const security = scope === "company" ? record(securities[0]) : { ...record(securities[0]), ...item };
+    const security = scope === "company" ? record(Object.hasOwn(item, "representativeSecurity") ? item.representativeSecurity : securities.find(entry => record(entry).type === "보통주")) : { ...record(securities[0]), ...item };
     const sourcePrices = Array.isArray(item.prices) ? item.prices : Array.isArray(security.prices) ? security.prices : [];
-    const latest = record(sourcePrices[sourcePrices.length - 1]);
+    const orderedPrices = sourcePrices.map(record).toSorted((a, b) => (dateText(a.date) ?? "").localeCompare(dateText(b.date) ?? ""));
+    const latest = record(orderedPrices[orderedPrices.length - 1]);
     const exchange = text(security.exchange);
     const ticker = text(security.ticker);
-    const rank = finiteNumber(item.currentRank ?? item[`${metric}Rank`]);
-    const priorRank = finiteNumber(item.priorRank ?? item[`${metric}PriorRank`]);
+    const rank = finiteNumber(Object.hasOwn(item, "currentRank") ? item.currentRank : item[`${metric}Rank`]);
+    const priorRank = finiteNumber(Object.hasOwn(item, "priorRank") ? item.priorRank : item[`${metric}PriorRank`]);
     const name = text(item.korName) || text(item.name) || "이름 정보 없음";
     return {
       id: String(item.securityId ?? item.companyId ?? `${exchange}.${ticker}.${index}`),
       scope, metric, name, ticker, exchange,
       stockType: text(security.type) || null,
-      href: exchange && ticker ? `/${scope}/${exchange}.${ticker}/${metric}` : null,
+      href: scope === "company" ? companyPath({ companyId: String(item.companyId), routeCode: routeCode(item.routeCode) }, metric)
+        : securityPath({ securityId: String(item.securityId), exchange, ticker, routeCode: routeCode(item.routeCode) }, metric),
+      securityId: text(security.securityId) || null,
+      securityHref: text(security.securityId) ? securityPath({ securityId: text(security.securityId), exchange, ticker, routeCode: routeCode(security.routeCode) }, "marketcap") : null,
+      completeness: text(item.marketcapCompleteness) || null,
       rank: rank && rank > 0 ? rank : null,
       priorRank: priorRank && priorRank > 0 ? priorRank : null,
-      value: finiteNumber(item.value ?? item[metric]),
-      metricDate: dateText(item[`${metric}Date`] ?? item.metricDate ?? item.date),
-      close: finiteNumber(latest.close),
-      rate: finiteNumber(latest.rate),
+      value: amount(Object.hasOwn(item, "value") ? item.value : item[metric]),
+      metricDate: dateText(Object.hasOwn(item, "valueObservedAt") ? item.valueObservedAt : item[`${metric}Date`] ?? item.metricDate ?? item.date),
+      close: amount(latest.close),
+      rate: visualNumber(latest.rate),
       priceDate: dateText(latest.date),
-      prices: sourcePrices.slice(-30).flatMap((price) => {
-        const p = record(price);
-        const close = finiteNumber(p.close);
-        return close == null ? [] : [{ close, open: finiteNumber(p.open) ?? undefined, date: dateText(p.date) ?? undefined }];
-      }),
+      volume: amount(latest.volume),
+      prices: orderedPrices.slice(-30).map(p => ({ close: amount(p.close), open: visualNumber(p.open) ?? undefined, date: dateText(p.date) ?? undefined, rate: visualNumber(p.rate), volume: amount(p.volume) })),
     };
   });
 }
 
-export function formatRankingValue(metric: RankingMetric, value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return "—";
-  if (metric === "per" || metric === "pbr") return `${value.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}배`;
-  if (metric === "div") return `${value.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-  if (metric !== "marketcap") return `${value.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원`;
-  const absolute = Math.abs(value);
-  const [divisor, unit] = absolute >= 1e12 ? [1e12, "조"] : absolute >= 1e8 ? [1e8, "억"] : absolute >= 1e4 ? [1e4, "만"] : [1, "원"];
-  return `${(value / Number(divisor)).toLocaleString("ko-KR", { maximumFractionDigits: divisor === 1 ? 0 : 1 })}${unit}`;
+export function formatRankingValue(metric: RankingMetric, value: RankingAmount): string {
+  if (value == null) return "—";
+  const normalized = formatBusinessValue(value).replaceAll(",", "");
+  const match = normalized.match(/^(-?)(\d+)(?:\.(\d+))?$/);
+  if (!match) return "—";
+  const fraction = match[3] ?? "";
+  const coefficient = BigInt(match[2] + fraction);
+  const scale = fraction.length;
+  const power = metric === "marketcap" ? ([12, 8, 4].find(p => coefficient >= 10n ** BigInt(p + scale)) ?? 0) : 0;
+  const digits = metric === "marketcap" ? (power ? 1 : 0) : 2;
+  const denominator = 10n ** BigInt(scale + power);
+  const rounded = (coefficient * 10n ** BigInt(digits) + denominator / 2n) / denominator;
+  const raw = rounded.toString().padStart(digits + 1, "0");
+  const decimal = digits ? raw.slice(-digits) : "";
+  const fixed = ["per", "pbr", "div"].includes(metric);
+  const decimalText = fixed ? decimal : decimal.replace(/0+$/, "");
+  const whole = (digits ? raw.slice(0, -digits) : raw).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const unit = metric === "marketcap" ? ({ 12: "조", 8: "억", 4: "만", 0: "원" } as Record<number, string>)[power] : RANKING_METRICS[metric].unit;
+  return `${match[1]}${whole}${decimalText ? `.${decimalText}` : ""}${unit}`;
+}
+
+export function exactRankingValue(metric: RankingMetric, value: RankingAmount): string {
+  return value == null ? "지표 정보 없음" : `${formatBusinessValue(value)}${RANKING_METRICS[metric].unit}`;
+}
+
+export function getPriceDateRange(rows: readonly RankingRow[]): string | null {
+  const dates = rows.flatMap(row => row.priceDate ? [row.priceDate] : []).sort();
+  return !dates.length ? null : dates[0] === dates.at(-1) ? dates[0] : `${dates[0]}–${dates.at(-1)}`;
+}
+
+export function compareVolumes(a: RankingAmount, b: RankingAmount): number {
+  const parse = (value: RankingAmount) => value == null || !/^\d+$/.test(String(value)) ? null : BigInt(value);
+  const left = parse(a), right = parse(b);
+  return left === right ? 0 : left === null ? 1 : right === null ? -1 : left > right ? -1 : 1;
 }
 
 export function formatRankingRate(rate: number | null): string {

@@ -1,6 +1,7 @@
 'use client';
+import { formatBusinessValue, type BusinessValue } from '@/lib/business-analysis';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import {
     PieChart,
     Pie,
@@ -12,9 +13,12 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
+    type PieLabelRenderProps,
 } from 'recharts';
-import { cn, formatNumber } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { createMarketcapSeries, getMarketcapSelectionColor, isMarketcapSeriesSelected } from '@/lib/chart-selection';
+
+const subscribeReady = () => () => {};
 
 interface ChartPieMarketcapProps {
     data: Array<{
@@ -22,6 +26,7 @@ interface ChartPieMarketcapProps {
         ticker?: string | null;
         name: string;
         value: number;
+        rawValue?: BusinessValue;
         percentage: number;
         type?: string;
         color?: string;
@@ -53,8 +58,8 @@ const COLORS = {
     },
 } as const;
 
-const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: ReadonlyArray<{ payload?: ChartPieMarketcapProps['data'][number] & { compactLabel?: string } }> }) => {
+    if (active && payload?.[0]?.payload) {
         const data = payload[0].payload;
 
         return (
@@ -70,7 +75,7 @@ const CustomTooltip = ({ active, payload }: any) => {
                             <span className="text-xs text-muted-foreground whitespace-nowrap">시총</span>
                         </div>
                         <span className="text-xs font-medium text-foreground text-right">
-                            {formatNumber(data.value)}원
+                            {formatBusinessValue(data.rawValue ?? data.value)}원
                         </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
@@ -86,7 +91,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }: any) => {
+const CustomLabel = ({ cx, cy, midAngle = 0, innerRadius, outerRadius, percentage = 0 }: PieLabelRenderProps & { percentage?: number }) => {
     // 5% 이상인 경우만 라벨 표시 (임계값 낮춤)
     if (percentage < 5) return null;
 
@@ -115,6 +120,7 @@ interface StackedBarTooltipProps {
     payload?: Array<{
         dataKey: string;
         value: number;
+        rawValue?: BusinessValue;
     }>;
     segments: Array<{
         key: string;
@@ -122,6 +128,7 @@ interface StackedBarTooltipProps {
         label: string;
         percentage: number;
         value: number;
+        rawValue?: BusinessValue;
         color: string;
         highlighted: boolean;
     }>;
@@ -166,7 +173,7 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
                                 {segment.percentage.toFixed(1)}%
                             </span>
                             <span className="text-[10px] text-muted-foreground">
-                                {formatNumber(segment.value)}원
+                                {formatBusinessValue(segment.rawValue ?? segment.value)}원
                             </span>
                         </div>
                     </div>
@@ -177,11 +184,7 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
 };
 
 export default function ChartPieMarketcap({ data, centerText, selectedType = '시가총액 구성', selectedSecurityId }: ChartPieMarketcapProps) {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const isClient = useSyncExternalStore(subscribeReady, () => true, () => false);
 
     const series = useMemo(() => createMarketcapSeries(data), [data]);
     const chartData = useMemo(() => data.map((item, index) => ({
@@ -202,6 +205,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 label: item.compactLabel,
                 percentage: item.percentage,
                 value: item.value,
+                rawValue: item.rawValue,
                 color: item.color,
                 highlighted: item.highlighted,
             })),
@@ -269,7 +273,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             })}
                         </Pie>
                         <Tooltip
-                            content={<CustomTooltip selectedType={selectedType} />}
+                            content={<CustomTooltip />}
                             wrapperStyle={{ zIndex: 50 }}
                             isAnimationActive={false}
                         />
@@ -301,7 +305,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                                 content={<StackedBarTooltip segments={stackedSegments} selectedType={selectedType} />}
                                 cursor={{ fill: 'var(--muted)' }}
                             />
-                            {stackedSegments.map((segment, index) => (
+                            {stackedSegments.map((segment) => (
                                 <Bar
                                     key={segment.key}
                                     dataKey={segment.key}

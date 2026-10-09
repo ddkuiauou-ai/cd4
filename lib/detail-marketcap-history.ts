@@ -1,11 +1,11 @@
 import type { DetailCompanyData } from '@/components/detail-types';
 
-export type DetailMarketcapObservation = { date: Date | string; value: number };
+export type DetailMarketcapObservation = { date: Date | string; value: number | string | null };
 
 /** Aggregation fills absent securities with zero and can omit all-zero dates. */
 export function getSecurityMarketcapHistory(data: DetailCompanyData, securityId: string): DetailMarketcapObservation[] {
     return data?.securities.find(item => item.securityId === securityId)?.marketcapHistory
-        .filter(item => item.marketcap != null && Number.isFinite(item.marketcap) && !Number.isNaN(new Date(item.date).getTime()))
+        .filter(item => item.marketcap != null && Number.isFinite(Number(item.marketcap)) && !Number.isNaN(new Date(item.date).getTime()))
         .map(item => ({ date: item.date, value: item.marketcap })) ?? [];
 }
 

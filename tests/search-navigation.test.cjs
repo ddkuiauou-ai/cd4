@@ -29,6 +29,7 @@ function loadMenu(data, status = "success") {
     "next/navigation": { useRouter: () => ({ push: (url) => navigations.push(url) }) },
     "next-themes": { useTheme: () => ({ setTheme: () => {} }) },
     "@radix-ui/react-icons": new Proxy({}, { get: () => icon }),
+    "@/lib/entity-paths": require("./helpers/business-page-loader.cjs").createBusinessPageLoader().load("lib/entity-paths.ts"),
     "@/lib/utils": { cn: (...values) => values.filter(Boolean).join(" ") },
     "@/components/ui/button": { Button: component },
     "@/components/ui/command": commandComponents,
@@ -76,16 +77,16 @@ function securityFixture(type, overrides = {}) {
 test("company and common-stock selections reach different real routes and close the menu", () => {
   const menu = loadMenu([securityFixture("보통주")]);
   assert.equal(menu.selections.length, 2);
-  menu.selections.find((item) => item.value === "삼성전자").onSelect();
-  menu.selections.find((item) => item.value === "보통주삼성전자").onSelect();
+  menu.selections.find((item) => item.value.startsWith("company:")).onSelect();
+  menu.selections.find((item) => item.value.startsWith("security:")).onSelect();
   assert.deepEqual(menu.navigations, [
-    "/company/KOSPI.005930/marketcap",
+    "/company/KOSPI.005930",
     "/security/KOSPI.005930/marketcap",
   ]);
   assert.deepEqual(menu.openStates, [false, false]);
 });
 
-test("preferred stocks and every other search security category use the exchange and ticker", () => {
+test("preferred stocks and every other search security category retain unique legacy URLs", () => {
   for (const type of ["우선주", "전환우선주", "리츠", "펀드", "스팩"]) {
     const menu = loadMenu([securityFixture(type, {
       companyId: null, korName: "표시 이름, 경로와 다름", exchange: "KOSDAQ", ticker: "005935",
@@ -104,6 +105,16 @@ test("a common stock without a company only exposes the security destination", (
   assert.deepEqual(menu.navigations, ["/security/KOSPI.005930/marketcap"]);
 });
 
+test("unclassified historical securities remain searchable and reused codes keep distinct destinations", () => {
+  const menu = loadMenu([
+    securityFixture(null, { securityId: "old-security", companyId: null }),
+    securityFixture("원천 기타 유형", { securityId: "new-security", companyId: null }),
+  ]);
+  assert.equal(menu.selections.length, 2);
+  for (const selection of menu.selections) selection.onSelect();
+  assert.deepEqual(menu.navigations, ["/security/old-security/marketcap", "/security/new-security/marketcap"]);
+});
+
 test("search shows loading and a usable retry instead of an empty-result message on failure", () => {
   const loading = loadMenu([], "loading");
   assert.ok(loading.elements.some((element) => element.props.role === "status"));
@@ -114,4 +125,91 @@ test("search shows loading and a usable retry instead of an empty-result message
   assert.ok(retry);
   retry.props.onClick();
   assert.equal(failed.retries(), 1);
+});
+
+test("the actual CMDK menu searches names, tickers and exchanges, and keyboard selection distinguishes reused identities", async () => {
+  const { JSDOM } = require("jsdom");
+  const { createBusinessPageLoader } = require("./helpers/business-page-loader.cjs");
+  const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
+    url: "http://localhost/", pretendToBeVisual: true,
+  });
+  const saved = new Map();
+  const globals = {
+    window: dom.window, document: dom.window.document, navigator: dom.window.navigator,
+    HTMLElement: dom.window.HTMLElement, HTMLInputElement: dom.window.HTMLInputElement,
+    HTMLTextAreaElement: dom.window.HTMLTextAreaElement, HTMLSelectElement: dom.window.HTMLSelectElement,
+    Element: dom.window.Element, Node: dom.window.Node, NodeFilter: dom.window.NodeFilter,
+    DocumentFragment: dom.window.DocumentFragment, MutationObserver: dom.window.MutationObserver,
+    CustomEvent: dom.window.CustomEvent, Event: dom.window.Event, KeyboardEvent: dom.window.KeyboardEvent,
+    MouseEvent: dom.window.MouseEvent, FocusEvent: dom.window.FocusEvent,
+    getComputedStyle: dom.window.getComputedStyle,
+    requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window),
+    cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
+    // Geometry observation is outside this filtering/selection test. Keep the
+    // real dialog, focus handling, CMDK input, items and keyboard handlers.
+    ResizeObserver: class { observe() {} unobserve() {} disconnect() {} },
+    IS_REACT_ACT_ENVIRONMENT: true,
+  };
+  for (const [key, value] of Object.entries(globals)) {
+    saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, { value, writable: true, configurable: true });
+  }
+  dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+  const navigations = [];
+  const data = [
+    securityFixture("보통주", { securityId: "old-common", companyId: null, korName: "재사용종목", ticker: "000001", routeCode: null }),
+    securityFixture("보통주", { securityId: "new-common", companyId: null, korName: "재사용종목", ticker: "000001", routeCode: null }),
+    securityFixture("우선주", { securityId: "preferred", companyId: null, korName: "우선검색기업", exchange: "KOSDAQ", ticker: "005935", routeCode: "KOSDAQ.005935" }),
+  ];
+  const loader = createBusinessPageLoader({
+    "next/navigation": { useRouter: () => ({ push: url => navigations.push(url) }) },
+    "next-themes": { useTheme: () => ({ setTheme() {} }) },
+    "@/components/search-data": { useSearchData: () => ({ data, status: "success", retry() {} }) },
+  });
+  let mounted;
+  try {
+    const { createRoot } = require("react-dom/client");
+    const { CommandMenu } = loader.load("components/command-menu.tsx");
+    mounted = createRoot(document.getElementById("root"));
+    await React.act(async () => mounted.render(React.createElement(CommandMenu)));
+    const open = async () => React.act(async () => document.querySelector("#root button").click());
+    await open();
+    const input = () => document.querySelector("[cmdk-input]");
+    const visibleItems = () => [...document.querySelectorAll('[cmdk-item]')].filter(item => !item.closest('[cmdk-group][hidden]'));
+    const setSearch = async value => React.act(async () => {
+      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value").set.call(input(), value);
+      input().dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+    });
+    const key = async value => React.act(async () => input().dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: value, bubbles: true })));
+    await setSearch("재사용종목");
+    assert.equal(visibleItems().length, 2);
+    assert.deepEqual(visibleItems().map(item => item.dataset.value.split(" ")[0]), ["security:old-common", "security:new-common"]);
+    assert.equal(document.querySelectorAll('[cmdk-item][aria-selected="true"]').length, 1);
+    await key("ArrowDown");
+    assert.match(document.querySelector('[cmdk-item][aria-selected="true"]').dataset.value, /^security:new-common /);
+    await key("Enter");
+    assert.deepEqual(navigations, ["/security/new-common/marketcap"]);
+    assert.equal(document.querySelector('[role="dialog"]'), null, "selection closes the actual dialog");
+
+    await open();
+    await setSearch("000001");
+    assert.equal(visibleItems().length, 2);
+    await key("Enter");
+    assert.deepEqual(navigations, ["/security/new-common/marketcap", "/security/old-common/marketcap"]);
+
+    await open();
+    await setSearch("005935");
+    assert.equal(visibleItems().length, 1); assert.match(visibleItems()[0].textContent, /우선검색기업/);
+    await setSearch("KOSDAQ");
+    assert.equal(visibleItems().length, 1); assert.match(visibleItems()[0].textContent, /우선검색기업/);
+    await key("Enter");
+    assert.equal(navigations.at(-1), "/security/KOSDAQ.005935/marketcap");
+  } finally {
+    if (mounted) await React.act(async () => mounted.unmount());
+    dom.window.close();
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  }
 });

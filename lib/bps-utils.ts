@@ -108,19 +108,20 @@ export function calculateBPSPeriodAnalysis(
 /**
  * Process BPS data from database format to display format
  */
-export function processBPSData(data: any[]): BPSData[] {
+export function processBPSData(data: readonly unknown[]): BPSData[] {
     try {
         if (!data || !Array.isArray(data)) return [];
 
         // BPS 데이터 필터링 및 변환
         const rawResult = data
-            .filter((item) => item && typeof item === 'object') // Filter out null/undefined items
+            .filter((item): item is Record<string, unknown> => item != null && typeof item === 'object')
             .map((item) => {
                 try {
                     const date = item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date || '');
+                    if (item.bps == null) return null;
                     const value = typeof item.bps === 'number' ? item.bps : Number(item.bps);
 
-                    if (!date || !Number.isFinite(value) || value < 0) {
+                    if (!date || !Number.isFinite(value)) {
                         return null;
                     }
 
@@ -142,7 +143,7 @@ export function processBPSData(data: any[]): BPSData[] {
 
             const key = item.date;
             const existing = uniqueDataMap.get(key);
-            if (!existing || existing.value < item.value) {
+            if (!existing || item) {
                 uniqueDataMap.set(key, item);
             }
         });

@@ -117,7 +117,7 @@ export function processDPSData(data: Array<{ date: Date | string; dps: number | 
             let value: number | null = null;
             if (item.dps !== null && item.dps !== undefined) {
                 const numValue = Number(item.dps);
-                if (!isNaN(numValue) && numValue > 0) {
+                if (Number.isFinite(numValue)) {
                     value = numValue;
                 }
             }
@@ -168,7 +168,7 @@ export function processDPSDataWithGrowth(data: Array<{ date: Date | string; dps:
             return { ...item, growthRate: null };
         }
 
-        if (previousValue <= 0 || currentValue <= 0) {
+        if (previousValue <= 0) {
             return { ...item, growthRate: null };
         }
 

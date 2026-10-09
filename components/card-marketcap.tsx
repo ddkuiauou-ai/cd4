@@ -9,9 +9,9 @@ export default function CardMarketcap({ security, name, href, market = 'KOSPI', 
     security: DetailSecurityRow; name?: string; href?: string; market?: string; isSelected?: boolean;
     isCompanyPage?: boolean; currentMetric?: string;
 }) {
-    const metrics: Record<string, number | null | undefined> = { marketcap: security.marketcap, per: security.per, pbr: security.pbr, eps: security.eps, bps: security.bps, div: security.div, dps: security.dps };
+    const metrics: Record<string, number | string | null | undefined> = { marketcap: security.marketcap, per: security.per, pbr: security.pbr, eps: security.eps, bps: security.bps, div: security.div, dps: security.dps };
     const rawValue = metrics[currentMetric];
-    const value = rawValue == null || !Number.isFinite(rawValue) ? '—'
+    const value = typeof rawValue === 'string' ? `${formatNumber(rawValue)}${['per', 'pbr'].includes(currentMetric) ? '배' : currentMetric === 'div' ? '%' : '원'}` : rawValue == null || !Number.isFinite(rawValue) ? '—'
         : currentMetric === 'marketcap' ? `${formatNumber(rawValue)}원`
         : ['per', 'pbr'].includes(currentMetric) ? `${rawValue.toFixed(2)}배`
         : currentMetric === 'div' ? `${rawValue.toFixed(2)}%` : `${rawValue.toLocaleString('ko-KR')}원`;

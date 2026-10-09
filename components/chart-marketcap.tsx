@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import {
   formatNumberRaw,
   formatNumberTooltip,
@@ -23,13 +23,23 @@ import {
 
 import { getMarketcapSeriesLabel, getMarketcapSelectionColor, isMarketcapSeriesSelected, type MarketcapSeries } from "@/lib/chart-selection";
 
+const subscribeMounted = () => () => {};
+
 type MarketcapDataPoint = {
   date: string;
   totalValue?: number;
   [key: string]: string | number | boolean | null | undefined;
 };
 
+import { formatBusinessValue, type BusinessValue } from "@/lib/business-analysis";
+
+type SourceValues = Record<string, Record<string, BusinessValue>>;
+type Coverage = Record<string, { observedCount: number; targetCount: number }>;
 type Props = {
+  sourceValues?: SourceValues;
+  coverage?: Coverage;
+  totalLabel?: string;
+  axisFormat?: (value: number) => string;
   data: MarketcapDataPoint[];
   format: string;
   formatTooltip: string;
@@ -39,12 +49,8 @@ type Props = {
 };
 
 
-function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [] }: Props) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [], sourceValues, coverage, totalLabel = "전체 시총", axisFormat }: Props) {
+  const isClient = useSyncExternalStore(subscribeMounted, () => true, () => false);
 
   // 🛡️ 데이터 안전성 검증
   const safeData = useMemo(() => {
@@ -193,9 +199,9 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             interval="preserveStartEnd"
           />
           <YAxis
-            domain={yAxisDomain}
+            domain={axisFormat ? [0,1] : yAxisDomain} ticks={axisFormat ? [0,.25,.5,.75,1] : undefined}
             tickFormatter={
-              format === "formatNumber" ? formatNumberForChart : formatNumberRawForChart
+              axisFormat || (format === "formatNumber" ? formatNumberForChart : formatNumberRawForChart)
             }
             stroke="var(--muted-foreground)"
 
@@ -206,12 +212,12 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             width={40} // 50 -> 40으로 더 줄임
           />
           <Tooltip
-            content={<CustomTooltip formatTooltip={formatTooltip} series={series} />}
+            content={<CustomTooltip formatTooltip={formatTooltip} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
             isAnimationActive={false}
           />
           <Legend
             itemSorter={(entry) => keys.indexOf(String(entry.value))}
-            content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} selectedSecurityId={selectedSecurityId} series={series} />}
+            content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} selectedSecurityId={selectedSecurityId} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
             wrapperStyle={{
               paddingTop: '2px', // 2px -> 2px 유지
               position: 'relative',
@@ -234,7 +240,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
                 strokeWidth={lineStyle.strokeWidth}
                 strokeOpacity={lineStyle.strokeOpacity}
                 strokeDasharray={getStrokePattern(key)}
-                dot={false}
+                dot={safeData.length === 1}
                 activeDot={getActiveDotProps(key, index)}
               />
             );
@@ -247,6 +253,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
 // 📊 커스텀 툴팁 컴포넌트
 interface CustomTooltipProps {
+  sourceValues?: SourceValues; coverage?: Coverage; totalLabel?: string;
   active?: boolean;
   payload?: Array<{
     color: string;
@@ -261,7 +268,7 @@ interface CustomTooltipProps {
   series?: readonly MarketcapSeries[];
 }
 
-function CustomTooltip({ active, payload, formatTooltip, series = [] }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, formatTooltip, series = [], sourceValues, coverage, totalLabel = "전체 시총" }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
@@ -301,6 +308,8 @@ function CustomTooltip({ active, payload, formatTooltip, series = [] }: CustomTo
         {formatDate(data.date)}
       </div>
       <div className="space-y-1">
+        {coverage?.[data.date] && <p className="text-xs text-muted-foreground">{coverage[data.date].observedCount}/{coverage[data.date].targetCount}개 관측</p>}
+                {series.filter(item => sourceValues?.[data.date] && sourceValues[data.date][item.key] == null).map(item => <p key={item.key} className="text-xs text-muted-foreground">{item.label}: — (미관측)</p>)}
         {filteredEntries.map((entry) => (
           <div key={entry.dataKey} className="flex justify-between items-center gap-2">
             <div className="flex items-center space-x-1.5">
@@ -309,11 +318,11 @@ function CustomTooltip({ active, payload, formatTooltip, series = [] }: CustomTo
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {getMarketcapSeriesLabel(entry.dataKey, series)}
+                {getMarketcapSeriesLabel(entry.dataKey, series, totalLabel)}
               </span>
             </div>
             <span className="text-xs font-medium text-foreground text-right">
-              {formatTooltipFunction(entry.value, formatTooltip)}
+              {sourceValues?.[data.date] ? `${formatBusinessValue(sourceValues[data.date][entry.dataKey])}원` : formatTooltipFunction(entry.value, formatTooltip)}
             </span>
           </div>
         ))}
@@ -331,10 +340,10 @@ interface CustomLegendProps {
   }>;
   selectedType?: string;
   selectedSecurityId?: string;
-  series?: readonly MarketcapSeries[];
+  series?: readonly MarketcapSeries[]; sourceValues?: SourceValues; coverage?: Coverage; totalLabel?: string;
 }
 
-function CustomLegend({ payload, selectedType, selectedSecurityId, series = [] }: CustomLegendProps) {
+function CustomLegend({ payload, selectedType, selectedSecurityId, series = [], totalLabel = "전체 시총" }: CustomLegendProps) {
   if (!payload || !payload.length) return null;
 
   // 🔄 중복 제거 및 불필요한 항목 필터링
@@ -362,7 +371,7 @@ function CustomLegend({ payload, selectedType, selectedSecurityId, series = [] }
             style={{ backgroundColor: entry.color }}
           />
           {(() => {
-            const label = getMarketcapSeriesLabel(entry.value, series);
+            const label = getMarketcapSeriesLabel(entry.value, series, totalLabel);
             const isHighlighted = isMarketcapSeriesSelected(entry.value, series, selectedSecurityId, selectedType);
 
             return (

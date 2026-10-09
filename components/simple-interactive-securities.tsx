@@ -2,6 +2,7 @@
 
 import type { DetailCompanyData, DetailSecurityRow } from './detail-types';
 import Link from "next/link";
+import { companyPath, securityPath } from "@/lib/entity-paths";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
@@ -12,6 +13,7 @@ interface InteractiveSecuritiesSectionProps {
     companyMarketcapData: DetailCompanyData;
     companySecs: DetailSecurityRow[];
     currentTicker: string;
+    currentSecurityId?: string;
     market: string;
     onTickerChange?: (newTicker: string) => void;
     baseUrl?: string;
@@ -24,7 +26,7 @@ interface InteractiveSecuritiesSectionProps {
     defaultFilter?: string;
 }
 
-export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs, currentTicker, market,
+export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs, currentTicker, currentSecurityId, market,
     currentMetric = 'marketcap', layout = 'main', maxItems, showSummaryCard = true,
     highlightActiveTicker = true }: InteractiveSecuritiesSectionProps) {
     const pathname = usePathname();
@@ -35,8 +37,7 @@ export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs
         const bCommon = b.type?.includes('보통주') ? 0 : 1;
         return aCommon - bCommon || (a.type || '').localeCompare(b.type || '');
     });
-    const representative = securities.find(s => s.type?.includes('보통주')) ?? securities[0];
-    const companyCode = representative ? `${representative.exchange || market}.${representative.ticker}` : null;
+    const companyHref = companyMarketcapData ? companyPath(companyMarketcapData, 'marketcap') : null;
     const summarySelected = pathname.startsWith('/company/');
     const limit = maxItems ?? (layout === 'sidebar' ? 4 : 6);
     const visible = showAll ? securities : securities.slice(0, limit);
@@ -45,7 +46,7 @@ export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs
             <h3 className="text-base font-semibold">종목별 비교</h3>
             <span className="text-xs text-muted-foreground">{securities.length}개 종목</span>
         </div>
-        {showSummaryCard && companyCode && <Link href={`/company/${companyCode}/marketcap`}
+        {showSummaryCard && companyHref && <Link href={companyHref}
             aria-current={summarySelected ? 'page' : undefined}
             className={cn('flex min-w-0 items-center gap-3 border-b border-border py-4 hover:bg-muted/30', summarySelected && 'font-semibold')}>
             <span className="min-w-0 flex-1 text-sm">기업 전체 시가총액<span className="mt-1 block text-xs font-normal text-muted-foreground">보통주·우선주 합산</span></span>
@@ -55,8 +56,8 @@ export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs
         {visible.length > 0 ? <div>{visible.map(security => <CardMarketcap
             key={security.securityId || security.ticker} security={security} market={market}
             currentMetric={currentMetric} isCompanyPage
-            isSelected={highlightActiveTicker && !summarySelected && security.ticker === currentTicker}
-            href={`/security/${security.exchange || market}.${security.ticker}/${currentMetric}`} />)}</div>
+            isSelected={highlightActiveTicker && !summarySelected && (currentSecurityId ? security.securityId === currentSecurityId : security.ticker === currentTicker)}
+            href={securityPath(security,currentMetric)} />)}</div>
             : <p className="py-4 text-sm text-muted-foreground">비교할 종목 정보가 없습니다.</p>}
         {securities.length > limit && <button type="button" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}
             className="min-h-10 w-full text-sm text-muted-foreground hover:text-foreground">{showAll ? '접기' : `종목 ${securities.length}개 모두 보기`}</button>}

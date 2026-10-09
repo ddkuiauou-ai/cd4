@@ -90,7 +90,7 @@ export function calculateEPSPeriodAnalysis(
  */
 export function processEPSData(data: Array<{ date: Date | string; eps: number | null }>): EPSData[] {
     return data
-        .filter((item) => item.eps !== null && item.eps !== undefined && item.eps > 0)
+        .filter((item) => item.eps !== null && item.eps !== undefined && Number.isFinite(Number(item.eps)))
         .map((item) => ({
             date: item.date instanceof Date ? item.date.toISOString().split('T')[0] : String(item.date).split('T')[0],
             value: Number(item.eps),
@@ -199,7 +199,7 @@ function aggregateWeeklyData(data: EPSData[]): PeriodData[] {
     });
 
     return Array.from(weeklyMap.entries())
-        .map(([weekKey, weekData]) => {
+        .map(([, weekData]) => {
             const average = weekData.values.reduce((sum, val) => sum + val, 0) / weekData.values.length;
             const middleDate = weekData.dates[Math.floor(weekData.dates.length / 2)];
             return {
@@ -232,7 +232,7 @@ function aggregateMonthlyData(data: EPSData[]): PeriodData[] {
     });
 
     return Array.from(monthlyMap.entries())
-        .map(([monthKey, monthData]) => {
+        .map(([, monthData]) => {
             const average = monthData.values.reduce((sum, val) => sum + val, 0) / monthData.values.length;
             const middleDate = monthData.dates[Math.floor(monthData.dates.length / 2)];
             return {
@@ -247,7 +247,7 @@ function aggregateMonthlyData(data: EPSData[]): PeriodData[] {
  * Aggregate data as yearly averages
  */
 function aggregateYearlyData(data: EPSData[]): PeriodData[] {
-    const sortedData = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const yearlyMap = new Map<string, { values: number[], dates: string[] }>();
 
     // 연도별로 데이터 그룹화
@@ -267,7 +267,7 @@ function aggregateYearlyData(data: EPSData[]): PeriodData[] {
 
     // 연도별 평균 계산
     return Array.from(yearlyMap.entries())
-        .map(([yearKey, yearData]) => {
+        .map(([, yearData]) => {
             const average = yearData.values.reduce((sum, val) => sum + val, 0) / yearData.values.length;
             // 해당 연도의 중간 날짜를 사용 (예: 2023년이면 2023-06-15 같은 날짜)
             const middleDate = yearData.dates[Math.floor(yearData.dates.length / 2)];

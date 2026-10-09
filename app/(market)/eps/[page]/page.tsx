@@ -1,91 +1,21 @@
-import { RankingPageView } from "@/components/ranking-page-view";
-import { createRankingRows } from "@/lib/ranking-view";
-import { getSecurityRanksPage, countSecurityRanks } from "@/lib/data/security";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { computeTotalPagesMixed } from "@/lib/data/pagination";
-import { siteConfig } from "@/config/site";
+import { PublishedRankingPage } from '@/components/published-ranking-page';
+import type { RankingSearch } from '@/lib/ranking-view';
+import { rankingMetadata } from '@/lib/business-metadata';
 
-export async function generateStaticParams() {
-    const total = await countSecurityRanks("eps");
-    const totalPages = computeTotalPagesMixed(total);
-
-    return Array.from({ length: totalPages - 1 }, (_, i) => ({
-        page: (i + 2).toString(),
-    }));
+export const dynamic = 'force-dynamic';
+export async function generateMetadata({ params, searchParams }: {
+  params: Promise<{ page: string }>; searchParams: Promise<RankingSearch>;
+}) {
+  const { page } = await params;
+  const number = Number(page);
+  const path = Number.isSafeInteger(number) && number > 1 ? `/eps/${number}` : '/eps';
+  return rankingMetadata('eps', path, await searchParams);
 }
 
-interface EpsRankPageProps {
-    params: Promise<{
-        page: string;
-    }>;
+export default async function Page({ params, searchParams }: {
+  params: Promise<{ page: string }>;
+  searchParams: Promise<RankingSearch>;
+}) {
+  const { page } = await params;
+  return <PublishedRankingPage metric="eps" page={Number(page)} search={await searchParams} />;
 }
-
-export async function generateMetadata({ params }: EpsRankPageProps): Promise<Metadata> {
-    const temp = await params
-    const page = parseInt(temp.page, 10) || 1;
-    const { items, latestDate } = await getSecurityRanksPage("eps", page, 'desc');
-    const topSecurityNames = items.slice(0, 5).map(s => s.korName || s.name);
-
-    const title = `KOSPI·KOSDAQ 종목 주당 순이익(EPS) 순위 ${page}페이지`;
-    const description = `${latestDate} 기준 KOSPI, KOSDAQ, KONEX 전체 종목의 주당 순이익(EPS) 순위 ${page}페이지입니다. ${topSecurityNames.join(', ')} 등 주요 종목의 현재가, 등락률, 거래소 정보를 확인하고 투자 기회를 포착하세요.`;
-
-    return {
-        title,
-        description,
-        keywords: ['종목 순위', '주당 순이익(EPS) 랭킹', '코스피', '코스닥', '코넥스', '주식 투자', '가치 투자', '천하제일 단타대회', ...topSecurityNames],
-        alternates: {
-            canonical: `${siteConfig.url}/eps/${page}`,
-        },
-        openGraph: {
-            title,
-            description,
-            url: `${siteConfig.url}/eps/${page}`,
-            siteName: siteConfig.name,
-            images: [
-                {
-                    url: siteConfig.ogImage,
-                    width: 1200,
-                    height: 630,
-                    alt: title,
-                },
-            ],
-            locale: 'ko_KR',
-            type: 'website',
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title,
-            description,
-            images: [siteConfig.ogImage],
-        },
-        metadataBase: new URL(siteConfig.url),
-    };
-}
-async function EpsRankPage({ params }: EpsRankPageProps) {
-  const { page: pageParam } = await params;
-  if (!/^\d+$/.test(pageParam)) notFound();
-  const page = Number(pageParam);
-  if (!Number.isSafeInteger(page) || page < 1) notFound();
-  const [total, { items, latestDate }] = await Promise.all([
-    countSecurityRanks("eps"),
-    getSecurityRanksPage("eps", page, "desc"),
-  ]);
-
-  if (items.length === 0 || page > computeTotalPagesMixed(total)) notFound();
-
-  return (
-    <RankingPageView
-      rows={createRankingRows(items, "eps", "security")}
-      metric="eps"
-      scope="security"
-      latestDate={latestDate}
-      totalCount={total}
-      currentPage={page}
-      totalPages={computeTotalPagesMixed(total)}
-      basePath="/eps"
-    />
-  );
-}
-
-export default EpsRankPage;

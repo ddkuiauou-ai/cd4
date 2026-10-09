@@ -3,6 +3,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber, formatDate } from "@/lib/utils";
+import { validComposition } from '@/lib/detail-presentation';
+import { formatBusinessValue } from '@/lib/business-analysis';
 import ChartPieMarketcap from "@/components/chart-pie-marketcap";
 import type { CompanyMarketcapAggregated } from "@/lib/data/company";
 
@@ -18,14 +20,15 @@ export default function CardCompanyMarketcap({ data, selectedType = "시가총�
 
     // 파이 차트용 데이터 준비
     const chartData = data.securities
-        .filter(sec => (sec.marketcap || 0) > 0)
-        .sort((a, b) => (b.marketcap || 0) - (a.marketcap || 0))
+        .filter(sec => Number(sec.marketcap) > 0)
+        .sort((a, b) => Number(b.marketcap) - Number(a.marketcap))
         .map((security) => ({
             securityId: security.securityId,
             ticker: security.ticker,
             name: security.korName || security.name || security.ticker || '알 수 없음',
-            value: security.marketcap || 0,
-            percentage: security.percentage,
+            value: Number(security.marketcap),
+            rawValue: security.marketcap,
+            percentage: security.percentage ?? 0,
             type: security.type || '보통주'
         }));
 
@@ -38,7 +41,7 @@ export default function CardCompanyMarketcap({ data, selectedType = "시가총�
                     </CardTitle>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span className="text-sm font-semibold tabular-nums">
-                            {formatNumber(data.totalMarketcap)}원
+                            {formatBusinessValue(data.totalMarketcap)}원
                         </span>
                         <p>{formatDate(data.totalMarketcapDate)}</p>
                     </div>
@@ -49,7 +52,7 @@ export default function CardCompanyMarketcap({ data, selectedType = "시가총�
                 <div className="flex-1 space-y-3">
                     <div className="w-full">
                         <div className="h-[320px] min-h-[320px] w-full min-w-0">
-                            <ChartPieMarketcap
+                            {validComposition(data) ? <ChartPieMarketcap
                                 data={chartData}
                                 centerText={{
                                     title: "총액",
@@ -57,7 +60,7 @@ export default function CardCompanyMarketcap({ data, selectedType = "시가총�
                                 }}
                                 selectedType={selectedType}
                                 selectedSecurityId={selectedSecurityId}
-                            />
+                            /> : <p className="py-8 text-sm leading-relaxed text-muted-foreground">{data.compositionReason === 'unpublished' ? '아직 공개된 기업 합산값이 없습니다.' : data.compositionReason === 'different_total' ? '같은 기준일의 종목별 합계와 공개 총액이 달라 구성 비중을 표시하지 않습니다.' : '동일 기준일의 모든 종목 값이 확인되면 구성 비중을 표시합니다.'}</p>}
                         </div>
                     </div>
                 </div>

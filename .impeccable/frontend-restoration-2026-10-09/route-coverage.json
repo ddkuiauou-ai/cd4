@@ -1,0 +1,170 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "bytes": 292753,
+    "error": false
+  },
+  {
+    "route": "/dashboard/",
+    "status": 200,
+    "bytes": 77596,
+    "error": false
+  },
+  {
+    "route": "/marketcaps/",
+    "status": 200,
+    "bytes": 293420,
+    "error": false
+  },
+  {
+    "route": "/marketcaps/2/",
+    "status": 200,
+    "bytes": 1240318,
+    "error": false
+  },
+  {
+    "route": "/marketcap/",
+    "status": 200,
+    "bytes": 294201,
+    "error": false
+  },
+  {
+    "route": "/marketcap/2/",
+    "status": 200,
+    "bytes": 1243766,
+    "error": false
+  },
+  {
+    "route": "/per/",
+    "status": 200,
+    "bytes": 290637,
+    "error": false
+  },
+  {
+    "route": "/per/2/",
+    "status": 200,
+    "bytes": 1237149,
+    "error": false
+  },
+  {
+    "route": "/pbr/",
+    "status": 200,
+    "bytes": 294612,
+    "error": false
+  },
+  {
+    "route": "/pbr/2/",
+    "status": 200,
+    "bytes": 1226659,
+    "error": false
+  },
+  {
+    "route": "/eps/",
+    "status": 200,
+    "bytes": 286263,
+    "error": false
+  },
+  {
+    "route": "/eps/2/",
+    "status": 200,
+    "bytes": 1189075,
+    "error": false
+  },
+  {
+    "route": "/bps/",
+    "status": 200,
+    "bytes": 285987,
+    "error": false
+  },
+  {
+    "route": "/bps/2/",
+    "status": 200,
+    "bytes": 1190223,
+    "error": false
+  },
+  {
+    "route": "/div/",
+    "status": 200,
+    "bytes": 285620,
+    "error": false
+  },
+  {
+    "route": "/div/2/",
+    "status": 200,
+    "bytes": 1234361,
+    "error": false
+  },
+  {
+    "route": "/dps/",
+    "status": 200,
+    "bytes": 286294,
+    "error": false
+  },
+  {
+    "route": "/dps/2/",
+    "status": 200,
+    "bytes": 1191062,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/",
+    "status": 200,
+    "bytes": 233606,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/marketcap/",
+    "status": 200,
+    "bytes": 270851,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/per/",
+    "status": 200,
+    "bytes": 323830,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/pbr/",
+    "status": 200,
+    "bytes": 273068,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/eps/",
+    "status": 200,
+    "bytes": 272493,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/bps/",
+    "status": 200,
+    "bytes": 319529,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/div/",
+    "status": 200,
+    "bytes": 272413,
+    "error": false
+  },
+  {
+    "route": "/security/KOSPI.005930/dps/",
+    "status": 200,
+    "bytes": 323526,
+    "error": false
+  },
+  {
+    "route": "/company/KOSPI.005930/",
+    "status": 200,
+    "bytes": 234221,
+    "error": false
+  },
+  {
+    "route": "/company/KOSPI.005930/marketcap/",
+    "status": 200,
+    "bytes": 281407,
+    "error": false
+  }
+]

@@ -9,6 +9,8 @@ export interface SearchMenuItem {
   type: string | null;
   exchange: string;
   ticker: string;
+  routeCode?: string | null;
+  companyRouteCode?: string | null;
 }
 
 type SearchDataState = {

@@ -8,12 +8,13 @@ interface PagerProps {
   currentPage: number;
   totalPages?: number;
   nextCount?: number;
+  query?: string;
 }
 
-export function Pager({ basePath, currentPage, totalPages, nextCount }: PagerProps) {
+export function Pager({ basePath, currentPage, totalPages, nextCount, query }: PagerProps) {
   const pager = getPager(currentPage, totalPages);
   if (!pager || (!pager.prev && !pager.next)) return null;
-  const pageURL = (page: number) => page === 1 ? basePath : `${basePath}/${page}`;
+  const pageURL = (page: number) => `${page === 1 ? basePath : `${basePath}/${page}`}${query ? `?${query}` : ""}`;
   return (
     <nav className={styles.pager} aria-label="순위 목록 페이지">
       <span className="sr-only">{currentPage}페이지{totalPages != null && ` / 전체 ${totalPages}페이지`}</span>

@@ -4,14 +4,17 @@ import { ResponsiveHeatMap } from '@nivo/heatmap';
 import type { HeatMapSerie } from '@nivo/heatmap';
 import { useState, useEffect } from 'react';
 import { heatmapLabelColor, heatmapTheme } from './chart-theme';
+import {formatBusinessValue,formatCompactBusinessValue,type BusinessValue} from '@/lib/business-analysis';
 
 interface BPSHeatmapProps {
-    data: HeatMapSerie<{ x: string, y: number }, {}>[];
+    data: HeatMapSerie<{ x: string, y: number }, object>[];
     minValue: number;
     maxValue: number;
+    valueFormatter?: (value:number)=>string;
+    sourceValues?: Record<string,BusinessValue>;
 }
 
-export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps) {
+export default function BPSHeatmap({ data, minValue, maxValue, valueFormatter, sourceValues }: BPSHeatmapProps) {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -34,9 +37,11 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
           theme={heatmapTheme}
           labelTextColor={heatmapLabelColor}
           borderColor="transparent"
+          label={cell => sourceValues ? formatCompactBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null) : cell.formattedValue || ''}
+          tooltip={sourceValues ? ({cell}) => <div className="rounded-md border border-border bg-popover p-3 text-sm shadow-md">{cell.data.x}년 {cell.serieId} · {formatBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null)}</div> : undefined}
                     data={mobileData}
                     margin={{ top: 30, right: 20, bottom: 30, left: 20 }}
-                    valueFormat=">-.0s"
+                    valueFormat={valueFormatter || ">-.0s"}
                     axisTop={{
                         tickRotation: -90,
                         tickSize: 0,
@@ -64,7 +69,7 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
                             tickSize: 2,
                             tickSpacing: 1,
                             tickOverlap: false,
-                            tickFormat: '>-.0s',
+                            tickFormat: valueFormatter || '>-.0s',
                             title: 'BPS (원)',
                             titleAlign: 'start',
                             titleOffset: 4
@@ -82,9 +87,11 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
           theme={heatmapTheme}
           labelTextColor={heatmapLabelColor}
           borderColor="transparent"
+          label={cell => sourceValues ? formatCompactBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null) : cell.formattedValue || ''}
+          tooltip={sourceValues ? ({cell}) => <div className="rounded-md border border-border bg-popover p-3 text-sm shadow-md">{cell.data.x}년 {cell.serieId} · {formatBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null)}</div> : undefined}
                 data={data}
                 margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
-                valueFormat=">-.0s"
+                valueFormat={valueFormatter || ">-.0s"}
                 axisTop={{ tickRotation: -90 }}
                 axisLeft={{ legend: '월', legendOffset: -72 }}
                 colors={{
@@ -106,7 +113,7 @@ export default function BPSHeatmap({ data, minValue, maxValue }: BPSHeatmapProps
                         tickSize: 3,
                         tickSpacing: 4,
                         tickOverlap: false,
-                        tickFormat: '>-.0s',
+                        tickFormat: valueFormatter || '>-.0s',
                         title: 'BPS (원) →',
                         titleAlign: 'start',
                         titleOffset: 4

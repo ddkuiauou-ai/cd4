@@ -1,0 +1,88 @@
+
+> cd3@0.1.0 build /Users/craigchoi/silla/cd4
+> NODE_OPTIONS='--max-old-space-size=12288' NEXT_TELEMETRY_DISABLED=1 next build --webpack
+
+▲ Next.js 16.3.8 (webpack)
+- Environments: .env
+✓ Running next.config.ts took 176ms
+- Experiments (use with caution):
+  · cpus: 8
+  ✓ memoryBasedWorkersCount
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.1s
+  Running TypeScript ...
+  Finished TypeScript in 2.8s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/6) ...
+  Generating static pages using 8 workers (1/6) 
+  Generating static pages using 8 workers (2/6) 
+  Generating static pages using 8 workers (4/6) 
+✓ Generating static pages using 8 workers (6/6) in 279ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+SIGINT received, closing database connections...
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+SIGINT received, closing database connections...
+Database connections closed successfully
+Database connections closed successfully
+
+Route (app)                                 Revalidate  Expire
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /bps
+├ ƒ /bps/[page]
+├ ƒ /company/[secCode]
+├ ƒ /company/[secCode]/marketcap
+├ ƒ /dashboard
+├ ƒ /div
+├ ƒ /div/[page]
+├ ƒ /dps
+├ ƒ /dps/[page]
+├ ƒ /eps
+├ ƒ /eps/[page]
+├ ƒ /marketcap
+├ ƒ /marketcap/[page]
+├ ƒ /marketcaps
+├ ƒ /marketcaps/[page]
+├ ○ /opengraph-image.png
+├ ƒ /pbr
+├ ƒ /pbr/[page]
+├ ƒ /per
+├ ƒ /per/[page]
+├ ƒ /ranking-data/companies-marketcap.csv
+├ ƒ /ranking-data/securities-bps.csv
+├ ƒ /ranking-data/securities-div.csv
+├ ƒ /ranking-data/securities-dps.csv
+├ ƒ /ranking-data/securities-eps.csv
+├ ƒ /ranking-data/securities-marketcap.csv
+├ ƒ /ranking-data/securities-pbr.csv
+├ ƒ /ranking-data/securities-per.csv
+├ ○ /search-data.json                               5m      1y
+├ ƒ /security/[secCode]
+├ ƒ /security/[secCode]/bps
+├ ƒ /security/[secCode]/div
+├ ƒ /security/[secCode]/dps
+├ ƒ /security/[secCode]/eps
+├ ƒ /security/[secCode]/marketcap
+├ ƒ /security/[secCode]/pbr
+├ ƒ /security/[secCode]/per
+├ ƒ /sitemap.xml
+└ ƒ /sitemaps/[segment]/[fileName]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

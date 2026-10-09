@@ -1,0 +1,224 @@
+{
+  "date": "2026-10-09",
+  "baseline": "536bd79",
+  "tests": {
+    "pass": 170,
+    "fail": 0,
+    "skip": 0,
+    "command": "node --test tests/*.test.cjs"
+  },
+  "typecheck": {
+    "exit": 0,
+    "command": "pnpm exec tsc --noEmit"
+  },
+  "changedLint": {
+    "files": 135,
+    "errors": 0,
+    "warnings": 0
+  },
+  "fullLint": {
+    "errors": 28,
+    "warnings": 27,
+    "existingProblems": [
+      {
+        "file": "components/animate-ui/icons/icon.tsx",
+        "errors": 0,
+        "warnings": 6,
+        "rules": [
+          "react-hooks/set-state-in-effect",
+          "react-hooks/refs"
+        ]
+      },
+      {
+        "file": "components/animate-ui/primitives/animate/slot.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/static-components"
+        ]
+      },
+      {
+        "file": "components/bps-chart-with-period-switcher.tsx",
+        "errors": 1,
+        "warnings": 0,
+        "rules": [
+          "@typescript-eslint/no-explicit-any"
+        ]
+      },
+      {
+        "file": "components/chart-DIV.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/set-state-in-effect"
+        ]
+      },
+      {
+        "file": "components/chart-EPS-enhanced.tsx",
+        "errors": 3,
+        "warnings": 5,
+        "rules": [
+          "@typescript-eslint/no-unused-vars",
+          "react-hooks/set-state-in-effect",
+          "@typescript-eslint/no-explicit-any"
+        ]
+      },
+      {
+        "file": "components/chart-a11y-description.tsx",
+        "errors": 2,
+        "warnings": 0,
+        "rules": [
+          "@typescript-eslint/no-explicit-any"
+        ]
+      },
+      {
+        "file": "components/chart-loading-skeleton.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/purity"
+        ]
+      },
+      {
+        "file": "components/key-metrics-section-bps.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "@typescript-eslint/no-unused-vars"
+        ]
+      },
+      {
+        "file": "components/key-metrics-section-dps.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "@typescript-eslint/no-unused-vars"
+        ]
+      },
+      {
+        "file": "components/marketcap-summary-expandable.tsx",
+        "errors": 11,
+        "warnings": 1,
+        "rules": [
+          "@typescript-eslint/no-explicit-any",
+          "@typescript-eslint/no-unused-vars"
+        ]
+      },
+      {
+        "file": "components/marketcap/layout.ts",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "@typescript-eslint/no-unused-vars"
+        ]
+      },
+      {
+        "file": "components/navigation-collapsible.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/set-state-in-effect"
+        ]
+      },
+      {
+        "file": "components/share-button.tsx",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/set-state-in-effect"
+        ]
+      },
+      {
+        "file": "components/spike-chart.tsx",
+        "errors": 3,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/exhaustive-deps",
+          "@typescript-eslint/no-explicit-any"
+        ]
+      },
+      {
+        "file": "hooks/use-collapsed-state.ts",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "react-hooks/set-state-in-effect"
+        ]
+      },
+      {
+        "file": "lib/pbr-utils.ts",
+        "errors": 0,
+        "warnings": 4,
+        "rules": [
+          "@typescript-eslint/no-unused-vars"
+        ]
+      },
+      {
+        "file": "lib/security-utils.ts",
+        "errors": 3,
+        "warnings": 0,
+        "rules": [
+          "@typescript-eslint/no-explicit-any"
+        ]
+      },
+      {
+        "file": "tailwind.config.js",
+        "errors": 0,
+        "warnings": 1,
+        "rules": [
+          "import/no-anonymous-default-export"
+        ]
+      },
+      {
+        "file": "types/nav.ts",
+        "errors": 5,
+        "warnings": 0,
+        "rules": [
+          "@typescript-eslint/no-empty-object-type",
+          "@typescript-eslint/no-explicit-any"
+        ]
+      }
+    ]
+  },
+  "build": {
+    "webpack": "passed",
+    "command": "pnpm build --webpack",
+    "turbopack": "environment CSS worker bind-port EPERM"
+  },
+  "http": {
+    "routes": 28,
+    "ok": 28
+  },
+  "browser": {
+    "responsiveWidths": [
+      320,
+      390,
+      768,
+      1280,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "documentOverflow": false,
+    "textOnlyZoom": "not confirmed: IAB shortcut did not change scale",
+    "companyRangeSwitch": {
+      "recent": {
+        "start": "2026-10-06",
+        "end": "2026-10-08",
+        "count": 3
+      },
+      "all": {
+        "start": "2025-10-10",
+        "end": "2026-10-08",
+        "count": 24
+      }
+    },
+    "historyNavigation": "back and forward passed",
+    "latestCompanyCaptureCount": 29,
+    "movingAverageObservationLabel": true
+  },
+  "databaseWrites": false,
+  "deployment": false
+}

@@ -9,7 +9,7 @@ const { JSDOM } = require("jsdom");
 
 const root = path.resolve(__dirname, "..");
 
-async function withChartEnvironment(run) {
+async function withChartEnvironment(run, stubs = {}) {
   const dom = new JSDOM("<!doctype html><div id='root'></div>", {
     url: "http://localhost",
     pretendToBeVisual: true,
@@ -70,6 +70,7 @@ async function withChartEnvironment(run) {
     mod.filename = filename;
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = (name) => {
+      if (name in stubs) return stubs[name];
       if (name === "recharts") return chartModules;
       if (name === "@nivo/heatmap") return {
         ...heatmap,
@@ -123,7 +124,7 @@ async function withChartEnvironment(run) {
     await flushFrames();
   };
   try {
-    await run({ container, render, load });
+    await run({ container, render, load, flushFrames });
   } finally {
     await React.act(async () => chartRoot.unmount());
     await flushFrames();
@@ -199,7 +200,7 @@ test("DPS growth chart keeps horizontal grid lines and dividend-first legend wit
     assert.ok(container.querySelectorAll(".recharts-cartesian-grid-horizontal line").length > 0);
     assert.deepEqual(
       Array.from(container.querySelectorAll(".recharts-legend-item-text"), (element) => element.textContent),
-      ["주당배당금 (DPS)", "전년 대비 성장률 (%)"],
+      ["주당배당금 (DPS)", "직전 제공 기록 대비 (%)"],
     );
   });
 });
@@ -220,3 +221,79 @@ for (const metric of ["per", "bps", "dps"]) {
     });
   });
 }
+
+
+test('restored single financial observations keep a real dot for positive, zero and negative source values',async()=>{
+  await withChartEnvironment(async({container,render,load})=>{
+    const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
+    const Chart=({data})=>React.createElement(History,{rows:data,metric:'per',label:'PER',unit:'배'});
+    for(const value of ['10','0','-3']){
+      await render(Chart,[{date:'2026-10-08',value}]);
+      const point=container.querySelector('.recharts-line-dot');assert.ok(point,'single supplied value needs a point');
+      assert.ok(Number.isFinite(Number(point.getAttribute('cx'))));assert.ok(Number.isFinite(Number(point.getAttribute('cy'))));
+      assert.match(container.textContent,/추이를 그릴 이력이 부족/);assert.match(container.textContent,new RegExp(value+'배'));
+    }
+    await render(Chart,[{date:'2026-10-08',value:null}]);assert.equal(container.querySelector('.recharts-line-dot'),null);
+  });
+});
+
+test('monthly chart states raw count separately from its one displayed average point',async()=>{
+  await withChartEnvironment(async({container,render,load})=>{
+    const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
+    const Chart=({data})=>React.createElement(History,{rows:data,metric:'per',label:'PER',unit:'배'});
+    await render(Chart,[{date:'2026-10-01',value:'1'},{date:'2026-10-02',value:'2'},{date:'2026-10-08',value:'3'}]);
+    assert.match(container.textContent,/선택 원천 관측 2026-10-01 ~ 2026-10-08 · 3개 기록/);
+    assert.ok(container.querySelector('.recharts-line-dot'));
+    assert.match(container.querySelector('[role="img"]').getAttribute('aria-label'),/표시 관측 1개/);
+  });
+});
+
+test('DPS period follows the supplied asOf while BPS keeps the latest actual year-end anchor',async()=>{
+  await withChartEnvironment(async({container,render,load})=>{
+    const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
+    const DPS=({data})=>React.createElement(History,{rows:data,metric:'dps',label:'DPS',unit:'원',annual:true,selectedEnd:'2026-10-08'});
+    await render(DPS,[{date:'2020-01-01',value:'100'}]);
+    assert.match(container.textContent,/선택 기간에 제공된 관측값이 없습니다/);assert.equal(container.querySelector('.recharts-line-dot'),null);
+    const BPS=({data})=>React.createElement(History,{rows:data,metric:'bps',label:'BPS',unit:'원',annual:true,selectedEnd:'2026-10-08'});
+    await render(BPS,[{date:'2024-12-30',value:'100'}]);
+    assert.ok(container.querySelector('.recharts-line-dot'));assert.match(container.textContent,/2024-12-30/);
+  });
+});
+
+test('DPS keyboard tooltips preserve real zero percent and explain exact nonpositive-baseline differences',async()=>{
+  await withChartEnvironment(async({container,render,load,flushFrames})=>{
+    const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
+    const Chart=({data})=>React.createElement(History,{rows:data,metric:'dps',label:'DPS',unit:'원'});
+    const move=async key=>{
+      await React.act(async()=>container.querySelector('.recharts-wrapper').dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+      const tooltip=container.querySelector('.recharts-tooltip-wrapper');assert.ok(tooltip,'keyboard must expose the real Recharts tooltip');return tooltip.textContent;
+    };
+    for(const [previous,current,reason]of [['0','9007199254740994','0'],['-9007199254740993','1','음수']]){
+      await render(Chart,[{date:'2026-10-01',value:previous},{date:'2026-10-08',value:current}]);
+      await move('ArrowLeft');const first=await move('ArrowLeft');assert.match(first,/직전 제공 기록이 없습니다/);assert.doesNotMatch(first,/—%/);
+      const second=await move('ArrowRight');assert.match(second,/직전 제공 기록 대비 차이 9,007,199,254,740,994원/);assert.ok(second.includes(`이전 값이 ${reason}라 증감률 계산 불가`));assert.doesNotMatch(second,/—%|Infinity|NaN/);
+    }
+    await render(Chart,[{date:'2026-10-01',value:'100'},{date:'2026-10-08',value:'100'}]);
+    await move('ArrowLeft');const zero=await move('ArrowRight');assert.match(zero,/직전 제공 기록 대비 0%/);assert.doesNotMatch(zero,/계산 불가|차이/);
+    await render(Chart,[{date:'2026-10-01',value:'0',observedSecurityIds:['a']},{date:'2026-10-08',value:'100',observedSecurityIds:['a','b']}]);
+    await move('ArrowLeft');const changed=await move('ArrowRight');assert.match(changed,/관측 종목 구성이 달라/);assert.doesNotMatch(changed,/차이|0%|계산 불가/);
+  });
+});
+
+test('actual price history applies end-only bounds to candles and close fallback while preserving nine warmup records',async()=>{
+  const candleProps=[];
+  await withChartEnvironment(async({container,render,load})=>{
+    const Prices=load(path.join(root,'components/restored-detail-charts.tsx')).DetailPriceHistory;
+    const data=[{date:'2024-01-01',open:'1',high:'2',low:'1',close:'1',volume:'9007199254740993'},
+      ...Array.from({length:11},(_,index)=>({date:`2026-10-${String(index+1).padStart(2,'0')}`,open:String(index+2),high:String(index+3),low:String(index+1),close:String(index+2),volume:'9007199254740993'}))];
+    const Default=({data})=>React.createElement(Prices,{rows:data});
+    await render(Default,data);assert.match(container.textContent,/실제 거래 범위 2026-10-01 ~ 2026-10-11 · 11개 기록/);assert.equal(candleProps.at(-1).data.filter(row=>!row.warmupOnly).length,11);
+    const EndOnly=({data})=>React.createElement(Prices,{rows:data,end:'2026-10-11'});
+    await render(EndOnly,data);assert.match(container.textContent,/실제 거래 범위 2024-01-01 ~ 2026-10-11 · 12개 기록/);assert.equal(candleProps.at(-1).data.length,12);assert.equal(candleProps.at(-1).data[0].source.volume,'9007199254740993');
+    const Explicit=({data})=>React.createElement(Prices,{rows:data,start:'2026-10-10',end:'2026-10-11'});
+    await render(Explicit,data);const explicit=candleProps.at(-1);assert.equal(explicit.data.filter(row=>row.warmupOnly).length,9);assert.equal(explicit.data.filter(row=>!row.warmupOnly).length,2);assert.equal(explicit.data.length,11);
+    const closeOnly=data.map(row=>({date:row.date,close:row.close}));
+    await render(EndOnly,closeOnly);assert.match(container.textContent,/선택 원천 관측 2024-01-01 ~ 2026-10-11 · 12개 기록/);assert.equal(container.querySelectorAll('.recharts-line-dot').length,12);
+  },{'next/dynamic':()=>props=>{candleProps.push(props);return React.createElement('div',{'data-candlestick':true});}});
+});

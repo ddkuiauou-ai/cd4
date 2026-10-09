@@ -1,3 +1,5 @@
+import { formatBusinessValue, formatCompactBusinessValue } from "./business-analysis";
+import { companyPath, companyRouteCodes, securityPath, securityRouteCodes, type SecurityRouteIdentity } from './entity-paths';
 /**
  * 최근 본 종목 관리 유틸리티
  * 로컬 스토리지를 사용하여 최근 본 종목을 저장하고 관리합니다.
@@ -5,6 +7,9 @@
 
 export interface RecentlyViewedSecurity {
     secCode: string; // "KOSPI.005930"
+    securityId?: string;
+    routeCode?: string | null;
+    lastPath?: string;
     name: string; // 영문명
     korName?: string; // 한글명
     ticker: string; // "005930"
@@ -12,18 +17,38 @@ export interface RecentlyViewedSecurity {
     lastViewed: number; // 마지막 방문 타임스탬프
     lastMetric?: MetricType; // 기존 저장 항목과 호환되는 마지막 지표
     metrics: {
-        per?: { value: number | null; lastViewed: number };
-        marketcap?: { value: number | null; lastViewed: number };
-        bps?: { value: number | null; lastViewed: number };
-        eps?: { value: number | null; lastViewed: number };
-        pbr?: { value: number | null; lastViewed: number };
-        div?: { value: number | null; lastViewed: number };
-        dps?: { value: number | null; lastViewed: number };
+        per?: { value: number | string | null; lastViewed: number };
+        marketcap?: { value: number | string | null; lastViewed: number };
+        bps?: { value: number | string | null; lastViewed: number };
+        eps?: { value: number | string | null; lastViewed: number };
+        pbr?: { value: number | string | null; lastViewed: number };
+        div?: { value: number | string | null; lastViewed: number };
+        dps?: { value: number | string | null; lastViewed: number };
     };
 }
 
 const STORAGE_KEY = 'recently-viewed-securities';
 const MAX_RECENT_SECURITIES = 10;
+let snapshotText: string | null | undefined;
+let snapshotRows: RecentlyViewedSecurity[] = [];
+
+export function getRecentSecuritiesSnapshot(): RecentlyViewedSecurity[] {
+    let stored: string | null = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch { /* Storage may be disabled. */ }
+    if (stored !== snapshotText) {
+        snapshotText = stored;
+        snapshotRows = getRecentlyViewedSecurities();
+    }
+    return snapshotRows;
+}
+
+export function subscribeRecentSecurities(listener: () => void): () => void {
+    const onStorage = (event: StorageEvent) => {
+        if (event.key === STORAGE_KEY || event.key === null) listener();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+}
 
 // 메트릭 설정 (우선순위와 라벨)
 export const METRIC_CONFIG = {
@@ -40,28 +65,10 @@ export const METRIC_CONFIG = {
 export type MetricType = keyof typeof METRIC_CONFIG;
 
 // 메트릭 값 포맷 함수
-export function formatMetricValue(type: string, value: number | null): string {
-    if (value == null || !Number.isFinite(value)) return '—';
-
-    switch (type) {
-        case 'marketcap':
-            if (value >= 1e12) { // 1조 이상
-                return `${(value / 1e12).toFixed(1)}조`;
-            } else if (value >= 1e11) { // 1천억 이상
-                return `${(value / 1e11).toFixed(1)}천억`;
-            } else if (value >= 1e10) { // 1백억 이상
-                return `${(value / 1e10).toFixed(1)}백억`;
-            } else { // 그 이하
-                return `${(value / 1e8).toFixed(1)}억`;
-            }
-        case 'per':
-        case 'pbr': return `${value.toFixed(1)}배`;
-        case 'div': return `${value.toFixed(1)}%`;
-        case 'bps': return `${(value / 10000).toFixed(1)}만원`;
-        case 'eps':
-        case 'dps': return `${Math.round(value / 1000)}천원`;
-        default: return value.toString();
-    }
+export function formatMetricValue(type: string, value: number | string | null): string {
+    const ratio = type === 'per' || type === 'pbr' || type === 'div';
+    const formatted = ratio ? formatBusinessValue(value) : formatCompactBusinessValue(value);
+    return formatted === '—' ? formatted : `${formatted}${type === 'per' || type === 'pbr' ? '배' : type === 'div' ? '%' : '원'}`;
 }
 
 // 메트릭 라벨을 URL 파라미터로 변환
@@ -108,7 +115,7 @@ export function getRecentlyViewedSecurities(): RecentlyViewedSecurity[] {
 export function addRecentlyViewedSecurity(
     security: Omit<RecentlyViewedSecurity, 'lastViewed' | 'metrics'>,
     metricType: MetricType,
-    metricValue?: number | null
+    metricValue?: number | string | null
 ): void {
     if (typeof window === 'undefined') return;
 
@@ -118,12 +125,14 @@ export function addRecentlyViewedSecurity(
         const secCode = security.secCode;
 
         // 기존 항목 찾기 및 업데이트
-        const existingIndex = securities.findIndex(s => s.secCode === secCode);
+        const existingIndex = securities.findIndex(s => security.securityId && s.securityId
+            ? s.securityId === security.securityId : s.secCode === secCode);
 
         if (existingIndex >= 0) {
             // 기존 항목 업데이트 및 맨 앞으로 이동
             const existing = securities.splice(existingIndex, 1)[0];
             Object.assign(existing, security, { lastMetric: metricType });
+            existing.lastPath = security.lastPath || securityPath({ securityId: existing.securityId || secCode, routeCode: existing.routeCode ?? existing.secCode }, metricType);
             existing.metrics[metricType] = { value: metricValue ?? null, lastViewed: now };
             existing.lastViewed = now;
             securities.unshift(existing);
@@ -136,6 +145,7 @@ export function addRecentlyViewedSecurity(
             securities.unshift({
                 ...security,
                 lastMetric: metricType,
+                lastPath: security.lastPath || securityPath({ securityId: security.securityId || secCode, routeCode: secCode }, metricType),
                 lastViewed: now,
                 metrics: {
                     [metricType]: { value: metricValue ?? null, lastViewed: now }
@@ -200,4 +210,47 @@ export function getLastViewedMetric(security: RecentlyViewedSecurity): MetricTyp
     return (Object.entries(security.metrics)
         .filter(([type, data]) => type in METRIC_CONFIG && data)
         .sort((a, b) => (b[1]?.lastViewed ?? 0) - (a[1]?.lastViewed ?? 0))[0]?.[0] ?? 'marketcap') as MetricType;
+}
+
+export function getRecentSecurityPath(security: RecentlyViewedSecurity): string {
+    if (security.lastPath && /^\/(security|company)\/[^/?#]+(?:\/(marketcap|per|pbr|eps|bps|div|dps))?\/?$/.test(security.lastPath)) return security.lastPath;
+    return securityPath({ securityId: security.securityId || security.secCode, routeCode: security.secCode }, getLastViewedMetric(security));
+}
+
+/** Upgrade old aliases only after a unique match in the complete identity inventory. */
+export function migrateRecentSecurityIdentities(identities: readonly (SecurityRouteIdentity & { companyId?: string | null; type?: string | null; delistingDate?: Date | string | null })[]): void {
+    if (typeof window === 'undefined') return;
+    const recent = getRecentlyViewedSecurities();
+    const aliases = securityRouteCodes(identities);
+    const companies = companyRouteCodes(identities.map(identity => ({ ...identity, companyId: identity.companyId ?? null })));
+    const result = new Map<string, RecentlyViewedSecurity>();
+    for (const item of recent) {
+        const byId = identities.find(identity => identity.securityId === (item.securityId || item.secCode));
+        const matches = byId ? [byId] : identities.filter(identity => `${identity.exchange}.${identity.ticker}` === item.secCode);
+        const identity = matches.length === 1 ? matches[0] : null;
+        const routeCode = identity ? aliases.get(identity.securityId) ?? null : item.routeCode;
+        const pathMatch = item.lastPath?.match(/^\/(security|company)\/[^/?#]+(?:\/(marketcap|per|pbr|eps|bps|div|dps))?\/?$/);
+        const path = !identity ? item.lastPath : pathMatch?.[1] === 'security'
+            ? securityPath({ ...identity, routeCode }, pathMatch[2])
+            : pathMatch?.[1] === 'company' && identity.companyId
+                ? companyPath({ companyId: identity.companyId, routeCode: companies.get(identity.companyId) ?? null }, pathMatch[2])
+                : securityPath({ ...identity, routeCode }, getLastViewedMetric(item));
+        const updated: RecentlyViewedSecurity = identity ? { ...item, securityId: identity.securityId, routeCode,
+            secCode: routeCode || identity.securityId,
+            lastPath: path } : item;
+        const key = updated.securityId || updated.secCode;
+        const previous = result.get(key);
+        if (!previous) result.set(key, updated);
+        else {
+            const merged = { ...updated.metrics, ...previous.metrics };
+            for (const metric of Object.keys(updated.metrics) as MetricType[]) {
+                if ((updated.metrics[metric]?.lastViewed ?? 0) > (merged[metric]?.lastViewed ?? 0)) merged[metric] = updated.metrics[metric];
+            }
+            result.set(key, { ...previous, metrics: merged });
+        }
+    }
+    const migrated = [...result.values()].sort((a, b) => b.lastViewed - a.lastViewed).slice(0, MAX_RECENT_SECURITIES);
+    if (JSON.stringify(migrated) !== JSON.stringify(recent)) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); notifyRecentSecuritiesChanged(); } catch { /* Keep the readable records when storage is unavailable. */ }
+    }
 }

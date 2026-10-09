@@ -8,6 +8,20 @@
       "when": 1791297751101,
       "tag": "0000_postgresql_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791312651783,
+      "tag": "0001_business_result_contract",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791317406439,
+      "tag": "0002_simplify_publication",
+      "breakpoints": true
     }
   ]
 }

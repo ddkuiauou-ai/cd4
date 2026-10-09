@@ -6,11 +6,12 @@ import { SidebarManager } from './sidebar-manager';
 import { RecentSecurityTracker } from './recent-security-tracker';
 import RankHeader from './header-rank';
 import Rate from './rate';
+import { formatBusinessValue } from '@/lib/business-analysis';
 import { DetailMobileNavigation } from './detail-mobile-navigation';
 
 const dateLabel = (date: Date | string | null | undefined) => date && !Number.isNaN(new Date(date).getTime())
     ? new Date(date).toISOString().slice(0, 10) : '—';
-const numberLabel = (value: number | bigint | null | undefined, unit = '') => value != null ? `${value.toLocaleString('ko-KR')}${unit}` : '—';
+const numberLabel = (value: number | string | null | undefined, unit = '') => value != null ? `${formatBusinessValue(value)}${unit}` : '—';
 
 export function DetailInformation({ secCode, security, company = false, companySecs, companyMarketcapData }: {
     secCode: string; security: DetailSecurity; company?: boolean; companySecs: DetailSecurityRow[]; companyMarketcapData: DetailCompanyData;

@@ -7,8 +7,8 @@ export const revalidate = 300;
 
 export async function GET() {
   const securities = await getSecuritySearchNames();
-  const data = securities.map(({ securityId, companyId, korName, type, exchange, ticker }) => ({
-    securityId, companyId, korName, type, exchange, ticker,
+  const data = securities.map(({ securityId, companyId, korName, type, exchange, ticker, routeCode, companyRouteCode }) => ({
+    securityId, companyId, korName, type, exchange, ticker, routeCode, companyRouteCode,
   }));
   return Response.json(data);
 }

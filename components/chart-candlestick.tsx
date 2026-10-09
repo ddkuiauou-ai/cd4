@@ -24,6 +24,8 @@ import {
   createChart,
 } from "lightweight-charts";
 
+import { formatBusinessValue, summarizeBusinessWindow, type BusinessValue } from "@/lib/business-analysis";
+
 interface CandlestickPoint {
   time: number | string; // Unix timestamp 또는 ISO string 지원
   open: number;
@@ -31,11 +33,13 @@ interface CandlestickPoint {
   low: number;
   close: number;
   volume?: number | string | bigint | null;
+  warmupOnly?: boolean;
+  source?: {open: BusinessValue;high: BusinessValue;low: BusinessValue;close: BusinessValue;volume: BusinessValue};
 }
 
 const MOVING_AVERAGE_CONFIGS = [
-  { period: 5, color: "var(--brand-ink)", label: "5일 이평" },
-  { period: 10, color: "var(--muted-foreground)", label: "10일 이평" },
+  { period: 5, color: "var(--brand-ink)", label: "5관측 이평" },
+  { period: 10, color: "var(--muted-foreground)", label: "10관측 이평" },
 ] as const;
 
 type MovingAverageConfig = (typeof MOVING_AVERAGE_CONFIGS)[number];
@@ -286,10 +290,11 @@ function formatAxisDate(time: Time): string {
 }
 
 interface CandlestickChartProps {
+  movingAverageValues?: Array<{time:string;average5:BusinessValue;average10:BusinessValue}>;
   data: CandlestickPoint[];
 }
 
-export function CandlestickChart({ data }: CandlestickChartProps) {
+export function CandlestickChart({ data, movingAverageValues }: CandlestickChartProps) {
   const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -344,7 +349,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const timeValue = point.time as Time;
       const timeKey = formatTimeKey(timeValue);
 
-      candlestickPoints.push({
+      if (!point.warmupOnly) candlestickPoints.push({
         time: timeValue,
         open,
         high,
@@ -370,17 +375,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
           }
         }
 
-        const divisor = windowState.values.length || 1;
         const series = movingAveragePoints[period];
 
-        if (series) {
+        if (series && !point.warmupOnly && windowState.values.length === period) {
           series.push({
             time: timeValue,
-            value: windowState.sum / divisor,
+            value: windowState.sum / period,
           });
         }
       });
 
+      if (point.warmupOnly) continue;
       computedMin = computedMin === null ? low : Math.min(computedMin, low);
       computedMax = computedMax === null ? high : Math.max(computedMax, high);
 
@@ -402,6 +407,12 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
     }
 
+    if (movingAverageValues) for (const {period} of MOVING_AVERAGE_CONFIGS) {
+      movingAveragePoints[period] = movingAverageValues.flatMap(row => {
+        const value = period === 5 ? row.average5 : row.average10;
+        return value == null || !Number.isFinite(Number(value)) ? [] : [{time:row.time as Time,value:Number(value)}];
+      });
+    }
     const priceSpanValue =
       computedMin !== null && computedMax !== null
         ? Math.max(computedMax - computedMin, 0)
@@ -416,7 +427,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       volumeByTime: rawVolumeByTime,
       movingAverages: movingAveragePoints,
     };
-  }, [data]);
+  }, [data,movingAverageValues]);
   const hasCandlestickData = candlesticks.length > 0;
   const hasVolumeData = volumes.length > 0;
   const priceScaleBottomMargin = useMemo(() => {
@@ -655,7 +666,15 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
         return {
           ...config,
           value,
-          text: value !== null ? koreanPriceFormatter.format(value) : null,
+          text: value !== null ? (() => {
+            if (movingAverageValues) {
+              const source = movingAverageValues.find(row => formatTimeKey(row.time as Time) === formatTimeKey(time as Time));
+              return formatBusinessValue((config.period === 5 ? source?.average5 : source?.average10) ?? null);
+            }
+            const index = data.findIndex(row => formatTimeKey(row.time as Time) === formatTimeKey(time as Time));
+            const window = data.slice(Math.max(0,index-config.period+1),index+1);
+            return window.length === config.period ? formatBusinessValue(summarizeBusinessWindow(window.map(row => ({date:String(row.time),value:row.source?.close ?? row.close}))).mean) : null;
+          })() : null,
         };
       });
 
@@ -669,15 +688,17 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       const low = priceData.low ?? priceData.close ?? open;
       const close = priceData.close ?? priceData.open ?? open;
       const timeLabel = formatTooltipDate(time as Time);
-      const openText = koreanPriceFormatter.format(open);
-      const highText = koreanPriceFormatter.format(high);
-      const lowText = koreanPriceFormatter.format(low);
-      const closeText = koreanPriceFormatter.format(close);
+      const rawIndex = data.findIndex(row => formatTimeKey(row.time as Time) === formatTimeKey(time as Time));
+      const raw = data[rawIndex]?.source;
+      const openText = raw ? formatBusinessValue(raw.open) : koreanPriceFormatter.format(open);
+      const highText = raw ? formatBusinessValue(raw.high) : koreanPriceFormatter.format(high);
+      const lowText = raw ? formatBusinessValue(raw.low) : koreanPriceFormatter.format(low);
+      const closeText = raw ? formatBusinessValue(raw.close) : koreanPriceFormatter.format(close);
 
       const volumeMap = volumeByTimeRef.current;
       const volumeKey = formatTimeKey(time as Time);
       const volumeValue = volumeMap?.get(volumeKey);
-      const volumeText =
+      const volumeText = raw ? (raw.volume == null ? null : `${formatBusinessValue(raw.volume)}주`) :
         volumeValue !== undefined
           ? formatTenThousandsLabel(convertVolumeToTenThousands(volumeValue))
           : null;
@@ -820,7 +841,7 @@ export function CandlestickChart({ data }: CandlestickChartProps) {
       }
       disposeChart();
     };
-  }, [disposeChart, hasCandlestickData, priceScaleBottomMargin]);
+  }, [data, movingAverageValues, disposeChart, hasCandlestickData, priceScaleBottomMargin]);
 
   useEffect(() => {
     if (!hasCandlestickData) {

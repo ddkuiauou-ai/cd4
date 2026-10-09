@@ -32,7 +32,7 @@ export function createMarketcapSeries(securities: readonly MarketcapSecurityIden
 }
 
 export function createMarketcapChartData(
-  history: readonly { date: Date | string; totalMarketcap: number; securitiesBreakdown: Record<string, number> }[],
+  history: readonly { date: Date | string; totalMarketcap: number | string | null; securitiesBreakdown: Record<string, number | string | null> }[],
   series: readonly MarketcapSeries[],
 ): MarketcapChartPoint[] {
   return history.map((item) => {
@@ -48,8 +48,8 @@ export function createMarketcapChartData(
   });
 }
 
-export function getMarketcapSeriesLabel(key: string, series: readonly MarketcapSeries[] = []): string {
-  return isMarketcapTotalKey(key) ? "전체 시총" : series.find((item) => item.key === key)?.label ?? key;
+export function getMarketcapSeriesLabel(key: string, series: readonly MarketcapSeries[] = [], totalLabel = "전체 시총"): string {
+  return isMarketcapTotalKey(key) ? totalLabel : series.find((item) => item.key === key)?.label ?? key;
 }
 
 export function isMarketcapSeriesSelected(

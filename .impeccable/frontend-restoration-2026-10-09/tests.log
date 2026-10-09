@@ -1,0 +1,864 @@
+TAP version 13
+# Subtest: screen statistics preserve actual zero and negatives while skipping declared missing observations
+ok 1 - screen statistics preserve actual zero and negatives while skipping declared missing observations
+  ---
+  duration_ms: 81.961792
+  ...
+# Subtest: large exact integers survive screen formatting, arithmetic and normalized chart coordinates
+ok 2 - large exact integers survive screen formatting, arithmetic and normalized chart coordinates
+  ---
+  duration_ms: 0.977
+  ...
+# Subtest: a missing field breaks chart segments and cannot turn into a zero point
+ok 3 - a missing field breaks chart segments and cannot turn into a zero point
+  ---
+  duration_ms: 0.174292
+  ...
+# Subtest: period selection validates calendar days and analyzes only the requested window
+ok 4 - period selection validates calendar days and analyzes only the requested window
+  ---
+  duration_ms: 1.156541
+  ...
+# Subtest: restored details distinguish latest missing from last provided and preserve actual zero and negative EPS
+ok 5 - restored details distinguish latest missing from last provided and preserve actual zero and negative EPS
+  ---
+  duration_ms: 8643.174875
+  ...
+# Subtest: unpublished restored details hide unaccepted master values and retain navigation
+ok 6 - unpublished restored details hide unaccepted master values and retain navigation
+  ---
+  duration_ms: 1658.978958
+  ...
+# Subtest: restored ranking distinguishes completed zero, unpublished and replaced results
+ok 7 - restored ranking distinguishes completed zero, unpublished and replaced results
+  ---
+  duration_ms: 1151.1835
+  ...
+# Subtest: restored ranking preserves exact values, fallback identities and CSV revision
+ok 8 - restored ranking preserves exact values, fallback identities and CSV revision
+  ---
+  duration_ms: 2793.877166
+  ...
+# Subtest: restored company missing inputs preserve an absent total and the exclusion reason
+ok 9 - restored company missing inputs preserve an absent total and the exclusion reason
+  ---
+  duration_ms: 1120.032792
+  ...
+# Subtest: same-name preferred securities retain distinct identity, labels and raw values
+ok 10 - same-name preferred securities retain distinct identity, labels and raw values
+  ---
+  duration_ms: 2.132041
+  ...
+# Subtest: selection follows the exact security ID across order changes and never falls back to all preferred shares
+ok 11 - selection follows the exact security ID across order changes and never falls back to all preferred shares
+  ---
+  duration_ms: 0.607417
+  ...
+# Subtest: chart-company-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 12 - chart-company-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 2313.023542
+  ...
+# Subtest: chart-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 13 - chart-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 598.586625
+  ...
+# Subtest: chart-pie-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+ok 14 - chart-pie-marketcap.tsx: actual Recharts component preserves the SSR loading boundary without browser globals
+  ---
+  duration_ms: 159.795125
+  ...
+# Subtest: chart-company-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+ok 15 - chart-company-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+  ---
+  duration_ms: 1133.697708
+  ...
+# Subtest: chart-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+ok 16 - chart-marketcap.tsx: mounted selection changes one preferred series, preserves both coded legend/tooltip entries, then selects the total
+  ---
+  duration_ms: 965.539167
+  ...
+# Subtest: pie selection follows security identity across equal names and reordered slices, and leaves company composition neutral
+ok 17 - pie selection follows security identity across equal names and reordered slices, and leaves company composition neutral
+  ---
+  duration_ms: 402.80625
+  ...
+# Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).
+# Subtest: candlestick: theme changes update canvas colors while preserving data and zoom
+ok 18 - candlestick: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 2819.470041
+  ...
+# Subtest: PER-enhanced: theme changes update canvas colors while preserving data and zoom
+ok 19 - PER-enhanced: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 875.586917
+  ...
+# Subtest: PBR-enhanced: theme changes update canvas colors while preserving data and zoom
+ok 20 - PBR-enhanced: theme changes update canvas colors while preserving data and zoom
+  ---
+  duration_ms: 278.946792
+  ...
+# Subtest: chart-company-marketcap.tsx: empty → populated → empty data preserves hook order
+ok 21 - chart-company-marketcap.tsx: empty → populated → empty data preserves hook order
+  ---
+  duration_ms: 5471.923625
+  ...
+# Subtest: chart-marketcap.tsx: empty → populated → empty data preserves hook order
+ok 22 - chart-marketcap.tsx: empty → populated → empty data preserves hook order
+  ---
+  duration_ms: 883.119625
+  ...
+# Subtest: company chart renders the axis break at finite coordinates using the Recharts 3 chart context
+ok 23 - company chart renders the axis break at finite coordinates using the Recharts 3 chart context
+  ---
+  duration_ms: 1159.427917
+  ...
+# Subtest: DPS growth chart keeps horizontal grid lines and dividend-first legend with named axes
+ok 24 - DPS growth chart keeps horizontal grid lines and dividend-first legend with named axes
+  ---
+  duration_ms: 793.000875
+  ...
+# Subtest: per heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 25 - per heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 208.145708
+  ...
+# Subtest: bps heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 26 - bps heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 343.033375
+  ...
+# Subtest: dps heatmap keeps missing cells renderable with themed axes and legible cell text
+ok 27 - dps heatmap keeps missing cells renderable with themed axes and legible cell text
+  ---
+  duration_ms: 286.50025
+  ...
+# Subtest: restored single financial observations keep a real dot for positive, zero and negative source values
+ok 28 - restored single financial observations keep a real dot for positive, zero and negative source values
+  ---
+  duration_ms: 918.012708
+  ...
+# Subtest: monthly chart states raw count separately from its one displayed average point
+ok 29 - monthly chart states raw count separately from its one displayed average point
+  ---
+  duration_ms: 1087.452167
+  ...
+# Subtest: DPS period follows the supplied asOf while BPS keeps the latest actual year-end anchor
+ok 30 - DPS period follows the supplied asOf while BPS keeps the latest actual year-end anchor
+  ---
+  duration_ms: 679.226375
+  ...
+# Subtest: DPS keyboard tooltips preserve real zero percent and explain exact nonpositive-baseline differences
+ok 31 - DPS keyboard tooltips preserve real zero percent and explain exact nonpositive-baseline differences
+  ---
+  duration_ms: 1466.5615
+  ...
+# Subtest: actual price history applies end-only bounds to candles and close fallback while preserving nine warmup records
+ok 32 - actual price history applies end-only bounds to candles and close fallback while preserving nine warmup records
+  ---
+  duration_ms: 463.27325
+  ...
+# Subtest: dashboard restores the four facts, trends, TOP5, and recent sidebar while preserving exact official values
+ok 33 - dashboard restores the four facts, trends, TOP5, and recent sidebar while preserving exact official values
+  ---
+  duration_ms: 4350.237458
+  ...
+# Subtest: completed zero-company publications offer a header-only export; unpublished dashboards keep their navigation
+ok 34 - completed zero-company publications offer a header-only export; unpublished dashboards keep their navigation
+  ---
+  duration_ms: 2232.568208
+  ...
+# Subtest: TOP5 retains ranked companies with missing representative prices and partial inputs
+ok 35 - TOP5 retains ranked companies with missing representative prices and partial inputs
+  ---
+  duration_ms: 635.80125
+  ...
+# Subtest: gainers and losers use stored daily rates; volume is exact and dates reflect the representative observations
+ok 36 - gainers and losers use stored daily rates; volume is exact and dates reflect the representative observations
+  ---
+  duration_ms: 532.847542
+  ...
+# Subtest: dashboard pins full-ranking and CSV links to the publication instead of reconstructing the aggregate
+ok 37 - dashboard pins full-ranking and CSV links to the publication instead of reconstructing the aggregate
+  ---
+  duration_ms: 775.935833
+  ...
+# Subtest: a replaced revision offers a dashboard refresh and renders no mixed ranking or export
+ok 38 - a replaced revision offers a dashboard refresh and renders no mixed ranking or export
+  ---
+  duration_ms: 887.440708
+  ...
+# Subtest: registered company sums retain partial coverage, actual zero, no observations and exact big integers
+ok 39 - registered company sums retain partial coverage, actual zero, no observations and exact big integers
+  ---
+  duration_ms: 396.31775
+  ...
+# Subtest: company official total remains authoritative while its registered history and composition expose coverage
+ok 40 - company official total remains authoritative while its registered history and composition expose coverage
+  ---
+  duration_ms: 868.528167
+  ...
+# Subtest: detail reads one repeatable snapshot, complete history before publication, full moving average warmup and exact DTOs
+ok 41 - detail reads one repeatable snapshot, complete history before publication, full moving average warmup and exact DTOs
+  ---
+  duration_ms: 1374.478167
+  ...
+# Subtest: ranking prices are limited per security in one SQL batch and bounded by that publication
+ok 42 - ranking prices are limited per security in one SQL batch and bounded by that publication
+  ---
+  duration_ms: 638.194958
+  ...
+# Subtest: company rows survive absent common stock; representative prefers active common stock and aliases must be unique
+ok 43 - company rows survive absent common stock; representative prefers active common stock and aliases must be unique
+  ---
+  duration_ms: 297.995542
+  ...
+# Subtest: PER current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 44 - PER current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 1592.9685
+  ...
+# Subtest: PER financial comparisons identify their actual average targets without changing the calculations
+ok 45 - PER financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 312.378875
+  ...
+# Subtest: PBR current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 46 - PBR current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 736.116625
+  ...
+# Subtest: PBR financial comparisons identify their actual average targets without changing the calculations
+ok 47 - PBR financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 567.152333
+  ...
+# Subtest: EPS current price preserves stored daily rate and date across sparse, single, zero and missing data
+ok 48 - EPS current price preserves stored daily rate and date across sparse, single, zero and missing data
+  ---
+  duration_ms: 698.88425
+  ...
+# Subtest: EPS financial comparisons identify their actual average targets without changing the calculations
+ok 49 - EPS financial comparisons identify their actual average targets without changing the calculations
+  ---
+  duration_ms: 450.058625
+  ...
+# Subtest: one real history date renders exact observation values and a single point
+ok 50 - one real history date renders exact observation values and a single point
+  ---
+  duration_ms: 1939.974083
+  ...
+# Subtest: the three-month filter can leave one date and still renders the compact observation state
+ok 51 - the three-month filter can leave one date and still renders the compact observation state
+  ---
+  duration_ms: 545.160333
+  ...
+# Subtest: sparse history keeps exact security selection, including same-name preferred stock, recorded zero and missing values
+ok 52 - sparse history keeps exact security selection, including same-name preferred stock, recorded zero and missing values
+  ---
+  duration_ms: 824.109416
+  ...
+# Subtest: multiple recorded dates retain exact sources alongside normalized chart coordinates
+ok 53 - multiple recorded dates retain exact sources alongside normalized chart coordinates
+  ---
+  duration_ms: 523.021167
+  ...
+# Subtest: company snapshot and representative price keep their independent dates beside their values in SSR
+ok 54 - company snapshot and representative price keep their independent dates beside their values in SSR
+  ---
+  duration_ms: 252.895667
+  ...
+# Subtest: summary range buttons actually switch recent and complete exact company history and preserve coverage
+ok 55 - summary range buttons actually switch recent and complete exact company history and preserve coverage
+  ---
+  duration_ms: 577.035
+  ...
+# Subtest: provided financial observations retain real zero and negatives and missing stays null
+ok 56 - provided financial observations retain real zero and negatives and missing stays null
+  ---
+  duration_ms: 122.000083
+  ...
+# Subtest: monthly means carry raw observation counts and exact large strings
+ok 57 - monthly means carry raw observation counts and exact large strings
+  ---
+  duration_ms: 14.396
+  ...
+# Subtest: annual change requires adjacent years, positive prior value and identical observed cohort
+ok 58 - annual change requires adjacent years, positive prior value and identical observed cohort
+  ---
+  duration_ms: 0.641208
+  ...
+# Subtest: annual comparisons keep real zero rates and exact differences only for a non-positive provided prior
+ok 59 - annual comparisons keep real zero rates and exact differences only for a non-positive provided prior
+  ---
+  duration_ms: 0.374375
+  ...
+# Subtest: annual table renders exact non-positive-prior differences and individual comparison reasons on desktop and mobile expansion
+ok 60 - annual table renders exact non-positive-prior differences and individual comparison reasons on desktop and mobile expansion
+  ---
+  duration_ms: 4092.740542
+  ...
+# Subtest: actual OHLC excludes close-only records and keeps nine preceding observations for complete moving averages
+ok 61 - actual OHLC excludes close-only records and keeps nine preceding observations for complete moving averages
+  ---
+  duration_ms: 1.253834
+  ...
+# Subtest: composition requires backend completeness, positive total and same-date supplied members
+ok 62 - composition requires backend completeness, positive total and same-date supplied members
+  ---
+  duration_ms: 0.220333
+  ...
+# Subtest: detail uses one snapshot, preserves rich sections and exports the full exact history despite selected range
+ok 63 - detail uses one snapshot, preserves rich sections and exports the full exact history despite selected range
+  ---
+  duration_ms: 1537.939584
+  ...
+# Subtest: unpublished detail never exposes a stale current metric or last provided result
+ok 64 - unpublished detail never exposes a stale current metric or last provided result
+  ---
+  duration_ms: 240.571541
+  ...
+# Subtest: company without a common stock retains master metadata and exact registered CSV with coverage
+ok 65 - company without a common stock retains master metadata and exact registered CSV with coverage
+  ---
+  duration_ms: 368.786958
+  ...
+# Subtest: closing-price moving averages use all raw closes despite missing OHLC and require complete windows
+ok 66 - closing-price moving averages use all raw closes despite missing OHLC and require complete windows
+  ---
+  duration_ms: 2.247875
+  ...
+# Subtest: non-BPS annual rows keep the last real observation and mark a partial latest year as YTD
+ok 67 - non-BPS annual rows keep the last real observation and mark a partial latest year as YTD
+  ---
+  duration_ms: 0.753875
+  ...
+# Subtest: invalid ranges suppress all analysis charts while official snapshots stay visible
+ok 68 - invalid ranges suppress all analysis charts while official snapshots stay visible
+  ---
+  duration_ms: 488.796
+  ...
+# Subtest: detail exposes its public asOf, revision and scope in a compact source explanation
+ok 69 - detail exposes its public asOf, revision and scope in a compact source explanation
+  ---
+  duration_ms: 898.110042
+  ...
+# Subtest: unique legacy aliases survive while reused codes resolve to distinct stable paths
+ok 70 - unique legacy aliases survive while reused codes resolve to distinct stable paths
+  ---
+  duration_ms: 291.968542
+  ...
+# Subtest: display rounding never changes exact integers and zero/negative values stay visible
+ok 71 - display rounding never changes exact integers and zero/negative values stay visible
+  ---
+  duration_ms: 106.286209
+  ...
+# Subtest: old recent aliases are upgraded without losing metrics or linking an ambiguous code arbitrarily
+ok 72 - old recent aliases are upgraded without losing metrics or linking an ambiguous code arbitrarily
+  ---
+  duration_ms: 238.212584
+  ...
+# Subtest: recent basic and company visits retain their view while unique legacy identities are upgraded
+ok 73 - recent basic and company visits retain their view while unique legacy identities are upgraded
+  ---
+  duration_ms: 336.175708
+  ...
+# Subtest: detail current metric and rail keep the official value/date together and never promote later raw history
+ok 74 - detail current metric and rail keep the official value/date together and never promote later raw history
+  ---
+  duration_ms: 3120.492625
+  ...
+# Subtest: period statistics include real zero and negatives and absent records remain missing
+ok 75 - period statistics include real zero and negatives and absent records remain missing
+  ---
+  duration_ms: 2271.698042
+  ...
+# Subtest: period means use the public asOf cutoff and retain zero in comparisons
+ok 76 - period means use the public asOf cutoff and retain zero in comparisons
+  ---
+  duration_ms: 343.061833
+  ...
+# Subtest: a selected valid range changes raw statistics and count while the full export stays complete
+ok 77 - a selected valid range changes raw statistics and count while the full export stays complete
+  ---
+  duration_ms: 355.634125
+  ...
+# Subtest: each period mean reports its own actual supplied dates and count including zero but excluding null
+ok 78 - each period mean reports its own actual supplied dates and count including zero but excluding null
+  ---
+  duration_ms: 1779.228084
+  ...
+# Subtest: company period means disclose partial sums with changing observed cohorts and share the custom window with both charts
+ok 79 - company period means disclose partial sums with changing observed cohorts and share the custom window with both charts
+  ---
+  duration_ms: 916.065333
+  ...
+# Subtest: an end-only custom range gives the standalone marketcap chart the same raw observations as the statistics
+ok 80 - an end-only custom range gives the standalone marketcap chart the same raw observations as the statistics
+  ---
+  duration_ms: 729.713417
+  ...
+# Subtest: current price uses stored rate only from the matching published price record, including zero and missing rate
+ok 81 - current price uses stored rate only from the matching published price record, including zero and missing rate
+  ---
+  duration_ms: 1484.238958
+  ...
+# Subtest: selected security quote is independent of the company representative quote
+ok 82 - selected security quote is independent of the company representative quote
+  ---
+  duration_ms: 319.245375
+  ...
+# Subtest: metric comparison uses a matching raw observation at the displayed snapshot date and value
+ok 83 - metric comparison uses a matching raw observation at the displayed snapshot date and value
+  ---
+  duration_ms: 796.725792
+  ...
+# Subtest: nonpositive prior metrics show an exact difference and the reason percentage change is unavailable
+ok 84 - nonpositive prior metrics show an exact difference and the reason percentage change is unavailable
+  ---
+  duration_ms: 201.987125
+  ...
+# Subtest: company snapshot stays separate from registered history and cohort changes suppress comparisons
+ok 85 - company snapshot stays separate from registered history and cohort changes suppress comparisons
+  ---
+  duration_ms: 220.4415
+  ...
+# Subtest: DTO preserves bigint exactly, Korea business day, zero/negative/NULL and UTC audit time
+ok 86 - DTO preserves bigint exactly, Korea business day, zero/negative/NULL and UTC audit time
+  ---
+  duration_ms: 450.23725
+  ...
+# Subtest: current mutable reads never retain old successful or failed results in a persistent data cache
+ok 87 - current mutable reads never retain old successful or failed results in a persistent data cache
+  ---
+  duration_ms: 67.60325
+  ...
+# Subtest: company official total stays tem stored exact value with no active analysis constituents
+ok 88 - company official total stays tem stored exact value with no active analysis constituents
+  ---
+  duration_ms: 721.925
+  ...
+# Subtest: old/unpublished master result never leaks through the current company DTO
+ok 89 - old/unpublished master result never leaks through the current company DTO
+  ---
+  duration_ms: 395.76625
+  ...
+# Subtest: history bounds are SQL dates in Korea, reject invalid/descending ranges, preserve NULL and zero
+ok 90 - history bounds are SQL dates in Korea, reject invalid/descending ranges, preserve NULL and zero
+  ---
+  duration_ms: 415.639708
+  ...
+# Subtest: all actual security routes identify the security and retain their unique legacy canonical and branded OG
+ok 91 - all actual security routes identify the security and retain their unique legacy canonical and branded OG
+  ---
+  duration_ms: 12999.917709
+  ...
+# Subtest: a unique market/ticker alias retains its original canonical while reused-code ambiguity stays unindexed
+ok 92 - a unique market/ticker alias retains its original canonical while reused-code ambiguity stays unindexed
+  ---
+  duration_ms: 570.854083
+  ...
+# Subtest: actual company metadata names the company and resolves a security alias to original company canonical
+ok 93 - actual company metadata names the company and resolves a security alias to original company canonical
+  ---
+  duration_ms: 484.769083
+  ...
+# Subtest: dashboard and company aliases preserve site branding and explicit canonical routes
+ok 94 - dashboard and company aliases preserve site branding and explicit canonical routes
+  ---
+  duration_ms: 179.700916
+  ...
+# Subtest: all ranking metadata is route/scoped and page-specific while revision is omitted from canonical URLs
+ok 95 - all ranking metadata is route/scoped and page-specific while revision is omitted from canonical URLs
+  ---
+  duration_ms: 965.05975
+  ...
+# Subtest: missing identities and invalid codes expose no canonical metadata and do not fabricate financial values
+ok 96 - missing identities and invalid codes expose no canonical metadata and do not fabricate financial values
+  ---
+  duration_ms: 225.873542
+  ...
+# Subtest: actual PBR detail keeps a supplied PBR independent from missing BPS and its last value, including the full source CSV
+ok 97 - actual PBR detail keeps a supplied PBR independent from missing BPS and its last value, including the full source CSV
+  ---
+  duration_ms: 5941.639167
+  ...
+# Subtest: selected PBR history preserves zero and negative observations, skips missing fields, and exports the complete provided history
+ok 98 - selected PBR history preserves zero and negative observations, skips missing fields, and exports the complete provided history
+  ---
+  duration_ms: 1739.779875
+  ...
+# Subtest: an invalid period never reaches a SQL bound or produces analysis and remains distinct from an empty valid period
+ok 99 - an invalid period never reaches a SQL bound or produces analysis and remains distinct from an empty valid period
+  ---
+  duration_ms: 1721.043208
+  ...
+# Subtest: unpublished PBR values are hidden while available raw history and zero-valued CSV remain visible
+ok 100 - unpublished PBR values are hidden while available raw history and zero-valued CSV remain visible
+  ---
+  duration_ms: 426.607834
+  ...
+# Subtest: DATABASE_URL takes precedence and retains TLS parameters
+ok 101 - DATABASE_URL takes precedence and retains TLS parameters
+  ---
+  duration_ms: 20.859292
+  ...
+# Subtest: separate PostgreSQL fields default to port 5432 and support an explicit port
+ok 102 - separate PostgreSQL fields default to port 5432 and support an explicit port
+  ---
+  duration_ms: 1.506625
+  ...
+# Subtest: reserved characters in credentials and database names reach the driver unchanged
+ok 103 - reserved characters in credentials and database names reach the driver unchanged
+  ---
+  duration_ms: 1.83925
+  ...
+# Subtest: PostgreSQL multi-host URLs retain failover hosts and ports
+ok 104 - PostgreSQL multi-host URLs retain failover hosts and ports
+  ---
+  duration_ms: 1.211542
+  ...
+# Subtest: missing connection settings fail without exposing supplied secrets
+ok 105 - missing connection settings fail without exposing supplied secrets
+  ---
+  duration_ms: 0.939125
+  ...
+# Subtest: invalid PostgreSQL ports are rejected
+ok 106 - invalid PostgreSQL ports are rejected
+  ---
+  duration_ms: 0.40625
+  ...
+# Subtest: non-PostgreSQL and malformed DATABASE_URL values fail without exposing the URL
+ok 107 - non-PostgreSQL and malformed DATABASE_URL values fail without exposing the URL
+  ---
+  duration_ms: 0.39975
+  ...
+# Subtest: CSV preserves exact decimal/revision, quote/newline escaping, leading-zero ticker and missing/zero/negative values
+ok 108 - CSV preserves exact decimal/revision, quote/newline escaping, leading-zero ticker and missing/zero/negative values
+  ---
+  duration_ms: 3.249166
+  ...
+# Subtest: CSV comparison never rounds exact integer strings into JS numbers
+ok 109 - CSV comparison never rounds exact integer strings into JS numbers
+  ---
+  duration_ms: 0.42075
+  ...
+# Subtest: export reads all rows with one header, uses rank observation date, propagates failures
+ok 110 - export reads all rows with one header, uses rank observation date, propagates failures
+  ---
+  duration_ms: 823.023375
+  ...
+# Subtest: download distinguishes unpublished, published zero and changed revision
+ok 111 - download distinguishes unpublished, published zero and changed revision
+  ---
+  duration_ms: 880.833459
+  ...
+# Subtest: header/result row-count mismatch never exports partial results as successful CSV
+ok 112 - header/result row-count mismatch never exports partial results as successful CSV
+  ---
+  duration_ms: 553.579541
+  ...
+# Subtest: Korea business dates and malformed/truncated CSV checks remain exact
+ok 113 - Korea business dates and malformed/truncated CSV checks remain exact
+  ---
+  duration_ms: 0.347834
+  ...
+# Subtest: published ranking keeps tem membership, negative values and exact revision; no MAX or current delisting filter
+ok 114 - published ranking keeps tem membership, negative values and exact revision; no MAX or current delisting filter
+  ---
+  duration_ms: 1245.271167
+  ...
+# Subtest: unpublished and published zero-result are distinct, and old revision refuses silent page mixing
+ok 115 - unpublished and published zero-result are distinct, and old revision refuses silent page mixing
+  ---
+  duration_ms: 699.53325
+  ...
+# Subtest: publication replacement during a request does not mix count and rows; next request reads new revision without cache
+ok 116 - publication replacement during a request does not mix count and rows; next request reads new revision without cache
+  ---
+  duration_ms: 625.862167
+  ...
+# Subtest: header/query errors propagate and a later read recovers
+ok 117 - header/query errors propagate and a later read recovers
+  ---
+  duration_ms: 992.398167
+  ...
+# Subtest: metric dates are resolved from their own publication, never a shared latest rank date
+ok 118 - metric dates are resolved from their own publication, never a shared latest rank date
+  ---
+  duration_ms: 66.826792
+  ...
+# Subtest: real ranking downloader validates pinned revision and scope before saving, including zero-member exports
+ok 119 - real ranking downloader validates pinned revision and scope before saving, including zero-member exports
+  ---
+  duration_ms: 1678.289167
+  ...
+# Subtest: dashboard trend tabs render real volume and preserve observation dates and security links
+ok 120 - dashboard trend tabs render real volume and preserve observation dates and security links
+  ---
+  duration_ms: 996.678917
+  ...
+# Subtest: company aggregate links and values stay distinct from the representative common stock
+ok 121 - company aggregate links and values stay distinct from the representative common stock
+  ---
+  duration_ms: 1.798
+  ...
+# Subtest: missing prices or representative security do not remove a ranked entity or fabricate links
+ok 122 - missing prices or representative security do not remove a ranked entity or fabricate links
+  ---
+  duration_ms: 0.626667
+  ...
+# Subtest: every metric preserves null, zero, negative values, its detail URL, and raw security identity
+ok 123 - every metric preserves null, zero, negative values, its detail URL, and raw security identity
+  ---
+  duration_ms: 1.101083
+  ...
+# Subtest: rank movement separates unchanged, unknown, improvement, decline, and large moves from prices
+ok 124 - rank movement separates unchanged, unknown, improvement, decline, and large moves from prices
+  ---
+  duration_ms: 0.085875
+  ...
+# Subtest: finite source decimals written in exponent form remain values rather than missing observations
+ok 125 - finite source decimals written in exponent form remain values rather than missing observations
+  ---
+  duration_ms: 0.171083
+  ...
+# Subtest: page boundaries expose all first twenty then the next hundred without overlap or an empty next link
+ok 126 - page boundaries expose all first twenty then the next hundred without overlap or an empty next link
+  ---
+  duration_ms: 0.630791
+  ...
+# Subtest: detail neighbor selection independently handles first, middle, last, gaps, and missing ranks
+ok 127 - detail neighbor selection independently handles first, middle, last, gaps, and missing ranks
+  ---
+  duration_ms: 0.630875
+  ...
+# Subtest: actual company routes render the twenty official entities with stable links and a revision-pinned export
+ok 128 - actual company routes render the twenty official entities with stable links and a revision-pinned export
+  ---
+  duration_ms: 3901.604959
+  ...
+# Subtest: all seven actual metric pages use tem ranks without replacing their order or raw identity
+ok 129 - all seven actual metric pages use tem ranks without replacing their order or raw identity
+  ---
+  duration_ms: 1934.233792
+  ...
+# Subtest: official ranking values preserve supplied zero and negatives and are not filtered by current master status
+ok 130 - official ranking values preserve supplied zero and negatives and are not filtered by current master status
+  ---
+  duration_ms: 129.391541
+  ...
+# Subtest: metric page two renders the hundred-item next window and carries both revision and scope
+ok 131 - metric page two renders the hundred-item next window and carries both revision and scope
+  ---
+  duration_ms: 1535.059166
+  ...
+# Subtest: company page two renders one hundred official totals with a first-page previous link
+ok 132 - company page two renders one hundred official totals with a first-page previous link
+  ---
+  duration_ms: 187.059167
+  ...
+# Subtest: published zero-member rankings allow a header-only export while unpublished rankings have no export
+ok 133 - published zero-member rankings allow a header-only export while unpublished rankings have no export
+  ---
+  duration_ms: 171.540875
+  ...
+# Subtest: a replaced revision refreshes from the same scope and does not display new rows under an old URL
+ok 134 - a replaced revision refreshes from the same scope and does not display new rows under an old URL
+  ---
+  duration_ms: 108.915584
+  ...
+# Subtest: invalid page numbers and nonexistent current pages produce 404 rather than an empty result
+ok 135 - invalid page numbers and nonexistent current pages produce 404 rather than an empty result
+  ---
+  duration_ms: 674.816
+  ...
+# Subtest: ambiguous aliases use immutable IDs, prices stay exact, and dated chart gaps are preserved
+ok 136 - ambiguous aliases use immutable IDs, prices stay exact, and dated chart gaps are preserved
+  ---
+  duration_ms: 29.943042
+  ...
+# Subtest: partial and missing company inputs remain ranked and the price basis states the actual range
+ok 137 - partial and missing company inputs remain ranked and the price basis states the actual range
+  ---
+  duration_ms: 94.598125
+  ...
+# Subtest: search waits for menu activation and deduplicates concurrent requests and reopenings
+ok 138 - search waits for menu activation and deduplicates concurrent requests and reopenings
+  ---
+  duration_ms: 414.5095
+  ...
+# Subtest: the client revalidates after 300 seconds instead of retaining old search data forever
+ok 139 - the client revalidates after 300 seconds instead of retaining old search data forever
+  ---
+  duration_ms: 39.996
+  ...
+# Subtest: HTTP errors and malformed JSON evict failed requests and allow retry
+ok 140 - HTTP errors and malformed JSON evict failed requests and allow retry
+  ---
+  duration_ms: 41.938917
+  ...
+# Subtest: unsubscribing one menu does not abort the request or prevent another menu receiving data
+ok 141 - unsubscribing one menu does not abort the request or prevent another menu receiving data
+  ---
+  duration_ms: 210.494583
+  ...
+# Subtest: the static GET exports only the search fields and preserves the ticker route identity
+ok 142 - the static GET exports only the search fields and preserves the ticker route identity
+  ---
+  duration_ms: 18.252375
+  ...
+# Subtest: company and common-stock selections reach different real routes and close the menu
+ok 143 - company and common-stock selections reach different real routes and close the menu
+  ---
+  duration_ms: 350.335666
+  ...
+# Subtest: preferred stocks and every other search security category retain unique legacy URLs
+ok 144 - preferred stocks and every other search security category retain unique legacy URLs
+  ---
+  duration_ms: 790.392041
+  ...
+# Subtest: a common stock without a company only exposes the security destination
+ok 145 - a common stock without a company only exposes the security destination
+  ---
+  duration_ms: 105.817917
+  ...
+# Subtest: unclassified historical securities remain searchable and reused codes keep distinct destinations
+ok 146 - unclassified historical securities remain searchable and reused codes keep distinct destinations
+  ---
+  duration_ms: 141.187667
+  ...
+# Subtest: search shows loading and a usable retry instead of an empty-result message on failure
+ok 147 - search shows loading and a usable retry instead of an empty-result message on failure
+  ---
+  duration_ms: 88.49275
+  ...
+# Subtest: the actual CMDK menu searches names, tickers and exchanges, and keyboard selection distinguishes reused identities
+ok 148 - the actual CMDK menu searches names, tickers and exchanges, and keyboard selection distinguishes reused identities
+  ---
+  duration_ms: 3698.777875
+  ...
+# Subtest: detail keeps tem exclusion reason and publication date without current-listing rejudgment
+ok 149 - detail keeps tem exclusion reason and publication date without current-listing rejudgment
+  ---
+  duration_ms: 785.190042
+  ...
+# Subtest: latest missing is never replaced by last provided, including a last zero/negative value
+ok 150 - latest missing is never replaced by last provided, including a last zero/negative value
+  ---
+  duration_ms: 991.6345
+  ...
+# Subtest: stale official security row masks all current/last values but keeps identity and raw history
+ok 151 - stale official security row masks all current/last values but keeps identity and raw history
+  ---
+  duration_ms: 158.658917
+  ...
+# Subtest: market.ticker lookup uses both fields, ambiguity yields no arbitrary reused-code match
+ok 152 - market.ticker lookup uses both fields, ambiguity yields no arbitrary reused-code match
+  ---
+  duration_ms: 291.981416
+  ...
+# Subtest: neighbor lookup refuses a replaced revision or wrong business date
+ok 153 - neighbor lookup refuses a replaced revision or wrong business date
+  ---
+  duration_ms: 154.777583
+  ...
+# Subtest: the real toast renderer exposes copy/share failures and pinning keeps a single control group
+ok 154 - the real toast renderer exposes copy/share failures and pinning keeps a single control group
+  ---
+  duration_ms: 2231.9895
+  ...
+# Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).
+# Subtest: site provider follows system changes and persists a manual choice across mounts
+ok 155 - site provider follows system changes and persists a manual choice across mounts
+  ---
+  duration_ms: 1930.51575
+  ...
+# (node:37251) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: sitemap index in export lists every generated chunk with the correct origin
+ok 156 - sitemap index in export lists every generated chunk with the correct origin
+  ---
+  duration_ms: 483.952
+  ...
+# Subtest: core, security and company sitemap responses in export preserve all paths and headers
+ok 157 - core, security and company sitemap responses in export preserve all paths and headers
+  ---
+  duration_ms: 92.201458
+  ...
+# Subtest: sitemap chunk boundaries in export retain the final security and company entries
+ok 158 - sitemap chunk boundaries in export retain the final security and company entries
+  ---
+  duration_ms: 484.094542
+  ...
+# Subtest: generateStaticParams in export enumerates every chunk
+ok 159 - generateStaticParams in export enumerates every chunk
+  ---
+  duration_ms: 139.356209
+  ...
+# Subtest: invalid sitemap filenames in export return Next's 404 before any queries
+ok 160 - invalid sitemap filenames in export return Next's 404 before any queries
+  ---
+  duration_ms: 148.23775
+  ...
+# Subtest: sitemap index in standalone lists every generated chunk with the correct origin
+ok 161 - sitemap index in standalone lists every generated chunk with the correct origin
+  ---
+  duration_ms: 94.991458
+  ...
+# Subtest: core, security and company sitemap responses in standalone preserve all paths and headers
+ok 162 - core, security and company sitemap responses in standalone preserve all paths and headers
+  ---
+  duration_ms: 22.615833
+  ...
+# Subtest: sitemap chunk boundaries in standalone retain the final security and company entries
+ok 163 - sitemap chunk boundaries in standalone retain the final security and company entries
+  ---
+  duration_ms: 56.715292
+  ...
+# Subtest: generateStaticParams in standalone is absent without queries
+ok 164 - generateStaticParams in standalone is absent without queries
+  ---
+  duration_ms: 97.8365
+  ...
+# Subtest: invalid sitemap filenames in standalone return Next's 404 before any queries
+ok 165 - invalid sitemap filenames in standalone return Next's 404 before any queries
+  ---
+  duration_ms: 21.580458
+  ...
+# Subtest: an unset output mode keeps the request origin and does not generate static chunk params
+ok 166 - an unset output mode keeps the request origin and does not generate static chunk params
+  ---
+  duration_ms: 116.47175
+  ...
+# Subtest: installed Next skips static-param collection for standalone sitemap chunks
+ok 167 - installed Next skips static-param collection for standalone sitemap chunks
+  ---
+  duration_ms: 80.918792
+  ...
+# Subtest: native standalone route handling reads each request origin without static-generation errors
+ok 168 - native standalone route handling reads each request origin without static-generation errors
+  ---
+  duration_ms: 191.37075
+  ...
+# Subtest: installed Next collects both sitemap params instead of treating the route as a static metadata file
+ok 169 - installed Next collects both sitemap params instead of treating the route as a static metadata file
+  ---
+  duration_ms: 74.981209
+  ...
+# Subtest: static sitemap excludes both exported error layouts while preserving real pages
+ok 170 - static sitemap excludes both exported error layouts while preserving real pages
+  ---
+  duration_ms: 37.501792
+  ...
+1..170
+# tests 170
+# suites 0
+# pass 170
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27049.115583

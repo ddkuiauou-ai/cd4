@@ -19,6 +19,7 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { useSearchData } from "@/components/search-data";
+import { companyPath, securityPath, securityRouteCodes, companyRouteCodes } from "@/lib/entity-paths";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +36,29 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"; // Import DialogTitle and DialogDescription
 
+const classifiedSecurityTypes = new Set(["보통주", "우선주", "전환우선주", "리츠", "펀드", "스팩"]);
+
 export function CommandMenu() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const { data, status, retry } = useSearchData(open);
   const { setTheme } = useTheme();
+  const securityCodes = securityRouteCodes(data);
+  const companyCodes = companyRouteCodes(data);
+  const securityHref = (item: (typeof data)[number]) => securityPath({ ...item,
+    routeCode: item.routeCode !== undefined ? item.routeCode : securityCodes.get(item.securityId) ?? null }, 'marketcap');
+  const companyHref = (item: (typeof data)[number]) => companyPath({ companyId: item.companyId!,
+    routeCode: item.companyRouteCode !== undefined ? item.companyRouteCode : companyCodes.get(item.companyId!) ?? null });
+  // CMDK uses value as selection identity and search text. Include both the
+  // stable destination identity and the terms people use to find a security.
+  const securityValue = (item: (typeof data)[number]) => `security:${item.securityId} ${item.korName} ${item.type || '기타'} ${item.exchange} ${item.ticker}`;
+  const companyValue = (item: (typeof data)[number]) => `company:${item.companyId} 기업 ${item.korName} ${item.exchange} ${item.ticker}`;
+  const seenCompanies = new Set<string>();
+  const companyItems = data.filter(item => {
+    if (item.type !== '보통주' || !item.companyId || seenCompanies.has(item.companyId)) return false;
+    seenCompanies.add(item.companyId);
+    return true;
+  });
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -104,16 +123,14 @@ export function CommandMenu() {
             <CommandEmpty>검색 결과 없음.</CommandEmpty>
           )}
           <CommandGroup heading="기업">
-            {data.map(
-              (navItem) =>
-                navItem.type === "보통주" &&
-                navItem.companyId !== null && (
+            {companyItems.map(
+              (navItem) => (
                   <CommandItem
                     key={`corp${navItem.securityId}`}
-                    value={navItem.korName}
+                    value={companyValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/company/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(companyHref(navItem))
                       );
                     }}
                   >
@@ -129,10 +146,10 @@ export function CommandMenu() {
                 navItem.type === "보통주" && (
                   <CommandItem
                     key={`corp${navItem.securityId}`}
-                    value={`보통주${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -148,10 +165,10 @@ export function CommandMenu() {
                 navItem.type === "우선주" && (
                   <CommandItem
                     key={`prefered${navItem.securityId}`}
-                    value={`우선주${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -167,10 +184,10 @@ export function CommandMenu() {
                 navItem.type === "전환우선주" && (
                   <CommandItem
                     key={`CB${navItem.securityId}`}
-                    value={`전환우선주${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -186,10 +203,10 @@ export function CommandMenu() {
                 navItem.type === "리츠" && (
                   <CommandItem
                     key={`RITs${navItem.securityId}`}
-                    value={`리츠${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -205,10 +222,10 @@ export function CommandMenu() {
                 navItem.type === "펀드" && (
                   <CommandItem
                     key={`fund${navItem.securityId}`}
-                    value={`펀드${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -224,10 +241,10 @@ export function CommandMenu() {
                 navItem.type === "스팩" && (
                   <CommandItem
                     key={`spec${navItem.securityId}`}
-                    value={`스팩${navItem.korName}`}
+                    value={securityValue(navItem)}
                     onSelect={() => {
                       runCommand(() =>
-                        router.push(`/security/${navItem.exchange}.${navItem.ticker}/marketcap`)
+                        router.push(securityHref(navItem))
                       );
                     }}
                   >
@@ -236,6 +253,19 @@ export function CommandMenu() {
                   </CommandItem>
                 )
             )}
+          </CommandGroup>
+
+          <CommandGroup heading="기타 종목">
+            {data.filter(item => !classifiedSecurityTypes.has(item.type ?? "")).map(navItem => (
+              <CommandItem
+                key={`other${navItem.securityId}`}
+                value={securityValue(navItem)}
+                onSelect={() => runCommand(() => router.push(securityHref(navItem)))}
+              >
+                <CircleIcon className="mr-2 h-4 w-4" />
+                {navItem.korName} · {navItem.exchange} {navItem.ticker}
+              </CommandItem>
+            ))}
           </CommandGroup>
 
           <CommandSeparator />
