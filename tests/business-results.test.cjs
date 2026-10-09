@@ -16,7 +16,7 @@ function loader(stubs = {}) {
     mod.paths = Module._nodeModulePaths(path.dirname(file));
     mod.require = name => {
       if (name in stubs) return stubs[name];
-      if (name === 'next/link') return ({ children, ...props }) => React.createElement('a', props, children);
+      if (name === 'next/link') return ({ children, prefetch, ...props }) => { void prefetch; return React.createElement('a', props, children); };
       if (name === 'next/server') return { connection: async () => {} };
       if (name === 'next/navigation') return { notFound: () => { throw new Error('not-found'); } };
       const local = name.startsWith('@/') ? path.join(root, name.slice(2)) : name.startsWith('.') ? path.resolve(path.dirname(file), name) : null;

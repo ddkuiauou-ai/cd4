@@ -1,11 +1,15 @@
+import { isStaticBuild, getStaticRouteParams } from '@/lib/static-build/server';
+import { readPageSearch } from '@/lib/static-page-search';
 import { RestoredCompanyDetail, type DetailSearch } from '@/components/restored-detail-page';
 import { companyMetadata } from '@/lib/business-metadata';
 
-export const dynamic = 'force-dynamic';
+
+export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('company') : undefined;
+
 export async function generateMetadata({ params }: { params: Promise<{ secCode: string }> }) {
   return companyMetadata((await params).secCode, false);
 }
 
 export default async function Page({ params, searchParams }: { params: Promise<{ secCode: string }>; searchParams: Promise<DetailSearch> }) {
-  return <RestoredCompanyDetail code={(await params).secCode} search={await searchParams} basic />;
+  return <RestoredCompanyDetail code={(await params).secCode} search={await readPageSearch(searchParams)} basic />;
 }

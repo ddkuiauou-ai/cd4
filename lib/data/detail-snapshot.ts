@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticSecurityDetail, getStaticCompanyDetail } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { toDataDTO } from "./dto";
@@ -12,7 +13,7 @@ const inWindow = <Row extends { date: string }>(rows: Row[], start?: string, end
   rows.filter(row => (!start || row.date >= start) && (!end || row.date <= end));
 
 /** Official snapshots, source histories, membership and neighbors share one DB snapshot. */
-export function getSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string) {
+function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string) {
   historyRange(start, end);
   return readSnapshot(async tx => {
     const security = await readSecurityByCode(tx, code);
@@ -46,7 +47,7 @@ async function companyNeighbors(tx: ReadDatabase, rank: number | null) {
     routeCode: row.securities[0] ? routeCodes.get(row.securities[0].securityId) ?? null : null }));
 }
 
-export function getCompanyDetailSnapshot(code: string, start?: string, end?: string) {
+function getLiveCompanyDetailSnapshot(code: string, start?: string, end?: string) {
   historyRange(start, end);
   return readSnapshot(async tx => {
     const decoded = (() => { try { return decodeURIComponent(code); } catch { return ""; } })();
@@ -69,4 +70,15 @@ export function getCompanyDetailSnapshot(code: string, start?: string, end?: str
     return { company, security, companySecs, history, priceHistory, ranking,
       neighbors: await companyNeighbors(tx, company.marketcapRank) };
   });
+}
+
+export function getSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string) {
+  historyRange(start, end);
+  if (isStaticBuild()) return Promise.resolve(getStaticSecurityDetail<Awaited<ReturnType<typeof getLiveSecurityDetailSnapshot>>>(code, metric, start, end));
+  return getLiveSecurityDetailSnapshot(code, metric, start, end);
+}
+export function getCompanyDetailSnapshot(code: string, start?: string, end?: string) {
+  historyRange(start, end);
+  if (isStaticBuild()) return Promise.resolve(getStaticCompanyDetail<Awaited<ReturnType<typeof getLiveCompanyDetailSnapshot>>>(code, start, end));
+  return getLiveCompanyDetailSnapshot(code, start, end);
 }

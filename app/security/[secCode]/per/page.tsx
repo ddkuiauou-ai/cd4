@@ -1,7 +1,11 @@
+import { isStaticBuild, getStaticRouteParams } from '@/lib/static-build/server';
+import { readPageSearch } from '@/lib/static-page-search';
 import { RestoredSecurityDetail, type DetailSearch } from '@/components/restored-detail-page';
 import { securityMetadata } from '@/lib/business-metadata';
 
-export const dynamic = 'force-dynamic';
+
+export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('security') : undefined;
+
 export async function generateMetadata({ params }: { params: Promise<{ secCode: string }> }) {
   return securityMetadata((await params).secCode, 'per');
 }
@@ -11,5 +15,5 @@ export default async function Page({ params, searchParams }: {
   searchParams: Promise<DetailSearch>;
 }) {
   const { secCode } = await params;
-  return <RestoredSecurityDetail code={secCode} metric="per" search={await searchParams} />;
+  return <RestoredSecurityDetail code={secCode} metric="per" search={await readPageSearch(searchParams)} />;
 }

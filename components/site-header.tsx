@@ -14,7 +14,7 @@ export function SiteHeader(){
     measure();const observer=new ResizeObserver(measure);observer.observe(ref.current);return()=>observer.disconnect();
   },[]);
   return <header ref={ref} data-site-header className="app-header"><div className="app-container header-content">
-    <Link href="/" className="brand-wordmark" aria-label="천하제일 단타대회 · 랭킹"><span className="brand-first">천하제일</span><Image src="/icon.svg" alt="" width={28} height={28}/><span className="brand-last">단타대회</span></Link>
+    <Link prefetch={false} href="/" className="brand-wordmark" aria-label="천하제일 단타대회 · 랭킹"><span className="brand-first">천하제일</span><Image src="/icon.svg" alt="" width={28} height={28}/><span className="brand-last">단타대회</span></Link>
     <div className="header-main-nav"><MainNav/></div>
     <div className="header-search"><CommandMenu/></div>
     <div className="header-recent"><RecentPanel/></div><ModeToggle/>

@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticIdentities } from './static-build/server';
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { asc, eq, ilike, or } from "drizzle-orm";
@@ -13,6 +14,7 @@ export interface SearchNameResult {
 export interface DisplayNameResult { id: number; value: string; companyName: string; }
 
 export async function getSecuritySearchNames(): Promise<SearchNameResult[]> {
+  if (isStaticBuild()) return getStaticIdentities().toSorted((a,b) => a.korName.localeCompare(b.korName) || a.securityId.localeCompare(b.securityId));
   const rows = await db.query.security.findMany({
     columns: { securityId: true, ticker: true, companyId: true, name: true, korName: true, type: true, exchange: true, delistingDate: true },
     orderBy: [asc(schema.security.korName), asc(schema.security.securityId)],

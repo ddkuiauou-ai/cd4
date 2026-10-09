@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticRankingPage, getStaticRankingManifest } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, or } from "drizzle-orm";
 import { businessDate, toDataDTO } from "./dto";
@@ -22,13 +23,14 @@ export function getSecurityRankingOrder(_metricType: schema.MetricType, sortOrde
 }
 
 export async function countSecurityRanks(metric: schema.MetricType, scopeKey = DEFAULT_SCOPE) {
+  if (isStaticBuild()) return getStaticRankingManifest(metric, "security").scopes[scopeKey]?.totalCount ?? 0;
   return readSnapshot(async (tx) => {
     const publication = await readPublication(tx, securityRankPublicationKey(metric, scopeKey));
     return publication?.includedCount ?? 0;
   });
 }
 
-export async function getSecurityRanksPage(
+async function getLiveSecurityRanksPage(
   metric: schema.MetricType, page: number, sortOrder: "asc" | "desc" = "asc",
   scopeKey = DEFAULT_SCOPE, expectedRevision?: string | null,
 ) {
@@ -168,3 +170,8 @@ export const getSecurityDivPageData = (rank: number) => getSecurityMetricNeighbo
 export const getSecurityEpsPageData = (rank: number) => getSecurityMetricNeighbors(rank, "eps");
 export const getSecurityDpsPageData = (rank: number) => getSecurityMetricNeighbors(rank, "dps");
 export const getSecurityBpsPageData = (rank: number) => getSecurityMetricNeighbors(rank, "bps");
+
+export async function getSecurityRanksPage(metric: schema.MetricType, page: number, sortOrder: "asc" | "desc" = "asc", scopeKey = DEFAULT_SCOPE, expectedRevision?: string | null) {
+  if (isStaticBuild()) return getStaticRankingPage<Awaited<ReturnType<typeof getLiveSecurityRanksPage>>>(metric, "security", page, scopeKey, expectedRevision, sortOrder === "desc");
+  return getLiveSecurityRanksPage(metric, page, sortOrder, scopeKey, expectedRevision);
+}

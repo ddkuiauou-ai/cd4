@@ -2,7 +2,7 @@
 
 > **현재 업무 데이터 기준:** [CD → tem 저장 계약 v2](docs/cd-business-schema-contract-2026-10-07.md), [PostgreSQL 18 설치 안내](docs/postgresql.md), [검증 기록](docs/cd-business-schema-verification-2026-10-07.md), [문서 안내](docs/README.md)를 먼저 읽으세요. 설치 버전과 명령은 `package.json`, 의존성은 `pnpm-lock.yaml`이 기준입니다. 이전 DAG/Next.js 조사 문서는 해당 날짜의 기록입니다.
 
-CD provides raw Korean stock history and the currently published official metrics, company market caps, and rankings. It uses the Next.js App Router and a Node.js standalone server for the current request-time database views.
+CD provides raw Korean stock history and the currently published official metrics, company market caps, and rankings. It supports a full static export from frozen input files and a Node.js standalone server for request-time database views. See the [static build guide](docs/static-export.md) for the manual-upload workflow and the [completed full-build report](docs/static-export-verification-2026-10-09.md) for measured size, performance and verification results.
 
 tem collects and corrects source data, resolves dated security identities, and calculates, validates, and publishes official results. CD owns the business schema, exact DTOs, queries and display. Period averages, minimum/maximum values and changes are calculated by CD for the selected screen window.
 
@@ -14,11 +14,11 @@ tem collects and corrects source data, resolves dated security identities, and c
 
 ## 🛠 Technology Stack
 
-- **Framework**: Next.js App Router, Node.js standalone server
+- **Framework**: Next.js 16.4 App Router, React 19.3, Node.js standalone server ([upgrade verification](docs/next164-upgrade-2026-10-09.md))
 - **UI Components**: shadcn/ui (New York style, slate base)
 - **Styling**: Tailwind CSS 4 (mobile-first approach)
 - **Database**: PostgreSQL 18, Drizzle ORM `postgres-js` adapter and the `postgres` driver
-- **Deployment**: Node.js server for current views; historical static export workflows require a separate review
+- **Deployment**: `pnpm build:static` produces the complete `out/` directory; Node.js standalone mode remains available
 
 ## 🚀 Getting Started
 
@@ -153,6 +153,16 @@ pnpm lint
 pnpm typecheck
 pnpm test
 ```
+
+### Full static output
+
+```sh
+pnpm build:static
+pnpm verify:static
+pnpm preview:static
+```
+
+The build reads frozen PostgreSQL data once, then generates pages using private file input. `preview:static` serves only `out/`, without Next or a database. Upload the complete directory manually, including `_headers`, shared data and Next navigation files. See [reproduction and measurements](docs/static-export.md). No deployment runs as part of these commands.
 
 ### PostgreSQL Commands
 

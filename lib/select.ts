@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticManifest } from './static-build/server';
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { asc, eq } from "drizzle-orm";
@@ -30,10 +31,12 @@ export async function getAllSecuritiesWithType() {
 
 /** Detail links use stable IDs, including historical/delisted and reused-code securities. */
 export async function getAllSecurityCodes(): Promise<string[]> {
+  if (isStaticBuild()) return getStaticManifest().securityCodes;
   const inventory = await getEntityRouteInventory();
   return inventory.identities.map(row => inventory.securities.get(row.securityId) || row.securityId);
 }
 export async function getAllCompanyCodes(): Promise<string[]> {
+  if (isStaticBuild()) return getStaticManifest().companyCodes;
   const inventory = await getEntityRouteInventory();
   return (await db.query.company.findMany({ columns: { companyId: true }, orderBy: [asc(schema.company.companyId)] })).map(row => inventory.companies.get(row.companyId) || row.companyId);
 }

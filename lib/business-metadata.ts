@@ -1,3 +1,4 @@
+import { isStaticBuild, resolveStaticSecurity, resolveStaticCompany } from './static-build/server';
 import type { Metadata } from "next";
 import { and, eq, or } from "drizzle-orm";
 import { db } from "@/db";
@@ -42,6 +43,7 @@ function decodedIdentity(code: string): string | null {
 }
 
 async function securityIdentity(code: string) {
+  if (isStaticBuild()) return resolveStaticSecurity(code);
   const decoded = decodedIdentity(code);
   if (!decoded) return null;
   const columns = { securityId: true, companyId: true, name: true, korName: true, ticker: true, exchange: true } as const;
@@ -73,8 +75,8 @@ export async function companyMetadata(code: string, marketcapDetail = false): Pr
   const decoded = decodedIdentity(code);
   if (!decoded) return missingMetadata("회사를 찾을 수 없습니다");
   const columns = { companyId: true, name: true, korName: true } as const;
-  let identity = await db.query.company.findFirst({ columns, where: eq(schema.company.companyId, decoded) });
-  if (!identity) {
+  let identity = isStaticBuild() ? resolveStaticCompany(code) : await db.query.company.findFirst({ columns, where: eq(schema.company.companyId, decoded) });
+  if (!identity && !isStaticBuild()) {
     const security = await securityIdentity(code);
     if (security?.companyId) identity = await db.query.company.findFirst({ columns, where: eq(schema.company.companyId, security.companyId) });
   }

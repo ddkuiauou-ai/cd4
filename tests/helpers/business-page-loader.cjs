@@ -26,7 +26,7 @@ function createBusinessPageLoader(overrides = {}) {
   const boundaries = {
     "server-only": {},
     "@/db": { db: {} },
-    "next/link": { default: ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children) },
+    "next/link": { default: ({ href, children, prefetch, ...props }) => { void prefetch; return React.createElement("a", { href, ...props }, children); } },
     "next/server": { connection: async () => {} },
     "next/navigation": {
       usePathname: () => "/",

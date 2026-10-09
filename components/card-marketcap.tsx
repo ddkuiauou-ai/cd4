@@ -20,7 +20,7 @@ export default function CardMarketcap({ security, name, href, market = 'KOSPI', 
     const target = href ? (href.endsWith('/') ? `${href}${security.ticker || security.name}` : href)
         : `/security/${code}/${currentMetric}`;
     const price = security.prices?.[0];
-    return <Link href={target} aria-current={selected ? 'page' : undefined} data-sec-id={security.securityId}
+    return <Link href={target} prefetch={false} aria-current={selected ? 'page' : undefined} data-sec-id={security.securityId}
         className={cn('security-link-row flex min-w-0 items-center gap-3 border-b border-border px-1 py-4 hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
             selected && 'bg-muted/40') }>
         <span className="min-w-0 flex-1">

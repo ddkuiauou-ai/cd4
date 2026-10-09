@@ -46,7 +46,7 @@ export function InteractiveSecuritiesSection({ companyMarketcapData, companySecs
             <h3 className="text-base font-semibold">종목별 비교</h3>
             <span className="text-xs text-muted-foreground">{securities.length}개 종목</span>
         </div>
-        {showSummaryCard && companyHref && <Link href={companyHref}
+        {showSummaryCard && companyHref && <Link href={companyHref} prefetch={false}
             aria-current={summarySelected ? 'page' : undefined}
             className={cn('flex min-w-0 items-center gap-3 border-b border-border py-4 hover:bg-muted/30', summarySelected && 'font-semibold')}>
             <span className="min-w-0 flex-1 text-sm">기업 전체 시가총액<span className="mt-1 block text-xs font-normal text-muted-foreground">보통주·우선주 합산</span></span>

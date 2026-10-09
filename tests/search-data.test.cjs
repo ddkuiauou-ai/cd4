@@ -79,6 +79,43 @@ test("search waits for menu activation and deduplicates concurrent requests and 
   });
 });
 
+test("recent histories do not download the unopened search index and migrate when a menu loads it", async () => {
+  const React = require('react');
+  const { JSDOM } = require('jsdom');
+  const { createBusinessPageLoader } = require('./helpers/business-page-loader.cjs');
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', {url:'http://localhost/security/KOSPI.005930/pbr'});
+  const values = {window:dom.window,document:dom.window.document,localStorage:dom.window.localStorage,StorageEvent:dom.window.StorageEvent,IS_REACT_ACT_ENVIRONMENT:true};
+  const prior = new Map(Object.keys(values).map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  for(const [key,value] of Object.entries(values))Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
+  let root,calls=0;
+  try {
+    localStorage.setItem('recently-viewed-securities', JSON.stringify([{secCode:'KOSPI.005930',name:'Samsung',korName:'삼성전자',ticker:'005930',exchange:'KOSPI',lastViewed:1,lastMetric:'pbr',metrics:{pbr:{value:'0',lastViewed:1}}}]));
+    await withFetch(async()=>{calls++;return Response.json(fixture);},async()=>{
+      const {load}=createBusinessPageLoader();
+      const {RecentSecuritiesSidebar}=load('components/recent-securities-sidebar.tsx');
+      const {useSearchData}=load('components/search-data.ts');
+      function MenuActivation(){
+        const [open,setOpen]=React.useState(false);
+        const {status}=useSearchData(open);
+        return React.createElement('button',{'data-search-toggle':'',onClick:()=>setOpen(true)},status);
+      }
+      const {createRoot}=require('react-dom/client');root=createRoot(document.getElementById('root'));
+      await React.act(async()=>root.render(React.createElement(React.Fragment,null,React.createElement(RecentSecuritiesSidebar),React.createElement(MenuActivation))));
+      assert.equal(calls,0,'existing recent records must not cause a search-index request');
+      assert.equal(JSON.parse(localStorage.getItem('recently-viewed-securities'))[0].securityId,undefined);
+      await React.act(async()=>document.querySelector('[data-search-toggle]').click());
+      assert.equal(calls,1);
+      const recent=JSON.parse(localStorage.getItem('recently-viewed-securities'))[0];
+      assert.equal(recent.securityId,'security-uuid');assert.equal(recent.metrics.pbr.value,'0');
+      assert.equal(document.querySelector('.recent-securities a').getAttribute('href'),'/security/KOSPI.005930/pbr');
+    });
+  }finally{
+    if(root)await React.act(async()=>root.unmount());
+    for(const [key,descriptor] of prior)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
+    dom.window.close();
+  }
+});
+
 test("the client revalidates after 300 seconds instead of retaining old search data forever", async () => {
   const previousNow = Date.now;
   let now = 1_000_000;

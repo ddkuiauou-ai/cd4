@@ -1,5 +1,13 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "tw-animate-css";
+
+/* Keep dependency, build-output and report scans out of isolated exports. */
+@source "./";
+@source "../components";
+@source "../hooks";
+@source "../lib";
+@source "../config";
+@source "../types";
 
 @custom-variant dark (&:is(.dark *));
 

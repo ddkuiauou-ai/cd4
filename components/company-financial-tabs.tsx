@@ -23,7 +23,7 @@ export function CompanyFinancialTabs({ secCode, security, company, className }: 
                 : secCode ? `/${companyMetric ? 'company' : 'security'}/${encodeURIComponent(secCode)}/${metric}` : null;
             const active = currentMetric === metric;
             if (!href) return <span key={metric} className="shrink-0 px-4 py-3 text-sm text-muted-foreground" title="연결된 종목이 없습니다">{label}</span>;
-            return <Link key={metric} href={href} aria-current={active ? 'page' : undefined}
+            return <Link key={metric} href={href} prefetch={false} aria-current={active ? 'page' : undefined}
                 className={cn('shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors',
                     active ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
                 {label}

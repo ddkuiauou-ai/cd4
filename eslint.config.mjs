@@ -3,7 +3,7 @@ import nextTypescript from "eslint-config-next/typescript";
 const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
-  { ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", ".next-docs/**", ".kilo/**"] },
+  { ignores: ["node_modules/**", ".next/**", ".next-static/**", ".static-build/**", "out/**", "build/**", "next-env.d.ts", ".next-docs/**", ".kilo/**"] },
   {
     files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     // Compiler adoption is a later phase. Keep its new diagnostics visible
@@ -17,7 +17,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["tests/**/*.cjs", "scripts/**/*.js"],
+    files: ["tests/**/*.cjs", "scripts/**/*.js", "scripts/*static*.cjs", "scripts/register-typescript.cjs"],
     languageOptions: {
       globals: { require: "readonly", module: "readonly", __dirname: "readonly", process: "readonly", Buffer: "readonly" },
     },

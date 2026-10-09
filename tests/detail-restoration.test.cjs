@@ -15,7 +15,7 @@ function loader(stubs = {}) {
     mod.require = name => {
       const resolvedName = name.startsWith('.') ? '@/' + path.relative(root,path.resolve(path.dirname(file),name)) : name;
       if (resolvedName in stubs) return stubs[resolvedName];
-      if (name === 'next/link') return ({children,...props}) => React.createElement('a',props,children);
+      if (name === 'next/link') return ({children,prefetch,...props}) => { void prefetch; return React.createElement('a',props,children); };
       if (name === 'next/navigation') return {notFound:()=>{throw Error('not-found')},usePathname:()=>'/security/security-id/per'};
       const local = resolvedName.startsWith('@/') ? path.join(root,resolvedName.slice(2)) : null;
       if (!local) return require(name);

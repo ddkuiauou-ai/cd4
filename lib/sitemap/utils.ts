@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticManifest } from '@/lib/static-build/server';
 import { siteConfig } from "@/config/site";
 import type { MetricType } from "@/db/schema-postgres";
 import { countCompanyMarketcaps } from "@/lib/data/company";
@@ -62,6 +63,9 @@ async function getMetricPaths(): Promise<string[]> {
 }
 
 export async function getCorePaths(): Promise<string[]> {
+  if (isStaticBuild()) return getStaticManifest().routes.map(row => row.path === "/" ? "/" : row.path.replace(/\/$/, "")).filter(value => !value.startsWith("/security/") && !value.startsWith("/company/")
+    && value !== "/marketcaps"
+    && !/^\/(?:marketcap|per|pbr|bps|eps|div|dps|marketcaps)\/1$/.test(value));
   const metricPaths = await getMetricPaths();
   const combined = CORE_STATIC_PATHS.concat(metricPaths);
   return dedupe(combined.map(ensureLeadingSlash));

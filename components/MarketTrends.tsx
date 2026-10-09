@@ -11,7 +11,7 @@ export default function MarketTrends({ gainers = [], losers = [], volume = [], d
   gainers: TrendItem[]; losers: TrendItem[]; volume: TrendItem[]; date?: string; sampleCount: number; className?: string;
 }) {
   const [active, setActive] = useState("gainers");
-  const rows = (items: TrendItem[]) => items.length ? items.slice(0, 5).map(item => <Link key={item.securityId} href={item.href} className="trend-row">
+  const rows = (items: TrendItem[]) => items.length ? items.slice(0, 5).map(item => <Link prefetch={false} key={item.securityId} href={item.href} className="trend-row">
     <span className="trend-name">{item.korName || item.name}<span className="block text-xs font-normal text-muted-foreground mt-1">{item.priceDate ?? "가격 관측일 없음"}</span></span>
     <span className="trend-price">{active === "volume" ? `${formatBusinessValue(item.volume)}주` : item.price !== null ? `${formatBusinessValue(item.price)}원` : "가격 정보 없음"}</span>
     <span className={item.changePercent !== null && item.changePercent > 0 ? "market-up" : item.changePercent !== null && item.changePercent < 0 ? "market-down" : "text-muted-foreground"}>{formatRankingRate(item.changePercent)}</span>

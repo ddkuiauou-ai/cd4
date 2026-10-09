@@ -58,6 +58,7 @@ function loadRoutes(large = false) {
     ? Array.from({ length: 2501 }, (_, index) => `KOSPI.${String(index + 1).padStart(6, "0")}`)
     : ["KOSPI.005930", "KOSDAQ.0001A0", "KOSPI.005930"];
   const queryMocks = {
+    "@/lib/static-build/server": { isStaticBuild: () => false },
     "@/lib/data/security": { countSecurityRanks: async (...args) => { calls.security.push(args); return COUNTS[args[0]]; } },
     "@/lib/data/company": { countCompanyMarketcaps: async (...args) => { calls.company.push(args); return 221; } },
     "@/lib/select": {
@@ -217,7 +218,7 @@ test("installed Next skips static-param collection for standalone sitemap chunks
     userland: loaded.chunk,
   };
   assert.equal(isStaticGenEnabled(loaded.chunk), false);
-  const segments = await collectSegments(routeModule);
+  const { segments } = await collectSegments(routeModule);
   assert.ok(segments.every((segment) => segment.generateStaticParams === undefined));
   assert.deepEqual(await generateRouteStaticParams(segments, { page: `${pathname}/route` }, false, [], false), []);
   assertQueries(loaded.calls, 0);
@@ -267,7 +268,7 @@ test("installed Next collects both sitemap params instead of treating the route 
     ensureUserland: async () => { ensured += 1; },
     userland: loaded.chunk,
   };
-  const segments = await collectSegments(routeModule);
+  const { segments } = await collectSegments(routeModule);
   assert.equal(ensured, 1);
   assert.deepEqual(segments.filter((segment) => segment.paramName).map((segment) => segment.paramName), ["segment", "fileName"]);
   assert.equal(segments.at(-1).generateStaticParams, loaded.chunk.generateStaticParams);

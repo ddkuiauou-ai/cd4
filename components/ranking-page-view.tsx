@@ -7,6 +7,7 @@ import { RankingMobileList } from "@/components/ranking-mobile-list";
 import { Pager } from "@/components/pager";
 import { getPriceDateRange, RANKING_METRICS, type RankingMetric, type RankingRow, type RankingScope, type RankingPublication } from "@/lib/ranking-view";
 import styles from "./ranking-view.module.css";
+import type { StaticCsvSource } from "@/lib/static-build/types";
 
 export interface RankingPageViewProps {
   rows: RankingRow[];
@@ -21,12 +22,13 @@ export interface RankingPageViewProps {
   state?: "published" | "unpublished";
   revisionChanged?: boolean;
   scopeKey?: string;
+  staticCsvSource?: StaticCsvSource;
 }
 
 const formatDate = (date: string | null) => date && date !== "N/A" ? date.replaceAll("-", ".") : "정보 없음";
 
 export function RankingPageView({ rows, metric, scope, latestDate, totalCount, currentPage, totalPages, basePath,
-  publication, state = "published", revisionChanged = false, scopeKey = "krx-all" }: RankingPageViewProps) {
+  publication, state = "published", revisionChanged = false, scopeKey = "krx-all", staticCsvSource }: RankingPageViewProps) {
   const priceDate = getPriceDateRange(rows);
   const revision = publication?.revision;
   const query = new URLSearchParams({ ...(revision ? { revision } : {}), ...(scope === "security" ? { scope: scopeKey } : {}) }).toString();
@@ -47,17 +49,17 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
               {metric === "marketcap" ? <details className={styles.scopeMenu}>
                 <summary>{scope === "company" ? "기업 합산" : "종목별"}<ChevronDown size={14} aria-hidden="true" /></summary>
                 <div className={styles.scopeOptions}>
-                  <Link href="/marketcaps" aria-current={scope === "company" ? "page" : undefined}>기업 합산<span>보통주·우선주 합산</span></Link>
-                  <Link href="/marketcap" aria-current={scope === "security" ? "page" : undefined}>종목별<span>보통주·우선주 각각</span></Link>
+                  <Link prefetch={false} href="/marketcaps" aria-current={scope === "company" ? "page" : undefined}>기업 합산<span>보통주·우선주 합산</span></Link>
+                  <Link prefetch={false} href="/marketcap" aria-current={scope === "security" ? "page" : undefined}>종목별<span>보통주·우선주 각각</span></Link>
                 </div>
               </details> : <span className={styles.scopeLabel}>종목별</span>}
               <span className={styles.basis}>{formatDate(latestDate)}{latestDate && latestDate !== "N/A" ? " 기준" : ""}</span>
             </div>
           </div>
           {state === "published" && !revisionChanged && <div className={styles.download}><CsvDownloadButton scope={scope} metric={metric} scopeKey={scopeKey} revision={revision}
-            refreshHref={refreshHref} expectedDate={latestDate} expectedTotalCount={totalCount} /></div>}
+            refreshHref={refreshHref} expectedDate={latestDate} expectedTotalCount={totalCount} staticSource={staticCsvSource} /></div>}
         </header>
-        {revisionChanged ? <div className={styles.empty} role="status"><h2>자료가 갱신되었습니다</h2><p>조회 중 순위 자료가 갱신되었습니다. 최신 결과에서 다시 확인해 주세요.</p><Link className="inline-block mt-4 underline underline-offset-4" href={refreshHref}>최신 자료 보기</Link></div>
+        {revisionChanged ? <div className={styles.empty} role="status"><h2>자료가 갱신되었습니다</h2><p>조회 중 순위 자료가 갱신되었습니다. 최신 결과에서 다시 확인해 주세요.</p><Link prefetch={false} className="inline-block mt-4 underline underline-offset-4" href={refreshHref}>최신 자료 보기</Link></div>
           : state === "unpublished" ? <div className={styles.empty} role="status"><h2>아직 공개된 순위가 없습니다</h2><p>다른 지표와 종목 정보는 계속 확인할 수 있습니다.</p></div>
           : rows.length ? <>
           <ServerTable rows={rows} metric={metric} scope={scope} />

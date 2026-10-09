@@ -1,8 +1,15 @@
+import { connection } from 'next/server';
+import { isStaticBuild, getStaticRankingCsv } from '@/lib/static-build/server';
 import { createRankingCsvResponse } from '@/lib/data/ranking-export';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = false;
 
 export async function GET(request: Request) {
+  if (isStaticBuild()) {
+    const { body, headers, status } = getStaticRankingCsv('security', 'per');
+    return new Response(body, { headers, status });
+  }
+  await connection();
   const query = new URL(request.url).searchParams;
   return createRankingCsvResponse('security', 'per', query.get('revision') ?? undefined, query.get('scope') ?? 'krx-all');
 }

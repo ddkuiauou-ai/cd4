@@ -5,7 +5,7 @@ import styles from "./ranking-view.module.css";
 
 export function RankingName({ row }: { row: RankingRow }) {
   const contents = <><span className={styles.name}>{row.name}</span><span className={styles.code}>{row.ticker || "대표 종목 없음"}{row.exchange && <> · {row.exchange}</>}{row.scope === "security" && row.stockType && row.stockType !== "보통주" && <> · {row.stockType}</>}</span></>;
-  return row.href ? <Link href={row.href} className={styles.nameLink}>{contents}</Link> : <div className={styles.nameLink}>{contents}</div>;
+  return row.href ? <Link href={row.href} prefetch={false} className={styles.nameLink}>{contents}</Link> : <div className={styles.nameLink}>{contents}</div>;
 }
 
 export function RankingValue({ row }: { row: RankingRow }) {

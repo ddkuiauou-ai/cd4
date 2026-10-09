@@ -1,15 +1,19 @@
+import { isStaticBuild, getStaticRankingParams } from '@/lib/static-build/server';
+import { readPageSearch } from '@/lib/static-page-search';
 import { PublishedRankingPage } from '@/components/published-ranking-page';
 import type { RankingSearch } from '@/lib/ranking-view';
 import { rankingMetadata } from '@/lib/business-metadata';
 
-export const dynamic = 'force-dynamic';
+
+export const generateStaticParams = isStaticBuild() ? async () => getStaticRankingParams('div', 'security') : undefined;
+
 export async function generateMetadata({ params, searchParams }: {
   params: Promise<{ page: string }>; searchParams: Promise<RankingSearch>;
 }) {
   const { page } = await params;
   const number = Number(page);
   const path = Number.isSafeInteger(number) && number > 1 ? `/div/${number}` : '/div';
-  return rankingMetadata('div', path, await searchParams);
+  return rankingMetadata('div', path, await readPageSearch(searchParams));
 }
 
 export default async function Page({ params, searchParams }: {
@@ -17,5 +21,5 @@ export default async function Page({ params, searchParams }: {
   searchParams: Promise<RankingSearch>;
 }) {
   const { page } = await params;
-  return <PublishedRankingPage metric="div" page={Number(page)} search={await searchParams} />;
+  return <PublishedRankingPage metric="div" page={Number(page)} search={await readPageSearch(searchParams)} />;
 }

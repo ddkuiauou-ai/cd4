@@ -1,0 +1,3330 @@
+{
+  "version": 1,
+  "success": true,
+  "completedAt": "2026-10-09T11:13:10.092Z",
+  "outputDirectory": "/Users/craigchoi/silla/cd4/out",
+  "runtime": {
+    "node": "22.23.3",
+    "pnpm": "10.34.6",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuCount": 10,
+    "totalMemoryBytes": 17179869184
+  },
+  "input": {
+    "snapshotId": "9a12b656d3501f3efa7a",
+    "referenceDate": "2026-10-08",
+    "generatedAt": "2026-10-09T10:38:23.395Z",
+    "sourcePublications": {
+      "security_latest/krx-all": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "company_marketcap/krx-all": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/marketcap": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/bps": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/per": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/pbr": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/eps": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/div": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      },
+      "security_rank/krx-all/dps": {
+        "asOf": "2026-10-08",
+        "revision": "2"
+      }
+    },
+    "securities": 3004,
+    "companies": 2745,
+    "extraction": {
+      "seconds": 151.167,
+      "sourceSecurities": 3004,
+      "sourceCompanies": 2745,
+      "preparedSecurities": 3004,
+      "batchMemory": {
+        "batchSize": 50,
+        "batches": 61,
+        "maxHistoryRows": 52780,
+        "peakRssBytes": 563036160,
+        "peakHeapUsedBytes": 677552072,
+        "seconds": 101.86200058299998,
+        "note": "Process memory sampled after each bounded batch load/write; includes runtime overhead and unreclaimed prior allocations."
+      },
+      "rankingPrices": {
+        "batchSize": 100,
+        "batches": 28,
+        "sourcePriceRows": 83255,
+        "distinctCutoffs": 1,
+        "distinctSecurityCutoffs": 2780,
+        "seconds": 1.7151834169999929,
+        "peakRssBytes": 321732608,
+        "peakHeapUsedBytes": 178390048
+      },
+      "databaseQueries": {
+        "total": 269,
+        "phases": {
+          "inventory": 8,
+          "sample-selection": 0,
+          "security-histories": 186,
+          "company-assembly": 0,
+          "ranking-prices": 31,
+          "ranking-pages-and-csv": 40,
+          "publication-validation": 4
+        },
+        "commands": {
+          "SELECT": 233,
+          "BEGIN": 12,
+          "SET": 12,
+          "COMMIT": 12
+        },
+        "phaseSeconds": {
+          "bootstrap": 0.27996825,
+          "inventory": 0.7211724580000001,
+          "sample-selection": 0.008942707999999812,
+          "security-histories": 101.86207650000001,
+          "company-assembly": 44.001654584,
+          "ranking-prices": 1.8329907499999971,
+          "ranking-pages-and-csv": 2.595507874999981,
+          "publication-validation": 0.023115583000006153
+        },
+        "note": "Driver statement attempts, including transaction control; SQL text and parameters are never retained."
+      }
+    }
+  },
+  "full": {
+    "reportId": "2026-10-09T10-38-22-549Z-72099",
+    "sourceFingerprint": "6872ce3e68a8483184fca02dbab4ce14b6f4bec03e80ab5eb330fb743298cf1f",
+    "settingsOrigin": "benchmark",
+    "workers": 8,
+    "concurrencyPerWorker": 2,
+    "totalSeconds": 1415.2945199160001,
+    "stages": [
+      {
+        "name": "prepare",
+        "seconds": 151.894385417,
+        "resources": {
+          "sampledPeakRssBytes": 530874368,
+          "samples": 53,
+          "observedNodeRuntimes": [
+            {
+              "nodeVersion": "22.23.3",
+              "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+              "processes": [
+                72104
+              ]
+            }
+          ],
+          "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+        },
+        "disk": {
+          "initialFreeBytes": 31001759744,
+          "minimumFreeBytes": 25827508224,
+          "sampledAdditionalAllocatedBytes": 5174251520,
+          "stoppedForDisk": false
+        }
+      },
+      {
+        "name": "workspace-copy",
+        "seconds": 0.14049799999999232
+      },
+      {
+        "name": "next-build",
+        "seconds": 984.2950698330001,
+        "phaseTimings": {
+          "compileSeconds": 0.391,
+          "typecheckSeconds": 2.3,
+          "renderSeconds": 894
+        },
+        "resources": {
+          "sampledPeakRssBytes": 1949368320,
+          "samples": 3568,
+          "observedNodeRuntimes": [
+            {
+              "nodeVersion": "22.23.3",
+              "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+              "processes": [
+                77425,
+                77491,
+                77492,
+                77546,
+                77547,
+                77548,
+                77549,
+                77550,
+                77551,
+                77552,
+                77553
+              ]
+            }
+          ],
+          "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+        },
+        "disk": {
+          "initialFreeBytes": 25766322176,
+          "minimumFreeBytes": 14457982976,
+          "sampledAdditionalAllocatedBytes": 11308339200,
+          "stoppedForDisk": false
+        }
+      },
+      {
+        "name": "finalize",
+        "seconds": 94.01473825000016
+      }
+    ],
+    "preflight": {
+      "availableBytes": 25766330368,
+      "reserveBytes": 2147483648,
+      "stagedAssetBytes": 459849930,
+      "minimumBytes": 14143991114,
+      "projection": {
+        "benchmarkSnapshotId": "1ef72633049303262e34",
+        "pagePayloadBytes": 5689639084,
+        "sharedAssetBytes": 459849930,
+        "additionalBytes": 11996507466,
+        "note": "Projection uses the largest measured page in each family and accounts for workspace/.next plus out copies. Unseen larger histories or compiler growth can exceed it; runtime disk monitoring remains enabled."
+      },
+      "existingGeneratedDirectories": [
+        {
+          "directory": "out",
+          "files": 5050,
+          "logicalBytes": 862594805,
+          "allocatedBytes": 1069707264
+        },
+        {
+          "directory": ".static-build/workspace/.next",
+          "files": 4773,
+          "logicalBytes": 909645564,
+          "allocatedBytes": 922206208
+        },
+        {
+          "directory": ".static-build/workspace/out",
+          "files": 0,
+          "logicalBytes": 0,
+          "allocatedBytes": 0
+        }
+      ],
+      "note": "Same-source sample projection checked; the build also stops if the reserve is crossed."
+    },
+    "verificationSeconds": 181.158993792,
+    "generatedPages": 29731,
+    "aliases": 94912,
+    "checkedUrls": 124643,
+    "sitemap": {
+      "chunks": 8,
+      "canonicalUrls": 29722,
+      "canonicalRules": "/metric/1/ uses /metric/; /marketcaps/ and /marketcaps/1/ use /; aliases are omitted"
+    },
+    "directoryFiles": {
+      "limit": 54000,
+      "totalFiles": 294187,
+      "directories": 124921,
+      "maximum": {
+        "directory": "static-data/shared/9a",
+        "files": 110
+      }
+    },
+    "retainedNextFiles": 178477,
+    "sharedAssets": 20796,
+    "output": {
+      "files": 294187,
+      "logicalBytes": 5893670321,
+      "allocatedBytes": 6694236160,
+      "byType": {
+        "html": {
+          "files": 124647,
+          "bytes": 2671965339
+        },
+        "txt": {
+          "files": 148662,
+          "bytes": 2749670583
+        },
+        "other": {
+          "files": 1,
+          "bytes": 5786
+        },
+        "js": {
+          "files": 35,
+          "bytes": 2011282
+        },
+        "css": {
+          "files": 3,
+          "bytes": 99951
+        },
+        "woff2": {
+          "files": 1,
+          "bytes": 18040
+        },
+        "ico": {
+          "files": 2,
+          "bytes": 30172
+        },
+        "png": {
+          "files": 8,
+          "bytes": 398316
+        },
+        "json": {
+          "files": 20790,
+          "bytes": 455682179
+        },
+        "xml": {
+          "files": 10,
+          "bytes": 3887880
+        },
+        "svg": {
+          "files": 10,
+          "bytes": 31555
+        },
+        "jpg": {
+          "files": 1,
+          "bytes": 39132
+        },
+        "csv": {
+          "files": 16,
+          "bytes": 9829710
+        },
+        "webmanifest": {
+          "files": 1,
+          "bytes": 396
+        }
+      },
+      "byFamily": {
+        "home": {
+          "pages": 1,
+          "htmlBytes": 329441,
+          "payloadBytes": 889944,
+          "maxPayloadBytes": 889944
+        },
+        "dashboard": {
+          "pages": 1,
+          "htmlBytes": 68550,
+          "payloadBytes": 157930,
+          "maxPayloadBytes": 157930
+        },
+        "marketcap": {
+          "pages": 30,
+          "htmlBytes": 40475805,
+          "payloadBytes": 108559884,
+          "maxPayloadBytes": 3908002
+        },
+        "per": {
+          "pages": 18,
+          "htmlBytes": 22468173,
+          "payloadBytes": 60317398,
+          "maxPayloadBytes": 3846483
+        },
+        "pbr": {
+          "pages": 27,
+          "htmlBytes": 36294302,
+          "payloadBytes": 97307118,
+          "maxPayloadBytes": 3855687
+        },
+        "bps": {
+          "pages": 27,
+          "htmlBytes": 35298978,
+          "payloadBytes": 96401395,
+          "maxPayloadBytes": 3843929
+        },
+        "eps": {
+          "pages": 18,
+          "htmlBytes": 21589566,
+          "payloadBytes": 59424559,
+          "maxPayloadBytes": 3801444
+        },
+        "div": {
+          "pages": 29,
+          "htmlBytes": 37325283,
+          "payloadBytes": 101437438,
+          "maxPayloadBytes": 3861175
+        },
+        "dps": {
+          "pages": 29,
+          "htmlBytes": 36628801,
+          "payloadBytes": 100805681,
+          "maxPayloadBytes": 3807511
+        },
+        "marketcaps": {
+          "pages": 29,
+          "htmlBytes": 38810061,
+          "payloadBytes": 104118943,
+          "maxPayloadBytes": 3909466
+        },
+        "security/base": {
+          "pages": 3004,
+          "htmlBytes": 229369188,
+          "payloadBytes": 510459722,
+          "maxPayloadBytes": 185608
+        },
+        "security/marketcap": {
+          "pages": 3004,
+          "htmlBytes": 247440147,
+          "payloadBytes": 470613943,
+          "maxPayloadBytes": 174678
+        },
+        "security/per": {
+          "pages": 3004,
+          "htmlBytes": 238217082,
+          "payloadBytes": 455542346,
+          "maxPayloadBytes": 171239
+        },
+        "security/pbr": {
+          "pages": 3004,
+          "htmlBytes": 240441372,
+          "payloadBytes": 459627006,
+          "maxPayloadBytes": 171141
+        },
+        "security/bps": {
+          "pages": 3004,
+          "htmlBytes": 236734460,
+          "payloadBytes": 454626025,
+          "maxPayloadBytes": 169599
+        },
+        "security/eps": {
+          "pages": 3004,
+          "htmlBytes": 238135797,
+          "payloadBytes": 455194816,
+          "maxPayloadBytes": 171548
+        },
+        "security/div": {
+          "pages": 3004,
+          "htmlBytes": 240285923,
+          "payloadBytes": 458841626,
+          "maxPayloadBytes": 171859
+        },
+        "security/dps": {
+          "pages": 3004,
+          "htmlBytes": 240391278,
+          "payloadBytes": 458797800,
+          "maxPayloadBytes": 172061
+        },
+        "company/base": {
+          "pages": 2745,
+          "htmlBytes": 210493077,
+          "payloadBytes": 468029652,
+          "maxPayloadBytes": 185507
+        },
+        "company/marketcap": {
+          "pages": 2745,
+          "htmlBytes": 238683557,
+          "payloadBytes": 457949188,
+          "maxPayloadBytes": 186667
+        }
+      }
+    },
+    "compressionSamples": [
+      {
+        "family": "home",
+        "route": "/",
+        "rawBytes": 329441,
+        "gzipBytes": 50551,
+        "brotliBytes": 31695
+      },
+      {
+        "family": "dashboard",
+        "route": "/dashboard/",
+        "rawBytes": 68550,
+        "gzipBytes": 16191,
+        "brotliBytes": 14003
+      },
+      {
+        "family": "marketcap",
+        "route": "/marketcap/1/",
+        "rawBytes": 331354,
+        "gzipBytes": 50127,
+        "brotliBytes": 31352
+      },
+      {
+        "family": "per",
+        "route": "/per/1/",
+        "rawBytes": 324943,
+        "gzipBytes": 46990,
+        "brotliBytes": 29372
+      },
+      {
+        "family": "pbr",
+        "route": "/pbr/1/",
+        "rawBytes": 327485,
+        "gzipBytes": 46536,
+        "brotliBytes": 29196
+      },
+      {
+        "family": "bps",
+        "route": "/bps/1/",
+        "rawBytes": 321911,
+        "gzipBytes": 48363,
+        "brotliBytes": 30015
+      },
+      {
+        "family": "eps",
+        "route": "/eps/1/",
+        "rawBytes": 322077,
+        "gzipBytes": 48563,
+        "brotliBytes": 30125
+      },
+      {
+        "family": "div",
+        "route": "/div/1/",
+        "rawBytes": 321810,
+        "gzipBytes": 48900,
+        "brotliBytes": 30385
+      },
+      {
+        "family": "dps",
+        "route": "/dps/1/",
+        "rawBytes": 322979,
+        "gzipBytes": 47452,
+        "brotliBytes": 29645
+      },
+      {
+        "family": "marketcaps",
+        "route": "/marketcaps/1/",
+        "rawBytes": 330614,
+        "gzipBytes": 50655,
+        "brotliBytes": 31787
+      },
+      {
+        "family": "security/base",
+        "route": "/security/KOSPI.475150/",
+        "rawBytes": 76461,
+        "gzipBytes": 17692,
+        "brotliBytes": 14887
+      },
+      {
+        "family": "security/marketcap",
+        "route": "/security/KOSPI.475150/marketcap/",
+        "rawBytes": 82584,
+        "gzipBytes": 19224,
+        "brotliBytes": 16241
+      },
+      {
+        "family": "security/per",
+        "route": "/security/KOSPI.475150/per/",
+        "rawBytes": 80796,
+        "gzipBytes": 18904,
+        "brotliBytes": 15923
+      },
+      {
+        "family": "security/pbr",
+        "route": "/security/KOSPI.475150/pbr/",
+        "rawBytes": 80754,
+        "gzipBytes": 18907,
+        "brotliBytes": 15930
+      },
+      {
+        "family": "security/bps",
+        "route": "/security/KOSPI.475150/bps/",
+        "rawBytes": 79507,
+        "gzipBytes": 18762,
+        "brotliBytes": 16120
+      },
+      {
+        "family": "security/eps",
+        "route": "/security/KOSPI.475150/eps/",
+        "rawBytes": 80734,
+        "gzipBytes": 18882,
+        "brotliBytes": 15905
+      },
+      {
+        "family": "security/div",
+        "route": "/security/KOSPI.475150/div/",
+        "rawBytes": 80112,
+        "gzipBytes": 18719,
+        "brotliBytes": 16095
+      },
+      {
+        "family": "security/dps",
+        "route": "/security/KOSPI.475150/dps/",
+        "rawBytes": 80166,
+        "gzipBytes": 18727,
+        "brotliBytes": 16095
+      },
+      {
+        "family": "company/base",
+        "route": "/company/KOSPI.006110/",
+        "rawBytes": 76592,
+        "gzipBytes": 17831,
+        "brotliBytes": 14942
+      },
+      {
+        "family": "company/marketcap",
+        "route": "/company/KOSPI.006110/marketcap/",
+        "rawBytes": 86999,
+        "gzipBytes": 19455,
+        "brotliBytes": 16775
+      }
+    ],
+    "compressionNote": "One HTML per family; sample sizes, not a full-output transfer estimate. Brotli quality 5.",
+    "osMemory": {
+      "version": 1,
+      "startedAt": "2026-10-09T10:38:18.180Z",
+      "sourceFingerprint": "6872ce3e68a8483184fca02dbab4ce14b6f4bec03e80ab5eb330fb743298cf1f",
+      "note": "Read-only OS observations at full-build phase boundaries. RSS sampling excludes native processes and short peaks. Pressure/paging are system-wide, with pre-existing warning recorded separately.",
+      "samples": [
+        {
+          "at": "2026-10-09T10:38:18.198Z",
+          "reason": "before-full",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 31005085696,
+          "vmCounts": {
+            "Pages free": 4859,
+            "Pages active": 157526,
+            "Pages inactive": 152915,
+            "Pages speculative": 3372,
+            "Pages throttled": 0,
+            "Pages wired down": 257389,
+            "Pages purgeable": 2,
+            "\"Translation faults\"": 15140328345,
+            "Pages copy-on-write": 358681259,
+            "Pages zero filled": 2007305323,
+            "Pages reactivated": 6114437140,
+            "Pages purged": 233918708,
+            "File-backed pages": 107539,
+            "Anonymous pages": 206274,
+            "Pages stored in compressor": 3567993,
+            "Pages occupied by compressor": 418352,
+            "Decompressions": 8829072769,
+            "Compressions": 9187109753,
+            "Pageins": 229642798,
+            "Pageouts": 5594069,
+            "Swapins": 540273917,
+            "Swapouts": 554392369
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": null,
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4859.\nPages active:                            157526.\nPages inactive:                          152915.\nPages speculative:                         3372.\nPages throttled:                              0.\nPages wired down:                        257389.\nPages purgeable:                              2.\n\"Translation faults\":               15140328345.\nPages copy-on-write:                  358681259.\nPages zero filled:                   2007305323.\nPages reactivated:                   6114437140.\nPages purged:                         233918708.\nFile-backed pages:                       107539.\nAnonymous pages:                         206274.\nPages stored in compressor:             3567993.\nPages occupied by compressor:            418352.\nDecompressions:                      8829072769.\nCompressions:                        9187109753.\nPageins:                              229642798.\nPageouts:                               5594069.\nSwapins:                              540273917.\nSwapouts:                             554392369.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "1ef72633049303262e34",
+          "sample": {
+            "enabled": true,
+            "selection": "stratified-40",
+            "securities": 41,
+            "companies": 12
+          },
+          "routes": 561,
+          "assets": 516,
+          "observationAt": "2026-10-09T10:38:18.198Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:40:54.809Z",
+          "reason": "after-prepare",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 40,
+          "availableDiskBytes": 25777774592,
+          "vmCounts": {
+            "Pages free": 39798,
+            "Pages active": 180062,
+            "Pages inactive": 166084,
+            "Pages speculative": 13373,
+            "Pages throttled": 0,
+            "Pages wired down": 207456,
+            "Pages purgeable": 4,
+            "\"Translation faults\"": 15156051430,
+            "Pages copy-on-write": 358848993,
+            "Pages zero filled": 2010185394,
+            "Pages reactivated": 6119691261,
+            "Pages purged": 234057268,
+            "File-backed pages": 113624,
+            "Anonymous pages": 245895,
+            "Pages stored in compressor": 3623940,
+            "Pages occupied by compressor": 387748,
+            "Decompressions": 8839480135,
+            "Compressions": 9197852032,
+            "Pageins": 229882665,
+            "Pageouts": 5596118,
+            "Swapins": 540447629,
+            "Swapouts": 554623113
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 2049,
+            "Swapins": 173712,
+            "Swapouts": 230744,
+            "Compressions": 10742279,
+            "Decompressions": 10407366
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 40%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                               39798.\nPages active:                            180062.\nPages inactive:                          166084.\nPages speculative:                        13373.\nPages throttled:                              0.\nPages wired down:                        207456.\nPages purgeable:                              4.\n\"Translation faults\":               15156051430.\nPages copy-on-write:                  358848993.\nPages zero filled:                   2010185394.\nPages reactivated:                   6119691261.\nPages purged:                         234057268.\nFile-backed pages:                       113624.\nAnonymous pages:                         245895.\nPages stored in compressor:             3623940.\nPages occupied by compressor:            387748.\nDecompressions:                      8839480135.\nCompressions:                        9197852032.\nPageins:                              229882665.\nPageouts:                               5596118.\nSwapins:                              540447629.\nSwapouts:                             554623113.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:40:54.809Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:43:32.602Z",
+          "reason": "observer-interrupted",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 21826039808,
+          "vmCounts": {
+            "Pages free": 905,
+            "Pages active": 148401,
+            "Pages inactive": 140250,
+            "Pages speculative": 6720,
+            "Pages throttled": 0,
+            "Pages wired down": 253680,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15184562137,
+            "Pages copy-on-write": 359041252,
+            "Pages zero filled": 2013225054,
+            "Pages reactivated": 6133883726,
+            "Pages purged": 234151999,
+            "File-backed pages": 103620,
+            "Anonymous pages": 191751,
+            "Pages stored in compressor": 3981024,
+            "Pages occupied by compressor": 444707,
+            "Decompressions": 8860283620,
+            "Compressions": 9219608364,
+            "Pageins": 230418074,
+            "Pageouts": 5599142,
+            "Swapins": 544675254,
+            "Swapouts": 559107808
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 3024,
+            "Swapins": 4227625,
+            "Swapouts": 4484695,
+            "Compressions": 21756332,
+            "Decompressions": 20803485
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 652,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                 905.\nPages active:                            148401.\nPages inactive:                          140250.\nPages speculative:                         6720.\nPages throttled:                              0.\nPages wired down:                        253680.\nPages purgeable:                              0.\n\"Translation faults\":               15184562137.\nPages copy-on-write:                  359041252.\nPages zero filled:                   2013225054.\nPages reactivated:                   6133883726.\nPages purged:                         234151999.\nFile-backed pages:                       103620.\nAnonymous pages:                         191751.\nPages stored in compressor:             3981024.\nPages occupied by compressor:            444707.\nDecompressions:                      8860283620.\nCompressions:                        9219608364.\nPageins:                              230418074.\nPageouts:                               5599142.\nSwapins:                              544675254.\nSwapouts:                             559107808.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:43:32.602Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:43:51.241Z",
+          "reason": "observer-resumed",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 30,
+          "availableDiskBytes": 21609897984,
+          "vmCounts": {
+            "Pages free": 3518,
+            "Pages active": 152375,
+            "Pages inactive": 143038,
+            "Pages speculative": 8075,
+            "Pages throttled": 0,
+            "Pages wired down": 228506,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15187457247,
+            "Pages copy-on-write": 359056907,
+            "Pages zero filled": 2013542121,
+            "Pages reactivated": 6135439041,
+            "Pages purged": 234159793,
+            "File-backed pages": 94621,
+            "Anonymous pages": 208867,
+            "Pages stored in compressor": 3984343,
+            "Pages occupied by compressor": 458818,
+            "Decompressions": 8862401206,
+            "Compressions": 9221801323,
+            "Pageins": 230493235,
+            "Pageouts": 5599650,
+            "Swapins": 545393670,
+            "Swapouts": 559820155
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 508,
+            "Swapins": 718416,
+            "Swapouts": 712347,
+            "Compressions": 2192959,
+            "Decompressions": 2117586
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 728,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 30%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3518.\nPages active:                            152375.\nPages inactive:                          143038.\nPages speculative:                         8075.\nPages throttled:                              0.\nPages wired down:                        228506.\nPages purgeable:                              0.\n\"Translation faults\":               15187457247.\nPages copy-on-write:                  359056907.\nPages zero filled:                   2013542121.\nPages reactivated:                   6135439041.\nPages purged:                         234159793.\nFile-backed pages:                        94621.\nAnonymous pages:                         208867.\nPages stored in compressor:             3984343.\nPages occupied by compressor:            458818.\nDecompressions:                      8862401206.\nCompressions:                        9221801323.\nPageins:                              230493235.\nPageouts:                               5599650.\nSwapins:                              545393670.\nSwapouts:                             559820155.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:43:51.241Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:44:06.728Z",
+          "reason": "after-compile",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 30,
+          "availableDiskBytes": 21449441280,
+          "vmCounts": {
+            "Pages free": 3561,
+            "Pages active": 151892,
+            "Pages inactive": 146226,
+            "Pages speculative": 4323,
+            "Pages throttled": 0,
+            "Pages wired down": 231929,
+            "Pages purgeable": 2,
+            "\"Translation faults\"": 15189554553,
+            "Pages copy-on-write": 359069008,
+            "Pages zero filled": 2013786770,
+            "Pages reactivated": 6136704840,
+            "Pages purged": 234165123,
+            "File-backed pages": 97549,
+            "Anonymous pages": 204892,
+            "Pages stored in compressor": 3986205,
+            "Pages occupied by compressor": 456348,
+            "Decompressions": 8863742044,
+            "Compressions": 9223191320,
+            "Pageins": 230543738,
+            "Pageouts": 5599739,
+            "Swapins": 546130431,
+            "Swapouts": 560575249
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 89,
+            "Swapins": 736761,
+            "Swapouts": 755094,
+            "Compressions": 1389997,
+            "Decompressions": 1340838
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 792,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 30%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3561.\nPages active:                            151892.\nPages inactive:                          146226.\nPages speculative:                         4323.\nPages throttled:                              0.\nPages wired down:                        231929.\nPages purgeable:                              2.\n\"Translation faults\":               15189554553.\nPages copy-on-write:                  359069008.\nPages zero filled:                   2013786770.\nPages reactivated:                   6136704840.\nPages purged:                         234165123.\nFile-backed pages:                        97549.\nAnonymous pages:                         204892.\nPages stored in compressor:             3986205.\nPages occupied by compressor:            456348.\nDecompressions:                      8863742044.\nCompressions:                        9223191320.\nPageins:                              230543738.\nPageouts:                               5599739.\nSwapins:                              546130431.\nSwapouts:                             560575249.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:44:06.728Z",
+          "markerOccurredAt": null,
+          "observedLate": true
+        },
+        {
+          "at": "2026-10-09T10:44:08.327Z",
+          "reason": "after-typecheck",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 30,
+          "availableDiskBytes": 21443989504,
+          "vmCounts": {
+            "Pages free": 3519,
+            "Pages active": 152681,
+            "Pages inactive": 147246,
+            "Pages speculative": 3955,
+            "Pages throttled": 0,
+            "Pages wired down": 228194,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15189761373,
+            "Pages copy-on-write": 359070328,
+            "Pages zero filled": 2013806571,
+            "Pages reactivated": 6136804434,
+            "Pages purged": 234166240,
+            "File-backed pages": 97239,
+            "Anonymous pages": 206643,
+            "Pages stored in compressor": 3988987,
+            "Pages occupied by compressor": 458655,
+            "Decompressions": 8863874500,
+            "Compressions": 9223331208,
+            "Pageins": 230548322,
+            "Pageouts": 5599744,
+            "Swapins": 546198075,
+            "Swapouts": 560644473
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 5,
+            "Swapins": 67644,
+            "Swapouts": 69224,
+            "Compressions": 139888,
+            "Decompressions": 132456
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 796,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 30%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3519.\nPages active:                            152681.\nPages inactive:                          147246.\nPages speculative:                         3955.\nPages throttled:                              0.\nPages wired down:                        228194.\nPages purgeable:                              0.\n\"Translation faults\":               15189761373.\nPages copy-on-write:                  359070328.\nPages zero filled:                   2013806571.\nPages reactivated:                   6136804434.\nPages purged:                         234166240.\nFile-backed pages:                        97239.\nAnonymous pages:                         206643.\nPages stored in compressor:             3988987.\nPages occupied by compressor:            458655.\nDecompressions:                      8863874500.\nCompressions:                        9223331208.\nPageins:                              230548322.\nPageouts:                               5599744.\nSwapins:                              546198075.\nSwapouts:                             560644473.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:44:08.327Z",
+          "markerOccurredAt": null,
+          "observedLate": true
+        },
+        {
+          "at": "2026-10-09T10:44:08.489Z",
+          "reason": "render-start",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 30,
+          "availableDiskBytes": 21443313664,
+          "vmCounts": {
+            "Pages free": 6865,
+            "Pages active": 150881,
+            "Pages inactive": 145444,
+            "Pages speculative": 4036,
+            "Pages throttled": 0,
+            "Pages wired down": 228346,
+            "Pages purgeable": 2,
+            "\"Translation faults\"": 15189790778,
+            "Pages copy-on-write": 359070426,
+            "Pages zero filled": 2013814648,
+            "Pages reactivated": 6136819565,
+            "Pages purged": 234166242,
+            "File-backed pages": 97731,
+            "Anonymous pages": 202630,
+            "Pages stored in compressor": 3995289,
+            "Pages occupied by compressor": 458803,
+            "Decompressions": 8863890911,
+            "Compressions": 9223354092,
+            "Pageins": 230548735,
+            "Pageouts": 5599744,
+            "Swapins": 546206994,
+            "Swapouts": 560656209
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 0,
+            "Swapins": 8919,
+            "Swapouts": 11736,
+            "Compressions": 22884,
+            "Decompressions": 16411
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 796,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 30%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                6865.\nPages active:                            150881.\nPages inactive:                          145444.\nPages speculative:                         4036.\nPages throttled:                              0.\nPages wired down:                        228346.\nPages purgeable:                              2.\n\"Translation faults\":               15189790778.\nPages copy-on-write:                  359070426.\nPages zero filled:                   2013814648.\nPages reactivated:                   6136819565.\nPages purged:                         234166242.\nFile-backed pages:                        97731.\nAnonymous pages:                         202630.\nPages stored in compressor:             3995289.\nPages occupied by compressor:            458803.\nDecompressions:                      8863890911.\nCompressions:                        9223354092.\nPageins:                              230548735.\nPageouts:                               5599744.\nSwapins:                              546206994.\nSwapouts:                             560656209.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:44:08.489Z",
+          "markerOccurredAt": null,
+          "observedLate": true
+        },
+        {
+          "at": "2026-10-09T10:44:08.623Z",
+          "reason": "render-0percent",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 30,
+          "availableDiskBytes": 21442633728,
+          "vmCounts": {
+            "Pages free": 3550,
+            "Pages active": 152271,
+            "Pages inactive": 147050,
+            "Pages speculative": 4107,
+            "Pages throttled": 0,
+            "Pages wired down": 228375,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15189814337,
+            "Pages copy-on-write": 359070522,
+            "Pages zero filled": 2013818450,
+            "Pages reactivated": 6136828762,
+            "Pages purged": 234166260,
+            "File-backed pages": 94110,
+            "Anonymous pages": 209318,
+            "Pages stored in compressor": 3990545,
+            "Pages occupied by compressor": 458974,
+            "Decompressions": 8863905117,
+            "Compressions": 9223363805,
+            "Pageins": 230548953,
+            "Pageouts": 5599744,
+            "Swapins": 546215976,
+            "Swapouts": 560661445
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 0,
+            "Swapins": 8982,
+            "Swapouts": 5236,
+            "Compressions": 9713,
+            "Decompressions": 14206
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 797,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 30%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3550.\nPages active:                            152271.\nPages inactive:                          147050.\nPages speculative:                         4107.\nPages throttled:                              0.\nPages wired down:                        228375.\nPages purgeable:                              0.\n\"Translation faults\":               15189814337.\nPages copy-on-write:                  359070522.\nPages zero filled:                   2013818450.\nPages reactivated:                   6136828762.\nPages purged:                         234166260.\nFile-backed pages:                        94110.\nAnonymous pages:                         209318.\nPages stored in compressor:             3990545.\nPages occupied by compressor:            458974.\nDecompressions:                      8863905117.\nCompressions:                        9223363805.\nPageins:                              230548953.\nPageouts:                               5599744.\nSwapins:                              546215976.\nSwapouts:                             560661445.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:44:08.623Z",
+          "markerOccurredAt": null,
+          "observedLate": true
+        },
+        {
+          "at": "2026-10-09T10:45:52.397Z",
+          "reason": "render-25percent",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 19688210432,
+          "vmCounts": {
+            "Pages free": 3883,
+            "Pages active": 153474,
+            "Pages inactive": 146845,
+            "Pages speculative": 5536,
+            "Pages throttled": 0,
+            "Pages wired down": 220993,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15203764550,
+            "Pages copy-on-write": 359158797,
+            "Pages zero filled": 2015341149,
+            "Pages reactivated": 6144485648,
+            "Pages purged": 234220256,
+            "File-backed pages": 112046,
+            "Anonymous pages": 193809,
+            "Pages stored in compressor": 4041726,
+            "Pages occupied by compressor": 463701,
+            "Decompressions": 8872801256,
+            "Compressions": 9232525233,
+            "Pageins": 230839367,
+            "Pageouts": 5602064,
+            "Swapins": 551317311,
+            "Swapouts": 565831515
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 2320,
+            "Swapins": 5101335,
+            "Swapouts": 5170070,
+            "Compressions": 9161428,
+            "Decompressions": 8896139
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 1200,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3883.\nPages active:                            153474.\nPages inactive:                          146845.\nPages speculative:                         5536.\nPages throttled:                              0.\nPages wired down:                        220993.\nPages purgeable:                              0.\n\"Translation faults\":               15203764550.\nPages copy-on-write:                  359158797.\nPages zero filled:                   2015341149.\nPages reactivated:                   6144485648.\nPages purged:                         234220256.\nFile-backed pages:                       112046.\nAnonymous pages:                         193809.\nPages stored in compressor:             4041726.\nPages occupied by compressor:            463701.\nDecompressions:                      8872801256.\nCompressions:                        9232525233.\nPageins:                              230839367.\nPageouts:                               5602064.\nSwapins:                              551317311.\nSwapouts:                             565831515.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:45:52.397Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:49:53.512Z",
+          "reason": "render-50percent",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 19223674880,
+          "vmCounts": {
+            "Pages free": 3873,
+            "Pages active": 153593,
+            "Pages inactive": 145386,
+            "Pages speculative": 6903,
+            "Pages throttled": 0,
+            "Pages wired down": 221696,
+            "Pages purgeable": 2,
+            "\"Translation faults\"": 15234324376,
+            "Pages copy-on-write": 359333099,
+            "Pages zero filled": 2018411135,
+            "Pages reactivated": 6161663364,
+            "Pages purged": 234326941,
+            "File-backed pages": 105333,
+            "Anonymous pages": 200549,
+            "Pages stored in compressor": 3999376,
+            "Pages occupied by compressor": 462838,
+            "Decompressions": 8892461334,
+            "Compressions": 9252713664,
+            "Pageins": 231483378,
+            "Pageouts": 5604922,
+            "Swapins": 563249886,
+            "Swapouts": 577864316
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 2858,
+            "Swapins": 11932575,
+            "Swapouts": 12032801,
+            "Compressions": 20188431,
+            "Decompressions": 19660078
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 2121,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3873.\nPages active:                            153593.\nPages inactive:                          145386.\nPages speculative:                         6903.\nPages throttled:                              0.\nPages wired down:                        221696.\nPages purgeable:                              2.\n\"Translation faults\":               15234324376.\nPages copy-on-write:                  359333099.\nPages zero filled:                   2018411135.\nPages reactivated:                   6161663364.\nPages purged:                         234326941.\nFile-backed pages:                       105333.\nAnonymous pages:                         200549.\nPages stored in compressor:             3999376.\nPages occupied by compressor:            462838.\nDecompressions:                      8892461334.\nCompressions:                        9252713664.\nPageins:                              231483378.\nPageouts:                               5604922.\nSwapins:                              563249886.\nSwapouts:                             577864316.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:49:53.512Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:52:54.253Z",
+          "reason": "render-75percent",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 16899944448,
+          "vmCounts": {
+            "Pages free": 3962,
+            "Pages active": 153683,
+            "Pages inactive": 147101,
+            "Pages speculative": 5643,
+            "Pages throttled": 0,
+            "Pages wired down": 219884,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15257017425,
+            "Pages copy-on-write": 359469692,
+            "Pages zero filled": 2020810131,
+            "Pages reactivated": 6174401769,
+            "Pages purged": 234392117,
+            "File-backed pages": 101881,
+            "Anonymous pages": 204546,
+            "Pages stored in compressor": 4012166,
+            "Pages occupied by compressor": 464189,
+            "Decompressions": 8906795711,
+            "Compressions": 9267382399,
+            "Pageins": 232018921,
+            "Pageouts": 5607636,
+            "Swapins": 572218583,
+            "Swapouts": 586927726
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 2714,
+            "Swapins": 8968697,
+            "Swapouts": 9063410,
+            "Compressions": 14668735,
+            "Decompressions": 14334377
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 2798,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3962.\nPages active:                            153683.\nPages inactive:                          147101.\nPages speculative:                         5643.\nPages throttled:                              0.\nPages wired down:                        219884.\nPages purgeable:                              0.\n\"Translation faults\":               15257017425.\nPages copy-on-write:                  359469692.\nPages zero filled:                   2020810131.\nPages reactivated:                   6174401769.\nPages purged:                         234392117.\nFile-backed pages:                       101881.\nAnonymous pages:                         204546.\nPages stored in compressor:             4012166.\nPages occupied by compressor:            464189.\nDecompressions:                      8906795711.\nCompressions:                        9267382399.\nPageins:                              232018921.\nPageouts:                               5607636.\nSwapins:                              572218583.\nSwapouts:                             586927726.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:52:54.253Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:56:09.766Z",
+          "reason": "render-complete",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 32,
+          "availableDiskBytes": 14505234432,
+          "vmCounts": {
+            "Pages free": 3831,
+            "Pages active": 157841,
+            "Pages inactive": 143306,
+            "Pages speculative": 13801,
+            "Pages throttled": 0,
+            "Pages wired down": 198810,
+            "Pages purgeable": 5,
+            "\"Translation faults\"": 15280376405,
+            "Pages copy-on-write": 359636164,
+            "Pages zero filled": 2023322614,
+            "Pages reactivated": 6185938789,
+            "Pages purged": 234474911,
+            "File-backed pages": 100473,
+            "Anonymous pages": 214475,
+            "Pages stored in compressor": 3698841,
+            "Pages occupied by compressor": 476860,
+            "Decompressions": 8921487961,
+            "Compressions": 9282455441,
+            "Pageins": 232520171,
+            "Pageouts": 5610176,
+            "Swapins": 580483440,
+            "Swapouts": 595123988
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 2540,
+            "Swapins": 8264857,
+            "Swapouts": 8196262,
+            "Compressions": 15073042,
+            "Decompressions": 14692250
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 3532,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 32%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3831.\nPages active:                            157841.\nPages inactive:                          143306.\nPages speculative:                        13801.\nPages throttled:                              0.\nPages wired down:                        198810.\nPages purgeable:                              5.\n\"Translation faults\":               15280376405.\nPages copy-on-write:                  359636164.\nPages zero filled:                   2023322614.\nPages reactivated:                   6185938789.\nPages purged:                         234474911.\nFile-backed pages:                       100473.\nAnonymous pages:                         214475.\nPages stored in compressor:             3698841.\nPages occupied by compressor:            476860.\nDecompressions:                      8921487961.\nCompressions:                        9282455441.\nPageins:                              232520171.\nPageouts:                               5610176.\nSwapins:                              580483440.\nSwapouts:                             595123988.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:56:09.766Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T10:57:24.705Z",
+          "reason": "after-next-build",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 32,
+          "availableDiskBytes": 15163822080,
+          "vmCounts": {
+            "Pages free": 4018,
+            "Pages active": 161067,
+            "Pages inactive": 144853,
+            "Pages speculative": 15231,
+            "Pages throttled": 0,
+            "Pages wired down": 191817,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15290181980,
+            "Pages copy-on-write": 359748045,
+            "Pages zero filled": 2024519307,
+            "Pages reactivated": 6189581710,
+            "Pages purged": 234511110,
+            "File-backed pages": 112145,
+            "Anonymous pages": 209006,
+            "Pages stored in compressor": 3616732,
+            "Pages occupied by compressor": 477541,
+            "Decompressions": 8927276161,
+            "Compressions": 9288402236,
+            "Pageins": 232689769,
+            "Pageouts": 5611333,
+            "Swapins": 581629593,
+            "Swapouts": 596239260
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 1157,
+            "Swapins": 1146153,
+            "Swapouts": 1115272,
+            "Compressions": 5946795,
+            "Decompressions": 5788200
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 3568,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 32%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4018.\nPages active:                            161067.\nPages inactive:                          144853.\nPages speculative:                        15231.\nPages throttled:                              0.\nPages wired down:                        191817.\nPages purgeable:                              0.\n\"Translation faults\":               15290181980.\nPages copy-on-write:                  359748045.\nPages zero filled:                   2024519307.\nPages reactivated:                   6189581710.\nPages purged:                         234511110.\nFile-backed pages:                       112145.\nAnonymous pages:                         209006.\nPages stored in compressor:             3616732.\nPages occupied by compressor:            477541.\nDecompressions:                      8927276161.\nCompressions:                        9288402236.\nPageins:                              232689769.\nPageouts:                               5611333.\nSwapins:                              581629593.\nSwapouts:                             596239260.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T10:57:24.705Z",
+          "markerOccurredAt": null
+        },
+        {
+          "at": "2026-10-09T11:02:09.793Z",
+          "reason": "full-complete",
+          "pressureLevel": 2,
+          "critical": false,
+          "freePercent": 31,
+          "availableDiskBytes": 16482615296,
+          "vmCounts": {
+            "Pages free": 3978,
+            "Pages active": 154322,
+            "Pages inactive": 140452,
+            "Pages speculative": 13017,
+            "Pages throttled": 0,
+            "Pages wired down": 216428,
+            "Pages purgeable": 0,
+            "\"Translation faults\"": 15312887730,
+            "Pages copy-on-write": 360027929,
+            "Pages zero filled": 2027295566,
+            "Pages reactivated": 6198518127,
+            "Pages purged": 234667449,
+            "File-backed pages": 109921,
+            "Anonymous pages": 197870,
+            "Pages stored in compressor": 3542305,
+            "Pages occupied by compressor": 466206,
+            "Decompressions": 8940758172,
+            "Compressions": 9302153536,
+            "Pageins": 233136838,
+            "Pageouts": 5616848,
+            "Swapins": 582594427,
+            "Swapouts": 597149216
+          },
+          "pageSizeBytes": 16384,
+          "deltasSincePrior": {
+            "Pageouts": 5515,
+            "Swapins": 964834,
+            "Swapouts": 909956,
+            "Compressions": 13751300,
+            "Decompressions": 13482011
+          },
+          "nodeResources": {
+            "sampledPeakRssBytes": 1949368320,
+            "samples": 3568,
+            "observedNodeRuntimes": [
+              {
+                "nodeVersion": "22.23.3",
+                "execPath": "/private/tmp/node-v22.23.3-darwin-arm64/bin/node",
+                "processes": [
+                  77425,
+                  77491,
+                  77492,
+                  77546,
+                  77547,
+                  77548,
+                  77549,
+                  77550,
+                  77551,
+                  77552,
+                  77553
+                ]
+              }
+            ],
+            "note": "Sum of live Node process RSS sampled every 2 seconds; excludes non-Node native subprocesses and short-lived peaks."
+          },
+          "commands": {
+            "memoryPressure": {
+              "status": 0,
+              "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n",
+              "stderr": ""
+            },
+            "severity": {
+              "status": 0,
+              "stdout": "2\n",
+              "stderr": ""
+            },
+            "vmStat": {
+              "status": 0,
+              "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3978.\nPages active:                            154322.\nPages inactive:                          140452.\nPages speculative:                        13017.\nPages throttled:                              0.\nPages wired down:                        216428.\nPages purgeable:                              0.\n\"Translation faults\":               15312887730.\nPages copy-on-write:                  360027929.\nPages zero filled:                   2027295566.\nPages reactivated:                   6198518127.\nPages purged:                         234667449.\nFile-backed pages:                       109921.\nAnonymous pages:                         197870.\nPages stored in compressor:             3542305.\nPages occupied by compressor:            466206.\nDecompressions:                      8940758172.\nCompressions:                        9302153536.\nPageins:                              233136838.\nPageouts:                               5616848.\nSwapins:                              582594427.\nSwapouts:                             597149216.\n",
+              "stderr": ""
+            }
+          },
+          "snapshotId": "9a12b656d3501f3efa7a",
+          "sample": {
+            "enabled": false,
+            "selection": "full",
+            "securities": 3004,
+            "companies": 2745
+          },
+          "routes": 29731,
+          "assets": 20796,
+          "observationAt": "2026-10-09T11:02:09.793Z",
+          "markerOccurredAt": null
+        }
+      ],
+      "buildDirectory": "/Users/craigchoi/silla/cd4/.static-build/reports/2026-10-09T10-38-22-549Z-72099",
+      "success": true,
+      "buildReportId": "2026-10-09T10-38-22-549Z-72099",
+      "settingsOrigin": "benchmark",
+      "workers": 8,
+      "concurrency": 2,
+      "preflight": {
+        "availableBytes": 25766330368,
+        "reserveBytes": 2147483648,
+        "stagedAssetBytes": 459849930,
+        "minimumBytes": 14143991114,
+        "projection": {
+          "benchmarkSnapshotId": "1ef72633049303262e34",
+          "pagePayloadBytes": 5689639084,
+          "sharedAssetBytes": 459849930,
+          "additionalBytes": 11996507466,
+          "note": "Projection uses the largest measured page in each family and accounts for workspace/.next plus out copies. Unseen larger histories or compiler growth can exceed it; runtime disk monitoring remains enabled."
+        },
+        "existingGeneratedDirectories": [
+          {
+            "directory": "out",
+            "files": 5050,
+            "logicalBytes": 862594805,
+            "allocatedBytes": 1069707264
+          },
+          {
+            "directory": ".static-build/workspace/.next",
+            "files": 4773,
+            "logicalBytes": 909645564,
+            "allocatedBytes": 922206208
+          },
+          {
+            "directory": ".static-build/workspace/out",
+            "files": 0,
+            "logicalBytes": 0,
+            "allocatedBytes": 0
+          }
+        ],
+        "note": "Same-source sample projection checked; the build also stops if the reserve is crossed."
+      },
+      "finishedAt": "2026-10-09T11:02:09.995Z",
+      "summary": {
+        "success": true,
+        "baselinePressureLevel": 2,
+        "observedPressureLevels": [
+          2
+        ],
+        "criticalObserved": false,
+        "minimumObservedFreePercent": 30,
+        "minimumObservedDiskBytes": 14505234432,
+        "stageMinimumDiskBytes": 14457982976,
+        "sampledPeakChildNodeRssBytes": 1949368320,
+        "note": "Observation timestamps record when the OS query ran, not when a log marker occurred. Compile/type/render-start marker snapshots were caught up after observer resume during rendering; their occurrence times are unknown. Boundary sampling cannot rule out transient pressure between observations. The RSS value is the sampled sum for hooked child Node processes and their Node descendants; it excludes the build wrapper parent, pnpm, native subprocesses, and short-lived peaks, and is not the total-system RAM peak. Pre-existing warning and global paging are not uniquely attributable to this build."
+      },
+      "wrapperPointObservation": {
+        "pid": 72099,
+        "elapsedProcess": "21:58",
+        "cpuPercent": 49.2,
+        "rssKiB": 80016,
+        "observationAt": null,
+        "note": "Read-only ps point sample during finalization/verification; exact timestamp was not captured. This value is not a peak and is not added to the child-process RSS peak."
+      }
+    }
+  },
+  "benchmark": {
+    "selected": {
+      "workers": 8,
+      "concurrency": 2,
+      "medianBuildSeconds": 26.050876625000033,
+      "sampledPeakRssBytes": 2282897408
+    },
+    "sourceFingerprint": "6872ce3e68a8483184fca02dbab4ce14b6f4bec03e80ab5eb330fb743298cf1f",
+    "snapshotId": "1ef72633049303262e34",
+    "selectionRule": "Among verified candidates within 5% of the fastest median next-build time, prefer the lowest sampled peak RSS; then the lower time.",
+    "cacheSeed": {
+      "directory": ".static-build/reports/benchmark-1791540266855/cache-seed",
+      "files": 24,
+      "logicalBytes": 93296827,
+      "allocatedBytes": 93364224,
+      "fingerprint": "be57e92949ed4b05abe68ee53d7a72d66456e24fe8cd132b6bc7f17940984b88",
+      "copyMethod": "Filesystem clone when supported; ordinary copy otherwise. Only compiler/typecheck cache is restored.",
+      "fromReportId": "2026-10-09T10-04-29-596Z-88640"
+    },
+    "cold": {
+      "reportId": "2026-10-09T10-04-29-596Z-88640",
+      "nextSeconds": 55.490927000000006,
+      "totalSeconds": 63.48198312499999,
+      "success": true,
+      "cacheCondition": "workspace/.next removed; compiler filesystem cache enabled so the run also creates the common cache seed",
+      "phaseTimings": {
+        "compileSeconds": 7.1,
+        "typecheckSeconds": 6.6,
+        "renderSeconds": 36.8
+      }
+    },
+    "candidates": [
+      {
+        "workers": 2,
+        "concurrency": 2,
+        "runs": 3,
+        "medianBuildSeconds": 55.93145358299999,
+        "minimumBuildSeconds": 50.35045291699999,
+        "maximumBuildSeconds": 58.18249916599999,
+        "medianTotalSeconds": 69.520370208,
+        "sampledPeakRssBytes": 1058324480,
+        "primedCacheFingerprint": "fc4ef0db5f0f968b08025552929ce2d84e15ed17c9089d6c25b05cdb431e1040",
+        "reportIds": [
+          "2026-10-09T10-06-36-260Z-88640",
+          "2026-10-09T10-07-46-544Z-88640",
+          "2026-10-09T10-09-03-933Z-88640"
+        ]
+      },
+      {
+        "workers": 4,
+        "concurrency": 2,
+        "runs": 3,
+        "medianBuildSeconds": 36.256961124999975,
+        "minimumBuildSeconds": 30.75124979199999,
+        "maximumBuildSeconds": 38.113566624999976,
+        "medianTotalSeconds": 46.305230624999965,
+        "sampledPeakRssBytes": 1548926976,
+        "primedCacheFingerprint": "d0632b5fde5450adc5ac84e0b482ee4adaa3b5f807dd3aa036561e381c768d9a",
+        "reportIds": [
+          "2026-10-09T10-10-56-482Z-88640",
+          "2026-10-09T10-11-43-594Z-88640",
+          "2026-10-09T10-12-23-271Z-88640"
+        ]
+      },
+      {
+        "workers": 8,
+        "concurrency": 2,
+        "runs": 3,
+        "medianBuildSeconds": 26.050876625000033,
+        "minimumBuildSeconds": 25.54464266699995,
+        "maximumBuildSeconds": 26.20092016700003,
+        "medianTotalSeconds": 32.75699008399993,
+        "sampledPeakRssBytes": 2282897408,
+        "primedCacheFingerprint": "a104eaf1079ce8cb93f4e7fb0474390fda9abe0101fd480a1e573b0dbea88cda",
+        "reportIds": [
+          "2026-10-09T10-13-42-275Z-88640",
+          "2026-10-09T10-14-15-658Z-88640",
+          "2026-10-09T10-14-48-764Z-88640"
+        ]
+      },
+      {
+        "workers": 8,
+        "concurrency": 1,
+        "runs": 3,
+        "medianBuildSeconds": 56.22286445799994,
+        "minimumBuildSeconds": 52.089441666999946,
+        "maximumBuildSeconds": 59.605657583000024,
+        "medianTotalSeconds": 68.73426112499996,
+        "sampledPeakRssBytes": 1666383872,
+        "primedCacheFingerprint": "805143350b90e359a9f316a87af67e09369be2e1711db31cd3ab1e3eeebc5df9",
+        "reportIds": [
+          "2026-10-09T10-16-03-155Z-88640",
+          "2026-10-09T10-17-14-465Z-88640",
+          "2026-10-09T10-18-16-957Z-88640"
+        ]
+      },
+      {
+        "workers": 8,
+        "concurrency": 4,
+        "runs": 3,
+        "medianBuildSeconds": 39.42222095799993,
+        "minimumBuildSeconds": 33.324415958999886,
+        "maximumBuildSeconds": 76.15738966699992,
+        "medianTotalSeconds": 49.33070445800002,
+        "sampledPeakRssBytes": 1997357056,
+        "primedCacheFingerprint": "bf09749802bc29c6ad455a106eebb89746ed91b97879ad8f813a4a30663ed864",
+        "reportIds": [
+          "2026-10-09T10-20-08-968Z-88640",
+          "2026-10-09T10-21-34-768Z-88640",
+          "2026-10-09T10-22-24-491Z-88640"
+        ]
+      },
+      {
+        "workers": 8,
+        "concurrency": 8,
+        "runs": 3,
+        "medianBuildSeconds": 42.522042709000175,
+        "minimumBuildSeconds": 36.3072006659999,
+        "maximumBuildSeconds": 46.08882174999989,
+        "medianTotalSeconds": 51.56327358300006,
+        "sampledPeakRssBytes": 2043019264,
+        "primedCacheFingerprint": "28c25b73a783ea33caa422a44ac67431fff52dcb4759177deca9756ee89dd4eb",
+        "reportIds": [
+          "2026-10-09T10-23-52-740Z-88640",
+          "2026-10-09T10-24-37-344Z-88640",
+          "2026-10-09T10-25-29-578Z-88640"
+        ]
+      }
+    ]
+  },
+  "controlledComparison": {
+    "settings": {
+      "workers": 8,
+      "concurrency": 2,
+      "medianBuildSeconds": 26.050876625000033,
+      "sampledPeakRssBytes": 2282897408
+    },
+    "inline": {
+      "runs": 3,
+      "medianBuildSeconds": 56.915640125,
+      "minimumBuildSeconds": 54.68453562499999,
+      "maximumBuildSeconds": 73.862848625,
+      "medianTotalSeconds": 92.04634125,
+      "sampledPeakRssBytes": 2613002240,
+      "logicalBytes": 2252786055,
+      "reportIds": [
+        "2026-10-09T10-27-49-980Z-47145",
+        "2026-10-09T10-29-34-769Z-47145",
+        "2026-10-09T10-30-57-761Z-47145"
+      ]
+    },
+    "optimized": {
+      "runs": 3,
+      "medianBuildSeconds": 30.002539375,
+      "minimumBuildSeconds": 26.62910325,
+      "maximumBuildSeconds": 44.205495416000005,
+      "medianTotalSeconds": 39.8553195,
+      "sampledPeakRssBytes": 2020147200,
+      "logicalBytes": 862594805,
+      "reportIds": [
+        "2026-10-09T10-33-27-349Z-61121",
+        "2026-10-09T10-34-08-040Z-61121",
+        "2026-10-09T10-35-00-318Z-61121"
+      ]
+    },
+    "comparison": {
+      "inlineToControlBuildRatio": 1.8970274286991082,
+      "inlineToControlTotalRatio": 2.3095120652589425,
+      "controlToInlineLogicalBytesRatio": 0.38290134257777975
+    },
+    "note": "Separate timing control, without changing matrix selection. Source, snapshot, input bytes, runtime, worker settings, and restored compiler cache are identical to inline3. OS background pressure/paging remains uncontrolled and is observed before/after each control run. Root out is now an optimized sample; a fresh full build is still required before upload.",
+    "inlineRuns": [
+      {
+        "reportId": "2026-10-09T10-27-49-980Z-47145",
+        "nextSeconds": 73.862848625,
+        "totalSeconds": 103.802548583,
+        "success": true
+      },
+      {
+        "reportId": "2026-10-09T10-29-34-769Z-47145",
+        "nextSeconds": 56.915640125,
+        "totalSeconds": 81.966996084,
+        "success": true
+      },
+      {
+        "reportId": "2026-10-09T10-30-57-761Z-47145",
+        "nextSeconds": 54.68453562499999,
+        "totalSeconds": 92.04634125,
+        "success": true
+      }
+    ],
+    "optimizedRuns": [
+      {
+        "reportId": "2026-10-09T10-33-27-349Z-61121",
+        "nextSeconds": 30.002539375,
+        "totalSeconds": 39.8553195,
+        "success": true
+      },
+      {
+        "reportId": "2026-10-09T10-34-08-040Z-61121",
+        "nextSeconds": 44.205495416000005,
+        "totalSeconds": 51.82053633300001,
+        "success": true
+      },
+      {
+        "reportId": "2026-10-09T10-35-00-318Z-61121",
+        "nextSeconds": 26.62910325,
+        "totalSeconds": 33.954306375,
+        "success": true
+      }
+    ],
+    "inlineMemory": [
+      {
+        "at": "2026-10-09T10:27:49.171Z",
+        "reason": "before-inline",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 29,
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 29%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3552.\nPages active:                            148662.\nPages inactive:                          139103.\nPages speculative:                         8287.\nPages throttled:                              0.\nPages wired down:                        251550.\nPages purgeable:                              0.\n\"Translation faults\":               15058387530.\nPages copy-on-write:                  357896750.\nPages zero filled:                   1992870861.\nPages reactivated:                   6079247517.\nPages purged:                         233509517.\nFile-backed pages:                       104142.\nAnonymous pages:                         191910.\nPages stored in compressor:             3640250.\nPages occupied by compressor:            443230.\nDecompressions:                      8777281313.\nCompressions:                        9131388482.\nPageins:                              227041104.\nPageouts:                               5575542.\nSwapins:                              534761605.\nSwapouts:                             548496521.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:29:33.836Z",
+        "reason": "after-inline-1",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 34,
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 34%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3704.\nPages active:                            171214.\nPages inactive:                          155007.\nPages speculative:                        15425.\nPages throttled:                              0.\nPages wired down:                        209121.\nPages purgeable:                              2.\n\"Translation faults\":               15074762575.\nPages copy-on-write:                  358045276.\nPages zero filled:                   1996156792.\nPages reactivated:                   6086695459.\nPages purged:                         233577508.\nFile-backed pages:                       128849.\nAnonymous pages:                         212797.\nPages stored in compressor:             3694682.\nPages occupied by compressor:            439821.\nDecompressions:                      8787064550.\nCompressions:                        9142200089.\nPageins:                              227696228.\nPageouts:                               5579588.\nSwapins:                              536437100.\nSwapouts:                             550312271.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:30:56.627Z",
+        "reason": "after-inline-2",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 28,
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 28%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4399.\nPages active:                            141852.\nPages inactive:                          129028.\nPages speculative:                        11880.\nPages throttled:                              0.\nPages wired down:                        278702.\nPages purgeable:                              2.\n\"Translation faults\":               15087302381.\nPages copy-on-write:                  358133323.\nPages zero filled:                   1998892232.\nPages reactivated:                   6092491817.\nPages purged:                         233622345.\nFile-backed pages:                       105665.\nAnonymous pages:                         177095.\nPages stored in compressor:             3670759.\nPages occupied by compressor:            428621.\nDecompressions:                      8794765358.\nCompressions:                        9150596755.\nPageins:                              228355907.\nPageouts:                               5581734.\nSwapins:                              537289666.\nSwapouts:                             551254010.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:32:29.909Z",
+        "reason": "after-inline-3",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 28,
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 28%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3586.\nPages active:                            141013.\nPages inactive:                          126792.\nPages speculative:                        12812.\nPages throttled:                              0.\nPages wired down:                        288539.\nPages purgeable:                              0.\n\"Translation faults\":               15102612400.\nPages copy-on-write:                  358295952.\nPages zero filled:                   2001900485.\nPages reactivated:                   6099109179.\nPages purged:                         233671959.\nFile-backed pages:                       104368.\nAnonymous pages:                         176249.\nPages stored in compressor:             3687824.\nPages occupied by compressor:            421737.\nDecompressions:                      8803914416.\nCompressions:                        9160627435.\nPageins:                              229049838.\nPageouts:                               5584909.\nSwapins:                              538399288.\nSwapouts:                             552464593.\n",
+            "stderr": ""
+          }
+        }
+      }
+    ],
+    "optimizedMemory": [
+      {
+        "at": "2026-10-09T10:33:26.852Z",
+        "reason": "before-control-1",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 29,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 3507,
+          "Pages active": 145009,
+          "Pages inactive": 141211,
+          "Pages speculative": 2995,
+          "Pages throttled": 0,
+          "Pages wired down": 285970,
+          "Pages purgeable": 0,
+          "\"Translation faults\"": 15109072059,
+          "Pages copy-on-write": 358357026,
+          "Pages zero filled": 2002321062,
+          "Pages reactivated": 6101712299,
+          "Pages purged": 233734023,
+          "File-backed pages": 112799,
+          "Anonymous pages": 176416,
+          "Pages stored in compressor": 3582875,
+          "Pages occupied by compressor": 415800,
+          "Decompressions": 8808623371,
+          "Compressions": 9165448376,
+          "Pageins": 229120582,
+          "Pageouts": 5586859,
+          "Swapins": 538769424,
+          "Swapouts": 552790439
+        },
+        "secondsSincePrior": null,
+        "deltasSincePrior": null,
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 29%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3507.\nPages active:                            145009.\nPages inactive:                          141211.\nPages speculative:                         2995.\nPages throttled:                              0.\nPages wired down:                        285970.\nPages purgeable:                              0.\n\"Translation faults\":               15109072059.\nPages copy-on-write:                  358357026.\nPages zero filled:                   2002321062.\nPages reactivated:                   6101712299.\nPages purged:                         233734023.\nFile-backed pages:                       112799.\nAnonymous pages:                         176416.\nPages stored in compressor:             3582875.\nPages occupied by compressor:            415800.\nDecompressions:                      8808623371.\nCompressions:                        9165448376.\nPageins:                              229120582.\nPageouts:                               5586859.\nSwapins:                              538769424.\nSwapouts:                             552790439.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:34:07.139Z",
+        "reason": "after-control-1",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 32,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 4474,
+          "Pages active": 161208,
+          "Pages inactive": 150928,
+          "Pages speculative": 9535,
+          "Pages throttled": 0,
+          "Pages wired down": 269988,
+          "Pages purgeable": 2,
+          "\"Translation faults\"": 15114904301,
+          "Pages copy-on-write": 358403187,
+          "Pages zero filled": 2003498304,
+          "Pages reactivated": 6104190486,
+          "Pages purged": 233749413,
+          "File-backed pages": 123960,
+          "Anonymous pages": 197711,
+          "Pages stored in compressor": 3575327,
+          "Pages occupied by compressor": 398300,
+          "Decompressions": 8812205595,
+          "Compressions": 9169335798,
+          "Pageins": 229246499,
+          "Pageouts": 5587996,
+          "Swapins": 539123456,
+          "Swapouts": 553202961
+        },
+        "secondsSincePrior": 40.287,
+        "deltasSincePrior": {
+          "Pageouts": 1137,
+          "Swapins": 354032,
+          "Swapouts": 412522,
+          "Compressions": 3887422,
+          "Decompressions": 3582224
+        },
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 32%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4474.\nPages active:                            161208.\nPages inactive:                          150928.\nPages speculative:                         9535.\nPages throttled:                              0.\nPages wired down:                        269988.\nPages purgeable:                              2.\n\"Translation faults\":               15114904301.\nPages copy-on-write:                  358403187.\nPages zero filled:                   2003498304.\nPages reactivated:                   6104190486.\nPages purged:                         233749413.\nFile-backed pages:                       123960.\nAnonymous pages:                         197711.\nPages stored in compressor:             3575327.\nPages occupied by compressor:            398300.\nDecompressions:                      8812205595.\nCompressions:                        9169335798.\nPageins:                              229246499.\nPageouts:                               5587996.\nSwapins:                              539123456.\nSwapouts:                             553202961.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:34:07.455Z",
+        "reason": "before-control-2",
+        "pressureLevel": 2,
+        "critical": false,
+        "freePercent": 34,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 3769,
+          "Pages active": 168704,
+          "Pages inactive": 161386,
+          "Pages speculative": 6690,
+          "Pages throttled": 0,
+          "Pages wired down": 263664,
+          "Pages purgeable": 0,
+          "\"Translation faults\"": 15114952596,
+          "Pages copy-on-write": 358404679,
+          "Pages zero filled": 2003502258,
+          "Pages reactivated": 6104201035,
+          "Pages purged": 233749659,
+          "File-backed pages": 129665,
+          "Anonymous pages": 207115,
+          "Pages stored in compressor": 3572334,
+          "Pages occupied by compressor": 390108,
+          "Decompressions": 8812237069,
+          "Compressions": 9169364438,
+          "Pageins": 229252170,
+          "Pageouts": 5587996,
+          "Swapins": 539124409,
+          "Swapouts": 553202961
+        },
+        "secondsSincePrior": 0.316,
+        "deltasSincePrior": {
+          "Pageouts": 0,
+          "Swapins": 953,
+          "Swapouts": 0,
+          "Compressions": 28640,
+          "Decompressions": 31474
+        },
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 34%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "2\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3769.\nPages active:                            168704.\nPages inactive:                          161386.\nPages speculative:                         6690.\nPages throttled:                              0.\nPages wired down:                        263664.\nPages purgeable:                              0.\n\"Translation faults\":               15114952596.\nPages copy-on-write:                  358404679.\nPages zero filled:                   2003502258.\nPages reactivated:                   6104201035.\nPages purged:                         233749659.\nFile-backed pages:                       129665.\nAnonymous pages:                         207115.\nPages stored in compressor:             3572334.\nPages occupied by compressor:            390108.\nDecompressions:                      8812237069.\nCompressions:                        9169364438.\nPageins:                              229252170.\nPageouts:                               5587996.\nSwapins:                              539124409.\nSwapouts:                             553202961.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:34:59.532Z",
+        "reason": "after-control-2",
+        "pressureLevel": 1,
+        "critical": false,
+        "freePercent": 38,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 4111,
+          "Pages active": 189026,
+          "Pages inactive": 180962,
+          "Pages speculative": 6719,
+          "Pages throttled": 0,
+          "Pages wired down": 277471,
+          "Pages purgeable": 6,
+          "\"Translation faults\"": 15123736672,
+          "Pages copy-on-write": 358468816,
+          "Pages zero filled": 2004947827,
+          "Pages reactivated": 6108101153,
+          "Pages purged": 233772056,
+          "File-backed pages": 140456,
+          "Anonymous pages": 236251,
+          "Pages stored in compressor": 3520628,
+          "Pages occupied by compressor": 336155,
+          "Decompressions": 8817748176,
+          "Compressions": 9175288355,
+          "Pageins": 229411942,
+          "Pageouts": 5589928,
+          "Swapins": 539737364,
+          "Swapouts": 553886324
+        },
+        "secondsSincePrior": 52.077,
+        "deltasSincePrior": {
+          "Pageouts": 1932,
+          "Swapins": 612955,
+          "Swapouts": 683363,
+          "Compressions": 5923917,
+          "Decompressions": 5511107
+        },
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 38%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "1\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4111.\nPages active:                            189026.\nPages inactive:                          180962.\nPages speculative:                         6719.\nPages throttled:                              0.\nPages wired down:                        277471.\nPages purgeable:                              6.\n\"Translation faults\":               15123736672.\nPages copy-on-write:                  358468816.\nPages zero filled:                   2004947827.\nPages reactivated:                   6108101153.\nPages purged:                         233772056.\nFile-backed pages:                       140456.\nAnonymous pages:                         236251.\nPages stored in compressor:             3520628.\nPages occupied by compressor:            336155.\nDecompressions:                      8817748176.\nCompressions:                        9175288355.\nPageins:                              229411942.\nPageouts:                               5589928.\nSwapins:                              539737364.\nSwapouts:                             553886324.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:34:59.823Z",
+        "reason": "before-control-3",
+        "pressureLevel": 1,
+        "critical": false,
+        "freePercent": 37,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 3669,
+          "Pages active": 183529,
+          "Pages inactive": 177758,
+          "Pages speculative": 4477,
+          "Pages throttled": 0,
+          "Pages wired down": 281459,
+          "Pages purgeable": 20,
+          "\"Translation faults\"": 15123800820,
+          "Pages copy-on-write": 358468918,
+          "Pages zero filled": 2004950299,
+          "Pages reactivated": 6108105944,
+          "Pages purged": 233772064,
+          "File-backed pages": 136332,
+          "Anonymous pages": 229432,
+          "Pages stored in compressor": 3523398,
+          "Pages occupied by compressor": 343478,
+          "Decompressions": 8817787259,
+          "Compressions": 9175330283,
+          "Pageins": 229417410,
+          "Pageouts": 5589935,
+          "Swapins": 539738208,
+          "Swapouts": 553886324
+        },
+        "secondsSincePrior": 0.291,
+        "deltasSincePrior": {
+          "Pageouts": 7,
+          "Swapins": 844,
+          "Swapouts": 0,
+          "Compressions": 41928,
+          "Decompressions": 39083
+        },
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 37%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "1\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                3669.\nPages active:                            183529.\nPages inactive:                          177758.\nPages speculative:                         4477.\nPages throttled:                              0.\nPages wired down:                        281459.\nPages purgeable:                             20.\n\"Translation faults\":               15123800820.\nPages copy-on-write:                  358468918.\nPages zero filled:                   2004950299.\nPages reactivated:                   6108105944.\nPages purged:                         233772064.\nFile-backed pages:                       136332.\nAnonymous pages:                         229432.\nPages stored in compressor:             3523398.\nPages occupied by compressor:            343478.\nDecompressions:                      8817787259.\nCompressions:                        9175330283.\nPageins:                              229417410.\nPageouts:                               5589935.\nSwapins:                              539738208.\nSwapouts:                             553886324.\n",
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "at": "2026-10-09T10:35:34.004Z",
+        "reason": "after-control-3",
+        "pressureLevel": 1,
+        "critical": false,
+        "freePercent": 38,
+        "pageSizeBytes": 16384,
+        "vmCounts": {
+          "Pages free": 4150,
+          "Pages active": 191217,
+          "Pages inactive": 181432,
+          "Pages speculative": 9224,
+          "Pages throttled": 0,
+          "Pages wired down": 281093,
+          "Pages purgeable": 194,
+          "\"Translation faults\"": 15128603261,
+          "Pages copy-on-write": 358510564,
+          "Pages zero filled": 2006122474,
+          "Pages reactivated": 6109968711,
+          "Pages purged": 233783087,
+          "File-backed pages": 143335,
+          "Anonymous pages": 238538,
+          "Pages stored in compressor": 3524588,
+          "Pages occupied by compressor": 327414,
+          "Decompressions": 8820533869,
+          "Compressions": 9178384412,
+          "Pageins": 229530610,
+          "Pageouts": 5591969,
+          "Swapins": 539952596,
+          "Swapouts": 554148541
+        },
+        "secondsSincePrior": 34.181,
+        "deltasSincePrior": {
+          "Pageouts": 2034,
+          "Swapins": 214388,
+          "Swapouts": 262217,
+          "Compressions": 3054129,
+          "Decompressions": 2746610
+        },
+        "commands": {
+          "memoryPressure": {
+            "status": 0,
+            "stdout": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 38%\n",
+            "stderr": ""
+          },
+          "severity": {
+            "status": 0,
+            "stdout": "1\n",
+            "stderr": ""
+          },
+          "vmStat": {
+            "status": 0,
+            "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4150.\nPages active:                            191217.\nPages inactive:                          181432.\nPages speculative:                         9224.\nPages throttled:                              0.\nPages wired down:                        281093.\nPages purgeable:                            194.\n\"Translation faults\":               15128603261.\nPages copy-on-write:                  358510564.\nPages zero filled:                   2006122474.\nPages reactivated:                   6109968711.\nPages purged:                         233783087.\nFile-backed pages:                       143335.\nAnonymous pages:                         238538.\nPages stored in compressor:             3524588.\nPages occupied by compressor:            327414.\nDecompressions:                      8820533869.\nCompressions:                        9178384412.\nPageins:                              229530610.\nPageouts:                               5591969.\nSwapins:                              539952596.\nSwapouts:                             554148541.\n",
+            "stderr": ""
+          }
+        }
+      }
+    ]
+  },
+  "sampleComparison": {
+    "success": true,
+    "baselineSnapshotId": "1ef72633049303262e34",
+    "optimizedSnapshotId": "1ef72633049303262e34",
+    "pages": 561,
+    "beforeBytes": 2618301835,
+    "afterBytes": 862594805,
+    "reductionPercent": 67.05518082486468,
+    "byType": {
+      "html": {
+        "before": {
+          "files": 1645,
+          "bytes": 672156210
+        },
+        "after": {
+          "files": 1645,
+          "bytes": 297727640
+        }
+      },
+      "txt": {
+        "before": {
+          "files": 2812,
+          "bytes": 1500301941
+        },
+        "after": {
+          "files": 2812,
+          "bytes": 486830429
+        }
+      },
+      "other": {
+        "before": {
+          "files": 1,
+          "bytes": 192
+        },
+        "after": {
+          "files": 1,
+          "bytes": 5786
+        }
+      },
+      "js": {
+        "before": {
+          "files": 35,
+          "bytes": 2010714
+        },
+        "after": {
+          "files": 35,
+          "bytes": 2011282
+        }
+      },
+      "css": {
+        "before": {
+          "files": 3,
+          "bytes": 127366
+        },
+        "after": {
+          "files": 3,
+          "bytes": 99951
+        }
+      },
+      "woff2": {
+        "before": {
+          "files": 1,
+          "bytes": 18040
+        },
+        "after": {
+          "files": 1,
+          "bytes": 18040
+        }
+      },
+      "ico": {
+        "before": {
+          "files": 2,
+          "bytes": 30172
+        },
+        "after": {
+          "files": 2,
+          "bytes": 30172
+        }
+      },
+      "png": {
+        "before": {
+          "files": 8,
+          "bytes": 398316
+        },
+        "after": {
+          "files": 8,
+          "bytes": 398316
+        }
+      },
+      "json": {
+        "before": {
+          "files": 596,
+          "bytes": 433287391
+        },
+        "after": {
+          "files": 510,
+          "bytes": 65502704
+        }
+      },
+      "xml": {
+        "before": {
+          "files": 5,
+          "bytes": 70700
+        },
+        "after": {
+          "files": 5,
+          "bytes": 69692
+        }
+      },
+      "svg": {
+        "before": {
+          "files": 10,
+          "bytes": 31555
+        },
+        "after": {
+          "files": 10,
+          "bytes": 31555
+        }
+      },
+      "jpg": {
+        "before": {
+          "files": 1,
+          "bytes": 39132
+        },
+        "after": {
+          "files": 1,
+          "bytes": 39132
+        }
+      },
+      "csv": {
+        "before": {
+          "files": 16,
+          "bytes": 9829710
+        },
+        "after": {
+          "files": 16,
+          "bytes": 9829710
+        }
+      },
+      "webmanifest": {
+        "before": {
+          "files": 1,
+          "bytes": 396
+        },
+        "after": {
+          "files": 1,
+          "bytes": 396
+        }
+      }
+    },
+    "htmlParityReport": "final-dedup-html-parity.json",
+    "browserFlow": {
+      "browser": "Codex In-app Browser; same browser for both flows; fresh origins/ports",
+      "phases": [
+        {
+          "name": "first-per",
+          "beforeBytes": 1551222,
+          "afterBytes": 606734,
+          "beforeRequests": 65,
+          "afterRequests": 32
+        },
+        {
+          "name": "same-stock-pbr",
+          "beforeBytes": 18899,
+          "afterBytes": 9052,
+          "beforeRequests": 3,
+          "afterRequests": 3
+        },
+        {
+          "name": "revisit-pbr",
+          "beforeBytes": 956741,
+          "afterBytes": 31782,
+          "beforeRequests": 35,
+          "afterRequests": 3
+        },
+        {
+          "name": "search-open-and-full-csv",
+          "beforeBytes": 0,
+          "afterBytes": 185776,
+          "beforeRequests": 0,
+          "afterRequests": 1
+        }
+      ],
+      "beforeTotal": 2526862,
+      "afterTotal": 833344,
+      "note": "Server-observed compressed response body bytes, excluding headers; search prefetched in baseline and fetched only on open after optimization. CSV creation adds no network traffic once history is loaded.",
+      "reductionPercent": 67.02059708840451
+    }
+  },
+  "verification": {
+    "basicChecks": {
+      "tests": {
+        "total": 225,
+        "pass": 225,
+        "fail": 0,
+        "log": "/private/tmp/cd4-static-unit-tests-final.log"
+      },
+      "lint": {
+        "errors": 28,
+        "warnings": 27,
+        "baselineErrors": 28,
+        "baselineWarnings": 27
+      },
+      "typecheck": {
+        "success": true,
+        "command": "pnpm typecheck",
+        "log": "/private/tmp/cd4-static-typecheck-final.log"
+      },
+      "finalToolingTests": {
+        "total": 17,
+        "pass": 17,
+        "fail": 0
+      },
+      "assetDedupTests": {
+        "total": 5,
+        "pass": 5,
+        "fail": 0
+      },
+      "checkedAt": "2026-10-09T09:58:11.126Z"
+    },
+    "fullInputParity": {
+      "version": 1,
+      "snapshotId": "9a12b656d3501f3efa7a",
+      "success": true,
+      "sourcePublications": {
+        "security_latest/krx-all": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "company_marketcap/krx-all": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/marketcap": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/bps": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/per": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/pbr": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/eps": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/div": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        "security_rank/krx-all/dps": {
+          "asOf": "2026-10-08",
+          "revision": "2"
+        }
+      },
+      "referenceDate": "2026-10-08",
+      "normalization": "Only createdAt/updatedAt audit timestamps normalize to ISO milliseconds, matching ORM Date precision; business dates, values and revisions remain exact.",
+      "checked": {
+        "securities": 40,
+        "companies": 12,
+        "detailMetrics": 280,
+        "rankingPages": 24,
+        "csvFiles": 8
+      },
+      "failures": [],
+      "routes": {
+        "expectedPages": 29731,
+        "actualPages": 29731,
+        "fullPlannedPages": 29731
+      },
+      "seconds": 82.086575209,
+      "databaseQueries": {
+        "total": 6478,
+        "phases": {
+          "publication-validation": 9,
+          "file-render": 0,
+          "live-detail-pages": 6261,
+          "live-ranking-pages": 168,
+          "live-csv": 40
+        },
+        "commands": {
+          "SELECT": 5500,
+          "BEGIN": 326,
+          "SET": 326,
+          "COMMIT": 326
+        },
+        "phaseSeconds": {
+          "bootstrap": 0.23471900000000004,
+          "publication-validation": 0.12622175000000901,
+          "file-render": 1.235488906999891,
+          "live-detail-pages": 77.40572071600006,
+          "live-ranking-pages": 2.8058300019999884,
+          "live-csv": 0.5130037500000472
+        },
+        "note": "Driver statement attempts, including transaction control; SQL text and parameters are never retained."
+      }
+    },
+    "fixedSampleHtml": {
+      "schemaVersion": 1,
+      "success": true,
+      "comparedAt": "2026-10-09T11:04:41.776Z",
+      "baselineSnapshotId": "1ef72633049303262e34",
+      "currentSnapshotId": "9a12b656d3501f3efa7a",
+      "routeCount": 561,
+      "differences": []
+    },
+    "publishedOutputCli": {
+      "success": true,
+      "snapshotId": "9a12b656d3501f3efa7a",
+      "checkedUrls": 124643,
+      "seconds": 187.253862959
+    },
+    "fullFileInventory": {
+      "version": 1,
+      "checkedAt": "2026-10-09T11:04:10.736Z",
+      "snapshotId": "9a12b656d3501f3efa7a",
+      "success": true,
+      "output": "out",
+      "files": 294187,
+      "expectedFiles": 294187,
+      "unexpected": [],
+      "privateFiles": [],
+      "obsoleteDottedNameAliases": [],
+      "securityAliasKeys": 12008,
+      "companyAliasKeys": 14185,
+      "rankingCsvStates": [
+        {
+          "key": "company-marketcap",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2666,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-marketcap",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2778,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-per",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 1546,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-pbr",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2514,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-eps",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 1546,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-bps",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2514,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-div",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2646,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        },
+        {
+          "key": "security-dps",
+          "state": "published",
+          "publishedCsv": true,
+          "totalCount": 2646,
+          "asOf": "2026-10-08",
+          "revision": "2"
+        }
+      ],
+      "note": "Independent final filename inventory audit. The full verifier separately checks all inventory hashes, generated URLs, canonical targets and HTTP responses."
+    },
+    "fullBrowser": {
+      "version": 1,
+      "success": true,
+      "verifiedAt": "2026-10-09T11:10:12.230Z",
+      "snapshotId": "9a12b656d3501f3efa7a",
+      "mode": "FULL",
+      "origin": "http://127.0.0.1:4173",
+      "method": "Actual Chrome browser via documented computer-use API. Staticout preview only; no application server, DB calls or source edits. Focused full-source linkage smoke supplements prior225tests/sample21broadchecks and final IAB gate.",
+      "fullOutput": {
+        "canonicalPages": 29731,
+        "sourceSecurities": 3004,
+        "sourceCompanies": 2745
+      },
+      "sampleBaseline": {
+        "snapshotId": "1ef72633049303262e34",
+        "manifest": "/Users/craigchoi/silla/cd4/.static-build/reports/sample-inline-manifest.json"
+      },
+      "outsideSampleRoutes": [
+        {
+          "route": "/security/KOSPI.010120/per/",
+          "code": "KOSPI.010120",
+          "absentFromSampleSecurityCodes": true
+        },
+        {
+          "route": "/company/KOSPI.010120/marketcap/",
+          "code": "KOSPI.010120",
+          "absentFromSampleCompanyCodes": true
+        }
+      ],
+      "checks": [
+        {
+          "id": "outside-sample-security",
+          "route": "/security/KOSPI.010120/per/",
+          "success": true,
+          "observed": {
+            "name": "LS ELECTRIC",
+            "per": "101.35",
+            "rank": 1434,
+            "price": "195500",
+            "date": "2026-10-08",
+            "chartSvgs": 3,
+            "annualRows": 2
+          }
+        },
+        {
+          "id": "period-filter",
+          "route": "/security/KOSPI.010120/per/?start=2026-10-01&end=2026-10-08",
+          "success": true,
+          "observed": {
+            "providedObservations": 5,
+            "mean": "107.206",
+            "min": "101.35",
+            "max": "112.75",
+            "officialPer": "101.35"
+          }
+        },
+        {
+          "id": "period-refresh",
+          "success": true,
+          "observed": {
+            "queryPreserved": true,
+            "providedObservations": 5,
+            "officialPer": "101.35"
+          }
+        },
+        {
+          "id": "period-back",
+          "success": true,
+          "observed": {
+            "restoredDefaultRoute": "/security/KOSPI.010120/per/",
+            "providedObservations": 307
+          }
+        },
+        {
+          "id": "outside-sample-company-link",
+          "route": "/company/KOSPI.010120/marketcap/",
+          "success": true,
+          "observed": {
+            "name": "LS ELECTRIC",
+            "marketcapExact": "29325000000000",
+            "rank": 22,
+            "representativePrice": "195500",
+            "annualRows": 2
+          },
+          "method": "Clicked the actual company aggregate link from the LSsecurity comparison section."
+        },
+        {
+          "id": "company-history-range",
+          "success": true,
+          "observed": {
+            "recentObservations": 62,
+            "fullObservations": 307
+          },
+          "method": "Clicked summarychart full-range button."
+        },
+        {
+          "id": "company-full-history-csv",
+          "success": true,
+          "observed": {
+            "uiStatus": "다운로드 시작"
+          },
+          "evidenceLimit": "Actual button handler ran; a fresh browser download file/path was not captured for this full smoke."
+        },
+        {
+          "id": "outside-sample-alias-query-hash",
+          "route": "/security/010120/per/?start=2026-10-01&end=2026-10-08#annual-data",
+          "success": true,
+          "observed": {
+            "canonicalUrl": "/security/KOSPI.010120/per/?start=2026-10-01&end=2026-10-08#annual-data",
+            "providedObservations": 5
+          }
+        },
+        {
+          "id": "filtered-security-full-history-csv",
+          "success": true,
+          "observed": {
+            "uiStatus": "다운로드 시작",
+            "label": "선택 기간과 관계없이 전체 제공 이력"
+          },
+          "evidenceLimit": "Full-history byte identity is covered by earlier actual IAB/download and source parity reports, not a newly captured full-smoke download file."
+        },
+        {
+          "id": "ranking-breadcrumb-link",
+          "route": "/per/",
+          "success": true,
+          "observed": {
+            "visibleRows": 20
+          }
+        },
+        {
+          "id": "ranking-csv",
+          "success": true,
+          "observed": {
+            "uiStatus": "다운로드 시작 · 전체 1,546행",
+            "httpStatus": 200,
+            "compressedResponseBodyBytes": 101268,
+            "asset": "/static-data/ranking/shared/b2/b210a22beebf668ee811.csv"
+          }
+        },
+        {
+          "id": "ranking-next-page-scope-revision",
+          "route": "/per/2/?revision=2&scope=krx-all",
+          "success": true,
+          "observed": {
+            "visibleRows": 100,
+            "firstRank": 21,
+            "firstName": "평화홀딩스",
+            "firstTicker": "010770",
+            "firstPer": "1.47"
+          }
+        },
+        {
+          "id": "ranking-invalid-scope",
+          "route": "/per/?scope=not-a-scope",
+          "success": true,
+          "observed": {
+            "unpublishedNotice": true,
+            "csvLinks": 0
+          }
+        },
+        {
+          "id": "ranking-stale-revision",
+          "route": "/per/?revision=999",
+          "success": true,
+          "observed": {
+            "notice": "자료가 갱신되었습니다",
+            "csvLinks": 0
+          }
+        },
+        {
+          "id": "404-direct",
+          "route": "/security/full-smoke-does-not-exist/per/",
+          "success": true,
+          "observed": {
+            "heading": "찾으시는 페이지가 없습니다",
+            "httpStatus": 404
+          }
+        },
+        {
+          "id": "404-refresh",
+          "route": "/security/full-smoke-does-not-exist/per/",
+          "success": true,
+          "observed": {
+            "heading": "찾으시는 페이지가 없습니다",
+            "httpStatus": 404
+          }
+        },
+        {
+          "id": "mobile-outside-sample-detail",
+          "route": "/security/KOSPI.010120/per/",
+          "success": true,
+          "observed": {
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "documentScrollWidth": 390,
+            "annual2026Expanded": true,
+            "annualCurrentPer": "101.35",
+            "basisDate": "2026-10-08",
+            "missingPreviousYearReason": true
+          },
+          "method": "Actual390px viewport verified from DOM; expanded annual accordion and visually inspected screenshot."
+        },
+        {
+          "id": "mobile-bottom-ranking-link",
+          "route": "/",
+          "success": true,
+          "observed": {
+            "viewportWidth": 390,
+            "documentScrollWidth": 390,
+            "visibleRows": 20,
+            "ranking": "기업 합산 시가총액"
+          }
+        },
+        {
+          "id": "mobile-representative-company",
+          "route": "/company/KOSPI.005930/marketcap/",
+          "success": true,
+          "observed": {
+            "company": "삼성전자",
+            "rank": 1,
+            "marketcapDisplay": "1687조원",
+            "representativePrice": "262000",
+            "documentScrollWidth": 390
+          },
+          "method": "Actual first ranking row link."
+        },
+        {
+          "id": "mobile-representative-bps",
+          "route": "/security/KOSPI.005930/bps/",
+          "success": true,
+          "observed": {
+            "rank": 190,
+            "bpsDisplay": "6.4만원",
+            "price": "262000",
+            "annualYears": [
+              2025
+            ],
+            "annualSourceValue": null,
+            "annualRule": "실제 연말",
+            "documentScrollWidth": 390
+          },
+          "method": "Actual metric link via keyboardEnter; verified annual source-missing display remains distinct from current published BPS."
+        }
+      ],
+      "currentGeneralCsvPublications": [
+        {
+          "manifest": "company-marketcap.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2666
+        },
+        {
+          "manifest": "security-bps.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2514
+        },
+        {
+          "manifest": "security-div.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2646
+        },
+        {
+          "manifest": "security-dps.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2646
+        },
+        {
+          "manifest": "security-eps.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 1546
+        },
+        {
+          "manifest": "security-marketcap.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2778
+        },
+        {
+          "manifest": "security-pbr.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 2514
+        },
+        {
+          "manifest": "security-per.json",
+          "state": "published",
+          "revision": "2",
+          "csvPresent": true,
+          "totalCount": 1546
+        }
+      ],
+      "console": {
+        "productErrors": [],
+        "productWarnings": [],
+        "method": "Read captured warn/error entries after ranking navigation and at the end of representative mobile flows; both returned empty."
+      },
+      "requests": {
+        "report": "/Users/craigchoi/silla/cd4/.static-build/reports/full-preview-traffic.json",
+        "requests": 108,
+        "responseBodyBytes": 1524755,
+        "sharedJsonRequests": 7,
+        "expected404": [
+          {
+            "id": 76,
+            "url": "/security/full-smoke-does-not-exist/per/",
+            "status": 404,
+            "finished": true
+          },
+          {
+            "id": 83,
+            "url": "/security/full-smoke-does-not-exist/per/",
+            "status": 404,
+            "finished": true
+          }
+        ],
+        "unexpectedHttpErrors": [],
+        "unfinishedResponses": [],
+        "classification": "Only the deliberate missing-route GET and refresh returned404. Every observed shared asset, RSC, JS/CSS and rankingCSV response succeeded. Local compressed bytes are not Netlify billing measurements."
+      },
+      "automationIssues": [
+        {
+          "classification": "Browser-control wait timeout; actual navigation completed",
+          "action": "Click 다음100개 from PERfirstpage",
+          "detail": "waitForURL10s timed out; subsequent browser URL+DOM showed exact expected /per/2/?revision=2&scope=krx-all and100rows startingrank21. No console errors, failed HTTP response or response duration over1s was recorded. No source change."
+        }
+      ],
+      "knownFutureLimit": "All8currentkrx-allgeneralCSV sources are published with assets. Future unpublished generalCSV HTTPstatus after Nextstaticexport is not asserted by this smoke; fixtureGET404alone does not prove hosted404.",
+      "cleanup": {
+        "createdChromeTab": "1580154274",
+        "closed": true,
+        "temporaryViewportReset": true,
+        "userTabsUntouched": true
+      },
+      "scopeLimits": [
+        "This focused smoke does not rerun the entire sample visual/regression suite. Root separately owns full DB/file parity, defaultHTMLfacts and CLI whole-output verification.",
+        "Company/detail CSV clicks reached actual download-start state. A new full-smoke download file was not captured; prior final IAB actual byte-exact PBR capture is recorded separately.",
+        "Current dataset has only krx-all ranking scopes. Invalidscope and matching/stalerevision behaviors were exercised; publishednondefaultscopes remain fixture-covered."
+      ]
+    },
+    "finalSampleBrowser": {
+      "success": true,
+      "checkedAt": "2026-10-09T10:03:49.844Z",
+      "firstVisitNoSearch": true,
+      "sameStockPricesReused": true,
+      "revisitNoHistoryRequests": true,
+      "searchExactlyOneRequest": true,
+      "csvActualDownload": "final-iab-csv-download.json",
+      "dashboardDefault": {
+        "count": "2,666",
+        "asOf": "2026-10-08",
+        "top": "삼성전자",
+        "csvEnabled": true
+      },
+      "dashboardRevisionMismatch": {
+        "revision": "999",
+        "heading": "자료가 갱신되었습니다",
+        "csvHidden": true
+      },
+      "consoleErrors": [],
+      "consoleWarnings": []
+    },
+    "actualCsvDownload": {
+      "success": true,
+      "browser": "Codex In-app Browser",
+      "path": "/Users/craigchoi/Downloads/KOSPI-475150-pbr-2026-10-08 (1).csv",
+      "bytes": 13471,
+      "sha256": "0afdfb3e5ee9f7b83c010886d7acb839ef0fe789b80077b158bcec01a8db4fc5",
+      "rows": 460,
+      "checkedAt": "2026-10-09T10:03:25.622Z"
+    },
+    "semanticReview": "final-plan-review.json"
+  },
+  "limitations": [
+    "RSS is sampled aggregate monitored Node child-process RSS. The orchestrating parent, native subprocesses and short peaks are not included; OS background paging was not controlled.",
+    "The fixed-sample size comparison is measured; no prior full-export size or time is claimed.",
+    "Browser bytes are local compressed response body bytes excluding headers, and are separate from Netlify CDN compression/cache/billing.",
+    "The current dataset publishes only krx-all scopes; non-default published scopes and unpublished/zero-row CSV cases have fixture integration coverage.",
+    "All eight current general CSV URLs are published. A GET404 fixture does not prove that a future unpublished CSV body exported as a static file will retain HTTP404 on the host.",
+    "Netlify upload, operating environment verification, daily scheduling and data freezing are outside this completed build task."
+  ],
+  "reproduction": [
+    "pnpm build:static",
+    "pnpm verify:static",
+    "pnpm preview:static"
+  ]
+}

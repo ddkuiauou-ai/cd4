@@ -1,3 +1,4 @@
+import { isStaticBuild } from '../static-build/server';
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { and, eq } from "drizzle-orm";
@@ -14,6 +15,7 @@ export type PublicationDTO = DataDTO<PublicationRow>;
 export type ReadDatabase = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function readSnapshot<Result>(read: (tx: ReadDatabase) => Promise<Result>): Promise<Result> {
+  if (isStaticBuild()) throw new Error("Database reads are forbidden during static page generation");
   return db.transaction(read, { isolationLevel: "repeatable read", accessMode: "read only" });
 }
 

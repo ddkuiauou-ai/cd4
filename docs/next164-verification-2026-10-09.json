@@ -1,0 +1,683 @@
+{
+  "checkedAt": "2026-10-09T16:33:14.554885+09:00",
+  "timezone": "Asia/Seoul",
+  "updates": [
+    {
+      "name": "@next/third-parties",
+      "from": "16.3.8",
+      "to": "16.4.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "from": "1.2.20",
+      "to": "1.2.21",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "from": "1.3.11",
+      "to": "1.3.12",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-collapsible",
+      "from": "1.1.20",
+      "to": "1.1.21",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "from": "1.1.23",
+      "to": "1.2.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "from": "2.1.24",
+      "to": "2.1.25",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "from": "1.1.16",
+      "to": "1.1.17",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-scroll-area",
+      "from": "1.2.18",
+      "to": "1.3.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "from": "2.3.7",
+      "to": "2.3.8",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "from": "1.1.15",
+      "to": "1.1.16",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-slider",
+      "from": "1.4.7",
+      "to": "1.5.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "from": "1.3.3",
+      "to": "1.4.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "from": "1.1.21",
+      "to": "1.1.22",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "from": "1.2.23",
+      "to": "1.2.24",
+      "group": "dependencies"
+    },
+    {
+      "name": "@radix-ui/react-tooltip",
+      "from": "1.2.16",
+      "to": "1.3.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "dotenv",
+      "from": "18.0.5",
+      "to": "18.0.6",
+      "group": "dependencies"
+    },
+    {
+      "name": "drizzle-orm",
+      "from": "0.45.3",
+      "to": "0.45.4",
+      "group": "dependencies"
+    },
+    {
+      "name": "lucide-react",
+      "from": "1.52.0",
+      "to": "1.54.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "next",
+      "from": "16.3.8",
+      "to": "16.4.0",
+      "group": "dependencies"
+    },
+    {
+      "name": "shadcn",
+      "from": "4.21.1",
+      "to": "4.21.4",
+      "group": "dependencies"
+    },
+    {
+      "name": "eslint-config-next",
+      "from": "16.3.8",
+      "to": "16.4.0",
+      "group": "devDependencies"
+    }
+  ],
+  "directDependencyCount": 52,
+  "heldMajorUpdates": [
+    {
+      "name": "eslint",
+      "current": "9.39.5",
+      "latest": "10.12.0",
+      "reason": "eslint-plugin-react 7.37.5 peer range ends at ^9.7"
+    },
+    {
+      "name": "typescript",
+      "current": "5.9.3",
+      "latest": "7.0.2",
+      "reason": "typescript-eslint 8.71.1 peer range is >=4.8.4 <6.1.0"
+    },
+    {
+      "name": "@types/node",
+      "current": "22.20.5",
+      "latest": "26.6.4",
+      "reason": "Keep types aligned with pinned Node 22.23.3 runtime; latest 22.x already installed"
+    }
+  ],
+  "validation": {
+    "baseline": {
+      "tests": {
+        "passed": 170,
+        "failed": 0,
+        "skipped": 0
+      },
+      "typecheck": "pass",
+      "lint": {
+        "errors": 28,
+        "warnings": 27
+      }
+    },
+    "final": {
+      "tests": {
+        "passed": 170,
+        "failed": 0,
+        "skipped": 0
+      },
+      "sitemapTests": {
+        "passed": 14,
+        "failed": 0
+      },
+      "typecheck": "pass",
+      "lint": {
+        "errors": 28,
+        "warnings": 27,
+        "identicalToBaseline": true
+      },
+      "frozenInstall": "pass",
+      "strictPeerDependencies": true,
+      "build": {
+        "result": "pass",
+        "bundler": "turbopack",
+        "output": "standalone",
+        "compileSeconds": 7.3,
+        "typescriptSeconds": 33.8,
+        "staticPages": 6
+      },
+      "http": {
+        "checkedAt": "2026-10-09T07:20:54.616Z",
+        "routes": [
+          {
+            "path": "/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 252559,
+            "ms": 472,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/dashboard/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 68248,
+            "ms": 457,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/marketcaps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 253102,
+            "ms": 459,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/marketcaps/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1072459,
+            "ms": 578,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/per/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 252798,
+            "ms": 429,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/marketcap/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 253872,
+            "ms": 442,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/marketcap/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1075814,
+            "ms": 451,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/per/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1069804,
+            "ms": 337,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/pbr/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 255246,
+            "ms": 332,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/eps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 246529,
+            "ms": 314,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/pbr/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1060998,
+            "ms": 337,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/eps/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1022784,
+            "ms": 339,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/bps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 246245,
+            "ms": 292,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/div/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 248275,
+            "ms": 282,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/bps/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1023706,
+            "ms": 301,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/div/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1068051,
+            "ms": 275,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/dps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 247195,
+            "ms": 130,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/dps/2/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1023162,
+            "ms": 212,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1065080,
+            "ms": 358,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/marketcap/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1130387,
+            "ms": 492,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/per/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1163275,
+            "ms": 498,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/pbr/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1163084,
+            "ms": 477,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/eps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1157205,
+            "ms": 484,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/bps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1156700,
+            "ms": 476,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/div/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1157134,
+            "ms": 483,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.005930/dps/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1158010,
+            "ms": 425,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/search-data.json",
+            "status": 200,
+            "expected": 200,
+            "bytes": 740937,
+            "ms": 20,
+            "contentType": "application/json",
+            "pass": true
+          },
+          {
+            "path": "/company/KOSPI.005930/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1065215,
+            "ms": 503,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/sitemap.xml",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1265,
+            "ms": 290,
+            "contentType": "application/xml",
+            "pass": true
+          },
+          {
+            "path": "/company/KOSPI.005930/marketcap/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 1184864,
+            "ms": 506,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/ranking-data/companies-marketcap.csv?revision=2&scope=krx-all",
+            "status": 200,
+            "expected": 200,
+            "bytes": 719086,
+            "ms": 206,
+            "contentType": "text/csv; charset=utf-8",
+            "pass": true
+          },
+          {
+            "path": "/sitemaps/core-0/sitemap.xml",
+            "status": 200,
+            "expected": 200,
+            "bytes": 22297,
+            "ms": 85,
+            "contentType": "application/xml",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/3smupj4kphg84.css",
+            "status": 200,
+            "expected": 200,
+            "bytes": 115504,
+            "ms": 5,
+            "contentType": "text/css; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/3lcx-_u-wvuhr.css",
+            "status": 200,
+            "expected": 200,
+            "bytes": 10562,
+            "ms": 2,
+            "contentType": "text/css; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/0jvvrbfpami7c.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 5582,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/41wd470x56s0w.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 32684,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/1rn93rtlbercv.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 229580,
+            "ms": 7,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/3bl-dj85ov12k.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 164384,
+            "ms": 6,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/turbopack-3-ry682tkyiqk.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 10030,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/0u3ldgwxytxj3.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 13818,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/03udu-aaxc8uu.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 23874,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/3r_r4tbbs5fz1.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 32834,
+            "ms": 1,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/1ltdhgyjv01oc.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 36955,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/2yehrvl3jpsmp.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 26539,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/0f934glmuck5b.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 24739,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/0ba6toshie0ex.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 98160,
+            "ms": 4,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/2ab1yermx4gzl.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 24044,
+            "ms": 2,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/27dvpg7ku3nix.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 10587,
+            "ms": 1,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+            "status": 200,
+            "expected": 200,
+            "bytes": 112594,
+            "ms": 4,
+            "contentType": "application/javascript; charset=UTF-8",
+            "pass": true
+          },
+          {
+            "path": "/security/KOSPI.999999/",
+            "status": 200,
+            "expected": 200,
+            "bytes": 43238,
+            "ms": 33,
+            "contentType": "text/html; charset=utf-8",
+            "pass": true
+          }
+        ],
+        "summary": {
+          "passed": 50,
+          "total": 50,
+          "contentPages": 30,
+          "staticAssets": 17
+        }
+      },
+      "browser": {
+        "development": [
+          "search dialog and Samsung security navigation",
+          "PER/BPS/DPS heatmap and distribution modules plus candlestick module loaded",
+          "DPS 3-year period selection",
+          "DPS full-history CSV download"
+        ],
+        "production": [
+          "home hydration",
+          "dark theme menu then restored system preference",
+          "company marketcap history switched from 62 recent observations to 244 full-history observations"
+        ],
+        "consoleErrors": 0
+      }
+    }
+  },
+  "config": {
+    "developmentOnly": {
+      "turbopackGc": true,
+      "turbopackLazyDynamicImports": true,
+      "turbopackPluginRuntimeStrategy": "workerThreads"
+    },
+    "production": "Existing stable defaults; generated production config verified. Compiler cache retained, cacheComponents false, childProcesses."
+  },
+  "performance": {
+    "releaseCacheReductionPercent": "20–25 (official Next 16.4 announcement, not a local measurement)",
+    "cacheSizeBefore": null,
+    "reasonNoComparison": "No .next directory existed before this task; no controlled before/after benchmark was performed."
+  },
+  "scope": "Local dependencies, development config, sitemap test compatibility and documentation. No deployment or DB writes."
+}

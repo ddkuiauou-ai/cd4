@@ -5,13 +5,12 @@ import { useEffect, useId, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import {
-    getRecentlyViewedSecurities,
     removeRecentlyViewedSecurity, clearRecentlyViewedSecurities, METRIC_CONFIG,
     formatMetricValue, getLastViewedMetric,
     getRecentSecurityPath, migrateRecentSecurityIdentities,
     getRecentSecuritiesSnapshot, subscribeRecentSecurities,
 } from "@/lib/recent-securities";
-import { loadSearchData } from './search-data';
+import { useSearchData } from './search-data';
 
 export function RecentSecuritiesSidebar({ currentSecCode }: { currentSecCode?: string }) {
     const snapshot = useSyncExternalStore(subscribeRecentSecurities, getRecentSecuritiesSnapshot, () => null);
@@ -19,11 +18,10 @@ export function RecentSecuritiesSidebar({ currentSecCode }: { currentSecCode?: s
     const mounted = snapshot !== null;
     const pathname = usePathname();
     const headingId = useId();
+    const { data: searchData, status: searchStatus } = useSearchData(false);
     useEffect(() => {
-        if (getRecentlyViewedSecurities().length) {
-            void loadSearchData().then(migrateRecentSecurityIdentities).catch(() => {});
-        }
-    }, [pathname]);
+        if (searchStatus === 'success') migrateRecentSecurityIdentities(searchData);
+    }, [pathname, searchData, searchStatus]);
     const displaySecurities = securities;
 
     return (
@@ -40,7 +38,7 @@ export function RecentSecuritiesSidebar({ currentSecCode }: { currentSecCode?: s
                         const metric = getLastViewedMetric(security);
                         const value = security.metrics[metric]?.value ?? null;
                         return <li key={security.secCode} className="flex items-center">
-                            <Link href={getRecentSecurityPath(security)}
+                            <Link href={getRecentSecurityPath(security)} prefetch={false}
                                 aria-current={security.secCode === currentSecCode || security.securityId === currentSecCode ? 'page' : undefined}
                                 className="min-w-0 flex-1 px-3 py-3 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                                 <span className="block truncate text-sm font-medium">{security.korName || security.name}</span>

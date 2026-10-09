@@ -3,7 +3,10 @@ import postgres from "postgres";
 import * as schema from "@/db/schema-postgres";
 import { getPostgresConnection } from "./connection";
 
-const connection = getPostgresConnection(process.env);
+const staticRendering = process.env.NEXT_OUTPUT_MODE === "export" && process.env.STATIC_PREPARING !== "1";
+const connection = staticRendering
+  ? { host: "127.0.0.1", port: 1, user: "static-render-no-db", password: "", database: "unused", ssl: false as const }
+  : getPostgresConnection(process.env);
 
 // Postgres 클라이언트 초기화 (병렬 빌드 최적화)
 const connectionOptions = {

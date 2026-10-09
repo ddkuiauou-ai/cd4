@@ -1,3 +1,4 @@
+import { isStaticBuild, getStaticRankingPage, getStaticRankingManifest } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
@@ -62,10 +63,11 @@ export function getCompanyMarketcapRankingFilter(publication: PublicationRow) {
 }
 
 export async function countCompanyMarketcaps() {
+  if (isStaticBuild()) return getStaticRankingManifest("marketcap", "company").scopes["krx-all"]?.totalCount ?? 0;
   return readSnapshot(async (tx) => (await readPublication(tx, COMPANY_PUBLICATION_KEY))?.includedCount ?? 0);
 }
 
-export async function getCompanyRankingPage(page: number, expectedRevision?: string | null) {
+async function getLiveCompanyRankingPage(page: number, expectedRevision?: string | null) {
   return readSnapshot(async (tx) => {
     const publication = await readPublication(tx, COMPANY_PUBLICATION_KEY);
     const status = publicationState(publication, expectedRevision);
@@ -166,3 +168,8 @@ export async function getCompanyMarketCapPageData(rank: number) {
   });
 }
 export const getMarketCapPageData = getCompanyMarketCapPageData;
+
+export async function getCompanyRankingPage(page: number, expectedRevision?: string | null) {
+  if (isStaticBuild()) return getStaticRankingPage<Awaited<ReturnType<typeof getLiveCompanyRankingPage>>>("marketcap", "company", page, "krx-all", expectedRevision);
+  return getLiveCompanyRankingPage(page, expectedRevision);
+}

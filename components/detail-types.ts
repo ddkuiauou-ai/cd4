@@ -23,5 +23,18 @@ export interface DetailSecurityRow {
     dps?: number | string | null;
     prices?: Array<{ close: number | string | null; rate?: number | null; date?: Date | string | null }>;
 }
-export type DetailCompanyData = CompanyMarketcapAggregated | null | undefined;
+export type DetailCorporation = Pick<CompanyMarketcapAggregated['company'], 'name' | 'korName' | 'logo' | 'industry' | 'establishedDate' | 'homepage'>;
+export type DetailPublication = Pick<NonNullable<CompanyMarketcapAggregated['publication']>, 'asOf' | 'revision' | 'scopeKey'>;
+type CompanyMember = CompanyMarketcapAggregated['securities'][number];
+export type DetailCompanyView = Pick<CompanyMarketcapAggregated,
+    'companyId' | 'companyName' | 'companyKorName' | 'totalMarketcap' | 'totalMarketcapDate' | 'marketcapCompleteness'
+    | 'state' | 'routeCode' | 'compositionComplete' | 'compositionReason' | 'compositionObservedCount' | 'compositionTargetCount'
+    | 'aggregatedHistory' | 'registeredHistory'> & {
+    company: DetailCorporation;
+    publication: DetailPublication | null;
+    securities: Array<Omit<CompanyMember, 'marketcapHistory'> & {
+        marketcapHistory: Array<Pick<CompanyMember['marketcapHistory'][number], 'date' | 'marketcap' | 'securityId'>>;
+    }>;
+};
+export type DetailCompanyData = DetailCompanyView | null | undefined;
 export type DetailRanking = { currentRank: number | null; priorRank: number | null; rankChange: number | null; value: number | string | null } | null;

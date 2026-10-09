@@ -4,7 +4,8 @@ import { useState, type MouseEvent } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { hasCompanyRankingCsvChanges, readRankingCsvResponseMetadata, serializeCsvRows, type RankingCsvExpectedRow } from "@/lib/csv/ranking";
+import { hasCompanyRankingCsvChanges, readRankingCsvMetadata, readRankingCsvResponseMetadata, serializeCsvRows, type RankingCsvExpectedRow } from "@/lib/csv/ranking";
+import type { StaticCsvSource } from "@/lib/static-build/types";
 import {
   getRankingDownloadFilename,
   getRankingDownloadUrl,
@@ -38,18 +39,19 @@ export interface CsvDownloadButtonProps {
   revision?: string | null;
   scopeKey?: string;
   refreshHref?: string;
+  staticSource?: StaticCsvSource;
 }
 
 export function CsvDownloadButton({
   data, filename = "data.csv", className, label = "CSV 다운로드", scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
-  revision, scopeKey = "krx-all", refreshHref,
+  revision, scopeKey = "krx-all", refreshHref, staticSource,
 }: CsvDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [message, setMessage] = useState("");
   const [hasError, setHasError] = useState(false);
   const [hasNewBasis, setHasNewBasis] = useState(false);
   const isRanking = scope !== undefined && metric !== undefined;
-  const href = isRanking ? getRankingDownloadUrl(scope, metric, { revision, scopeKey }) : undefined;
+  const href = isRanking ? staticSource?.url ?? getRankingDownloadUrl(scope, metric, { revision, scopeKey }) : undefined;
 
   const handleRankingDownload = async (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -59,7 +61,7 @@ export function CsvDownloadButton({
     setHasNewBasis(false);
     setMessage("전체 순위 CSV를 준비하고 있어요.");
     try {
-      const response = await fetch(href, { cache: "no-store" });
+      const response = await fetch(href, { cache: staticSource ? "force-cache" : "no-store" });
       if (response.status === 409) {
         setHasError(true); setHasNewBasis(true); setMessage("순위 자료가 갱신되었습니다. 최신 자료를 확인한 뒤 다시 내려받아 주세요."); return;
       }
@@ -68,7 +70,11 @@ export function CsvDownloadButton({
       }
       if (!response.ok) throw new Error("CSV 요청에 실패했습니다.");
       const csv = await response.text();
-      const metadata = readRankingCsvResponseMetadata(csv, response.headers);
+      const metadata = staticSource ? readRankingCsvMetadata(csv, staticSource.metadata) : readRankingCsvResponseMetadata(csv, response.headers);
+      if (staticSource && (Object.keys(staticSource.metadata) as (keyof typeof metadata)[])
+        .some(key => metadata[key] !== staticSource.metadata[key])) {
+        throw new Error("정적 순위 파일의 공개 기준이 일치하지 않습니다.");
+      }
       if (metadata.scope !== scope || metadata.metric !== metric || metadata.scopeKey !== scopeKey) {
         throw new Error("요청한 지표와 파일의 범위가 일치하지 않습니다.");
       }

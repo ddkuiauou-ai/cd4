@@ -6,10 +6,10 @@ import { formatNumber, formatDate } from "@/lib/utils";
 import { validComposition } from '@/lib/detail-presentation';
 import { formatBusinessValue } from '@/lib/business-analysis';
 import ChartPieMarketcap from "@/components/chart-pie-marketcap";
-import type { CompanyMarketcapAggregated } from "@/lib/data/company";
+import type { DetailCompanyView } from './detail-types';
 
 interface CardCompanyMarketcapProps {
-    data: CompanyMarketcapAggregated;
+    data: DetailCompanyView;
     market?: string;
     selectedType?: string; // 🎯 파이 차트 어노테이션을 위한 선택 타입
     selectedSecurityId?: string;
