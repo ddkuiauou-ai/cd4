@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-14",
+  "status": "pending-user-review",
+  "tool": "built-in image_gen.imagegen",
+  "scope": "05–08 공통 상세 레이아웃 이미지",
+  "approved_navigation": "06 constituent →08 constituent marketcap",
+  "mobile_entity_visibility": "always visible",
+  "selected": [
+    {
+      "id": "05-company-basic",
+      "filename": "05-company-basic-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png.json",
+      "limitations": [
+        "PC 보조 영역의 폭은 기준 이미지와 완전히 같은 픽셀값은 아님"
+      ],
+      "visual_reviewed": true,
+      "functional_validation": false,
+      "product_code_changed": false
+    },
+    {
+      "id": "06-company-marketcap",
+      "filename": "06-company-marketcap-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png.json",
+      "limitations": [],
+      "visual_reviewed": true,
+      "functional_validation": false,
+      "product_code_changed": false
+    },
+    {
+      "id": "07-security-basic",
+      "filename": "07-security-basic-layout.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png.json",
+      "limitations": [
+        "모바일 보통주 버튼의 종목코드가 005935로 그려진 오차. 올바른 코드는 005930이며 제목/PC/비교표는 005930",
+        "오른쪽 페이지 안내가 지표 링크를 반복하는 잔여 표현"
+      ],
+      "visual_reviewed": true,
+      "functional_validation": false,
+      "product_code_changed": false
+    },
+    {
+      "id": "08-security-marketcap",
+      "filename": "08-security-marketcap-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png.json",
+      "limitations": [
+        "PC 최근 본 목록의 번호 표시와 보조 영역 폭 차이가 남음"
+      ],
+      "visual_reviewed": true,
+      "functional_validation": false,
+      "product_code_changed": false
+    }
+  ],
+  "originals_preserved": true
+}

@@ -1,6 +1,7 @@
 import { isStaticBuild, getStaticSecurityDetail, getStaticCompanyDetail } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import {filterListingRows,listingContains} from "../security-lifecycle";
 import { toDataDTO } from "./dto";
 import { readCompanyAggregatedMarketcap, getCompanyMarketcapRankingFilter, representativeSecurityOrder } from "./company";
 import { readCompanySecurities, readSecurityByCode } from "./security";
@@ -13,22 +14,23 @@ const inWindow = <Row extends { date: string }>(rows: Row[], start?: string, end
   rows.filter(row => (!start || row.date >= start) && (!end || row.date <= end));
 
 /** Official snapshots, source histories, membership and neighbors share one DB snapshot. */
-function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string) {
+function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string, periodId?: string) {
   historyRange(start, end);
   return readSnapshot(async tx => {
-    const security = await readSecurityByCode(tx, code);
+    const security = await readSecurityByCode(tx, code, periodId);
     if (!security) return null;
-    const company = security.companyId ? await readCompanyAggregatedMarketcap(tx, security.companyId) : null;
-    const companySecs = security.companyId ? await readCompanySecurities(tx, security.companyId) : [];
-    const ranking = metric === "price" || metric === "shares" ? null
+    const company = !security.historicalPeriod && security.companyId ? await readCompanyAggregatedMarketcap(tx, security.companyId) : null;
+    const companySecs = !security.historicalPeriod && security.companyId ? await readCompanySecurities(tx, security.companyId) : [];
+    const candidateRanking = security.historicalPeriod || metric === "price" || metric === "shares" ? null
       : await readSecurityMetricDetailRanking(tx, security.securityId, metric);
+    const ranking=candidateRanking && listingContains(security.selectedPeriod,candidateRanking.rankDate) && (candidateRanking.valueObservedAt == null || listingContains(security.selectedPeriod,candidateRanking.valueObservedAt)) ? candidateRanking : null;
     const neighbors = ranking?.currentRank != null && metric !== "price" && metric !== "shares"
       ? await readSecurityMetricNeighbors(tx, ranking.currentRank, metric, ranking.rankDate, ranking.publication?.revision) : [];
     const priceHistory = security.prices.toReversed();
     const history = metric === "price" ? inWindow(priceHistory, start, end)
       : metric === "marketcap" || metric === "shares" ? inWindow(security.marketcaps, start, end)
-      : await readMetricsHistory(tx, security.securityId, start, end ?? security.publication?.asOf);
-    return { security, company, companySecs, ranking, neighbors, history, priceHistory };
+      : await readMetricsHistory(tx, security.securityId, start, end ?? security.publication?.asOf, security.selectedPeriod ?? undefined);
+    return { security, company, companySecs, ranking, neighbors, history:filterListingRows<{date:string}>(history,security.selectedPeriod), priceHistory };
   });
 }
 
@@ -72,10 +74,10 @@ function getLiveCompanyDetailSnapshot(code: string, start?: string, end?: string
   });
 }
 
-export function getSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string) {
+export function getSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string, periodId?: string) {
   historyRange(start, end);
-  if (isStaticBuild()) return Promise.resolve(getStaticSecurityDetail<Awaited<ReturnType<typeof getLiveSecurityDetailSnapshot>>>(code, metric, start, end));
-  return getLiveSecurityDetailSnapshot(code, metric, start, end);
+  if (isStaticBuild()) return Promise.resolve(getStaticSecurityDetail<Awaited<ReturnType<typeof getLiveSecurityDetailSnapshot>>>(code, metric, start, end, periodId));
+  return getLiveSecurityDetailSnapshot(code, metric, start, end, periodId);
 }
 export function getCompanyDetailSnapshot(code: string, start?: string, end?: string) {
   historyRange(start, end);

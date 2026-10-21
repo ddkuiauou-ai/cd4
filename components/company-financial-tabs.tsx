@@ -6,28 +6,35 @@ import { metricItems } from "@/lib/metric-navigation";
 import { cn } from "@/lib/utils";
 import { companyPath, securityPath, type CompanyRouteIdentity, type SecurityRouteIdentity } from "@/lib/entity-paths";
 
-export function CompanyFinancialTabs({ secCode, security, company, className }: {
+export function CompanyFinancialTabs({ secCode, security, company, className, periodId, start, end }: {
     secCode?: string;
     security?: SecurityRouteIdentity;
     company?: CompanyRouteIdentity;
     className?: string;
+    periodId?: string;
+    start?: string;
+    end?: string;
 }) {
-    const pathname = usePathname();
+    const pathname = usePathname().replace(/\/$/, '');
     const companyContext = pathname.startsWith('/company/');
-    const currentMetric = pathname.split('/').filter(Boolean).at(-1);
-    return <nav aria-label="이 종목의 투자 지표" className={cn('detail-metric-nav flex w-full overflow-x-auto border-b border-border', className)}>
-        {metricItems.map(({ key: metric, label }) => {
-            const companyMetric = metric === 'marketcap' && companyContext;
-            const href = companyMetric && company ? companyPath(company, metric)
-                : security ? securityPath(security, metric)
-                : secCode ? `/${companyMetric ? 'company' : 'security'}/${encodeURIComponent(secCode)}/${metric}` : null;
-            const active = currentMetric === metric;
-            if (!href) return <span key={metric} className="shrink-0 px-4 py-3 text-sm text-muted-foreground" title="연결된 종목이 없습니다">{label}</span>;
-            return <Link key={metric} href={href} prefetch={false} aria-current={active ? 'page' : undefined}
-                className={cn('shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors',
-                    active ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
-                {label}
-            </Link>;
+    const base = companyContext
+        ? company ? companyPath(company) : secCode ? `/company/${encodeURIComponent(secCode)}` : null
+        : security ? securityPath(security) : secCode ? `/security/${encodeURIComponent(secCode)}` : null;
+    const items = companyContext
+        ? [{key: 'basic', label: '기업 정보'}, {key: 'marketcap', label: '기업 합산 시총'}]
+        : [{key: 'basic', label: '기본 정보'}, ...metricItems];
+    return <nav aria-label={companyContext ? '기업 상세 페이지' : '종목 상세 페이지'}
+        className={cn('detail-metric-nav', companyContext && 'detail-company-nav', className)}>
+        {items.map(({key, label}) => {
+            const baseHref = base ? `${base}${key === 'basic' ? '' : `/${key}`}` : null;
+            const query = new URLSearchParams();
+            if (start) query.set('start', start);
+            if (end) query.set('end', end);
+            if (periodId && !companyContext) query.set('period', periodId);
+            const href = baseHref && query.size ? `${baseHref}?${query}` : baseHref;
+            const active = pathname === baseHref;
+            if (!href) return <span key={key} aria-disabled="true" title="연결된 대상이 없습니다">{label}</span>;
+            return <Link key={key} href={href} prefetch={false} aria-current={active ? 'page' : undefined}>{label}</Link>;
         })}
     </nav>;
 }

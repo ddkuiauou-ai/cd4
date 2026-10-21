@@ -1,0 +1,17 @@
+{
+  "id": "05-company-basic",
+  "tool": "built-in image_gen.imagegen",
+  "created_on": "2026-10-14",
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-d8dd275c-e07b-471d-b087-9c071a75649c.png",
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png",
+  "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.prompt.txt",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "status": "corrected-awaiting-confirmation",
+  "product_code_changed": false,
+  "prompt": "Edit Image1 companyBASICapprovalboard, Image2 shared06MASTER is the exact outer page geometry. SINGLE structural correction pass: match Image2desktop MAIN/RIGHTRAIL widths andTOPSTART. Currentrailtoo wideandstartsbesideselectorhalfwaydown. Make MAINendnearx944andRAILstartnearx959insidethe1120pxdesktopviewport, railwidthabout165–185px andtopimmediatelyunderheadernearidentity. Reflow mainfacts/comparisonwithoutchangingtheircontent. PC targetselector3siblingsfillMAINwidthonly andbelowidentity; companyTABSbelowselector thenbody. RAILunnumberedrecentnames,조회기준,actualbodycontents기업정보/같은기업종목비교/자료기준; keepsecondarysourceblockcompact,notonemainchildgiantcard.\nKeep enterprise549CURRENTgold +common495 +pref54, correct companytabs 기업정보 FIRST active /기업합산시총 second. Mobile currentlycorrectaggregatefullrow+common/pref2cols ALLvisible; preserveexactly. Preserve common/pref기본정보보기 buttons,aggregate합산시총보기, companybasicfactsSamsungElectronics/업종예시/설립일—/홈페이지,onecomparisoncommon495price74000+0.80,pref54price54000,total549,shares90.2/9.8,pricegap20000neutral. No duplicatefullconstituenttable, nofakeannualchartonbasicpage. Match themeiconneutraldarkink ofMASTER, notorange.\n1536x1024viewporttopaligned,fullbrand궁서풍serif,white,thinredrules,goldselection;mobiletopbrand+menu/search+recent+theme;bottom메인랭킹(active)검색. Preserve logicalorderidentity→targets→companytabs→companyfacts/compare. No exteriorboardtitle/labels.",
+  "initial_image": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic.png",
+  "correction_round": 1
+}

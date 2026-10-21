@@ -1,6 +1,8 @@
 import { isStaticBuild, getStaticRankingPage, getStaticRankingManifest } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, or } from "drizzle-orm";
+import { filterListingRows, isolateListingValues,listingContains, nameForListingPeriod, selectListingPeriod } from "../security-lifecycle";
+import { readSecurityLifecycles } from "./security-lifecycle";
 import { businessDate, toDataDTO } from "./dto";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { currentCompany, representativeSecurityOrder } from "./company";
@@ -89,7 +91,7 @@ export function currentSecurity<Row extends typeof schema.security.$inferSelect>
 }
 
 /** Stable security ID is preferred. market.ticker/name aliases must have exactly one match. */
-export async function readSecurityByCode(tx: ReadDatabase, code: string) {
+export async function readSecurityByCode(tx: ReadDatabase, code: string, periodId?: string) {
   if (!code) return null;
   let decoded: string;
   try { decoded = decodeURIComponent(code); } catch { return null; }
@@ -111,16 +113,29 @@ export async function readSecurityByCode(tx: ReadDatabase, code: string) {
   const companyPublication = row.company ? await readPublication(tx, COMPANY_PUBLICATION_KEY) : null;
   const safeRow = { ...currentSecurity(row, publication), company: row.company ? currentCompany(row.company, companyPublication) : null };
   const asOf = publication ? businessDate(publication.asOf)! : undefined;
-  const prices = await readPriceHistory(tx, [row.securityId], undefined, asOf);
-  const marketcaps = await readMarketcapHistory(tx, [row.securityId], undefined, asOf);
+  const lifecycle = await readSecurityLifecycles(tx,[row.securityId]);
+  const selectedPeriod = selectListingPeriod(lifecycle.periods,periodId);
+  if (periodId && !selectedPeriod) return null;
+  const latestPeriod = selectListingPeriod(lifecycle.periods);
+  const historicalPeriod = Boolean(selectedPeriod && latestPeriod && selectedPeriod.periodId !== latestPeriod.periodId);
+  const periodEnd = historicalPeriod ? undefined : asOf;
+  const [prices,marketcaps]=await Promise.all([
+    readPriceHistory(tx,[row.securityId],undefined,periodEnd,selectedPeriod ?? undefined),
+    readMarketcapHistory(tx,[row.securityId],undefined,periodEnd,selectedPeriod ?? undefined),
+  ]);
   const routeCodes = await readRouteCodes(tx);
-  return { ...toDataDTO(safeRow), prices: prices.toReversed(), marketcaps,
+  const values = isolateListingValues(toDataDTO(safeRow),selectedPeriod,historicalPeriod);
+  const historicalName = nameForListingPeriod(row.korName || row.name,lifecycle.events,selectedPeriod);
+  return { ...values, korName: historicalPeriod ? historicalName : values.korName,
+    exchange: historicalPeriod ? selectedPeriod?.displayExchange ?? values.exchange : values.exchange,
+    prices: filterListingRows(prices,selectedPeriod).toReversed(), marketcaps:filterListingRows(marketcaps,selectedPeriod),
+    listingPeriods:lifecycle.periods, lifecycleEvents:lifecycle.events, selectedPeriod, historicalPeriod,
     routeCode: routeCodes.get(row.securityId) ?? null,
-    publication: current && publication ? toDataDTO(publication) : null,
-    state: current ? "published" as const : "unpublished" as const };
+    publication: current && !historicalPeriod && publication && listingContains(selectedPeriod,asOf) ? toDataDTO(publication) : null,
+    state: current && !historicalPeriod && listingContains(selectedPeriod,asOf) ? "published" as const : "unpublished" as const };
 }
 
-export const getSecurityByCode = (code: string) => readSnapshot(tx => readSecurityByCode(tx, code));
+export const getSecurityByCode = (code: string, periodId?: string) => readSnapshot(tx => readSecurityByCode(tx, code, periodId));
 
 export async function readCompanySecurities(tx: ReadDatabase, companyId: string) {
   if (!companyId) return [];

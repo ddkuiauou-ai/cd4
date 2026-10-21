@@ -22,6 +22,20 @@
       "when": 1791317406439,
       "tag": "0002_simplify_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791856578999,
+      "tag": "0003_security_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791860758000,
+      "tag": "0004_stockcodename_security_lookup",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,122 @@
+[
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 0,
+    "snippet": "border-bottom rgb(189, 43, 48) on header \"천하제일 단타대회 · 화면 이미지 검토2026.10.13 정리본 · 검토\" is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "rgb(189, 43, 48)"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "text color rgb(20, 32, 52) on h1 \"천하제일 단타대회 · 화면 이미지 검토\" is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "rgb(20, 32, 52)"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "text color rgb(139, 101, 20) on span \"01\" is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "rgb(139, 101, 20)"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 0,
+    "snippet": "text color rgb(78, 89, 105) on p \"/dashboard\" is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "rgb(78, 89, 105)"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "Undocumented color #155cc4 is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "#155cc4"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "Undocumented color #f4dc92 is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "#f4dc92"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "Undocumented color #fbf2d7 is outside DESIGN.md colors",
+    "advisory": true,
+    "ignoreValue": "#fbf2d7"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "font-size: clamp(26px,3vw,38px) has fluid endpoint 38px off the DESIGN.md type ramp",
+    "advisory": true,
+    "ignoreValue": "38px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "font-size: 17px is off the DESIGN.md type ramp",
+    "advisory": true,
+    "ignoreValue": "17px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "line": 4,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "advisory": true,
+    "ignoreValue": "13px"
+  }
+]

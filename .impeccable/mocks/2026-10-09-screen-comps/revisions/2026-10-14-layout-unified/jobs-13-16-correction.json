@@ -1,0 +1,50 @@
+{
+  "correction_round": 1,
+  "jobs": [
+    {
+      "id": "13-detail-div",
+      "title": "배당수익률 상세",
+      "filename": "13-detail-div-v2.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. ONE targeted correction batch to image1. Image2 is the common geometry/style master only; do NOT copy its aggregate-selected context. Keep landscape1536x1024,desktop LEFT1120/mobile RIGHT360,top-aligned,no outside titles. Fix ALL following:\n1 Desktop must have MASTER'S supporting RIGHT RAIL approximately190–200px WIDE inside the1120px desktop, starting below header and beside identity. Reflow existing main content to approximately900px rather than deleting rail. Rail recent list UNNUMBERED; basis and actual contents below, no metric menu.\n2 This is INDIVIDUAL 삼성전자 COMMON005930 KOSPI DIV, not enterprise. Both views: aggregate549조 button WHITE and no현재; COMMON삼성전자495조 ONLY pale GOLD+현재; preferred54조 WHITE. Mobile aggregate fullrow and common/preferred2equal columns MUST stay. Stock button labels say \"배당수익률 보기\", not \"종목 시총 보기\", because switching stocks preserves DIV. Aggregate link remains explicit기업 합산 시총.\n3 Preserve fixed8tab order and activeDIV7th, mobile2x4, allvisible. Change780위 fromRED to dark neutral ink. Absolute74000원,2.00%,2.74% stay neutral. Only signedprice+0.80% red.\n4 Current2.00% is \"현재 제공값\". Only chart aggregation is \"제공 관측의 평균\"; remove the bottom sentence that defines ALL yield/current as an average. Keep formula1480/74000=2%. Keep fallingLINE2.54→2.35→2.14→2.00,월간/연간/기간직접지정 and nofill. Correct displayed price-history samples to 2026.07.08=58,303원,08.08=63,087원,09.08=69,067원,10.08=74,000원 so synthetic yield is coherent. Preserve lower records→CSV→basis→adjacent rank.\nPreserve all correct shared chrome,B style,synthetic labels and actualSamsung-official-value disclaimer. Never corporateDIV.",
+      "correction_round": 1
+    },
+    {
+      "id": "14-detail-dps",
+      "title": "주당배당금 상세",
+      "filename": "14-detail-dps-v2.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. ONE targeted correction batch to image1; image2 is common geometric/style master, NOT the selected entity. Preserve1536x1024 desktopleft1120/mobile right360top-aligned,nooutsideheadings. Existing page body's DPScharts and fixedtabs are mostly correct; keep them.\nCRITICAL: title in BOTH views must be exactly \"삼성전자\", subtitle \"보통주 ·005930·KOSPI\", NEVER \"기업 전체\". This is currentCOMMON stock DPS1480원260위. Top aggregate549조 button WHITE with NO현재; COMMON삼성전자495조 ONLY PALE GOLD+현재; preferred54조WHITE. Mobile aggregatefullwidth thencommon/prefTWOcolumns, no hiddenbuttons. Stock link labels \"주당배당금 보기\", not종목시총보기; enterprise button means기업합산시총only. NEVER enterpriseDPS.\nKeep basic/marketcap/PER/PBR/EPS/BPS/DIV/DPS in EXACT fixedorder,DPSLAST; mobile2x4DPSlastbottomright. Preserve current1480,260위 and quote74000neutral,+0.80%red. Add the readable factual line \"이전 제공 기록1,440원 대비 +2.78%\" neutral. Preserve synthetic2023/2024/2025/2026 bars1200/1360/1440/1480 and comparisonfirstblank/13.33/5.88/2.78%,3년selected; mean1370. Keep flat supportingmatrix,histogram,ownpricehistory,two-concrete-stock comparison,annualrecords,CSV,basis.\nDesktop supporting right rail width/start must matchMASTER190–200px. Remove all ranknumbers from recenthistory, including1beforeSamsung. Body and railcontents sectionorder must agree. Keep allsamplelabels,neutralabsolutevalues and the official-value disclaimer. Nonewfeatures orforecasts.",
+      "correction_round": 1
+    },
+    {
+      "id": "15-search-recent",
+      "title": "검색 · 최근 본 · 메뉴",
+      "filename": "15-search-recent-v2.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. ONE correction of image1 using image2 canonical shell geometry. Recompose as ONE desktopLEFTapproximately1120px and ONE mobileRIGHTapproximately360px,1536x1024top-aligned,NOtwo-mobile panorama,NOoutsideheadings. This is a temporary search/recent/menu surface board, not a normal DIVdetail-only board.\nPreserve underlyingcommonSamsung005930 DIVcontext visibly:identity→3entitybuttons→fixed8tabs→current2.00%780위. Enterprise549조 buttonWHITE,no현재; COMMON495조GOLD+현재; preferred54조WHITE. Mobileaggregatefullrow+twostocksSIDE-BY-SIDE;mobiletabs2x4DIV7th,noautoscroll/reordering. Bothheaderstwo canonical rows onmobile andbottomnavonce랭킹active. Quote74000neutral,+0.80red.\nDESKTOP REQUIRED SEARCH OPEN STATE: a clearly visible command/search surface below the header or anchored into the main BODY BELOW tabs, not an invisibleclosedstate. Input\"삼성\",closeX,groups기업삼성전자→기업정보 / 보통주삼성전자005930→종목시총 / 우선주삼성전자우005935→종목시총. Leave identity,selectedcommon andDIVtabvisible aroundit. At top of this temporary surface show\"닫기 → 삼성전자 ·배당수익률\". Noinventedfilters. Right approximately200pxcontextRAIL must exist: unnumbered최근본threeentriesSamsungDIV2.00,preferredcap54,SKcap237 withindividualdelete/전체삭제. Underrecent showcompactactual menu links메인/랭킹/검색/최근본/테마 plus compacttheme라이트/다크/기기설정 choices;notduplicate8metricnav.\nMOBILE oneframe opens a compact attached temporary surface BELOW visible2x4tabs. Surface has switch\"검색 / 최근 본 / 메뉴\" as review variants, searchselected and actualsearchgroupcontentsVISIBLE. A small inset INSIDE SAME temporarysurface lowerpart may show the recent/menu variant with recent2rows,menu3links andthemechoices, clearly alternative openstate—notasecondphone or wholepage. CloseXreturnsSAMEcommonDIVcontext. Allthree capabilitiesmustbevisuallyrepresented,notjustnormalbackground.\nRemoveinventedpercentilerank32.2%,total2421 andunsupportedDIVrecent3monthcontrol. Background chart can becompact/subordinate. Retain exampleslabels andmax10recenttruth. Everyabsolutevalueneutral;fixedselectionconsistent.",
+      "correction_round": 1
+    },
+    {
+      "id": "16-states",
+      "title": "로딩 · 빈 화면 · 오류 상태",
+      "filename": "16-states-v2.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. IMPORTANT: image1 is a FAILED state-sheet attempt that incorrectly shows just ONE missing-value page. Replace its composition with EXACTLY SIX compact MOBILE STATE CANVASES,3COLUMNS×2ROWS,1536x1024. NOT a desktop/mobilepair. Image2 supplies ONLY canonicalheader/targetselector/tabstyling,NOT its two-screen composition. NOoutsidebigtitle ornumberedcaptions. Sixcanvasesareequallysized,alignedsameboundaries;state-specifictitlesliveINSIDE body.\nEVERY detailcanvas retains smallfullred/goldwordmark+menufirstrow;search/recent/themeSECONDrow;identitySamsung보통주005930;syntheticdate2026.10.08;enterprise549WHITE fullrow then common495GOLD현재 /preferred54WHITE TWOcolumns;2x4fixedtabs basic/marketcap/PER/PBR onrow1,EPS/BPS/DIV/DPSrow2;PERthirdselected. Bottom메인랭킹검색ONCE,랭킹active. Makeheader/identity/buttons/tabscompactandreadable so BODY changes fit. Detailentity stocklinks retainPER,neverallroutecap. NoenterprisePER. SixdifferentBODYstates:\nTOPLEFT loading: \"상세 기록을 불러오는 중…\" andsmall skeleton;contextallretained.\nTOPMIDDLE searchempty: compactsearchsurface overPERbody,input테스트기업,검색결과없음/검색어수정;smallseparateretryvariant검색자료를불러오지못했습니다/다시시도;closeX.\nTOPRIGHT recentempty: attachedrecentbody\"최근 본 종목이 없습니다\",\"최대10개\",closeX,underlyingcontextretained.\nBOTTOMLEFT rankingunpublished: actual\"종목 PER 순위\" rankingcontext,PERfixedplaceinsevenmetricstrip,body\"아직 공개된 순위가 없습니다\";NOCSV,linkothermetrics. This rankingcanvasisexplicitexceptiontoentityselectorbecauseitlistsmarketsecurities,notcorporatePER. Smallnote\"공개된 대상0개와 미공개는 구별\".\nBOTTOMMIDDLE missingcurrent: \"현재PER — ·원천 미제공\";separate\"마지막 제공18.50배 ·2026.10.07 ·예시\";source예시데이터. Missingisnotzero,pastisnotcurrent.\nBOTTOMRIGHT retryandrevised: body two clearlyseparatestateblocks \"기록을 불러오지 못했습니다 /다시시도\" then\"자료가 갱신되었습니다 /최신 자료 보기\";samecommonPERshell.\nAllsixmustbeVISIBLEinthisONEimage. NobigPERchart,annualtable,CSV-takingoverframeor normaldetailbody. Smallbodymessagesnotgiantillustrations. Exactlythese6states,noactualSamsungdata,noextraaccounts/features. PreservewhiteBrecordrules,preciseconsistentheadersandfixedcontextpositions.",
+      "correction_round": 1
+    }
+  ]
+}
+

@@ -22,6 +22,7 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
     ...props, history: [], sourceHistory: [], prices: quote ? [{date: quote.date, close: quote.close, rate: quote.rate, open: quote.open, volume: quote.volume}] : [],
     security: security ? {
       securityId: security.securityId, routeCode: security.routeCode, name: security.name, korName: security.korName,
+      listingPeriods:security.listingPeriods,lifecycleEvents:security.lifecycleEvents,selectedPeriod:security.selectedPeriod,historicalPeriod:security.historicalPeriod,
       ticker: security.ticker, exchange: security.exchange, type: security.type, state: security.state,
       price: security.price, priceDate: security.priceDate, priceState: security.priceState, shares: security.shares, sharesDate: security.sharesDate,
       [metric]: security[metric], [`${metric}Date`]: security[`${metric}Date`], [`${metric}State`]: security[`${metric}State`],
@@ -55,9 +56,9 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
 async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'company', id: string) {
   if (process.env.NEXT_OUTPUT_MODE?.toLowerCase() !== 'export') return <DetailSurface {...props} />;
   const clientKey = `${kind}:${id}:${props.metric}`;
-  if (process.env.STATIC_DETAIL_INLINE === '1') return props.basic ? <DetailSurface {...props} /> : <StaticDetailClient key={clientKey} initial={props} />;
+  const selectablePeriod = kind === 'security' && (props.security?.listingPeriods?.length ?? 0) > 1;
+  if (process.env.STATIC_DETAIL_INLINE === '1') return props.basic && !selectablePeriod ? <DetailSurface {...props} /> : <StaticDetailClient key={clientKey} initial={props} />;
   const compact = compactDetailProps(props);
-  if (props.basic) return <DetailSurface {...compact} />;
   const initial = {...compact, initialAnalysis: prepareDetailAnalysis(props)};
   const { getStaticDetailAssets } = await import('@/lib/static-build/server');
   const assets = getStaticDetailAssets(kind, id);
@@ -66,7 +67,8 @@ async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'compa
 }
 
 export async function RestoredSecurityDetail({ code, metric = 'marketcap', basic = false, search = {} }: { code: string; metric?: DetailMetric; basic?: boolean; search?: DetailSearch }) {
-  const data = await getSecurityDetailSnapshot(code, basic ? 'price' : metric);
+  const periodId=Array.isArray(search.period)?search.period[0]:search.period;
+  const data = periodId ? await getSecurityDetailSnapshot(code,basic?'marketcap':metric,undefined,undefined,periodId) : await getSecurityDetailSnapshot(code,basic?'marketcap':metric);
   if (!data) notFound();
   return renderDetail({security: data.security, company: data.company, companySecs: data.companySecs, ranking: data.ranking,
     neighbors: asRows(data.neighbors), history: basic ? [] : detailObservations(asRows(data.history), metric),

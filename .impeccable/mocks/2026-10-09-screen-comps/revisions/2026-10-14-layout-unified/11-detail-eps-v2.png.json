@@ -1,0 +1,22 @@
+{
+  "id": "11-detail-eps",
+  "title": "삼성전자 EPS",
+  "filename": "11-detail-eps-v2.png",
+  "prompt": "Use case: precise-object-edit. Edit IMAGE1, the just-generated unified Korean UI comp, in ONE bounded correction pass. IMAGE2 remains the approved06MASTER for the shared outerlayout. Preserve desktopLEFT/mobileRIGHT topalignment, white B records-room, sober궁서-style headings, fullwordmark, correctdesktopright rail, two-rowmobileheader, mobilebottomrankingnavigationonly, threeentitybuttons (aggregatefullrow andtwo stocksSIDE-BY-SIDE onmobile), and fixed8tabs (PC1row/mobile2x4). Preserve currentSamsung synthetic figures and 예시데이터2026.10.08. Do not restore theoldSKlayout or hide controls. Correct only these observed issues:\nCorrect the IDENTITY metadata in BOTH views to ONLY \"보통주 · 005930 · KOSPI\". Remove \"우선주·005935\" from the selectedstock identity; preferredcodebelongsONLYinitsseparateentitybutton/comparison. Change stockbutton \"종목 시총 보기\" to \"EPS 보기\"/selected현재EPS;aggregatebutton기업시총보기 stays. Restore visible \"월간 / 연간\" aggregation controls separate from 최근3개월/전체/date range; keep four EPS points3600/3750/3900/4000, mean3812.50,min3600,max4000,count4. EPS primary chart is a clean LINE, remove the shaded AREA beneath it. Remove the invented \"전체2,000개종목중\" denominator. Add a small REAL samecompanyEPS comparison module BEFOREannualrecords: 삼성전자·보통주005930 EPS4,000원 주가74,000원; 삼성전자우·우선주005935 EPS4,000원 주가54,000원. No corporate aggregateEPS. PreservecurrentEPS4000,rank210 andannual2023=2800,2024=3200,2025=3600,2026.10=4000연중. Keep lower order same in PC/mobile: 기간통계 / 주가이력 / 같은기업종목비교 / 연도별마지막관측 / 전체이력CSV(선택기간무관) / 계산식·자료기준 / 인접EPS순위,contentsmatch. Preservecorrect3entitybutton arrangement,2x4mobiletabs,bottomrankingnav,anddesktopright rail.",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-cc29865f-db8f-4eac-92d5-4615fefb47b3.png",
+  "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f as /Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-cc29865f-db8f-4eac-92d5-4615fefb47b3.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "tool": "image_gen.imagegen",
+  "correction_round": 1,
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png",
+  "original_preserved": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps.png",
+  "status": "selected-static-review",
+  "core_top_contract_review": "confirmed visually",
+  "dimensions": [
+    1536,
+    1024
+  ]
+}

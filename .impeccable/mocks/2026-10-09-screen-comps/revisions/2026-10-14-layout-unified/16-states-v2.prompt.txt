@@ -1,0 +1,10 @@
+Use case: ui-mockup. IMPORTANT: image1 is a FAILED state-sheet attempt that incorrectly shows just ONE missing-value page. Replace its composition with EXACTLY SIX compact MOBILE STATE CANVASES,3COLUMNS×2ROWS,1536x1024. NOT a desktop/mobilepair. Image2 supplies ONLY canonicalheader/targetselector/tabstyling,NOT its two-screen composition. NOoutsidebigtitle ornumberedcaptions. Sixcanvasesareequallysized,alignedsameboundaries;state-specifictitlesliveINSIDE body.
+EVERY detailcanvas retains smallfullred/goldwordmark+menufirstrow;search/recent/themeSECONDrow;identitySamsung보통주005930;syntheticdate2026.10.08;enterprise549WHITE fullrow then common495GOLD현재 /preferred54WHITE TWOcolumns;2x4fixedtabs basic/marketcap/PER/PBR onrow1,EPS/BPS/DIV/DPSrow2;PERthirdselected. Bottom메인랭킹검색ONCE,랭킹active. Makeheader/identity/buttons/tabscompactandreadable so BODY changes fit. Detailentity stocklinks retainPER,neverallroutecap. NoenterprisePER. SixdifferentBODYstates:
+TOPLEFT loading: "상세 기록을 불러오는 중…" andsmall skeleton;contextallretained.
+TOPMIDDLE searchempty: compactsearchsurface overPERbody,input테스트기업,검색결과없음/검색어수정;smallseparateretryvariant검색자료를불러오지못했습니다/다시시도;closeX.
+TOPRIGHT recentempty: attachedrecentbody"최근 본 종목이 없습니다","최대10개",closeX,underlyingcontextretained.
+BOTTOMLEFT rankingunpublished: actual"종목 PER 순위" rankingcontext,PERfixedplaceinsevenmetricstrip,body"아직 공개된 순위가 없습니다";NOCSV,linkothermetrics. This rankingcanvasisexplicitexceptiontoentityselectorbecauseitlistsmarketsecurities,notcorporatePER. Smallnote"공개된 대상0개와 미공개는 구별".
+BOTTOMMIDDLE missingcurrent: "현재PER — ·원천 미제공";separate"마지막 제공18.50배 ·2026.10.07 ·예시";source예시데이터. Missingisnotzero,pastisnotcurrent.
+BOTTOMRIGHT retryandrevised: body two clearlyseparatestateblocks "기록을 불러오지 못했습니다 /다시시도" then"자료가 갱신되었습니다 /최신 자료 보기";samecommonPERshell.
+AllsixmustbeVISIBLEinthisONEimage. NobigPERchart,annualtable,CSV-takingoverframeor normaldetailbody. Smallbodymessagesnotgiantillustrations. Exactlythese6states,noactualSamsungdata,noextraaccounts/features. PreservewhiteBrecordrules,preciseconsistentheadersandfixedcontextpositions.
+

@@ -1,0 +1,31 @@
+{
+  "target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+  "independence": "Assessment B did not receive Assessment A findings",
+  "detector_command": [
+    "/Users/craigchoi/.agents/skills/impeccable/scripts/impeccable",
+    "detect",
+    "--json",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html"
+  ],
+  "detector_run_count": 1,
+  "detector_exit_code": 0,
+  "detector_stderr": "",
+  "slug_command": [
+    "/Users/craigchoi/.agents/skills/impeccable/scripts/impeccable",
+    "critique-storage",
+    "slug",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html"
+  ],
+  "slug_exit_code": 0,
+  "slug_stdout": "mocks-2026-10-09-screen-comps-review-html-9e710ce4\n",
+  "slug_stderr": "",
+  "ignore": {
+    "path": "/Users/craigchoi/silla/cd4/.impeccable/critique/ignore.md",
+    "exists": false
+  },
+  "browser": "not verified; browser tool policy blocks local file:// access; HTTP workaround not attempted",
+  "overlay": "not injected",
+  "server_started": false,
+  "temporary_server_cleanup": "not applicable; no server started",
+  "temp_files": "only authorized review snapshot artifacts created"
+}

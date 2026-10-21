@@ -1,0 +1,18 @@
+Use case: ui-mockup. Recompose this existing SIX-mobile-ranking approval board into a PORTRAIT1536x2048 canvas, exactly TWO COLUMNS by THREE ROWS, six equal-size mobile frames with enough verticalroom. Readingorder: PER/PBR in firstrow, EPS/BPS in secondrow, 배당수익률/주당배당금 in thirdrow. This is a structural repair: the former landscape density hid lower panels' date and navigation. Do NOT omit date, target, market, or any of the seven metric options in ANY frame. Keep existingB 대회기록실 identity, serious restrained 궁서-style fullwordmark and titles, white surface, dark navy data, gold selection, thin red rules, top3ranknumbers1gold2red3blue. No external board title, no desktop views, no device mockups.
+Each frame has the IDENTICAL shell and relativepositions, with readable text and padding:
+1. FIRST HEADERROW: full 천하제일 [circular star] 단타대회 wordmark LEFT, menuicon RIGHT. SECONDHEADERROW: search 기업·종목검색, 최근 본, themeicon. No 메인/랭킹 links in topheader.
+2. Scope/metadata: 대상 종목별; 시장 코스피·코스닥 전체; 예시 데이터·2026.10.08 기준. SAME visible metadata block in ALL sixframes.
+3. Fixed sevenmetric navigation in TWO ROWS at SAME position in everyframe: row1 시가총액 / PER / PBR / EPS; row2 BPS / 배당수익률 / 주당배당금. Lastrowextraemptyspace isnot a button. All7labelsALWAYSvisible, no truncation/ellipsis/dropdown. Currentmetric gold andnevermoveitsposition.
+4. Currentpage metric title and gold button 전체종목CSV, then short definition of the metric. Button refers to currentmetric's FULL securityranking, not only currentpage.
+5. Rankingtable of three leading synthetic securities, then a visually separate palegold 찾아본종목 row for 삼성전자 보통주005930 with the assigned rank/value. Tablecolumns 순위 / 종목 / 주가등락 / currentmetric. Securityrowchevrons communicate corresponding metricdetail, not basicinfo. Preserve pagination previous1/2/3next near thetable.
+6. Small note 합성예시·실제값아님 and rowhelper 종목명→해당지표상세.
+7. Exactly ONE bottomnav in SAMEposition: house 메인 / trophy 랭킹 / magnifier 검색. Only 랭킹 active red. No other bottomnav. Everypanel has allthreelabels andicons.
+Preserve the following exact fictional values and order from the existingboard:
+PER leading1SK하이닉스4.08배,2LG에너지솔루션5.60배,3삼성바이오로직스8.22배; separate삼성전자620위18.50배.
+PBR leading1SK하이닉스0.41배,2LG에너지솔루션0.56배,3삼성바이오로직스0.69배; separate삼성전자560위1.85배.
+EPS leading1삼성바이오로직스100,000원,2SK하이닉스80,000원,3LG에너지솔루션70,000원; separate삼성전자210위4,000원.
+BPS leading1삼성바이오로직스1,200,000원,2SK하이닉스800,000원,3LG에너지솔루션700,000원; separate삼성전자180위40,000원.
+배당수익률 leading1SK하이닉스8.00%,2LG에너지솔루션7.00%,3삼성바이오로직스6.00%; separate삼성전자780위2.00%.
+주당배당금 leading1삼성바이오로직스49,320원,2LG에너지솔루션27,440원,3SK하이닉스26,080원; separate삼성전자260위1,480원.
+Identity tickers SK하이닉스000660,LG에너지솔루션373220,삼성바이오로직스207940,삼성전자005930. Pricechanges SK+1.20%,LG-0.60%,Bio+0.50%,Samsung+0.80%. ONLY signedPRICEchanges redpositive/bluenegative; allmetricvaluesincludingDIV% neutraldarkink. Samsungassignedranks620/560/210/180/780/260 MUSTvisiblyremain, not replacedbylabel or shownasrank1. Mark allvaluesillustrative; no real-time claim or investmentrecommendation.
+Use portrait height to give ALL sixpanels the full metadata/menu/title/CSV/rows/bottomnav. Preserve functions, exactdata and financialreadability; do not reproduce the old lower-row cropping.

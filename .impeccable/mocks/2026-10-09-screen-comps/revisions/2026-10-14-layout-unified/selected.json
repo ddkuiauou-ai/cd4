@@ -1,0 +1,275 @@
+{
+  "status": "pending-user-review",
+  "selected_direction": "B 대회 기록실 · 공통 상세 레이아웃 수정안",
+  "tool": "built-in image_gen.imagegen",
+  "user_approved": false,
+  "functional_validation": false,
+  "product_code_changed": false,
+  "source_manifest": "revisions/2026-10-14-layout-unified/jobs.json",
+  "selected": [
+    {
+      "id": "01-main",
+      "title": "메인 · 대회 기록실",
+      "routes": "/dashboard",
+      "filename": "revisions/2026-10-14-layout-unified/01-main-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "8efc6fabbc670bc6c21a498029300fe659ce04683e5e3c5db14c7ba381081266",
+      "known_image_limitations": [
+        "모바일 순위 숫자 겹침과 작은 문구 생성 오차가 남아 있습니다."
+      ]
+    },
+    {
+      "id": "02-ranking-company",
+      "title": "기업 합산 시가총액 순위",
+      "routes": "/; /marketcaps",
+      "filename": "revisions/2026-10-14-layout-unified/02-ranking-company-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "df876283adf7a0c47ab5f355dd8b6cee7c28417d70fb4638b8c1c47e5a9a4340",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": []
+    },
+    {
+      "id": "03-ranking-security",
+      "title": "종목별 시가총액 순위",
+      "routes": "/marketcap",
+      "filename": "revisions/2026-10-14-layout-unified/03-ranking-security-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "9989fe6af2bf3932e48f0d3e0c4c86f29d2aa969917831159d20df78db6a853e",
+      "known_image_limitations": [
+        "순위 이동 화살표 일부의 색상은 중립색으로 정리할 후속 항목입니다."
+      ]
+    },
+    {
+      "id": "04-ranking-metrics",
+      "title": "지표별 랭킹 · 6개 변형",
+      "routes": "/per; /pbr; /eps; /bps; /div; /dps",
+      "filename": "revisions/2026-10-14-layout-unified/04-ranking-metrics-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.png.json",
+      "width": 1086,
+      "height": 1448,
+      "sha256": "21add9799fb39ee3529088d88f2c99979fc75521c41b587ebe9da3c928916b95",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": [
+        "여섯 지표의 모바일 비교 보드입니다. 일부 보조 예시 숫자에 생성 오차가 있습니다."
+      ]
+    },
+    {
+      "id": "05-company-basic",
+      "title": "기업 기본 정보",
+      "routes": "/company/{id}",
+      "filename": "revisions/2026-10-14-layout-unified/05-company-basic-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ff27207a70770abd5453b9722bfbd486f1c11129be752f16042b5aa246afcf26",
+      "known_image_limitations": []
+    },
+    {
+      "id": "06-company-marketcap",
+      "title": "기업 합산 시가총액 상세",
+      "routes": "/company/{id}/marketcap",
+      "filename": "revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d181407d2d57f8b885a1577a878b48f6d5660f3e90489823f7fd757abae58be8",
+      "known_image_limitations": []
+    },
+    {
+      "id": "07-security-basic",
+      "title": "종목 기본 정보",
+      "routes": "/security/{id}",
+      "filename": "revisions/2026-10-14-layout-unified/07-security-basic-layout.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "f2776bac669457d6490efb35f44d1acfdfc2fddec1dc5be890c4daf7cf7ca032",
+      "known_image_limitations": [
+        "모바일 보통주 버튼의 코드는 005930이 맞습니다. 이미지에 005935로 잘못 그려진 부분이 있습니다.",
+        "PC 오른쪽의 지표 메뉴 중복은 후속 정리 항목입니다."
+      ]
+    },
+    {
+      "id": "08-security-marketcap",
+      "title": "종목 시가총액 상세",
+      "routes": "/security/{id}/marketcap",
+      "filename": "revisions/2026-10-14-layout-unified/08-security-marketcap-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png.json",
+      "revision": "2026-10-14 common layout",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "089126a867ef12858a25fb9869a9638508f3a6a1d38cccdd4c09fc6f4a879b80",
+      "known_image_limitations": [
+        "PC 최근 본의 번호 표시와 보조 영역 폭에는 다른 상세와 차이가 남아 있습니다."
+      ]
+    },
+    {
+      "id": "09-detail-per",
+      "title": "PER 상세",
+      "routes": "/security/{id}/per",
+      "filename": "revisions/2026-10-14-layout-unified/09-detail-per-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d0beeaa8ec3729a2cb7be30ee40b62eafea2b623e8400b90b7878ae77a80fe66",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": []
+    },
+    {
+      "id": "10-detail-pbr",
+      "title": "PBR 상세",
+      "routes": "/security/{id}/pbr",
+      "filename": "revisions/2026-10-14-layout-unified/10-detail-pbr-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "cc6a63a739b2bdda395b4e9a6b066ba54ab37ef950330f1bcbc81beec5bccd0c",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": []
+    },
+    {
+      "id": "11-detail-eps",
+      "title": "EPS 상세",
+      "routes": "/security/{id}/eps",
+      "filename": "revisions/2026-10-14-layout-unified/11-detail-eps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "f392e3bfe3052eccd6f4a3474b2a1cccfa3a5e2137c83a75267d60abe1cafce5",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": []
+    },
+    {
+      "id": "12-detail-bps",
+      "title": "BPS 상세",
+      "routes": "/security/{id}/bps",
+      "filename": "revisions/2026-10-14-layout-unified/12-detail-bps-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "0d0a8cdd20ef83b2a6c6b93adb96b1524fb64ea652544336cd29de5ba97b416b",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": []
+    },
+    {
+      "id": "13-detail-div",
+      "title": "배당수익률 상세",
+      "routes": "/security/{id}/div",
+      "filename": "revisions/2026-10-14-layout-unified/13-detail-div-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "205e712723afe90d37968bdfdd3145489137221f4259a97f5883ce51e9701405",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": [
+        "현재 2.00%와 산식 아래 관측 평균 표현이 상충합니다. 현재값과 기간 평균을 구분해야 합니다."
+      ]
+    },
+    {
+      "id": "14-detail-dps",
+      "title": "주당배당금 상세",
+      "routes": "/security/{id}/dps",
+      "filename": "revisions/2026-10-14-layout-unified/14-detail-dps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "7f88c2e62003aa795e05b2ca20921182430c892cffa282e86086b12ea980680f",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": [
+        "최근 본 항목의 단위 표현에 차이가 남아 있습니다."
+      ]
+    },
+    {
+      "id": "15-search-recent",
+      "title": "검색 · 최근 본 · 메뉴",
+      "routes": "search; recent; navigation",
+      "filename": "revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png.json",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "7bf4e86550af7f14e10fda2dcf97e620a3b8ad17349b34a13838c0eb06088010",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": [
+        "임시 검색 표면 뒤 종목 버튼의 일부 문구는 지표 유지 규칙에 맞춰 후속 정리가 필요합니다."
+      ]
+    },
+    {
+      "id": "16-states",
+      "title": "로딩 · 빈 화면 · 오류 상태",
+      "routes": "loading; empty; error; publication",
+      "filename": "revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png.json",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9b70daa054fae3d7d2166aa7b5f3b3071313773223d659cede64b6ce5a50bec5",
+      "revision": "2026-10-14 common layout",
+      "known_image_limitations": [],
+      "supplementary_images": [
+        {
+          "filename": "revisions/2026-10-14-layout-unified/16-states-secondary.png",
+          "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png",
+          "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.prompt.txt",
+          "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png.json",
+          "width": 1536,
+          "height": 1024,
+          "sha256": "b6ebbb6fc114415151363861cbbcfeb61e1996030e5804a59cbd6fd3adec9701",
+          "title": "미제공·기준일 미공개 상태 · 전체 탐색 유지"
+        }
+      ]
+    }
+  ],
+  "reorganized_on": "2026-10-14",
+  "latest_revision_manifest": "revisions/2026-10-14-layout-unified/jobs.json",
+  "image_delivery_complete": true,
+  "pixel_consistency_verified": false,
+  "approved_navigation": {
+    "company_marketcap_constituent": "08 corresponding security marketcap",
+    "mobile_entities": "always visible"
+  },
+  "layout_contract_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/layout-contract.md",
+  "selected_board_count": 16,
+  "selected_image_count": 17
+}

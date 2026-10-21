@@ -7,6 +7,7 @@ import { structuredData, organizationData, financialServiceData, faqData } from 
 
 // import { SpeedInsights } from "@vercel/speed-insights/next";
 const brandFont = localFont({ src: "./fonts/brand-nanum.woff2", weight: "800", display: "swap", variable: "--font-brand" });
+const recordsFont = localFont({ src: "./fonts/ChosunGs.ttf", weight: "400", display: "swap", preload: false, variable: "--font-records" });
 
 export const metadata: Metadata = {
   title: {
@@ -148,7 +149,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <html lang="ko" className={brandFont.variable} suppressHydrationWarning>
+      <html lang="ko" className={`${brandFont.variable} ${recordsFont.variable}`} suppressHydrationWarning>
         <head>
           <script
             type="application/ld+json"

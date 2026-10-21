@@ -2,6 +2,8 @@
 
 작성일: 2026-10-07, Asia/Seoul. 구현 기준: `db/schema-postgres.ts`와 `drizzle/0000` → `0001` → `0002_simplify_publication.sql`. **신규 DB용이며 기존 업무 데이터 이전 계약이 아니다.** v2는 값·컬럼·업무키를 유지하고 과한 공개 검증 함수/trigger를 제거한다.
 
+> 2026-10-13 후속: 코드당 하나의 종목 ID와 여러 상장 기간·독립 이름 사건은 [새 lifecycle 계약](security-lifecycle-contract-2026-10-13.md)을 따른다. 아래의 코드 재사용 시 서로 다른 SID 전제는 새 계약으로 대체한다.
+
 ## 적용 상태와 파일
 
 - schema: `db/schema-postgres.ts`.

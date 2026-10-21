@@ -1,0 +1,10 @@
+{
+  "id": "13-detail-div",
+  "filename": "13-detail-div-v2.png",
+  "prompt": "EDIT THE ATTACHED FIRST IMAGE, which is an existing static Korean web UI approval comp. Preserve its approved B records-room typography, white surface, thin red section rules, flat gold controls, red/gold wordmark, desktop-left/mobile-right arrangement, and main example figures. This is one bounded factual and scope correction pass, not a visual redesign. Keep '예시 데이터 · 2026.10.08 기준' clear in both views. Do not add trading, accounts, favorites, notifications, recommendations or live-data claims. Apply only these corrections:\nCorrect the navigation to the seven actual metrics \"시가총액 / PER / PBR / EPS / BPS / 배당수익률 / 주당배당금\", active 배당수익률, with mobile scroll hint instead of invented top-level 주가/재무지표/동일업종비교 tabs. Replace main-chart invented 3개월/6개월/1년/전체 shortcut pills with existing 월간/연간 and \"기간 직접 지정\" controls. Keep a simple LINE chart with no area fill. Preserve the critical separation 배당수익률2.00%, 주가326,000원, 주가등락+1.20%. Current number is \"현재 제공값\", while only the chart aggregation is \"제공 관측의 평균\"; do not imply current yield itself is necessarily a period average. Same-company module is a list of the concrete SK하이닉스 common000660, with explicit \"SK하이닉스 기업 합산 보기\", not an industry comparison. Mobile show golden \"전체 이력 CSV\" and a compact \"하단 기록 계속\" marker if lower sections must continue. No heatmap, distributions, payout calendars or payment forecasts. Preserve all remaining visual layout.",
+  "reference": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div.png",
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-15b8465e-2d88-4e57-bdd5-0e18b09e44ed.png",
+  "tool": "image_gen.imagegen",
+  "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png",
+  "original_preserved": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div.png"
+}

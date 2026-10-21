@@ -1,0 +1,372 @@
+{
+  "summary": {
+    "target": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+    "selection_count": 16,
+    "unique_selected_paths": 16,
+    "html_img_count": 16,
+    "html_png_link_count": 32,
+    "checks_passed": {
+      "filename_path_match": 16,
+      "png_exists": 16,
+      "png_signature_valid": 16,
+      "html_src_matches": 16,
+      "html_data_source_matches": 16,
+      "html_dimensions_match": 16,
+      "prompt_file_exists": 16,
+      "metadata_file_exists": 16,
+      "metadata_has_prompt": 16,
+      "prompt_matches_metadata_ignoring_terminal_newline": 16,
+      "embedded_prompt_matches_metadata": 16
+    },
+    "png_dimensions": {
+      "1448x1086": 15,
+      "1536x1024": 1
+    },
+    "unexpected_html_image_sources": [],
+    "rows_with_failure": [],
+    "limitations": [
+      "File and markup verification only. No browser image-loading, responsive rendering, overlay or click behavior was verified.",
+      "CLI scan inspects gallery markup/CSS and cannot inspect rasterized product UI hierarchy inside PNGs."
+    ]
+  },
+  "checks": [
+    {
+      "id": "01-main",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/01-main-gungseo.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "5584bfc7199b9968c5724fa05d1788d8fd0621707b6fa211aa47fb709b7381a5"
+    },
+    {
+      "id": "02-ranking-company",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/02-ranking-company-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "2cc1bf8bb1a912a56bfe5df1e0057e787f42bcb13dff4ba89be235f3f61dd9ad"
+    },
+    {
+      "id": "03-ranking-security",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/03-ranking-gungseo.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "6a50700f81ae50d7e66c077086b0f24b8654448ffa4751488306cad9a98efed7"
+    },
+    {
+      "id": "04-ranking-metrics",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/04-ranking-metrics-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "01e548f425b4b626335b190eb81de8c9bfaf238f88e2746e8f974ceb10854151"
+    },
+    {
+      "id": "05-company-basic",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/05-company-basic-entities.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "33acf65aabd79d3187d62fbc5346a8bf69d6b31d09ebee94097964448f6fa537"
+    },
+    {
+      "id": "06-company-marketcap",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1536,
+        1024
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "e57c33ced5cef78d69dbb5288a430a4a3787e650bb9dc4cba9d1ad61698d1037"
+    },
+    {
+      "id": "07-security-basic",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/07-security-basic-entities.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "b7e275bc5434f30d37c65a90c851274aa6e78d769bbc07103f3f59cfed993333"
+    },
+    {
+      "id": "08-security-marketcap",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "9cdf2a0ba05a39fdfd8f516a2e2cd00b4ee4ee03dc8fe052e7729a3f4c0ace9c"
+    },
+    {
+      "id": "09-detail-per",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "b7b45a1cdbc29373d37f3d3112d0f384c637edd5ee6070edcd4d861b1efd76a8"
+    },
+    {
+      "id": "10-detail-pbr",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "20973e4994a0059f856d7a612c36acb5b4216813da363dd305da584050039277"
+    },
+    {
+      "id": "11-detail-eps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "05f123464d4aabc9494c0fc0207f79b671db4731071220b5c741831c9069af38"
+    },
+    {
+      "id": "12-detail-bps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "f05924581a0308bc0f60ae58f1d2f5272f5c83a322b7cbfc81a5ddc5d08e1c86"
+    },
+    {
+      "id": "13-detail-div",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "71049225a5aaf1df2b9edd2c8a24be6d45fdd3d1fd65ccc68c04209e38d4cbc4"
+    },
+    {
+      "id": "14-detail-dps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "320532a1e84e9f3b9e8f4117036fb18b7ee384475242531151bf7e6de9d730f1"
+    },
+    {
+      "id": "15-search-recent",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/15-search-recent-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "1309e89e070aa167abbd192aafbf1f031efd86615388086e732ad37f4c7c1272"
+    },
+    {
+      "id": "16-states",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/16-states-v2.png",
+      "filename_path_match": true,
+      "png_exists": true,
+      "png_signature_valid": true,
+      "png_dimensions": [
+        1448,
+        1086
+      ],
+      "html_src_matches": true,
+      "html_data_source_matches": true,
+      "html_dimensions_match": true,
+      "html_original_link_count": 2,
+      "prompt_file_exists": true,
+      "metadata_file_exists": true,
+      "metadata_has_prompt": true,
+      "prompt_matches_metadata_ignoring_terminal_newline": true,
+      "embedded_prompt_matches_metadata": true,
+      "sha256": "d36cd4dd73ae460e99de18b080b64bb3ef6c2c28794238cd4bd1985deeabcb11"
+    }
+  ],
+  "manifest_sha256": "6deff0033341909b5689b3c0fff96dec76f80249b1a6f98c47f92d50d7680dd4",
+  "html_sha256": "c27650bdd1fc79e9f3660b74f8be539d1c49a7d2abd5f35a491eb20e72a098b3"
+}

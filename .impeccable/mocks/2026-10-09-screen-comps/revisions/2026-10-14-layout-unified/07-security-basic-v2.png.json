@@ -1,0 +1,17 @@
+{
+  "id": "07-security-basic",
+  "tool": "built-in image_gen.imagegen",
+  "created_on": "2026-10-14",
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-5995d773-73fe-4b74-9d96-a292bbe64bd0.png",
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-v2.png",
+  "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-v2.prompt.txt",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "status": "corrected-awaiting-confirmation",
+  "product_code_changed": false,
+  "prompt": "Edit Image1 current07 stock basic approval board. Image2 is the exact shared06 MASTER layout. This is the SINGLE correction pass: preserve07bodyfeatures and MASTERheader/identity→targetselector→fixedtabs→current→body. Three mandatory corrections only:\nA MOBILE TARGET GEOMETRY: replace the current THREE FULL-WIDTH VERTICAL BUTTONS with the exact Image2 mobile layout: enterprise fullwidth row, THEN Samsung common and Samsung preferred SIDE BY SIDE on the SAME NEXT ROW. All3visible always. Common495조 goldCURRENT, aggregate549andpref54 neutral. Labels common보통주005930 andpref우선주005935. The selector must occupy the same compact space as master, neverstackcommon/prefvertically. Then mobilefixed8tabs2x4rowmajor 기본정보(active)시총PERPBR / EPSBPS배당수익률주당배당금. Bring current74000+0.80higherbyremovingextraselectorrow.\nB PC RAIL CONTENT: retain exactexistingright200pxrail/maincolumnlayout but replace duplicatedmetric \"페이지 안내\" links with actual BODY CONTENTS: 주가 정보 / 같은 기업의 종목 비교 / 주가 기록 / 종목 정보 / 기업 정보 / 자료 기준. No secondPER/PBR/EPSetcmenu. Recentnamesunnumbered. Match rail start andwidth ofImage2.\nC ACTUAL BACK DESTINATION: PC/mobile currentback \"종목 기본 정보\" iswrongcurrentpagelabel; replacewith \"종목 시가총액 순위\". Keep quote74000+0.80, common495,pref54,aggregate549, pricegap20000, ownpricechart,stockfacts,companylink,date예시2026.10.08 and no7shortcutgrid. Prices neutral; signedchangesred. Keep full brand, serious궁서style, topaligned1536x1024leftdesktop/rightmobile, mobilebottom메인/랭킹(active)/검색. Do not move page tabs above target buttons.",
+  "initial_image": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic.png",
+  "correction_round": 1
+}

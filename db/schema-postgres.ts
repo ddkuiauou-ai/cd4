@@ -1,5 +1,6 @@
 import {
   pgTable,
+  date,
   serial,
   text,
   integer,
@@ -419,6 +420,7 @@ export const security = pgTable(
     finiteCheck("security_dps_last_number_check", table.dpsLastProvided),
     index("security_company_id_idx").on(table.companyId),
     index("security_ticker_idx").on(table.ticker),
+    uniqueIndex("security_ticker_unique").on(table.ticker),
     index("security_name_idx").on(table.name),
     index("security_kor_name_idx").on(table.korName), // Added new index
     index("security_exchange_idx").on(table.exchange),
@@ -607,6 +609,7 @@ export const stockcodename = pgTable(
     nonemptyCheck("stockcodename_ticker_check", table.ticker),
     nonemptyCheck("stockcodename_source_ref_check", table.sourceRef),
     primaryKey({ columns: [table.date, table.ticker, table.exchange] }),
+    index("stockcodename_security_id_idx").on(table.securityId),
     index("stockcodename_ticker_idx").on(table.ticker),
     index("stockcodename_name_idx").on(table.name),
     index("stockcodename_exchange_idx").on(table.exchange),
@@ -736,6 +739,63 @@ export const tmp_prices = pgTable(
     index("tmp_prices_date_exchange_idx").on(table.date, table.exchange),
   ]
 );
+
+/** A code has one security identity and any number of reviewed, disjoint listing episodes. */
+export const securityListingPeriod = pgTable("security_listing_period", {
+  periodId: text("period_id").primaryKey(),
+  securityId: text("security_id").notNull().references(() => security.securityId),
+  listingDate: date("listing_date", {mode:"string"}).notNull(),
+  delistingDate: date("delisting_date", {mode:"string"}),
+  lastPresentOn: date("last_present_on", {mode:"string"}).notNull(),
+  listingSourceRef: text("listing_source_ref").notNull(),
+  delistingSourceRef: text("delisting_source_ref"),
+  relistingReviewRef: text("relisting_review_ref"),
+  mappingRef: text("mapping_ref"),
+  createdAt: timestamp("created_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
+}, table => [
+  uniqueIndex("security_listing_period_security_start_unique").on(table.securityId,table.listingDate),
+  index("security_listing_period_security_idx").on(table.securityId),
+  check("security_listing_period_dates_check", sql`isfinite(${table.listingDate}) AND isfinite(${table.lastPresentOn})
+    AND ${table.lastPresentOn} >= ${table.listingDate} AND (${table.delistingDate} IS NULL
+      OR (isfinite(${table.delistingDate}) AND ${table.delistingDate} > ${table.lastPresentOn}))`),
+  check("security_listing_period_end_proof_check", sql`(${table.delistingDate} IS NULL) = (${table.delistingSourceRef} IS NULL)`),
+  nonemptyCheck("security_listing_period_listing_ref_check",table.listingSourceRef),
+  nonemptyCheck("security_listing_period_delisting_ref_check",table.delistingSourceRef),
+  nonemptyCheck("security_listing_period_review_ref_check",table.relistingReviewRef),
+  nonemptyCheck("security_listing_period_mapping_ref_check",table.mappingRef),
+]);
+
+/** Name events continue through delisted gaps; unknown precision never fabricates an exact date. */
+export const securityEvent = pgTable("security_event", {
+  eventId: text("event_id").primaryKey(),
+  securityId: text("security_id").notNull().references(() => security.securityId),
+  companyId: text("company_id").references(() => company.companyId),
+  eventType: text("event_type",{enum:['security_name_change','company_name_change']}).notNull(),
+  effectiveOn: date("effective_on",{mode:"string"}),
+  datePrecision: text("date_precision",{enum:['day','year','unknown']}).notNull(),
+  eventYear: integer("event_year"),
+  oldName: text("old_name").notNull(), newName: text("new_name").notNull(),
+  sourceRef: text("source_ref").notNull(),
+  basis: text("basis",{enum:['roster_observed','disclosure','reviewed']}).notNull(),
+  reviewRef: text("review_ref"), mappingRef: text("mapping_ref"),
+  createdAt: timestamp("created_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
+}, table => [
+  index("security_event_security_date_idx").on(table.securityId,table.effectiveOn),
+  check("security_event_kind_check",sql`${table.eventType} IN ('security_name_change','company_name_change')
+    AND (${table.eventType} <> 'company_name_change' OR ${table.companyId} IS NOT NULL)`),
+  check("security_event_precision_check",sql`(${table.datePrecision} = 'day' AND ${table.effectiveOn} IS NOT NULL
+      AND isfinite(${table.effectiveOn}) AND (${table.eventYear} IS NULL OR ${table.eventYear} = extract(year from ${table.effectiveOn})))
+    OR (${table.datePrecision} = 'year' AND ${table.effectiveOn} IS NULL AND ${table.eventYear} IS NOT NULL AND ${table.eventYear} BETWEEN 1 AND 9999)
+    OR (${table.datePrecision} = 'unknown' AND ${table.effectiveOn} IS NULL AND ${table.eventYear} IS NULL)`),
+  check("security_event_basis_check",sql`${table.basis} IN ('roster_observed','disclosure','reviewed')
+    AND (${table.basis} NOT IN ('reviewed','disclosure') OR ${table.reviewRef} IS NOT NULL)`),
+  check("security_event_changed_name_check",sql`${table.oldName} <> ${table.newName}`),
+  nonemptyCheck("security_event_old_name_check",table.oldName),nonemptyCheck("security_event_new_name_check",table.newName),
+  nonemptyCheck("security_event_source_ref_check",table.sourceRef),nonemptyCheck("security_event_review_ref_check",table.reviewRef),
+  nonemptyCheck("security_event_mapping_ref_check",table.mappingRef),
+]);
 
 export const securityRank = pgTable("security_rank", {
   id: bigint("id", { mode: "bigint" }).primaryKey().generatedByDefaultAsIdentity(),

@@ -1,3 +1,5 @@
+import {filterListingRows,isolateListingValues,listingContains,selectListingPeriod} from '../security-lifecycle';
+import {readSecurityLifecycles} from '../data/security-lifecycle';
 import * as schema from '@/db/schema-postgres';
 import { and, asc, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
 import { currentSecurity } from '../data/security';
@@ -20,7 +22,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
   const metricEnd = rows.every(row => isCurrentResult(row, publication)) ? asOf : undefined;
   const { to } = historyRange(undefined, metricEnd);
   const [prices, marketcaps, metrics, companyMarketcaps] = await Promise.all([
-    readPriceHistory(tx, ids, undefined, asOf), readMarketcapHistory(tx, ids, undefined, asOf),
+    readPriceHistory(tx, ids, undefined, asOf,null), readMarketcapHistory(tx, ids, undefined, asOf,null),
     tx.select({ ...getTableColumns(schema.bppedd),
       bps: sql<string | null>`${schema.bppedd.bps}::text`, per: sql<string | null>`${schema.bppedd.per}::text`,
       pbr: sql<string | null>`${schema.bppedd.pbr}::text`, eps: sql<string | null>`${schema.bppedd.eps}::text`,
@@ -36,6 +38,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
     }
     return grouped;
   };
+  const lifecycle=await readSecurityLifecycles(tx,ids);
   const byPrice = group(prices), byMarketcap = group(marketcaps), byMetric = group(metrics);
   const byCompanyMarketcap = companyMarketcaps ? group(companyMarketcaps) : byMarketcap;
   return { historyRows: prices.length + marketcaps.length + metrics.length + (companyMarketcaps?.length ?? 0),
@@ -43,13 +46,18 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
       const current = isCurrentResult(row, publication);
       const company = row.companyId ? companies.get(row.companyId) : undefined;
       const sourceMetrics = byMetric.get(row.securityId) ?? [];
+      const listingPeriods=lifecycle.periods.filter(period=>period.securityId===row.securityId);
+      const lifecycleEvents=lifecycle.events.filter(event=>event.securityId===row.securityId);
+      const selectedPeriod=selectListingPeriod(listingPeriods);
+      const archive={prices:byPrice.get(row.securityId) ?? [],marketcaps:byMarketcap.get(row.securityId) ?? [],metrics:sourceMetrics};
       return { securityId: row.securityId,
-        security: { ...toDataDTO(currentSecurity(row, publication)), company: company ? toDataDTO(currentCompany(company, companyPublication)) : null,
-          prices: (byPrice.get(row.securityId) ?? []).toReversed(), marketcaps: byMarketcap.get(row.securityId) ?? [],
-          routeCode: routeCodes.get(row.securityId) ?? null, publication: current && publication ? toDataDTO(publication) : null,
-          state: current ? 'published' as const : 'unpublished' as const },
-        metrics: current && asOf ? sourceMetrics.filter(observation => observation.date <= asOf) : sourceMetrics,
-        allMarketcaps: byCompanyMarketcap.get(row.securityId) ?? [],
+        security: { ...isolateListingValues(toDataDTO(currentSecurity(row, publication)),selectedPeriod,false), company: company ? toDataDTO(currentCompany(company, companyPublication)) : null,
+          prices:filterListingRows(archive.prices,selectedPeriod).toReversed(),marketcaps:filterListingRows(archive.marketcaps,selectedPeriod),
+          listingPeriods,lifecycleEvents,selectedPeriod,historicalPeriod:false,
+          routeCode: routeCodes.get(row.securityId) ?? null, publication: current && publication && listingContains(selectedPeriod,asOf) ? toDataDTO(publication) : null,
+          state: current && listingContains(selectedPeriod,asOf) ? 'published' as const : 'unpublished' as const },
+        archive, metrics: current && asOf ? sourceMetrics.filter(observation => observation.date <= asOf) : sourceMetrics,
+        allMarketcaps:filterListingRows(byCompanyMarketcap.get(row.securityId) ?? [],selectedPeriod),
       };
     }) };
 }

@@ -1,0 +1,72 @@
+{
+  "count": 10,
+  "rules": {
+    "design-system-color": 7,
+    "design-system-font-size": 3
+  },
+  "severities": {
+    "advisory": 10
+  },
+  "locations": [
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 0,
+      "value": "rgb(189, 43, 48)"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "rgb(20, 32, 52)"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "rgb(139, 101, 20)"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 0,
+      "value": "rgb(78, 89, 105)"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "#155cc4"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "#f4dc92"
+    },
+    {
+      "rule": "design-system-color",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "#fbf2d7"
+    },
+    {
+      "rule": "design-system-font-size",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "38px"
+    },
+    {
+      "rule": "design-system-font-size",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "17px"
+    },
+    {
+      "rule": "design-system-font-size",
+      "file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/review.html",
+      "line": 4,
+      "value": "13px"
+    }
+  ]
+}

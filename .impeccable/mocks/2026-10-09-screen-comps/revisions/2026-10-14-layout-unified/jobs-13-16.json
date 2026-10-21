@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-14",
+  "status": "generated-pending-user-review",
+  "scope": "13-16 image-only layout unification",
+  "master": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png",
+  "jobs": [
+    {
+      "id": "13-detail-div",
+      "title": "배당수익률 상세",
+      "filename": "13-detail-div.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit input image 1, an existing static CD screen approval comp, using input image 2 as the AUTHORITATIVE common layout and visual-style master. This is an image-only layout revision, not product code or a working prototype. Replace the old page scaffold consistently, preserving actual page-specific data capabilities. Output ONE crisp landscape board, target1536x1024: large desktop approximately1120px LEFT, independently composed mobile approximately360px RIGHT, narrow gap. Both screens start at the TOP EDGE. NO external board title, NO desktop/mobile captions, NO device frame, NO arbitrary outer margins.\nMATCH MASTER: B 대회 기록실, white reading surface, dark ink data, restrained serious 궁서-style display, full red 천하제일 / circular-star / gold 단타대회 wordmark, thin red section rules, pale gold selected entity and flat gold selected controls. Avoid a card-grid dashboard or nested containers. Main content and supporting right rail maintain the master's proportions and start lines. Right rail is unnumbered recent history, lookup basis and contents corresponding to actual section order; no duplicate metric navigation.\nCANONICAL CHROME: desktop wordmark / 메인 / 랭킹 / 기업·종목 검색 / 최근 본 / theme. Mobile top row full wordmark+menu; SECOND row 검색+최근 본+theme. Bottom 메인/랭킹/검색 appears ONCE ONLY, 랭킹 active in detail contexts. Keep this chrome in every state.\nDETAIL LAYERS, strict order: identity and date → enterprise/stock entity selector → FIXED page/metric tabs → selected current value/rank → unique page body. Identity 삼성전자 · 보통주 ·005930·KOSPI. Small clear \"예시 데이터 · 2026.10.08 기준\" and \"실제 삼성전자 공식 수치 아님\".\nENTITY SELECTOR \"기업 전체와 구성 종목\": desktop THREE sibling outlined rectangular link-buttons in ONE row, not giant KPI cards. \"기업 전체(합산) 549조 ·2개 종목\"; \"삼성전자 보통주005930 495조\"; \"삼성전자우 우선주005935 54조\". COMMON only active pale gold with small현재. On mobile aggregate FULL WIDTH row then common/preferred TWO equal columns SIDE BY SIDE. ALL THREE always visible, no dropdown/hidden securities. Enterprise link ALWAYS goes to 기업 합산 시총, NEVER company PER/DIV/DPS. Switching concrete stock retains viewed stock metric; entity selection is separate from metric selection.\nFIXED EIGHT TAB ORDER desktop single row, mobile exactly TWO ROWS of FOUR visible items: row1 \"기본 정보 / 시가총액 / PER / PBR\"; row2 \"EPS / BPS / 배당수익률 / 주당배당금\". Active item remains in its fixed position, never moves to the start. NO duplicate shortcuts or right-rail metric menu.\nSHARED SYNTHETIC DATA: aggregate549조=common495+preferred54. Common price74,000원 +0.80%, preferred54,000원0.00%; price absolute values and yield/dividend absolute values DARK NEUTRAL INK, only signed price changes red(up)/blue(down). DO NOT copy master's accidental red74,000원. Common DPS1,480원 and DIV2.00%=1480/74000*100; preferred DPS1,480원 and DIV2.74%=1480/54000*100 rounded. These are deliberately synthetic review values, never current real Samsung data. No investment attractiveness, corporate per-share metrics, real-time claims, invented stocks, trading, accounts, favorites, forecasts, dividend payment calendars or alerts. Main meaning must not rely on a screenshot caption. Preserve lower annual records→full-history CSV→formula/basis→adjacent rank order where applicable. Mobile lower sections may be readable collapsed continuation but core shell/context must remain complete.\n\nPAGE: /security/{id}/div. \"삼성전자\" identity above selector; current fixed tab 배당수익률 (second row THIRD position on mobile). Current provided value \"배당수익률 2.00%\" and \"780위\", separate quote \"주가74,000원 +0.80%\". Do not preserve old SK하이닉스 name000660,326000원,2위. Keep labels \"현재 제공값\" versus \"차트: 제공 관측의 평균\" distinct. Unique open section \"배당수익률 추이\", simple LINE only, no area fill, no heatmap or histogram on DIV. Controls \"월간 / 연간\" and \"기간 직접 지정\"; selected월간. Example same-year dates2026.07.08 /08.08 /09.08 /10.08 with yield2.54%/2.35%/2.14%/2.00%, a plausible falling line as synthetic price rises. State \"주가 변화에 따라 달라지는 합성 예시\". Do not portray it as accrued investment return. A compact periods table highest2.54%/lowest2.00% and a subordinate stock-price history ending74,000원 may sit below. Same-company comparison records explicitly \"삼성전자005930 ·2.00% ·74,000원\" and \"삼성전자우005935 ·2.74% ·54,000원\"; enterprise549조 link remains enterprise MARKETCAP. Then annual last-provided records2026 2.00%,2025 1.90%,2024 1.70%,2023 1.50%, all 예시 제공 관측, no payout promises. Golden \"전체 이력 CSV\"; formula \"배당수익률=주당배당금÷주가×100\", \"1,480원÷74,000원=2.00%\"; source/basis accordion; adjacent DIV ranking link. Mobile keeps full entity buttons,2x4tabs,current,main chart, and collapsed lower labels. Keep overall main content as flat records separated by rules, not repeated large stat tiles."
+    },
+    {
+      "id": "14-detail-dps",
+      "title": "주당배당금 상세",
+      "filename": "14-detail-dps.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit input image 1, an existing static CD screen approval comp, using input image 2 as the AUTHORITATIVE common layout and visual-style master. This is an image-only layout revision, not product code or a working prototype. Replace the old page scaffold consistently, preserving actual page-specific data capabilities. Output ONE crisp landscape board, target1536x1024: large desktop approximately1120px LEFT, independently composed mobile approximately360px RIGHT, narrow gap. Both screens start at the TOP EDGE. NO external board title, NO desktop/mobile captions, NO device frame, NO arbitrary outer margins.\nMATCH MASTER: B 대회 기록실, white reading surface, dark ink data, restrained serious 궁서-style display, full red 천하제일 / circular-star / gold 단타대회 wordmark, thin red section rules, pale gold selected entity and flat gold selected controls. Avoid a card-grid dashboard or nested containers. Main content and supporting right rail maintain the master's proportions and start lines. Right rail is unnumbered recent history, lookup basis and contents corresponding to actual section order; no duplicate metric navigation.\nCANONICAL CHROME: desktop wordmark / 메인 / 랭킹 / 기업·종목 검색 / 최근 본 / theme. Mobile top row full wordmark+menu; SECOND row 검색+최근 본+theme. Bottom 메인/랭킹/검색 appears ONCE ONLY, 랭킹 active in detail contexts. Keep this chrome in every state.\nDETAIL LAYERS, strict order: identity and date → enterprise/stock entity selector → FIXED page/metric tabs → selected current value/rank → unique page body. Identity 삼성전자 · 보통주 ·005930·KOSPI. Small clear \"예시 데이터 · 2026.10.08 기준\" and \"실제 삼성전자 공식 수치 아님\".\nENTITY SELECTOR \"기업 전체와 구성 종목\": desktop THREE sibling outlined rectangular link-buttons in ONE row, not giant KPI cards. \"기업 전체(합산) 549조 ·2개 종목\"; \"삼성전자 보통주005930 495조\"; \"삼성전자우 우선주005935 54조\". COMMON only active pale gold with small현재. On mobile aggregate FULL WIDTH row then common/preferred TWO equal columns SIDE BY SIDE. ALL THREE always visible, no dropdown/hidden securities. Enterprise link ALWAYS goes to 기업 합산 시총, NEVER company PER/DIV/DPS. Switching concrete stock retains viewed stock metric; entity selection is separate from metric selection.\nFIXED EIGHT TAB ORDER desktop single row, mobile exactly TWO ROWS of FOUR visible items: row1 \"기본 정보 / 시가총액 / PER / PBR\"; row2 \"EPS / BPS / 배당수익률 / 주당배당금\". Active item remains in its fixed position, never moves to the start. NO duplicate shortcuts or right-rail metric menu.\nSHARED SYNTHETIC DATA: aggregate549조=common495+preferred54. Common price74,000원 +0.80%, preferred54,000원0.00%; price absolute values and yield/dividend absolute values DARK NEUTRAL INK, only signed price changes red(up)/blue(down). DO NOT copy master's accidental red74,000원. Common DPS1,480원 and DIV2.00%=1480/74000*100; preferred DPS1,480원 and DIV2.74%=1480/54000*100 rounded. These are deliberately synthetic review values, never current real Samsung data. No investment attractiveness, corporate per-share metrics, real-time claims, invented stocks, trading, accounts, favorites, forecasts, dividend payment calendars or alerts. Main meaning must not rely on a screenshot caption. Preserve lower annual records→full-history CSV→formula/basis→adjacent rank order where applicable. Mobile lower sections may be readable collapsed continuation but core shell/context must remain complete.\n\nPAGE: /security/{id}/dps. \"삼성전자\" identity above selector; active 주당배당금 remains LAST EIGHTH tab, mobile second row FOURTH. Current \"주당배당금 1,480원\", \"260위\", separate common quote74,000원 +0.80%. Explicit \"이전 제공 기록1,440원 대비 +2.78%\" in neutral text; it is previous supplied observation comparison, not total investment return or promised payout. Replace old SK000660/326000원/6520원/2위 samples entirely. MAIN open record \"주당배당금 기록\": BAR monetary chart and subordinate comparison line on secondary% axis; four annual synthetic PROVIDED OBSERVATIONS:2023 1,200원;2024 1,360원;2025 1,440원;2026 1,480원. Previous-observation rates firstblank,13.33%,5.88%,2.78%. Controls12개월/3년/5년/10년/20년 fixed,3년 selected for2023.10–2026.10. Label data provided observations, not actual dividend payments. Preserve page's existing distinctive secondary \"연도별 제공 관측\" month/year matrix and small \"관측값 분포\" histogram as flat ruled supporting records; compact mobile collapsed headers accepted. Useful current period summary min1,200/max1,480/average1,370원, never invented extra data. Same-company concrete rows common005930 DPS1,480원 /preferred005935 DPS1,480원, prices74,000/54,000, explicit company549조 MARKETCAP link. Subordinate own price-history ending74,000원. Lower \"연도별 마지막 관측\" table →\"전체 이력 CSV\"→\"계산식·자료 기준\"→adjacent DPS ranking. No amount6,520 or SKname left. Mobile full entity selector, fixed2x4tabs,current,mainchart and lower readable continuation; no jumping active DPS to start."
+    },
+    {
+      "id": "15-search-recent",
+      "title": "검색 · 최근 본 · 메뉴",
+      "filename": "15-search-recent.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/15-search-recent-v2.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit input image 1, an existing static CD screen approval comp, using input image 2 as the AUTHORITATIVE common layout and visual-style master. This is an image-only layout revision, not product code or a working prototype. Replace the old page scaffold consistently, preserving actual page-specific data capabilities. Output ONE crisp landscape board, target1536x1024: large desktop approximately1120px LEFT, independently composed mobile approximately360px RIGHT, narrow gap. Both screens start at the TOP EDGE. NO external board title, NO desktop/mobile captions, NO device frame, NO arbitrary outer margins.\nMATCH MASTER: B 대회 기록실, white reading surface, dark ink data, restrained serious 궁서-style display, full red 천하제일 / circular-star / gold 단타대회 wordmark, thin red section rules, pale gold selected entity and flat gold selected controls. Avoid a card-grid dashboard or nested containers. Main content and supporting right rail maintain the master's proportions and start lines. Right rail is unnumbered recent history, lookup basis and contents corresponding to actual section order; no duplicate metric navigation.\nCANONICAL CHROME: desktop wordmark / 메인 / 랭킹 / 기업·종목 검색 / 최근 본 / theme. Mobile top row full wordmark+menu; SECOND row 검색+최근 본+theme. Bottom 메인/랭킹/검색 appears ONCE ONLY, 랭킹 active in detail contexts. Keep this chrome in every state.\nDETAIL LAYERS, strict order: identity and date → enterprise/stock entity selector → FIXED page/metric tabs → selected current value/rank → unique page body. Identity 삼성전자 · 보통주 ·005930·KOSPI. Small clear \"예시 데이터 · 2026.10.08 기준\" and \"실제 삼성전자 공식 수치 아님\".\nENTITY SELECTOR \"기업 전체와 구성 종목\": desktop THREE sibling outlined rectangular link-buttons in ONE row, not giant KPI cards. \"기업 전체(합산) 549조 ·2개 종목\"; \"삼성전자 보통주005930 495조\"; \"삼성전자우 우선주005935 54조\". COMMON only active pale gold with small현재. On mobile aggregate FULL WIDTH row then common/preferred TWO equal columns SIDE BY SIDE. ALL THREE always visible, no dropdown/hidden securities. Enterprise link ALWAYS goes to 기업 합산 시총, NEVER company PER/DIV/DPS. Switching concrete stock retains viewed stock metric; entity selection is separate from metric selection.\nFIXED EIGHT TAB ORDER desktop single row, mobile exactly TWO ROWS of FOUR visible items: row1 \"기본 정보 / 시가총액 / PER / PBR\"; row2 \"EPS / BPS / 배당수익률 / 주당배당금\". Active item remains in its fixed position, never moves to the start. NO duplicate shortcuts or right-rail metric menu.\nSHARED SYNTHETIC DATA: aggregate549조=common495+preferred54. Common price74,000원 +0.80%, preferred54,000원0.00%; price absolute values and yield/dividend absolute values DARK NEUTRAL INK, only signed price changes red(up)/blue(down). DO NOT copy master's accidental red74,000원. Common DPS1,480원 and DIV2.00%=1480/74000*100; preferred DPS1,480원 and DIV2.74%=1480/54000*100 rounded. These are deliberately synthetic review values, never current real Samsung data. No investment attractiveness, corporate per-share metrics, real-time claims, invented stocks, trading, accounts, favorites, forecasts, dividend payment calendars or alerts. Main meaning must not rely on a screenshot caption. Preserve lower annual records→full-history CSV→formula/basis→adjacent rank order where applicable. Mobile lower sections may be readable collapsed continuation but core shell/context must remain complete.\n\nPAGE FAMILY: TEMPORARY SEARCH / RECENT / MENU SURFACES, not new destination pages. Replace the old ranking/dashboard collage with one SAME canonical Samsung COMMON / 배당수익률 detailed context from master-shaped shell. Use a wide desktop left and TWO equal small mobile variants side by side within the right area ONLY if necessary for state comparison; no outside headings, no giant poster title. The desktop shows canonical common detail identity, top3entity buttons, fixed8tabs with 배당수익률 in original7th position, current2.00%780위 and same-company context still recognizable UNDER a modest header-anchored search command surface. The search overlay has \"삼성\" input, closeX,⌘K, grouped results \"기업\" 삼성전자→기업 정보; \"보통주\" 삼성전자005930→종목 시총; \"우선주\" 삼성전자우005935→종목 시총. No invented 전체/기업/종목 filtering controls; groups already express capability. Recent is accessed from same header and retains last visited metric: 삼성전자005930·배당수익률2.00%;삼성전자우005935·시가총액54조;SK하이닉스000660·시가총액237조, unnumbered with individualdelete and전체삭제, maximum10 note only if needed. Menu is header temporary surface with actual 메인/랭킹/검색/최근 본/테마 and theme라이트/다크/기기설정, not duplicated full app nav surrounding page. Mobile variants show the SAME canonical two header rows, complete company aggregate+common/pref selector and2x4tabs behind/above opened temporary surfaces. One mobile search open, another recent/menu open as compact attached sheets; give each closeX. Visually show a small return strip \"닫기 → 삼성전자 · 배당수익률\" tied to close action; exact underlying selected common button and DIV tab remain visible so preserved context is self-evident. Do not imply closing navigates to an unrelated ranking or loses target/date. Bottomnav ONCE per mobile frame; active page context remains 랭킹, search input overlay need not switch underlying destination to a new search page. Avoid opaque fullscreen replacement that hides all entity and metric context."
+    },
+    {
+      "id": "16-states",
+      "title": "로딩 · 빈 화면 · 오류 상태",
+      "filename": "16-states.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/16-states-v2.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "prompt": "Use case: ui-mockup. Edit input image 1, an existing static CD screen approval comp, using input image 2 as the AUTHORITATIVE common layout and visual-style master. This is an image-only layout revision, not product code or a working prototype. Replace the old page scaffold consistently, preserving actual page-specific data capabilities. Output ONE crisp landscape board, target1536x1024: large desktop approximately1120px LEFT, independently composed mobile approximately360px RIGHT, narrow gap. Both screens start at the TOP EDGE. NO external board title, NO desktop/mobile captions, NO device frame, NO arbitrary outer margins.\nMATCH MASTER: B 대회 기록실, white reading surface, dark ink data, restrained serious 궁서-style display, full red 천하제일 / circular-star / gold 단타대회 wordmark, thin red section rules, pale gold selected entity and flat gold selected controls. Avoid a card-grid dashboard or nested containers. Main content and supporting right rail maintain the master's proportions and start lines. Right rail is unnumbered recent history, lookup basis and contents corresponding to actual section order; no duplicate metric navigation.\nCANONICAL CHROME: desktop wordmark / 메인 / 랭킹 / 기업·종목 검색 / 최근 본 / theme. Mobile top row full wordmark+menu; SECOND row 검색+최근 본+theme. Bottom 메인/랭킹/검색 appears ONCE ONLY, 랭킹 active in detail contexts. Keep this chrome in every state.\nDETAIL LAYERS, strict order: identity and date → enterprise/stock entity selector → FIXED page/metric tabs → selected current value/rank → unique page body. Identity 삼성전자 · 보통주 ·005930·KOSPI. Small clear \"예시 데이터 · 2026.10.08 기준\" and \"실제 삼성전자 공식 수치 아님\".\nENTITY SELECTOR \"기업 전체와 구성 종목\": desktop THREE sibling outlined rectangular link-buttons in ONE row, not giant KPI cards. \"기업 전체(합산) 549조 ·2개 종목\"; \"삼성전자 보통주005930 495조\"; \"삼성전자우 우선주005935 54조\". COMMON only active pale gold with small현재. On mobile aggregate FULL WIDTH row then common/preferred TWO equal columns SIDE BY SIDE. ALL THREE always visible, no dropdown/hidden securities. Enterprise link ALWAYS goes to 기업 합산 시총, NEVER company PER/DIV/DPS. Switching concrete stock retains viewed stock metric; entity selection is separate from metric selection.\nFIXED EIGHT TAB ORDER desktop single row, mobile exactly TWO ROWS of FOUR visible items: row1 \"기본 정보 / 시가총액 / PER / PBR\"; row2 \"EPS / BPS / 배당수익률 / 주당배당금\". Active item remains in its fixed position, never moves to the start. NO duplicate shortcuts or right-rail metric menu.\nSHARED SYNTHETIC DATA: aggregate549조=common495+preferred54. Common price74,000원 +0.80%, preferred54,000원0.00%; price absolute values and yield/dividend absolute values DARK NEUTRAL INK, only signed price changes red(up)/blue(down). DO NOT copy master's accidental red74,000원. Common DPS1,480원 and DIV2.00%=1480/74000*100; preferred DPS1,480원 and DIV2.74%=1480/54000*100 rounded. These are deliberately synthetic review values, never current real Samsung data. No investment attractiveness, corporate per-share metrics, real-time claims, invented stocks, trading, accounts, favorites, forecasts, dividend payment calendars or alerts. Main meaning must not rely on a screenshot caption. Preserve lower annual records→full-history CSV→formula/basis→adjacent rank order where applicable. Mobile lower sections may be readable collapsed continuation but core shell/context must remain complete.\n\nPAGE FAMILY: loading / empty / unpublished / missing / retry / revision changed. Produce a systematic SIX-frame sheet,3 columns x2rows, no outer title, no external numbered frame labels. This page-family exception may use six compact mobile canvases instead of desktop+mobile pair, but EVERY canvas must use canonical mobile two-row header, visible underlying target context, fixed selected metric slot, bottomnav once. All frames aligned to same boundaries and same shell height, thin red rules, no decorative icons dominating the page. State changes replace ONLY the body / opened temporary-surface body, never delete header, target selector, active tabs or move an active tab to the start. Use coherent underlying \"삼성전자 보통주005930 ·PER\" detail for frames1,2,3,5,6, common current context; frame4 actual \"종목 PER 순위\" ranking context keeps fixed ranking metric menu and doesn't invent enterprisePER. Company549/common495/pref54 visible above body in detailed contexts; mobile aggregatefullrow+common/pref sidebyside. Fixed detail2x4tab order basic,marketcap,PER,PBR/EPS,BPS,DIV,DPS, PER THIRD selected; rankingframe excludes기본정보 but preserves seven-metric order.\nFrame1 body \"상세 기록을 불러오는 중…\" with restrained skeleton; identity/selector/tabs remain real readable.\nFrame2 search temporary surface over SAME underlyingPER detail: query테스트기업, \"검색 결과 없음\", \"검색어 수정\"; separate small search-data retry substate \"검색 자료를 불러오지 못했습니다 / 다시 시도\". No invented searchfilters.\nFrame3 recent temporary surface over SAME underlyingdetail, \"최근 본 종목이 없습니다\", \"최근 본 종목 최대10개\", closeX/돌아가기. Empty recent is not a blank app home.\nFrame4 \"종목 PER 순위\", ranking nav active andPER in fixed place, body \"아직 공개된 순위가 없습니다\", links to other realmetrics. NoCSV in unpublished state; small distinct note \"공개된 대상0개는 미공개와 구별 ·0개 CSV는 열 이름만 제공\".\nFrame5 commonPER body current\"— ·원천 미제공\", separate \"마지막 제공18.50배 ·2026.10.07 ·예시\", source\"자료 출처: 예시 데이터\". This is missing current observation, not zero, and historical value is never labeled current.\nFrame6 samePER detail body transient\"기록을 불러오지 못했습니다 / 다시 시도\" and separate revisionstatus\"자료가 갱신되었습니다 / 최신 자료 보기\". Preserve targetcommon andPERtabs even in error.\nEach frame small \"예시 데이터 ·2026.10.08 기준\". No data claims about actualSamsung. No themes changing acrossframes, no activehome default in everyframe, no notification/signup/portfolio/trading controls. Maintain all shared shell dimensions; prefer compact readable text to large error illustrations."
+    }
+  ],
+  "final_selected": [
+    {
+      "id": "13-detail-div",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png",
+      "filename": "13-detail-div-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "205e712723afe90d37968bdfdd3145489137221f4259a97f5883ce51e9701405",
+      "limitations": [
+        "The right-rail contents repeats the metric menu instead of matching actual body section order.",
+        "Bottom formula note still describes page yield as observation average; current provided value versus chart-only aggregation needs correction in implementation.",
+        "Chart endpoint2.00% is red; absolute yield should be neutral."
+      ]
+    },
+    {
+      "id": "14-detail-dps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png",
+      "filename": "14-detail-dps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7f88c2e62003aa795e05b2ca20921182430c892cffa282e86086b12ea980680f",
+      "limitations": [
+        "Recent-history Samsung entry shows495조 while other entries show prices; metric/unit labeling is inconsistent.",
+        "Mobile omits the explicit synthetic date/official-value disclaimer; desktop keeps it."
+      ]
+    },
+    {
+      "id": "15-search-recent",
+      "filename": "15-search-recent-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7bf4e86550af7f14e10fda2dcf97e620a3b8ad17349b34a13838c0eb06088010",
+      "limitations": [
+        "Desktop stock link text still says종목시총보기 in DIVcontext; it was preserved by the narrow final edit.",
+        "Menu review inset still repeatsnavigationasmenucontent; no functional verification."
+      ],
+      "structural_requirement_passed": true
+    },
+    {
+      "id": "16-states",
+      "filename": "16-states-primary.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png.json",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "sha256": "9b70daa054fae3d7d2166aa7b5f3b3071313773223d659cede64b6ce5a50bec5",
+      "states": [
+        "loading",
+        "search_empty",
+        "period_data_empty",
+        "transient_error"
+      ],
+      "structural_requirement_passed": true,
+      "title": "공통 셸을 유지하는 상태6종 · 두 보드",
+      "additional_images": [
+        {
+          "id": "16-states-secondary",
+          "filename": "16-states-secondary.png",
+          "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png",
+          "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.prompt.txt",
+          "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png.json",
+          "dimensions": [
+            1536,
+            1024
+          ],
+          "sha256": "b6ebbb6fc114415151363861cbbcfeb61e1996030e5804a59cbd6fd3adec9701",
+          "states": [
+            "metric_unavailable",
+            "selected_date_unpublished"
+          ],
+          "structural_requirement_passed": true
+        }
+      ],
+      "paths": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png"
+      ],
+      "states_covered": 6,
+      "board_count": 2,
+      "limitations": [
+        "Static generated review images; no actual browser behavior or functional validation.",
+        "Primary native output1254x1254; secondary1536x1024."
+      ],
+      "supersedes": "16-states-final.png"
+    }
+  ],
+  "correction_manifest": "jobs-13-16-correction.json",
+  "review_path": "review-13-16.json",
+  "essential_final_recovery_calls": 2,
+  "all_layout_contract_items_passed": false,
+  "state_group_structural_requirement_passed": true,
+  "state_group_board_count": 2,
+  "state_split_calls": 2
+}

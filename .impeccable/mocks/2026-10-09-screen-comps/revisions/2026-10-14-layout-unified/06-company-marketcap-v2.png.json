@@ -1,0 +1,16 @@
+{
+  "id": "06-company-marketcap",
+  "tool": "built-in image_gen.imagegen",
+  "created_on": "2026-10-14",
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-8aca0145-3407-4071-bc3a-7e7831a74f1c.png",
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png",
+  "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.prompt.txt",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "status": "corrected-awaiting-confirmation",
+  "product_code_changed": false,
+  "prompt": "Edit this image with ONE narrow semantic cleanup, preserve the exact current layout, all geometry, header/selector/menu positions, colors of brand and selected aggregate, mobile1+2columntargets, bottom3nav, data, charts and typography. In the desktop AND mobile same-company comparison table, change absolute price74,000원 from red to the same neutral dark ink as54,000원. Keep signed +0.80% red. Change stock rank1위 in that table from red to neutral/gold (rank is not a price return). Make current price difference20,000원 neutral dark ink rather than red. In annual record mark2026as2026(현재), not a concluded yearend, maintain current549조. Keep 06 stock buttons explicitly 종목 시총 보기 leading08. Do not change anything else. No additional title, no layout changes.",
+  "initial_image": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png",
+  "correction_round": 1
+}

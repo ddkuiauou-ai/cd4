@@ -32,11 +32,11 @@ export function StaticRankingPage({ initial, manifest }: { initial: RankingPageV
     state: selected.scope?.state ?? "unpublished", revisionChanged: selected.revisionChanged,
     staticCsvSource: selected.scope?.csv ?? undefined };
   if (selected.revisionChanged || !selected.scope || selected.scope.state === "unpublished") return <RankingPageView {...empty} />;
-  if (selected.outOfRange) return <div className="empty-state" role="status"><h1 className="section-heading">순위 페이지를 찾을 수 없습니다</h1><a className="underline" href={`${initial.basePath}?scope=${encodeURIComponent(selected.scopeKey)}`}>첫 페이지로 이동</a></div>;
+  if (selected.outOfRange) return <RankingPageView {...empty} feedback={{ title: "순위 페이지를 찾을 수 없습니다", description: "현재 조회 범위의 첫 페이지에서 다시 확인해 주세요.", action: <a className="inline-block mt-4 underline underline-offset-4" href={`${initial.basePath}?scope=${encodeURIComponent(selected.scopeKey)}`}>첫 페이지로 이동</a> }} />;
   if (defaultScope) return <RankingPageView {...initial} />;
-  if (url && failedUrl === url && loaded?.url !== url) return <div className="empty-state" role="alert"><h1 className="section-heading">순위 자료를 불러오지 못했습니다</h1><button className="underline" onClick={() => window.location.reload()}>다시 시도</button></div>;
-  if (!url) return <div className="empty-state" role="alert">이 순위 페이지의 자료를 찾을 수 없습니다.</div>;
-  if (loaded?.url !== url) return <div className="empty-state" role="status" aria-busy="true">순위 자료를 불러오고 있어요.</div>;
+  if (url && failedUrl === url && loaded?.url !== url) return <RankingPageView {...empty} feedback={{ title: "순위 자료를 불러오지 못했습니다", description: "조회 범위는 유지했습니다. 다시 시도해 주세요.", alert: true, action: <button className="inline-block mt-4 underline underline-offset-4" onClick={() => window.location.reload()}>다시 시도</button> }} />;
+  if (!url) return <RankingPageView {...empty} feedback={{ title: "이 순위 페이지의 자료를 찾을 수 없습니다.", alert: true }} />;
+  if (loaded?.url !== url) return <RankingPageView {...empty} feedback={{ title: "순위 자료를 불러오고 있어요.", description: "선택한 조회 범위의 공개 자료를 확인하고 있습니다.", busy: true }} />;
   const snapshot = loaded.snapshot;
   return <RankingPageView {...empty} rows={createRankingRows(snapshot.items, manifest.metric, manifest.scope)}
     latestDate={snapshot.publication?.asOf ?? snapshot.latestDate ?? null} />;

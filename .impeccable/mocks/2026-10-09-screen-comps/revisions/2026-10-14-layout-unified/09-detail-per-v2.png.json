@@ -1,0 +1,22 @@
+{
+  "id": "09-detail-per",
+  "title": "삼성전자 PER",
+  "filename": "09-detail-per-v2.png",
+  "prompt": "Use case: precise-object-edit. Edit IMAGE1, the just-generated unified Korean UI comp, in ONE bounded correction pass. IMAGE2 remains the approved06MASTER for the shared outerlayout. Preserve desktopLEFT/mobileRIGHT topalignment, white B records-room, sober궁서-style headings, fullwordmark, correctdesktopright rail, two-rowmobileheader, mobilebottomrankingnavigationonly, threeentitybuttons (aggregatefullrow andtwo stocksSIDE-BY-SIDE onmobile), and fixed8tabs (PC1row/mobile2x4). Preserve currentSamsung synthetic figures and 예시데이터2026.10.08. Do not restore theoldSKlayout or hide controls. Correct only these observed issues:\nIn BOTH views the two stock entity buttons must stay in the CURRENT PER context. Replace every \"종목 시총 보기\" inside 삼성전자/삼성전자우 buttons with \"PER 보기\"; selected common can say \"현재 PER\". Keep the aggregate button explicitly \"기업 시총 보기\" and keep549조/495조/54조 as marketcap identity context. Do not change entity order or currentcommongold. Make rank620위 DARK NEUTRAL, not red; only ranks1/2/3 may have special rank color. Remove unsupported denominator \"전체944개종목중\" and invented absolute daily change \"+600원\"; retain neutral74,000원 and red+0.80%. Mobile primary PER AREA chart must be VISIBLE/EXPANDED with points13,15,17,18.5 and compact 월간/연간/date controls, not just an accordion heading. Compress the mobile current summary and collapsed lower headings to fit the visible mainplot; do not hide any of the3entitybuttons or8metric tabs. Keep heatmap/distribution/price/history/CSV as readable lower headings. Same-range mean15.88,min13,max18.5,count4. Existing top layout and desktop rail are otherwise correct. Final lower sequence in bothviews: samecompanyPER comparison -> annualrecords -> fullhistoryCSV -> formula/basis -> nearbyPER previous/next. Do not invent total stock counts, unprovided sources or corporate PER.",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-a4f6c8c8-7992-40c9-b716-1837bbba9523.png",
+  "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f as /Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-a4f6c8c8-7992-40c9-b716-1837bbba9523.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "tool": "image_gen.imagegen",
+  "correction_round": 1,
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png",
+  "original_preserved": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per.png",
+  "status": "selected-static-review",
+  "core_top_contract_review": "confirmed visually",
+  "dimensions": [
+    1536,
+    1024
+  ]
+}

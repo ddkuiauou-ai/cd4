@@ -155,14 +155,44 @@ test('static wrapper offers an inline benchmark and compact assets while standal
     const optimized=await RestoredSecurityDetail({code:security.securityId,metric:'pbr'});
     assert.deepEqual(optimized.props.initial.sourceHistory,[]);assert.equal(optimized.props.initial.initialAnalysis.summary.count,3);assert.deepEqual(optimized.props.assets,assets);assert.equal(assetReads,1);
     const basic=await RestoredSecurityDetail({code:security.securityId,basic:true});
-    assert.equal(basic.type.name,'DetailSurface');assert.deepEqual(basic.props.prices,props.prices);assert.equal(assetReads,1);
+    assert.equal(basic.type.name,'StaticDetailClient');assert.equal(basic.props.initial.basic,true);
+    assert.deepEqual(basic.props.initial.prices,props.prices);assert.deepEqual(basic.props.assets,assets);assert.equal(assetReads,2);
     delete process.env.NEXT_OUTPUT_MODE;
     const standalone=await RestoredSecurityDetail({code:security.securityId,metric:'pbr'});
-    assert.equal(standalone.type.name,'DetailSurface');assert.equal(standalone.props.sourceHistory.length,3);assert.equal(assetReads,1);
+    assert.equal(standalone.type.name,'DetailSurface');assert.equal(standalone.props.sourceHistory.length,3);assert.equal(assetReads,2);
   }finally{
     if(priorMode===undefined)delete process.env.NEXT_OUTPUT_MODE;else process.env.NEXT_OUTPUT_MODE=priorMode;
     if(priorInline===undefined)delete process.env.STATIC_DETAIL_INLINE;else process.env.STATIC_DETAIL_INLINE=priorInline;
   }
+});
+
+test('static basic information restores real multi-day price history without embedding it in the initial quote',async()=>{
+  const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/security/KOSPI.000001/'});
+  const priceRows=[{date:'2026-10-01',close:'90',open:'85',rate:0,volume:'9007199254740993'},...props.prices];
+  const sources={
+    '/basic-cap':table(['date','marketcap'],[['2026-10-01','900'],['2026-10-08','1000']]),
+    '/basic-prices':table(['date','close','open','rate','volume'],priceRows.map(row=>[row.date,row.close,row.open,row.rate,row.volume])),
+  };
+  const calls=[];
+  const restore=replaceGlobals({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true,
+    fetch:async url=>{calls.push(url);return {ok:true,json:async()=>sources[url]};}});
+  let mounted;
+  try{
+    const context=loader({
+      'next/navigation':{useSearchParams:()=>new URLSearchParams('')},
+      '@/components/detail-surface':{DetailSurface:value=>React.createElement('output',{'data-testid':'price-history'},JSON.stringify({prices:value.prices,pending:value.historyPending,basic:value.basic,rank:value.ranking.currentRank}))},
+    });
+    const {StaticDetailClient}=context('components/static-detail-client.tsx');
+    const initial={...props,basic:true,metric:'marketcap',history:[],sourceHistory:[]};
+    assert.equal(initial.prices.length,1);
+    const {createRoot}=require('react-dom/client');
+    mounted=createRoot(document.getElementById('root'));
+    await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{initial,assets:{marketcap:'/basic-cap',prices:'/basic-prices'}})));
+    const restored=JSON.parse(document.querySelector('[data-testid="price-history"]').textContent);
+    assert.deepEqual(restored.prices,priceRows);assert.equal(restored.pending,false);assert.equal(restored.basic,true);assert.equal(restored.rank,1);
+    assert.deepEqual(new Set(calls),new Set(['/basic-cap','/basic-prices']));
+    assert.equal(initial.prices.length,1,'full price history remains in shared assets rather than initial page props');
+  }finally{if(mounted)await React.act(async()=>mounted.unmount());restore();dom.window.close();}
 });
 
 test('static browser queries update filters and navigation without changing full-history CSV',async()=>{

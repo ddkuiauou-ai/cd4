@@ -1,0 +1,116 @@
+{
+  "status": "pending-user-review",
+  "image_only": true,
+  "product_code_changed": false,
+  "functional_validation": false,
+  "master": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png",
+  "visual_review_rounds": 2,
+  "correction_rounds": 1,
+  "selected": [
+    {
+      "id": "13-detail-div",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png",
+      "filename": "13-detail-div-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "205e712723afe90d37968bdfdd3145489137221f4259a97f5883ce51e9701405",
+      "limitations": [
+        "The right-rail contents repeats the metric menu instead of matching actual body section order.",
+        "Bottom formula note still describes page yield as observation average; current provided value versus chart-only aggregation needs correction in implementation.",
+        "Chart endpoint2.00% is red; absolute yield should be neutral."
+      ]
+    },
+    {
+      "id": "14-detail-dps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png",
+      "filename": "14-detail-dps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7f88c2e62003aa795e05b2ca20921182430c892cffa282e86086b12ea980680f",
+      "limitations": [
+        "Recent-history Samsung entry shows495조 while other entries show prices; metric/unit labeling is inconsistent.",
+        "Mobile omits the explicit synthetic date/official-value disclaimer; desktop keeps it."
+      ]
+    },
+    {
+      "id": "15-search-recent",
+      "filename": "15-search-recent-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7bf4e86550af7f14e10fda2dcf97e620a3b8ad17349b34a13838c0eb06088010",
+      "limitations": [
+        "Desktop stock link text still says종목시총보기 in DIVcontext; it was preserved by the narrow final edit.",
+        "Menu review inset still repeatsnavigationasmenucontent; no functional verification."
+      ],
+      "structural_requirement_passed": true
+    },
+    {
+      "id": "16-states",
+      "filename": "16-states-primary.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png.json",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "sha256": "9b70daa054fae3d7d2166aa7b5f3b3071313773223d659cede64b6ce5a50bec5",
+      "states": [
+        "loading",
+        "search_empty",
+        "period_data_empty",
+        "transient_error"
+      ],
+      "structural_requirement_passed": true,
+      "title": "공통 셸을 유지하는 상태6종 · 두 보드",
+      "additional_images": [
+        {
+          "id": "16-states-secondary",
+          "filename": "16-states-secondary.png",
+          "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png",
+          "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.prompt.txt",
+          "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png.json",
+          "dimensions": [
+            1536,
+            1024
+          ],
+          "sha256": "b6ebbb6fc114415151363861cbbcfeb61e1996030e5804a59cbd6fd3adec9701",
+          "states": [
+            "metric_unavailable",
+            "selected_date_unpublished"
+          ],
+          "structural_requirement_passed": true
+        }
+      ],
+      "paths": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png"
+      ],
+      "states_covered": 6,
+      "board_count": 2,
+      "limitations": [
+        "Static generated review images; no actual browser behavior or functional validation.",
+        "Primary native output1254x1254; secondary1536x1024."
+      ],
+      "supersedes": "16-states-final.png"
+    }
+  ],
+  "validation": "Native-generated PNG files and prompt provenance checked; remaining layout differences are explicitly recorded, not marked passed.",
+  "essential_final_recovery_calls": 2,
+  "all_layout_contract_items_passed": false,
+  "state_group_structural_requirement_passed": true,
+  "state_split_calls": 2
+}

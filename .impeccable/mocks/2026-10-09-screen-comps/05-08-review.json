@@ -1,0 +1,41 @@
+{
+  "status": "pending-user-review",
+  "artifact_kind": "native-generated-screen-comps",
+  "functional_validation": false,
+  "product_code_changed": false,
+  "selected": [
+    {
+      "id": "05-company-basic",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/05-company-basic.png",
+      "limitations": [
+        "Mobile related-security rows show marketcap but omit per-row prices; representative common quote remains visible."
+      ]
+    },
+    {
+      "id": "06-company-marketcap",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/06-company-marketcap-v2.png",
+      "limitations": [
+        "Mobile continuation is denser/smaller than intended; the final nearby-company row and bottom navigation are clipped at the lower edge.",
+        "The desktop carries the explicit historical-coverage note; mobile presents the historical section title but not that full note."
+      ]
+    },
+    {
+      "id": "07-security-basic",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/07-security-basic.png",
+      "limitations": [
+        "Mobile lower metric shortcuts and source/date accordion are omitted; desktop source/date accordion also omitted.",
+        "Desktop adds a supported company composition arrangement not separately specified in the basic-page brief."
+      ]
+    },
+    {
+      "id": "08-security-marketcap",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/08-security-marketcap-v2.png",
+      "limitations": [
+        "Desktop navigation prints PER twice; the second occurrence should be PBR.",
+        "Mobile shows the cap chart and lower sections but omits the separate price-history chart present in desktop.",
+        "Exact text and small-label rendering need implementation-stage correction."
+      ]
+    }
+  ]
+}
+

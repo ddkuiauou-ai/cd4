@@ -1,0 +1,16 @@
+{
+  "id": "07-security-basic",
+  "tool": "built-in image_gen.imagegen",
+  "created_on": "2026-10-14",
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-97c669e8-9d35-42f1-b000-00cbdb68afa3.png",
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-final.png",
+  "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-final.prompt.txt",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic.png"
+  ],
+  "status": "targeted-recovery-awaiting-confirmation",
+  "product_code_changed": false,
+  "prompt": "Edit ONLY the mobile viewport's three entity buttons in the RIGHT panel of this image. Keep the ENTIRE LEFT DESKTOP screen unchanged, including its three buttons in ONE horizontal row and its eight tabs in ONE row.\nOn the RIGHT MOBILE screen replace the current three vertically stacked fullwidth buttons with: top enterprise button FULLWIDTH, and directly below it TWO HALF-WIDTH buttons SIDE BY SIDE: Samsung common LEFT, Samsung preferred RIGHT. All three always visible. ONLY common Samsung005930495조 is gold and marked현재. Enterprise549조 and preferred00593554조 are white outlined, NOT active. Never two현재targets. Preserve the current mobile8tabs2x4underbuttons, its quote74000+0.80, comparison andpricechart, headerandfixedbottomnav. Move lower mobile content up to fill the removed extra selector row.\nKeep all other content/geometry/brand/data the same. No exterior title, no deletingmobile, no changingPC. In bothbacklinks replacecurrentpage종목기본정보withactualdestination종목시가총액순위. This is stockBASIC with기본정보tabactive, notcompanyaggregate.",
+  "repair_reason": "prior correction introduced blocking violation of explicitly approved mobile entity visibility or removed mobile viewport",
+  "correction_round": 2
+}

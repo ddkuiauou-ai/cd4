@@ -43,8 +43,8 @@ test('batched histories equal live providers for current/stale masters and older
     const result = await db.transaction(tx => readSecurityBatch(tx, state.securities, new Map(state.companies.map(row => [row.companyId, row])),
       securityHeader, companyHeader, routeCodes));
     const queries = state.queries.slice(before);
-    assert.ok(queries.length <= 4, 'one bounded batch reads at most four source history queries');
-    assert.ok(queries.every(row => ['price', 'marketcap', 'bppedd'].includes(row.table)), 'master/publication/route inventory is reused');
+    assert.ok(queries.length <= 7, 'one bounded batch reads at most four histories and three lifecycle/name queries');
+    assert.ok(queries.every(row => ['price', 'marketcap', 'bppedd','listing-period','lifecycle-event','security_listing_period'].includes(row.table)), 'master/publication/route inventory is reused');
     for (const actual of result.items) {
       const expected = await provider.getSecurityByCode(actual.securityId);
       assert.deepEqual(actual.security, expected, `security DTO with cutoffs ${securityDate}/${companyDate}`);

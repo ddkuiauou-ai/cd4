@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "prompt": "Use case: ui-mockup. Make a factual correction of this six-panel Korean mobile ranking approval sheet. Preserve its six panels, full brand/style, date/sample labels, fonts and each metric value exactly. In all panels navigation must contain real entries 시가총액 / PER / PBR / EPS / BPS / 배당수익률 / 주당배당금, with current metric gold and horizontally clipped continuation allowed. Under each title add small scope \"종목별\". In DIV panel remove duplicated 배당수익률 navigation. Correct rank sorting only in EPS,BPS,DPS panels: order must be 1 SK하이닉스(selected pale gold), 2 LG에너지솔루션, 3 삼성전자, preserving their existing values and stock identities. EPS 13,755원/8,320원/6,012원; BPS137,553원/98,210원/52,384원; DPS6,520원/4,320원/1,924원. PER and PBR keep ascending current row order 삼성전자/SK하이닉스/LG에너지솔루션, DIV keeps descending current order 삼성전자2.60%/SK하이닉스2.00%/LG에너지솔루션1.10%. Rank numerals colored1gold2red3blue, price changes red/blue, normal labels dark. Exact values/definition wording preserved, no new recommendation copy or functionality. Gold CSV and page navigation retained.",
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-1856241a-bc0b-4958-82d5-ed3c05655f00.png",
+  "reference": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/04-ranking-metrics.png",
+  "status": "pending-user-review",
+  "parent": "04-ranking-metrics"
+}

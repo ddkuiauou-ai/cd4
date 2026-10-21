@@ -1,0 +1,37 @@
+{
+  "id": "14-detail-dps",
+  "title": "주당배당금 상세",
+  "filename": "14-detail-dps-v2.png",
+  "prompt": "Use case: ui-mockup. ONE targeted correction batch to image1; image2 is common geometric/style master, NOT the selected entity. Preserve1536x1024 desktopleft1120/mobile right360top-aligned,nooutsideheadings. Existing page body's DPScharts and fixedtabs are mostly correct; keep them.\nCRITICAL: title in BOTH views must be exactly \"삼성전자\", subtitle \"보통주 ·005930·KOSPI\", NEVER \"기업 전체\". This is currentCOMMON stock DPS1480원260위. Top aggregate549조 button WHITE with NO현재; COMMON삼성전자495조 ONLY PALE GOLD+현재; preferred54조WHITE. Mobile aggregatefullwidth thencommon/prefTWOcolumns, no hiddenbuttons. Stock link labels \"주당배당금 보기\", not종목시총보기; enterprise button means기업합산시총only. NEVER enterpriseDPS.\nKeep basic/marketcap/PER/PBR/EPS/BPS/DIV/DPS in EXACT fixedorder,DPSLAST; mobile2x4DPSlastbottomright. Preserve current1480,260위 and quote74000neutral,+0.80%red. Add the readable factual line \"이전 제공 기록1,440원 대비 +2.78%\" neutral. Preserve synthetic2023/2024/2025/2026 bars1200/1360/1440/1480 and comparisonfirstblank/13.33/5.88/2.78%,3년selected; mean1370. Keep flat supportingmatrix,histogram,ownpricehistory,two-concrete-stock comparison,annualrecords,CSV,basis.\nDesktop supporting right rail width/start must matchMASTER190–200px. Remove all ranknumbers from recenthistory, including1beforeSamsung. Body and railcontents sectionorder must agree. Keep allsamplelabels,neutralabsolutevalues and the official-value disclaimer. Nonewfeatures orforecasts.",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+  ],
+  "source_png": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-38f84004-e9d6-4ac3-9089-e0ca031165f4.png",
+  "tool": "image_gen.imagegen",
+  "tool_metadata": {
+    "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0 as /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-38f84004-e9d6-4ac3-9089-e0ca031165f4.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  },
+  "transparent_background": false,
+  "correction_round": 1,
+  "status": "pending-user-review",
+  "synthetic_data": true,
+  "functional_validation": false,
+  "product_code_changed": false,
+  "review": {
+    "visual_review_rounds": 2,
+    "correction_rounds": 1,
+    "selected": true,
+    "remaining_limitations": [
+      "Recent-history Samsung entry shows495조 while other entries show prices; metric/unit labeling is inconsistent.",
+      "Mobile omits the explicit synthetic date/official-value disclaimer; desktop keeps it."
+    ],
+    "all_layout_contract_items_passed": false,
+    "functional_validation": false
+  },
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "embedded_prompt_exact": true
+}

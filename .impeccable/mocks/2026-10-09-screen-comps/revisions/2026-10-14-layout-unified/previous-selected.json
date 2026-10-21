@@ -1,0 +1,163 @@
+{
+  "status": "pending-user-review",
+  "selected_direction": "B 대회 기록실",
+  "tool": "built-in image_gen.imagegen",
+  "user_approved": false,
+  "functional_validation": false,
+  "product_code_changed": false,
+  "source_manifest": "jobs.json",
+  "selected": [
+    {
+      "id": "01-main",
+      "title": "메인 · 대회 기록실",
+      "routes": "/dashboard",
+      "filename": "revisions/2026-10-13-entity-navigation/01-main-gungseo.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/01-main-gungseo.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/01-main-gungseo.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/01-main-gungseo.png.json",
+      "revision": "2026-10-10 gungseo typography"
+    },
+    {
+      "id": "02-ranking-company",
+      "title": "기업 합산 시가총액 순위",
+      "routes": "/; /marketcaps",
+      "filename": "02-ranking-company-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/02-ranking-company-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/02-ranking-company-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/02-ranking-company-v2.png.json"
+    },
+    {
+      "id": "03-ranking-security",
+      "title": "종목별 시가총액 순위",
+      "routes": "/marketcap",
+      "filename": "revisions/2026-10-13-entity-navigation/03-ranking-gungseo.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/03-ranking-gungseo.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/03-ranking-gungseo.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/03-ranking-gungseo.png.json",
+      "revision": "2026-10-10 gungseo typography"
+    },
+    {
+      "id": "04-ranking-metrics",
+      "title": "지표별 랭킹 · 6개 변형",
+      "routes": "/per; /pbr; /eps; /bps; /div; /dps",
+      "filename": "04-ranking-metrics-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/04-ranking-metrics-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/04-ranking-metrics-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/04-ranking-metrics-v2.png.json"
+    },
+    {
+      "id": "05-company-basic",
+      "title": "기업 기본 정보",
+      "routes": "/company/{id}",
+      "filename": "revisions/2026-10-13-entity-navigation/05-company-basic-entities.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/05-company-basic-entities.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/05-company-basic-entities.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/05-company-basic-entities.png.json",
+      "revision": "2026-10-13 entity navigation"
+    },
+    {
+      "id": "06-company-marketcap",
+      "title": "기업 합산 시가총액 상세",
+      "routes": "/company/{id}/marketcap",
+      "filename": "revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.png.json",
+      "revision": "2026-10-13 entity navigation"
+    },
+    {
+      "id": "07-security-basic",
+      "title": "종목 기본 정보",
+      "routes": "/security/{id}",
+      "filename": "revisions/2026-10-13-entity-navigation/07-security-basic-entities.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/07-security-basic-entities.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/07-security-basic-entities.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/07-security-basic-entities.png.json",
+      "revision": "2026-10-13 entity navigation"
+    },
+    {
+      "id": "08-security-marketcap",
+      "title": "종목 시가총액 상세",
+      "routes": "/security/{id}/marketcap",
+      "filename": "revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.png.json",
+      "revision": "2026-10-13 entity navigation"
+    },
+    {
+      "id": "09-detail-per",
+      "title": "PER 상세",
+      "routes": "/security/{id}/per",
+      "filename": "09-detail-per-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.png.json"
+    },
+    {
+      "id": "10-detail-pbr",
+      "title": "PBR 상세",
+      "routes": "/security/{id}/pbr",
+      "filename": "10-detail-pbr-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.png.json"
+    },
+    {
+      "id": "11-detail-eps",
+      "title": "EPS 상세",
+      "routes": "/security/{id}/eps",
+      "filename": "11-detail-eps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.png.json"
+    },
+    {
+      "id": "12-detail-bps",
+      "title": "BPS 상세",
+      "routes": "/security/{id}/bps",
+      "filename": "12-detail-bps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.png.json"
+    },
+    {
+      "id": "13-detail-div",
+      "title": "배당수익률 상세",
+      "routes": "/security/{id}/div",
+      "filename": "13-detail-div-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png.json"
+    },
+    {
+      "id": "14-detail-dps",
+      "title": "주당배당금 상세",
+      "routes": "/security/{id}/dps",
+      "filename": "14-detail-dps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.png.json"
+    },
+    {
+      "id": "15-search-recent",
+      "title": "검색 · 최근 본 · 메뉴",
+      "routes": "search; recent; navigation",
+      "filename": "15-search-recent-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/15-search-recent-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/15-search-recent-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/15-search-recent-v2.png.json"
+    },
+    {
+      "id": "16-states",
+      "title": "로딩 · 빈 화면 · 오류 상태",
+      "routes": "loading; empty; error; publication",
+      "filename": "16-states-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/16-states-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/16-states-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/16-states-v2.png.json"
+    }
+  ],
+  "reorganized_on": "2026-10-13",
+  "latest_revision_manifest": "revisions/2026-10-13-entity-navigation/jobs.json"
+}

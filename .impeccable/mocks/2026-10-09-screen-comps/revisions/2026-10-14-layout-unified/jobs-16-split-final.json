@@ -1,0 +1,135 @@
+{
+  "native_calls": 2,
+  "selected_group": {
+    "id": "16-states",
+    "filename": "16-states-primary.png",
+    "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+    "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.prompt.txt",
+    "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png.json",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "sha256": "9b70daa054fae3d7d2166aa7b5f3b3071313773223d659cede64b6ce5a50bec5",
+    "states": [
+      "loading",
+      "search_empty",
+      "period_data_empty",
+      "transient_error"
+    ],
+    "structural_requirement_passed": true,
+    "title": "공통 셸을 유지하는 상태6종 · 두 보드",
+    "additional_images": [
+      {
+        "id": "16-states-secondary",
+        "filename": "16-states-secondary.png",
+        "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png",
+        "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.prompt.txt",
+        "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png.json",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "sha256": "b6ebbb6fc114415151363861cbbcfeb61e1996030e5804a59cbd6fd3adec9701",
+        "states": [
+          "metric_unavailable",
+          "selected_date_unpublished"
+        ],
+        "structural_requirement_passed": true
+      }
+    ],
+    "paths": [
+      "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png"
+    ],
+    "states_covered": 6,
+    "board_count": 2,
+    "limitations": [
+      "Static generated review images; no actual browser behavior or functional validation.",
+      "Primary native output1254x1254; secondary1536x1024."
+    ],
+    "supersedes": "16-states-final.png"
+  },
+  "jobs": [
+    {
+      "id": "16-states-primary",
+      "filename": "16-states-primary.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-final.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Native image edit ONLY. Preserve the TOP FOUR fully formed mobile frames from this supplied state-sheet, arranged as a2×2grid, and REMOVE ONLY the bottomtwo abbreviatedframes. Output a clean approximately1536×1536 square board, no outside title, no extra content, no device photographs. Keep originaltopfour frames' wording,style,internalgeometry andALLtheir visiblecontrols exactly unchanged. Those states are loading,search-empty,period-data-empty andtransienterror.\nCRITICAL PRESERVATION in EACH of4frames: brand+menuheader;search/recent/theme secondrow;SamsungCOMMON005930identity;enterprise549조 FULLWIDTHrow;underitCOMMON495조LEFTgold현재 andPREFERRED54조RIGHTwhite SIDE-BY-SIDE;both8metric-tabrows withPERthirdactive;statebody;bottom메인랭킹검색ONCE. Nothing inside a retainedframe may be deleted, collapsed or shortened. No extra 상단메인랭킹. Reuse the fourgoodframes exactly andmake themlarger/readable when the lowerrow isremoved. Do not reconstruct thebadbottomtwo or create anynewstate. This is a preserve-four-frames recomposition, not a redesign.",
+      "source_png": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-f7697c1c-6cb0-4965-b343-8a249937a608.png",
+      "tool": "image_gen.imagegen",
+      "tool_metadata": {
+        "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0 as /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-f7697c1c-6cb0-4965-b343-8a249937a608.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+      },
+      "transparent_background": false,
+      "status": "pending-user-review",
+      "delivery_group": "16-states",
+      "functional_validation": false,
+      "product_code_changed": false,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "embedded_prompt_exact": true,
+      "selected": true,
+      "visual_review": {
+        "states": [
+          "loading",
+          "search_empty",
+          "period_data_empty",
+          "transient_error"
+        ],
+        "all_frames_entity_fullrow_plus_two_columns": true,
+        "all_frames_eight_tabs_two_rows": true,
+        "all_frames_common_only_active": true,
+        "no_top_main_ranking_duplication": true,
+        "bottom_navigation_once_per_frame": true,
+        "same_samsung_common_per_context": true,
+        "functional_validation": false,
+        "structural_scope_passed": true
+      }
+    },
+    {
+      "id": "16-states-secondary",
+      "filename": "16-states-secondary.png",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png"
+      ],
+      "prompt": "Use case: ui-mockup. Use the supplied successful4-frame state sheet as the exact visual and mobile-SHELL authority. Create ONE landscape1536×1024 board with ONLY TWO LARGE MOBILE FRAMES side by side, sameheight,topaligned,nocaptions. Copy the complete upper shell from a good referenceframe into BOTH newframes, then replace ONLY each statebody. No desktop andno4-frame grid.\nNEVER DELETE these layers in eitherframe: TOProw fullred/gold천하제일[star]단타대회 logo+menuONLY;SECONDrowsearch+최근본+theme;identity삼성전자 ·보통주005930·KOSPI and예시데이터2026.10.08;heading기업전체와구성종목;WHITEaggregate549조FULLWIDTHrow;belowitTWOHALFWIDTHbuttons common삼성전자495조LEFT GOLD현재 /preferred삼성전자우54조RIGHT WHITE;BOTH8tabrows fixed basic/marketcap/PER/PBR thenEPS/BPS/DIV/DPS,PERthirdactive;BODY;bottom메인랭킹검색ONCE. No top메인랭킹,nohiddenstock,no3buttonsinarow,noomittedtabrow. TheseareSamsungCOMMONPERdetailstates,notcorporatePERormarket-wide-rankings.\nLEFTframeBODY: title\"현재 자료 미제공\", supporting\"현재 PER — ·원천 미제공\". Two visibleactions\"마지막 제공 시점 보기\" and\"다른 지표 보기\". No numericpastvaluepresentedascurrent. Keepallentitybuttonsand8tabsABOVEthisbody.\nRIGHTframeBODY: title\"선택한 기준일 자료가 아직 미공개입니다\", supporting\"다른 지표와 종목 탐색은 계속할 수 있습니다\". Action\"최신 공개 자료 보기\". KeepALLsameentitybuttonsand8tabsABOVEbody. NoCSV or fakezero.\nUse shortbodymessagesandmoderatespacingsoFULLshellfitscomfortablyinbothlargeframes. Preserve referencewhiteBrecordsurface,darkink,thinredrules,flatgoldselectedcontrols. ExamplesnotactualSamsungofficialfacts. No additionalstates,newfeatures,largeillustrationsorlayoutrearrangement. CorrectcompletecontextinBOTHframesisthepriority.",
+      "source_png": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-d31fcd8e-a7bb-4054-b853-32fe581ada13.png",
+      "tool": "image_gen.imagegen",
+      "tool_metadata": {
+        "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0 as /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-d31fcd8e-a7bb-4054-b853-32fe581ada13.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+      },
+      "transparent_background": false,
+      "status": "pending-user-review",
+      "delivery_group": "16-states",
+      "functional_validation": false,
+      "product_code_changed": false,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "embedded_prompt_exact": true,
+      "selected": true,
+      "visual_review": {
+        "states": [
+          "metric_unavailable",
+          "selected_date_unpublished"
+        ],
+        "all_frames_entity_fullrow_plus_two_columns": true,
+        "all_frames_eight_tabs_two_rows": true,
+        "all_frames_common_only_active": true,
+        "no_top_main_ranking_duplication": true,
+        "bottom_navigation_once_per_frame": true,
+        "same_samsung_common_per_context": true,
+        "functional_validation": false,
+        "structural_scope_passed": true
+      }
+    }
+  ],
+  "product_code_changed": false,
+  "functional_validation": false
+}

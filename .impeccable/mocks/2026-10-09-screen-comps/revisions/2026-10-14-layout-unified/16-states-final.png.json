@@ -1,0 +1,36 @@
+{
+  "id": "16-states",
+  "filename": "16-states-final.png",
+  "prompt": "Use case: ui-mockup. RECREATE a NEW PORTRAIT state-sheet image, exact target1536×2048 pixels, NOT landscape. SIX large readable MOBILE WEB CANVASES in TWO COLUMNS by THREE ROWS. Use the first supplied image ONLY for the corrected mobile canonical shell/style; use the second ONLY for the idea of state bodies. DO NOT preserve either input's outer composition. No desktop screen, no3columns×2rows, no external sheet title or numbered captions. Each of SIX canvases is a separate same-width mobile screenshot, at identical internal positions, with narrow gaps between columns/rows. Give every canvas sufficient height so the required header/selector/TWOtabrows/statebody/bottomnav all fit. Use nearly all2048pxheight. Compact BODY messages, not missing context.\nMANDATORY SAME SHELL IN ALL SIX FRAMES, top to bottom:\nA Top headerROW1 full red \"천하제일\" + yellow circular redstar + gold \"단타대회\", with menuicon only at right. Absolutely NO 메인 or 랭킹 text/links in top header.\nB HeaderROW2 \"기업·종목 검색\" + \"최근 본\" +themeicon.\nC Identity \"삼성전자\", subtitle \"보통주 ·005930·KOSPI\", clear \"예시 데이터 ·2026.10.08 기준\". No 기업전체 identity or market-wide ranking page.\nD Entity selector heading \"기업 전체와 구성 종목\"; its FIRST ROW is ONE full-content-width WHITE link \"기업 전체(합산) 549조 ·2개 종목\"; SECOND ROW is TWO half-width link-buttons SIDE BY SIDE: LEFT common \"삼성전자 ·보통주005930 ·495조\", PALEGOLD with small현재; RIGHT preferred \"삼성전자우 ·우선주005935 ·54조\", WHITE. No threebuttons onone row, no dropdown, no extra stock. ALL THREEVISIBLEINALLSIXFRAMES.\nE EXACTLY EIGHT fixedtabs in TWO ROWS×FOUR; row1 \"기본 정보 / 시가총액 / PER / PBR\"; row2 \"EPS / BPS / 배당수익률 / 주당배당금\". PER THIRDposition activegold in ALL SIX frames. Do not omit row2 in lowerframes; do not move activePER first.\nF One compact statebody described below.\nG Bottomnav \"메인 / 랭킹 / 검색\" ONCE at bottom of eachframe,랭킹active. No duplicatednav elsewhere.\nSTATE BODIES arranged readingorder TWOcolumns×THREErows:\nTOPLEFT Loading: \"상세 기록을 불러오는 중…\" plus3short restrained skeletonrows.\nTOPRIGHT Searchempty: small temporarysearchsurface belowfixedtabs, query\"테스트기업\", \"검색 결과 없음\", \"검색어 수정\", closeX. UnderlyingSamsungPERcontext remains above.\nMIDDLELEFT Dataempty: \"이 기간에 제공된 기록이 없습니다\", \"기간을 변경해 확인해 주세요\", \"기간 다시 선택\". Do not draw a fabricated line or turn dataempty into noenterprise.\nMIDDLERIGHT Error: \"기록을 불러오지 못했습니다\", \"잠시 후 다시 시도해 주세요\", \"다시 시도\".\nBOTTOMLEFT Metricunavailable: \"현재 PER —\", \"원천 미제공\". Separate small record \"마지막 제공18.50배 ·2026.10.07 ·예시\". Old observation is not current; missing is not0.\nBOTTOMRIGHT Publicationlimit: SAME SamsungCOMMONPERidentity/selector/tabs, body \"이 기준일에는 공개된 지표값이 없습니다\", \"최신 공개 자료를 확인해 주세요\", \"최신 자료 보기\". This is selected-detail/date availability, NOT market-wide unpublishedranking; no corporatePER confusion, noCSV.\nKeep white B records-room surface, dark ink, sober궁서-styletitles,thin redsectionrules,flatgoldcontrols. Dataexampleonly,notactualSamsungofficialvalues. No giantstatusillustrations, no marketing, accounts,trading,favorites,notifications,placeholderstocknamesor additionalfeatures.\nSTRUCTURAL REQUIREMENTS TAKE PRIORITY: PORTRAIT1536×2048;2columns×3rows;all6frames have1aggregatefullrow+2stockcolumns AND both8tabrows;topbrand/menuONLY,search/recent/theme secondrow;bottom3navonlyonce. These must be visibly correct, not just implied.",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-v2.png"
+  ],
+  "source_png": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-ddde8795-4a25-4825-8ca8-954d5044f21c.png",
+  "tool": "image_gen.imagegen",
+  "tool_metadata": {
+    "output_hint": "Generated images are saved to /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0 as /Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-ddde8795-4a25-4825-8ca8-954d5044f21c.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+  },
+  "transparent_background": false,
+  "essential_structural_recovery": true,
+  "target_size": "1536x2048",
+  "status": "pending-user-review",
+  "functional_validation": false,
+  "product_code_changed": false,
+  "dimensions": [
+    1086,
+    1448
+  ],
+  "embedded_prompt_exact": true,
+  "visual_review": {
+    "grid": "portrait2columnsx3rows",
+    "top_header_navigation_duplication_removed": true,
+    "context": "all six cases are Samsung commonPERdetail; no whole-market ranking mixture",
+    "essential_mobile_selector_requirement_passed": false,
+    "limitations": [
+      "Bottomtwo frames(metric unavailable/publicationlimit) omitcommon/preferredentitybuttons andall8metric tabs; onlyaggregate row remains.",
+      "Target requested1536x2048; nativeoutputis1086x1448withthecorrectportraitaspect.",
+      "Full layout contract is NOT passed; no further image generation per final-two-call instruction."
+    ]
+  }
+}

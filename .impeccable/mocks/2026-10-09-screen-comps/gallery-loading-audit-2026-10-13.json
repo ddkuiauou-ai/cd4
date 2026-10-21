@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-13",
+  "reported_problem": "blank gallery images",
+  "observed_hidden_sections": [
+    "14-detail-dps",
+    "15-search-recent",
+    "16-states"
+  ],
+  "cause": "A lazy image was classified as pending before loading; display:none prevented it from becoming eligible for lazy loading. Periodic src changes did not unhide it. Missing intrinsic dimensions also shifted fragment targets.",
+  "fixes": [
+    "Load all 16 local review images eagerly",
+    "Reserve each image size using PNG header dimensions",
+    "Only display a failure message after a real image/decode error",
+    "Remove the indefinite generation status and retry timer"
+  ],
+  "files_checked": [
+    {
+      "filename": "01-main-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "02-ranking-company-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "03-ranking-security-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "04-ranking-metrics-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "05-company-basic.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "06-company-marketcap-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "07-security-basic.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "08-security-marketcap-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "09-detail-per-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "10-detail-pbr-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "11-detail-eps-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "12-detail-bps-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "13-detail-div-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "14-detail-dps-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "15-search-recent-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    },
+    {
+      "filename": "16-states-v2.png",
+      "width": 1448,
+      "height": 1086,
+      "exists": true
+    }
+  ],
+  "new_images_generated": false,
+  "product_code_changed": false
+}

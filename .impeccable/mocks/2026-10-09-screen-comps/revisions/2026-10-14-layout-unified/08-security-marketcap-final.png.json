@@ -1,0 +1,16 @@
+{
+  "id": "08-security-marketcap",
+  "tool": "built-in image_gen.imagegen",
+  "created_on": "2026-10-14",
+  "source_path": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-21240c41-28d6-479e-b883-8e2ef5540816.png",
+  "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png",
+  "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.prompt.txt",
+  "references": [
+    "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap.png"
+  ],
+  "status": "targeted-recovery-awaiting-confirmation",
+  "product_code_changed": false,
+  "prompt": "Edit ONLY the LEFT DESKTOP viewport of this approval image. Preserve the ENTIRE RIGHT MOBILE viewport unchanged: mobilebrand/search, enterprisefullrow+commonpreferredside-by-side,8tabs2x4,495조current,capchart,bottomnav. The right mobile must remain a MOBILE SCREEN, never replace it with a sidebar.\nInside the LEFT desktop viewport (x0–1135 of1536canvas), reserve a supportingrail at x930–1125, width195px. Reflow existing leftmain ONLY into x24–910. Add rail unnumbered최근본list,조회기준예시2026.10.08,실제본문목차현재시총/종목비교/시총추이/주가추이/기간통계/연도별기록/계산식자료기준. Railstartimmediatelyunderdesktopheader at y80. The desktopheaderstillspansitswhole1135width, NOT mobilewidth. Desktoptarget3buttons stayinONEhorizontalrow withinmain,8stocktabsONErowbelowtargets. PreservecommonONLYgoldCURRENT,whiteaggregateandpreferred. Keep desktopcurrent495조rank1price74000+0.80 andthreecaplines.\nCorrect lowerdesktop ownstockannualtable: title 연도별기록(삼성전자보통주),2026(현재)=495조 not549;2025=462,2024=418,2023=381,2022=310. Aggregate549belongsonlytoselector/peertable/charttotal. Keepcompanysum549=495+54,period2026.07.08–10.08,allotherdata.\nOnly reflowLEFTmain/addINSIDELEFTrail/fixannual495. Do not change rightmobile. Do not create a huge rail in place of the mobile panel. Same1536x1024canvas,whiteBrecordroombrand,seriousKoreanserif.",
+  "repair_reason": "prior correction introduced blocking violation of explicitly approved mobile entity visibility or removed mobile viewport",
+  "correction_round": 2
+}

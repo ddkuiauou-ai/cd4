@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { businessChartSegments, formatBusinessValue } from "@/lib/business-analysis";
-import { exactRankingValue, formatRankingRate, formatRankingValue, type RankingRow } from "@/lib/ranking-view";
+import { exactRankingValue, formatRankingRate, formatRankingValue, RANKING_METRICS, type RankingRow } from "@/lib/ranking-view";
 import styles from "./ranking-view.module.css";
 
 export function RankingName({ row }: { row: RankingRow }) {
-  const contents = <><span className={styles.name}>{row.name}</span><span className={styles.code}>{row.ticker || "대표 종목 없음"}{row.exchange && <> · {row.exchange}</>}{row.scope === "security" && row.stockType && row.stockType !== "보통주" && <> · {row.stockType}</>}</span></>;
-  return row.href ? <Link href={row.href} prefetch={false} className={styles.nameLink}>{contents}</Link> : <div className={styles.nameLink}>{contents}</div>;
+  const contents = <><span className={styles.identity}><span className={styles.name}>{row.name}</span><span className={styles.code}>{row.scope === "security" && row.stockType && <>{row.stockType} · </>}{row.ticker || "대표 종목 없음"}{row.exchange && <> · {row.exchange}</>}</span></span>{row.href && <ChevronRight size={17} aria-hidden="true" className={styles.rowArrow} />}</>;
+  return row.href ? <Link href={row.href} prefetch={false} className={styles.nameLink} title={`${row.name} ${row.scope === "company" ? "기업 합산 " : ""}${RANKING_METRICS[row.metric].label} 상세 보기`}>{contents}</Link> : <div className={styles.nameLink}>{contents}</div>;
 }
 
 export function RankingValue({ row }: { row: RankingRow }) {
@@ -16,6 +17,10 @@ export function RankingRate({ row }: { row: RankingRow }) {
   const direction = row.rate == null || row.rate === 0 ? "flat" : row.rate > 0 ? "up" : "down";
   const label = row.close == null ? "가격 정보 없음" : `최근 종가 ${formatBusinessValue(row.close)}원${row.priceDate ? ` · 가격 관측일 ${row.priceDate}` : ""} · 저장된 전일 대비 ${formatRankingRate(row.rate)}`;
   return <span className={styles.rate} data-direction={direction} title={label} aria-label={label}>{formatRankingRate(row.rate)}</span>;
+}
+
+export function RankingPrice({ row }: { row: RankingRow }) {
+  return <span className={styles.price} title={row.priceDate ? `가격 관측일 ${row.priceDate}` : undefined}>{row.close == null ? "가격 정보 없음" : `${formatBusinessValue(row.close)}원`}</span>;
 }
 
 export function RankingSparkline({ row }: { row: RankingRow }) {

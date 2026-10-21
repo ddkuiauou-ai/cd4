@@ -1,0 +1,19 @@
+Use case: ui-mockup. RECREATE a NEW PORTRAIT state-sheet image, exact target1536×2048 pixels, NOT landscape. SIX large readable MOBILE WEB CANVASES in TWO COLUMNS by THREE ROWS. Use the first supplied image ONLY for the corrected mobile canonical shell/style; use the second ONLY for the idea of state bodies. DO NOT preserve either input's outer composition. No desktop screen, no3columns×2rows, no external sheet title or numbered captions. Each of SIX canvases is a separate same-width mobile screenshot, at identical internal positions, with narrow gaps between columns/rows. Give every canvas sufficient height so the required header/selector/TWOtabrows/statebody/bottomnav all fit. Use nearly all2048pxheight. Compact BODY messages, not missing context.
+MANDATORY SAME SHELL IN ALL SIX FRAMES, top to bottom:
+A Top headerROW1 full red "천하제일" + yellow circular redstar + gold "단타대회", with menuicon only at right. Absolutely NO 메인 or 랭킹 text/links in top header.
+B HeaderROW2 "기업·종목 검색" + "최근 본" +themeicon.
+C Identity "삼성전자", subtitle "보통주 ·005930·KOSPI", clear "예시 데이터 ·2026.10.08 기준". No 기업전체 identity or market-wide ranking page.
+D Entity selector heading "기업 전체와 구성 종목"; its FIRST ROW is ONE full-content-width WHITE link "기업 전체(합산) 549조 ·2개 종목"; SECOND ROW is TWO half-width link-buttons SIDE BY SIDE: LEFT common "삼성전자 ·보통주005930 ·495조", PALEGOLD with small현재; RIGHT preferred "삼성전자우 ·우선주005935 ·54조", WHITE. No threebuttons onone row, no dropdown, no extra stock. ALL THREEVISIBLEINALLSIXFRAMES.
+E EXACTLY EIGHT fixedtabs in TWO ROWS×FOUR; row1 "기본 정보 / 시가총액 / PER / PBR"; row2 "EPS / BPS / 배당수익률 / 주당배당금". PER THIRDposition activegold in ALL SIX frames. Do not omit row2 in lowerframes; do not move activePER first.
+F One compact statebody described below.
+G Bottomnav "메인 / 랭킹 / 검색" ONCE at bottom of eachframe,랭킹active. No duplicatednav elsewhere.
+STATE BODIES arranged readingorder TWOcolumns×THREErows:
+TOPLEFT Loading: "상세 기록을 불러오는 중…" plus3short restrained skeletonrows.
+TOPRIGHT Searchempty: small temporarysearchsurface belowfixedtabs, query"테스트기업", "검색 결과 없음", "검색어 수정", closeX. UnderlyingSamsungPERcontext remains above.
+MIDDLELEFT Dataempty: "이 기간에 제공된 기록이 없습니다", "기간을 변경해 확인해 주세요", "기간 다시 선택". Do not draw a fabricated line or turn dataempty into noenterprise.
+MIDDLERIGHT Error: "기록을 불러오지 못했습니다", "잠시 후 다시 시도해 주세요", "다시 시도".
+BOTTOMLEFT Metricunavailable: "현재 PER —", "원천 미제공". Separate small record "마지막 제공18.50배 ·2026.10.07 ·예시". Old observation is not current; missing is not0.
+BOTTOMRIGHT Publicationlimit: SAME SamsungCOMMONPERidentity/selector/tabs, body "이 기준일에는 공개된 지표값이 없습니다", "최신 공개 자료를 확인해 주세요", "최신 자료 보기". This is selected-detail/date availability, NOT market-wide unpublishedranking; no corporatePER confusion, noCSV.
+Keep white B records-room surface, dark ink, sober궁서-styletitles,thin redsectionrules,flatgoldcontrols. Dataexampleonly,notactualSamsungofficialvalues. No giantstatusillustrations, no marketing, accounts,trading,favorites,notifications,placeholderstocknamesor additionalfeatures.
+STRUCTURAL REQUIREMENTS TAKE PRIORITY: PORTRAIT1536×2048;2columns×3rows;all6frames have1aggregatefullrow+2stockcolumns AND both8tabrows;topbrand/menuONLY,search/recent/theme secondrow;bottom3navonlyonce. These must be visibly correct, not just implied.
+

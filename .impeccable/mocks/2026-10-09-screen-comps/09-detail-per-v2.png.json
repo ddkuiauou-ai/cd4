@@ -1,0 +1,10 @@
+{
+  "id": "09-detail-per",
+  "filename": "09-detail-per-v2.png",
+  "prompt": "EDIT THE ATTACHED FIRST IMAGE, which is an existing static Korean web UI approval comp. Preserve its approved B records-room typography, white surface, thin red section rules, flat gold controls, red/gold wordmark, desktop-left/mobile-right arrangement, and main example figures. This is one bounded factual and scope correction pass, not a visual redesign. Keep '예시 데이터 · 2026.10.08 기준' clear in both views. Do not add trading, accounts, favorites, notifications, recommendations or live-data claims. Apply only these corrections:\nCorrect the factual entity link in the \"동일 기업의 종목\" module: SK하이닉스 only has the illustrated common security SK하이닉스 · 보통주 · 000660. Replace the erroneous \"삼성전자 전체 종목 보기\" with \"SK하이닉스 기업 합산 보기\". Never link this stock to Samsung as its company. Keep only the current SK common row, do not invent any preferred shares. In the 최근 본 rail remove numbered ranking numerals; it is viewing history, not the PER ranking. Correct navigation to the existing metric set: 시가총액 / PER / PBR / EPS / BPS / 배당수익률 / 주당배당금; PER selected. On mobile this can scroll, show a subtle continuation arrow. Keep the PER AREA chart, monthly heatmap and distribution histogram/density. The mobile lower collapsed section labels and CSV can remain, with readable \"하단 기록 계속\" if space requires.",
+  "reference": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per.png",
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-91dadbe7-84c7-41e7-91f3-7e60a9a00556.png",
+  "tool": "image_gen.imagegen",
+  "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.png",
+  "original_preserved": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per.png"
+}

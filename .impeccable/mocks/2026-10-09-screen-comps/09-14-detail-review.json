@@ -1,0 +1,75 @@
+{
+  "status": "static_image_review_only",
+  "tool": "image_gen.imagegen",
+  "correction_rounds": 1,
+  "selected": [
+    {
+      "id": "09-detail-per",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/09-detail-per-v2.prompt.txt"
+    },
+    {
+      "id": "10-detail-pbr",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/10-detail-pbr-v2.prompt.txt"
+    },
+    {
+      "id": "11-detail-eps",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/11-detail-eps-v2.prompt.txt"
+    },
+    {
+      "id": "12-detail-bps",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/12-detail-bps-v2.prompt.txt"
+    },
+    {
+      "id": "13-detail-div",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/13-detail-div-v2.prompt.txt"
+    },
+    {
+      "id": "14-detail-dps",
+      "selected": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.png",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "original_preserved": true,
+      "prompt_file": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/14-detail-dps-v2.prompt.txt"
+    }
+  ],
+  "remaining_limitations": [
+    "Generated Korean microcopy and small chart/axis labels are not a source of verified factual data.",
+    "EPS still has a light area tint beneath its line.",
+    "Some metric-tab positions/order and current-figure repetition differ across boards.",
+    "BPS price history is displayed as a record table rather than full candlestick module in this comp.",
+    "Long mobile lower sections are collapsed/continuation representations.",
+    "No browser interaction, responsive implementation, accessibility or financial data validation has been performed."
+  ]
+}

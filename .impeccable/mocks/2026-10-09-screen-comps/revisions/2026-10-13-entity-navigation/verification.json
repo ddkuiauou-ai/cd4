@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-13",
+  "status": "ready-for-user-image-review",
+  "user_approved": false,
+  "new_entity_comps": 4,
+  "merged_prior_font_comps": 2,
+  "gallery_boards": 16,
+  "checks": [
+    {
+      "id": "01-main",
+      "filename": "revisions/2026-10-13-entity-navigation/01-main-gungseo.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "02-ranking-company",
+      "filename": "02-ranking-company-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "03-ranking-security",
+      "filename": "revisions/2026-10-13-entity-navigation/03-ranking-gungseo.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "04-ranking-metrics",
+      "filename": "04-ranking-metrics-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "05-company-basic",
+      "filename": "revisions/2026-10-13-entity-navigation/05-company-basic-entities.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "06-company-marketcap",
+      "filename": "revisions/2026-10-13-entity-navigation/06-company-marketcap-entities.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "07-security-basic",
+      "filename": "revisions/2026-10-13-entity-navigation/07-security-basic-entities.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "08-security-marketcap",
+      "filename": "revisions/2026-10-13-entity-navigation/08-security-marketcap-entities.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "09-detail-per",
+      "filename": "09-detail-per-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "10-detail-pbr",
+      "filename": "10-detail-pbr-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "11-detail-eps",
+      "filename": "11-detail-eps-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "12-detail-bps",
+      "filename": "12-detail-bps-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "13-detail-div",
+      "filename": "13-detail-div-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "14-detail-dps",
+      "filename": "14-detail-dps-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "15-search-recent",
+      "filename": "15-search-recent-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    },
+    {
+      "id": "16-states",
+      "filename": "16-states-v2.png",
+      "file_exists": true,
+      "gallery_connected": true
+    }
+  ],
+  "browser_validation": "Current user-opened file:// URL was blocked by browser URL policy; no browser workaround attempted. File/path/dimension checks completed; live file:// rendering was not verified.",
+  "hook_review": {
+    "fixed": "gallery heading inherited its existing reading type instead of undeclared Noto Serif KR",
+    "suppressed": [],
+    "left_standing": []
+  },
+  "functional_validation": false,
+  "product_code_edited_in_this_revision": false
+}

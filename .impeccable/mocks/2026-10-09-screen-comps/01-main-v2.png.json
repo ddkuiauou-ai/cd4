@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "prompt": "Use case: ui-mockup. Correct scope labels and movement colors in this existing Korean desktop/mobile MAIN approval comp. Preserve the approved B record-room branding, whole desktop/mobile composition, typography, colored printed ranks, selected pale gold SK하이닉스, values and all seven metric links. The left TOP5 is COMPANY AGGREGATE: add a small clear \"기업 합산\" under 기업 시가총액 TOP 5 in both layouts; change its column label 종목 to 기업; remove 보통주 from the secondary labels in THIS TOP5 list (ticker may stay). Preserve Samsung549조 and its breakdown common495조+preferred54조. The right price-flow list IS representative common stocks so its 보통주 labels stay. Add exact scope \"시총 상위 20개 기업의 대표 보통주 내 비교\" to both desktop and mobile price-flow section; add a readable second line on mobile if needed. Remove the invented \"상승 종목 더보기 →\" button under the flow lists in BOTH layouts; no such dedicated whole-market route is implied. All rank-MOVEMENT arrows ↑1/↓1 must be dark ink/black in both layouts; printed RANK NUMERALS1gold2red3blue remain. Price-change percentages stay red/blue. Remove the invented introductory sentence \"시장의 오늘을 숫자로 기록합니다. 기업의 다양한 지표를 확인해 보세요.\" on both layouts and use the space for simpler reading. Mobile order should be TOP5 then seven-metric index then the price-flow section. Do not add anything else; preserve 예시 데이터 date and utility controls.",
+  "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-2cab7e7e-dc74-4cb0-90bd-c981ce76ff53.png",
+  "reference": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/01-main.png",
+  "status": "pending-user-review",
+  "parent": "01-main"
+}

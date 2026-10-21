@@ -116,7 +116,8 @@ async function withDom(run) {
   const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url: 'http://localhost/per' });
   const saved = new Map();
   for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, navigator: dom.window.navigator,
-    HTMLElement: dom.window.HTMLElement, IS_REACT_ACT_ENVIRONMENT: true })) {
+    HTMLElement: dom.window.HTMLElement, localStorage: dom.window.localStorage, StorageEvent: dom.window.StorageEvent,
+    IS_REACT_ACT_ENVIRONMENT: true })) {
     saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
     Object.defineProperty(globalThis, key, { value, configurable: true, writable: true });
   }
@@ -141,7 +142,7 @@ test('ranking browser adapter prevents old rows during scope changes and aborts 
       'next/navigation': { useSearchParams: () => query },
       './ranking-page-view': { RankingPageView: props => React.createElement('output', { 'data-scope': props.scopeKey },
         JSON.stringify({ names: props.rows.map(row => row.name), values: props.rows.map(row => row.value),
-          state: props.state, revisionChanged: props.revisionChanged, totalCount: props.totalCount })) },
+          state: props.state, revisionChanged: props.revisionChanged, totalCount: props.totalCount, feedback: props.feedback?.title })) },
     });
     const { StaticRankingPage } = loader.load('components/static-ranking-page.tsx');
     const source = manifest();
@@ -171,6 +172,34 @@ test('ranking browser adapter prevents old rows during scope changes and aborts 
     await React.act(async () => { pending.shift()(new Response(JSON.stringify(snapshot('empty', { items: [], totalCount: 0, totalPages: 0 })))); });
     assert.match(document.body.textContent, /"state":"published"/);
     assert.match(document.body.textContent, /"totalCount":0/);
+  });
+});
+
+test('scoped ranking loading and failures keep the real market context and metric navigation without stale rows or exports', async (t) => {
+  await withDom(async root => {
+    let rejectRequest;
+    t.mock.method(globalThis, 'fetch', () => new Promise((resolve, reject) => { rejectRequest = reject; }));
+    const query = new URLSearchParams('scope=kospi');
+    const loader = createBusinessPageLoader({ 'next/navigation': { useSearchParams: () => query, usePathname: () => '/per' } });
+    const { StaticRankingPage } = loader.load('components/static-ranking-page.tsx');
+    const rows = loader.load('lib/ranking-view.ts').createRankingRows([item], 'per', 'security');
+    const initial = { rows, metric: 'per', scope: 'security', latestDate: publication.asOf, currentPage: 1,
+      totalPages: 1, totalCount: 1, basePath: '/per', scopeKey: 'krx-all', state: 'published', publication };
+    await React.act(async () => root.render(React.createElement(StaticRankingPage, { initial, manifest: manifest() })));
+    const checkContext = () => {
+      assert.match(document.querySelector('.marketContext').textContent, /종목별.*코스피.*2026.10.06/);
+      const nav = document.querySelector('nav[aria-label="전체 순위 지표"]');
+      assert.equal(nav.querySelectorAll('a').length, 7);
+      assert.equal(nav.querySelector('[aria-current="page"]').textContent, 'PER');
+      assert.equal(document.querySelector('tbody'), null);
+      assert.equal(document.querySelector('a[href^="/ranking-data/"]'), null);
+      assert.doesNotMatch(document.body.textContent, /정적종목/);
+    };
+    checkContext();
+    assert.match(document.querySelector('[aria-busy="true"]').textContent, /불러오고 있어요/);
+    await React.act(async () => { rejectRequest(new Error('network unavailable')); });
+    checkContext();
+    assert.match(document.querySelector('[role="alert"]').textContent, /불러오지 못했습니다.*다시 시도/);
   });
 });
 

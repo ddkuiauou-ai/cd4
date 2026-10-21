@@ -122,13 +122,13 @@ async function prepare() {
         coById, secPub, coPub, secRoutes);
       batchMemory.batches++; batchMemory.maxHistoryRows = Math.max(batchMemory.maxHistoryRows, batch.historyRows);
       recordBatchMemory();
-      for (const { securityId: id, security, metrics: history, allMarketcaps } of batch.items) {
+      for (const { securityId: id, security, metrics: history, allMarketcaps, archive } of batch.items) {
       const refs = {
-        prices: asset(`security/${id}/prices`, table(security.prices.toReversed(), ['date','open','high','low','close','volume','fvolume','transaction','rate'])),
-        marketcap: asset(`security/${id}/marketcap`, table(security.marketcaps, ['date','marketcap','shares'])), metrics: {},
+        prices: asset(`security/${id}/prices`, table(archive.prices, ['date','open','high','low','close','volume','fvolume','transaction','rate'])),
+        marketcap: asset(`security/${id}/marketcap`, table(archive.marketcaps, ['date','marketcap','shares'])), metrics: {},
       };
       for (const metric of metrics.filter(metric => metric !== 'marketcap')) refs.metrics[metric] = asset(`security/${id}/${metric}`,
-        table(history, ['date', metric, `${metric}State`]));
+        table(archive.metrics, ['date', metric, `${metric}State`]));
       const rankings = {};
       for (const metric of metrics) {
         const publication = publications.get(`security_rank/krx-all/${metric}`);
@@ -143,7 +143,7 @@ async function prepare() {
           value: row?.value == null ? null : String(row.value), valueObservedAt: row?.valueObservedAt ? businessDate(row.valueObservedAt) : null,
           rankDate: publication ? businessDate(publication.asOf) : null }, neighbors: [previousRow,next].filter(Boolean).map(neighbor) };
       }
-      writeJson(`data/security/${id}.json`, { security, metrics: history, allMarketcaps, assets: refs, rankings });
+      writeJson(`data/security/${id}.json`, { security, metrics: history, allMarketcaps, archive, assets: refs, rankings });
       completed++; if (completed % 50 === 0) console.log(`Prepared securities ${completed}/${neededSecurities.size}`);
       }
       recordBatchMemory();

@@ -26,7 +26,7 @@ function loadModules(db) {
       return load(resolved);
     };
     const { outputText } = ts.transpileModule(readFileSync(filename, 'utf8'), {
-      fileName: filename, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      fileName: filename, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,esModuleInterop:true },
     });
     mod._compile(outputText, filename);
     return mod.exports;
@@ -67,7 +67,7 @@ function fixture() {
     evidenceRef: 'tem://evidence/rank', updatedAt: new Date('2026-10-03T01:00:00Z'), company: null,
     publicationKey: rankHeader.publicationKey, resultRevision: 1n, calculationId };
   const state = { publications: [securityHeader, companyHeader, rankHeader], securities: [security], companies: [company],
-    ranks: [rank], prices: [], marketcaps: [], metrics: [], faults: new Set(), queries: [], transactions: [], afterHeader: null };
+    ranks: [rank], listingPeriods: [], lifecycleEvents: [], rosters:[], prices: [], marketcaps: [], metrics: [], faults: new Set(), queries: [], transactions: [], afterHeader: null };
 
   function queryDatabase(snapshot) {
     const fault = kind => { if (state.faults.has(kind)) throw new Error(`fixture-${kind}-unavailable`); };
@@ -89,7 +89,7 @@ function fixture() {
     function identityRows(rows, query) {
       if (!query) return rows;
       // The fixture deliberately does not emulate publication acceptance; assertions inspect that SQL.
-      const identityFields = new Set(['security_id', 'company_id', 'name', 'kor_name', 'ticker', 'exchange', 'type', 'date', 'marketcap_rank']);
+      const identityFields = new Set(['security_id', 'company_id', 'name', 'kor_name', 'ticker', 'exchange', 'type', 'date', 'marketcap_rank', 'period_id', 'event_id']);
       const tests = [...query.sql.matchAll(/"([a-z_]+)"\s*(=|<=|>=|<|>)\s*\$(\d+)/g)]
         .filter(match => identityFields.has(match[1])).map(match => row => compare(row[fieldName(match[1])], query.params[Number(match[3]) - 1], match[2]));
       for (const match of query.sql.matchAll(/"([a-z_]+)"\s+in\s*\(([^)]+)\)/gi)) {
@@ -98,7 +98,7 @@ function fixture() {
         tests.push(row => parameters.includes(row[fieldName(match[1])]));
       }
       if (query.sql.includes('"delisting_date" is null')) tests.push(row => row.delistingDate == null);
-      const any = query.sql.includes(' or ');
+      const any = /\"security\"\.\"(?:name|kor_name)\" =.* or /.test(query.sql);
       return rows.filter(row => !tests.length || (any ? tests.some(check => check(row)) : tests.every(check => check(row))));
     }
     function orderRows(rows, options = {}) {
@@ -159,6 +159,7 @@ function fixture() {
       },
       query: { resultPublication: relation('publication', () => snapshot.publications),
         security: relation('security', () => snapshot.securities), securityRank: relation('rank', () => snapshot.ranks), company: relation('company', () => snapshot.companies),
+        securityListingPeriod: relation('listing-period', () => snapshot.listingPeriods), securityEvent: relation('lifecycle-event', () => snapshot.lifecycleEvents),
         price: relation('price', () => snapshot.prices), marketcap: relation('marketcap', () => snapshot.marketcaps), bppedd: relation('metrics', () => snapshot.metrics) },
       select(columns) {
         let table, where, limit, offset = 0, order = [];
@@ -169,7 +170,7 @@ function fixture() {
           limit(value) { limit = value; return this; }, offset(value) { offset = value; return this; },
           then(resolve, reject) {
             return Promise.resolve().then(() => {
-              const rawRows = table === 'price' ? snapshot.prices : table === 'bppedd' ? snapshot.metrics : null;
+              const rawRows = table === 'security_listing_period' ? snapshot.listingPeriods.flatMap(period => snapshot.rosters.filter(row=>row.securityId===period.securityId&&row.date.toISOString()===day(period.lastPresentOn).toISOString()).map(row=>({periodId:period.periodId,securityId:period.securityId,name:row.name,exchange:row.exchange}))) : table === 'price' ? snapshot.prices : table === 'bppedd' ? snapshot.metrics : null;
               if (rawRows) {
                 fault(table === 'price' ? 'price' : 'metrics');
                 return orderRows(identityRows(rawRows, where, table), { orderBy: order }).slice(offset, limit == null ? undefined : offset + limit);

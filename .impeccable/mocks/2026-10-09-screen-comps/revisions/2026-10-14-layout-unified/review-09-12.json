@@ -1,0 +1,62 @@
+{
+  "scope": "09–12 only",
+  "status": "selected-static-review",
+  "selected": [
+    {
+      "id": "09-detail-per",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "id": "10-detail-pbr",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "id": "11-detail-eps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "id": "12-detail-bps",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png.json",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    }
+  ],
+  "core_checks": {
+    "top_alignment": true,
+    "desktop_rail_present": true,
+    "mobile_two_row_header": true,
+    "three_mobile_targets_fullrow_plus_two_columns": true,
+    "common_only_selected": true,
+    "fixed_eight_tabs_pc_one_row_mobile_two_by_four": true,
+    "metric_preserved_stock_button_labels": true,
+    "synthetic_current_values": true
+  },
+  "remaining_limitations": [
+    "Static image review only; no interaction, state persistence, browser or accessibility validation.",
+    "Core top structure and synthetic current figures verified visually; lower-record, CSV, formula and contents placement is not perfectly identical across all four boards.",
+    "Small generated labels, extra neighboring-rank examples and derived secondary statistics are illustrative and were not independently verified as market facts."
+  ],
+  "generation_calls": 10
+}

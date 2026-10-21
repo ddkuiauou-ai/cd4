@@ -1,3 +1,4 @@
+import {filterListingRows,isolateListingValues,listingContains,nameForListingPeriod,selectListingPeriod} from '../security-lifecycle';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { readSecurityByCode, readCompanySecurities } from '../data/security';
@@ -29,6 +30,7 @@ export type StaticManifest = {
 type SecurityFile = {
   security: NonNullable<Awaited<ReturnType<typeof readSecurityByCode>>>;
   metrics: Awaited<ReturnType<typeof readMetricsHistory>>;
+  archive?: {prices:SecurityFile['security']['prices'];marketcaps:SecurityFile['security']['marketcaps'];metrics:SecurityFile['metrics']};
   assets: StaticDetailAssets;
   rankings: Record<string, { ranking: Record<string, unknown>; neighbors: Record<string, unknown>[] }>;
 };
@@ -132,16 +134,29 @@ export function getStaticRankingCsv(scope: 'security' | 'company', metric: strin
 export function getStaticDetailAssets(kind: 'security' | 'company', id: string): StaticDetailAssets | null {
   return readStaticJson<SecurityFile | CompanyFile>(`data/${kind}/${id}.json`).assets;
 }
-export function getStaticSecurityDetail<T>(code: string, metric: string, start?: string, end?: string): T | null {
+export function getStaticSecurityDetail<T>(code: string, metric: string, start?: string, end?: string,periodId?:string): T | null {
   const identity = resolveStaticSecurity(code); if (!identity) return null;
   const file = readStaticJson<SecurityFile>(`data/security/${identity.securityId}.json`);
   const companyFile = identity.companyId ? readStaticJson<CompanyFile>(`data/company/${identity.companyId}.json`) : null;
-  const priceHistory = file.security.prices.toReversed();
+  const selectedPeriod=selectListingPeriod(file.security.listingPeriods ?? [],periodId);
+  if (periodId && !selectedPeriod) return null;
+  const latest=selectListingPeriod(file.security.listingPeriods ?? []);
+  const historicalPeriod=Boolean(selectedPeriod&&latest&&selectedPeriod.periodId!==latest.periodId);
+  const security={...isolateListingValues(file.security,selectedPeriod,historicalPeriod),selectedPeriod,historicalPeriod,
+    korName:historicalPeriod?nameForListingPeriod(file.security.korName,file.security.lifecycleEvents ?? [],selectedPeriod):file.security.korName,
+    exchange:historicalPeriod?selectedPeriod?.displayExchange ?? file.security.exchange:file.security.exchange};
+  if(!listingContains(selectedPeriod,security.publication?.asOf)) {security.publication=null;security.state='unpublished';}
+  const candidateRanking=historicalPeriod?null:file.rankings[metric]?.ranking;
+  const ranking=candidateRanking && listingContains(selectedPeriod,typeof candidateRanking.rankDate==='string'?candidateRanking.rankDate:null)
+    && (candidateRanking.valueObservedAt==null || listingContains(selectedPeriod,typeof candidateRanking.valueObservedAt==='string'?candidateRanking.valueObservedAt:null)) ? candidateRanking:null;
+  const priceHistory=filterListingRows(file.archive?.prices ?? file.security.prices.toReversed(),selectedPeriod);
+  security.prices=priceHistory.toReversed();
+  security.marketcaps=filterListingRows(file.archive?.marketcaps ?? file.security.marketcaps,selectedPeriod);
   const source = metric === 'price' ? priceHistory : metric === 'marketcap' || metric === 'shares'
-    ? file.security.marketcaps : file.metrics;
-  return { security: file.security, company: companyFile?.company ?? null, companySecs: companyFile?.companySecs ?? [],
-    priceHistory, history: source.filter(row => (!start || row.date >= start) && (!end || row.date <= end)),
-    ranking: file.rankings[metric]?.ranking ?? null, neighbors: file.rankings[metric]?.neighbors ?? [] } as T;
+    ? file.archive?.marketcaps ?? file.security.marketcaps : file.archive?.metrics ?? file.metrics;
+  return { security, company: historicalPeriod?null:companyFile?.company ?? null, companySecs:historicalPeriod?[]:companyFile?.companySecs ?? [],
+    priceHistory, history: filterListingRows<{date:string}>(source,selectedPeriod).filter(row => (!start || row.date >= start) && (!end || row.date <= end) && (!security.publication?.asOf || row.date <= security.publication.asOf)),
+    ranking, neighbors:ranking?.currentRank != null?file.rankings[metric]?.neighbors ?? []:[] } as T;
 }
 export function getStaticCompanyDetail<T>(code: string, start?: string, end?: string): T | null {
   const identity = resolveStaticCompany(code); if (!identity) return null;

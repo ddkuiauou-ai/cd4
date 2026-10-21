@@ -107,3 +107,19 @@ test("a replaced revision offers a dashboard refresh and renders no mixed rankin
   assert.ok(documentOf(html).querySelector('a[href="/dashboard"]'));
   assert.doesNotMatch(html, /dashboard-companies|ranking-data\/|dashboard-facts/);
 });
+
+test("records-room entry keeps company exports with TOP5 and gives each of the seven ranking shortcuts its own scope", async () => {
+  const { html } = await renderDashboard(snapshot([withPrice(1, "2", "100")]));
+  const document = documentOf(html);
+  assert.equal(document.querySelector("h1").textContent, "대회 기록실");
+  const top5 = document.getElementById("dashboard-ranking").closest("section");
+  assert.ok(top5.querySelector('a[href^="/ranking-data/companies-marketcap.csv"]'));
+  assert.ok(top5.querySelector('a[href="/company/company-1/marketcap"]'));
+  assert.ok(top5.querySelector('button[data-rank="1"]'));
+  const shortcuts = document.querySelector('nav[aria-label="지표별 전체 순위"]');
+  assert.equal(shortcuts.querySelectorAll("a").length, 7);
+  assert.equal(shortcuts.querySelector("a").getAttribute("href"), `/marketcaps?revision=${publication.revision}`);
+  assert.match(shortcuts.querySelector("a").textContent, /기업 합산/);
+  assert.equal(shortcuts.querySelector('a[href="/per"]').textContent.includes("종목별"), true);
+  assert.ok(document.querySelector('#market-trends').closest("section").querySelector('a[href="/security/KOSPI.000001/marketcap"]'));
+});

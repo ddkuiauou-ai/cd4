@@ -1,0 +1,49 @@
+{
+  "as_of": "2026-10-08",
+  "illustrative": true,
+  "company": {
+    "name": "삼성전자",
+    "marketcap_trillion": 549,
+    "rank": 1
+  },
+  "common": {
+    "name": "삼성전자",
+    "code": "005930",
+    "marketcap_trillion": 495,
+    "price": 74000,
+    "change_percent": 0.8,
+    "marketcap_rank": 1,
+    "EPS": 4000,
+    "PER": 18.5,
+    "BPS": 40000,
+    "PBR": 1.85,
+    "DPS": 1480,
+    "DIV": 2,
+    "ranks": {
+      "PER": 620,
+      "PBR": 560,
+      "EPS": 210,
+      "BPS": 180,
+      "DIV": 780,
+      "DPS": 260
+    }
+  },
+  "preferred": {
+    "name": "삼성전자우",
+    "code": "005935",
+    "marketcap_trillion": 54,
+    "price": 54000,
+    "change_percent": 0,
+    "marketcap_rank": 6,
+    "EPS": 4000,
+    "PER": 13.5,
+    "BPS": 40000,
+    "PBR": 1.35,
+    "DPS": 1480,
+    "DIV": 2.74
+  },
+  "approved_navigation": {
+    "company_marketcap_constituent": "security_marketcap",
+    "mobile_entity_visibility": "all_visible"
+  }
+}

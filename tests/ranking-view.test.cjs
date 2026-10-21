@@ -121,6 +121,44 @@ function documentOf(html) { return new JSDOM(html).window.document; }
 function desktopRows(document) { return [...document.querySelectorAll(".desktopTable tbody tr")]; }
 function mobileRows(document) { return [...document.querySelectorAll(".mobileTable tbody tr")]; }
 
+test("ranking context precedes metrics and export, and metric changes retain the market without reusing another publication revision", async () => {
+  const scopeKey = "kosdaq-preferred";
+  const { html } = await renderPage("app/(market)/per/page.tsx", {
+    items: [publishedSecurity(1)], searchParams: { scope: scopeKey, revision: publication.revision },
+    resultPublication: { ...publication, scopeKey },
+  });
+  const document = documentOf(html);
+  const context = document.querySelector(".marketContext");
+  const metrics = document.querySelector('nav[aria-label="전체 순위 지표"]');
+  const csv = document.querySelector('a[href^="/ranking-data/"]');
+  assert.match(context.textContent, /종목별.*시장코스닥 우선주.*공개 기준일2026.10.06/);
+  assert.equal(metrics.querySelectorAll("a").length, 7);
+  assert.equal(metrics.querySelector('[aria-current="page"]').textContent, "PER");
+  assert.equal(metrics.querySelector('a[title="주가순자산비율"]').getAttribute("href"), `/pbr?scope=${scopeKey}`);
+  assert.equal(context.compareDocumentPosition(metrics) & 4, 4);
+  assert.equal(metrics.compareDocumentPosition(csv) & 4, 4);
+  assert.equal(csv.compareDocumentPosition(document.querySelector(".desktopTable")) & 4, 4);
+  assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'));
+});
+
+test("company and security market-cap targets keep a fixed visible order and link company rows to aggregate detail", async () => {
+  for (const [route, items, scope] of [
+    ["app/(market)/marketcaps/page.tsx", [publishedCompany(1)], "company"],
+    ["app/(market)/marketcap/page.tsx", [publishedSecurity(1)], "security"],
+  ]) {
+    const { html } = await renderPage(route, { items });
+    const document = documentOf(html);
+    const targets = document.querySelector('nav[aria-label="시가총액 조회 범위"]');
+    assert.deepEqual([...targets.querySelectorAll("a")].map(link => link.textContent), ["기업 합산", "종목별"]);
+    assert.equal(targets.querySelector('[aria-current="page"]').textContent, scope === "company" ? "기업 합산" : "종목별");
+    assert.match(document.querySelector(".tableContext").textContent, /해당 지표 상세/);
+    if (scope === "company") {
+      assert.ok(document.querySelector('.desktopTable a[href="/company/company-1/marketcap"]'));
+      assert.match(document.querySelector(".scopeHint").textContent, /주당 지표는 종목별/);
+    }
+  }
+});
+
 test("actual company routes render the twenty official entities with stable links and a revision-pinned export", async () => {
   const items = Array.from({ length: 20 }, (_, index) => publishedCompany(index + 1));
   for (const route of ["app/(market)/page.tsx", "app/(market)/marketcaps/page.tsx"]) {

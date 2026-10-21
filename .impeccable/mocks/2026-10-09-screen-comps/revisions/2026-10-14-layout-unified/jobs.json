@@ -1,0 +1,307 @@
+{
+  "date": "2026-10-14",
+  "status": "pending-user-review",
+  "tool": "built-in image_gen.imagegen",
+  "board_count": 16,
+  "image_count": 17,
+  "product_code_changed": false,
+  "functional_validation": false,
+  "source_selection": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/previous-selected.json",
+  "layout_contract": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/layout-contract.md",
+  "jobs": [
+    {
+      "filename": "01-main-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main-final.png.json",
+      "prompt": "Edit ONLY the RIGHT MOBILE company's aggregate TOP5 table toolbar. Add one small clearly readable button labeled 기업전체순위CSV within that table's toolbar, so the download scope is the complete company-aggregate market-cap ranking. Keep the entire LEFT DESKTOP HEADER, desktop navigation, desktop body, numbers and sidebar unchanged. Keep every other mobile section, navigation, data, ticker, text and layout unchanged. Do not redesign the page or alter any other control. Preserve the1536x1024 landscape canvas. This is only a missing mobile CSV entry-point repair.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/01-main.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120fa-7dd2-79e2-aaac-87f5c7eef7bc/exec-2f0c4152-f039-4adb-ba1a-cc3d87539353.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "8efc6fabbc670bc6c21a498029300fe659ce04683e5e3c5db14c7ba381081266"
+    },
+    {
+      "filename": "02-ranking-company-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-final.png.json",
+      "prompt": "Edit ONLY the LEFT DESKTOP HEADER. Add the two text navigation links 메인 / 랭킹 between the full 천하제일 단타대회 wordmark and the search field. Keep 랭킹 active. Preserve the ENTIRE REST of this image: identical body layout, data, typography, sidebar, canvas, and ALL mobile pixels. Do NOT redesign or reflow the body. Do not change any other text, color, number, or control. This is only a missing desktop navigation repair.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/02-ranking-company-v2.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120fa-7dd2-79e2-aaac-87f5c7eef7bc/exec-97399db2-3233-474c-b93b-c101201cd981.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "df876283adf7a0c47ab5f355dd8b6cee7c28417d70fb4638b8c1c47e5a9a4340"
+    },
+    {
+      "filename": "03-ranking-security-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-final.png.json",
+      "prompt": "Edit ONLY the LEFT DESKTOP HEADER. Add the two text navigation links 메인 / 랭킹 between the full 천하제일 단타대회 wordmark and the search field. Keep 랭킹 active. Preserve the ENTIRE REST of this image: identical body layout, data, typography, sidebar, canvas, and ALL mobile pixels. Do NOT redesign or reflow the body. Do not change any other text, color, number, or control. This is only a missing desktop navigation repair.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/03-ranking-security-v2.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120fa-7dd2-79e2-aaac-87f5c7eef7bc/exec-3d8ef0bd-6c82-46db-b831-e51dada00077.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "9989fe6af2bf3932e48f0d3e0c4c86f29d2aa969917831159d20df78db6a853e"
+    },
+    {
+      "filename": "04-ranking-metrics-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics-final.png.json",
+      "prompt": "Use case: ui-mockup. Recompose this existing SIX-mobile-ranking approval board into a PORTRAIT1536x2048 canvas, exactly TWO COLUMNS by THREE ROWS, six equal-size mobile frames with enough verticalroom. Readingorder: PER/PBR in firstrow, EPS/BPS in secondrow, 배당수익률/주당배당금 in thirdrow. This is a structural repair: the former landscape density hid lower panels' date and navigation. Do NOT omit date, target, market, or any of the seven metric options in ANY frame. Keep existingB 대회기록실 identity, serious restrained 궁서-style fullwordmark and titles, white surface, dark navy data, gold selection, thin red rules, top3ranknumbers1gold2red3blue. No external board title, no desktop views, no device mockups.\nEach frame has the IDENTICAL shell and relativepositions, with readable text and padding:\n1. FIRST HEADERROW: full 천하제일 [circular star] 단타대회 wordmark LEFT, menuicon RIGHT. SECONDHEADERROW: search 기업·종목검색, 최근 본, themeicon. No 메인/랭킹 links in topheader.\n2. Scope/metadata: 대상 종목별; 시장 코스피·코스닥 전체; 예시 데이터·2026.10.08 기준. SAME visible metadata block in ALL sixframes.\n3. Fixed sevenmetric navigation in TWO ROWS at SAME position in everyframe: row1 시가총액 / PER / PBR / EPS; row2 BPS / 배당수익률 / 주당배당금. Lastrowextraemptyspace isnot a button. All7labelsALWAYSvisible, no truncation/ellipsis/dropdown. Currentmetric gold andnevermoveitsposition.\n4. Currentpage metric title and gold button 전체종목CSV, then short definition of the metric. Button refers to currentmetric's FULL securityranking, not only currentpage.\n5. Rankingtable of three leading synthetic securities, then a visually separate palegold 찾아본종목 row for 삼성전자 보통주005930 with the assigned rank/value. Tablecolumns 순위 / 종목 / 주가등락 / currentmetric. Securityrowchevrons communicate corresponding metricdetail, not basicinfo. Preserve pagination previous1/2/3next near thetable.\n6. Small note 합성예시·실제값아님 and rowhelper 종목명→해당지표상세.\n7. Exactly ONE bottomnav in SAMEposition: house 메인 / trophy 랭킹 / magnifier 검색. Only 랭킹 active red. No other bottomnav. Everypanel has allthreelabels andicons.\nPreserve the following exact fictional values and order from the existingboard:\nPER leading1SK하이닉스4.08배,2LG에너지솔루션5.60배,3삼성바이오로직스8.22배; separate삼성전자620위18.50배.\nPBR leading1SK하이닉스0.41배,2LG에너지솔루션0.56배,3삼성바이오로직스0.69배; separate삼성전자560위1.85배.\nEPS leading1삼성바이오로직스100,000원,2SK하이닉스80,000원,3LG에너지솔루션70,000원; separate삼성전자210위4,000원.\nBPS leading1삼성바이오로직스1,200,000원,2SK하이닉스800,000원,3LG에너지솔루션700,000원; separate삼성전자180위40,000원.\n배당수익률 leading1SK하이닉스8.00%,2LG에너지솔루션7.00%,3삼성바이오로직스6.00%; separate삼성전자780위2.00%.\n주당배당금 leading1삼성바이오로직스49,320원,2LG에너지솔루션27,440원,3SK하이닉스26,080원; separate삼성전자260위1,480원.\nIdentity tickers SK하이닉스000660,LG에너지솔루션373220,삼성바이오로직스207940,삼성전자005930. Pricechanges SK+1.20%,LG-0.60%,Bio+0.50%,Samsung+0.80%. ONLY signedPRICEchanges redpositive/bluenegative; allmetricvaluesincludingDIV% neutraldarkink. Samsungassignedranks620/560/210/180/780/260 MUSTvisiblyremain, not replacedbylabel or shownasrank1. Mark allvaluesillustrative; no real-time claim or investmentrecommendation.\nUse portrait height to give ALL sixpanels the full metadata/menu/title/CSV/rows/bottomnav. Preserve functions, exactdata and financialreadability; do not reproduce the old lower-row cropping.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/04-ranking-metrics.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120fa-7dd2-79e2-aaac-87f5c7eef7bc/exec-16d8b20e-f3f8-42b2-94be-6b4154debf1b.png",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "sha256": "21add9799fb39ee3529088d88f2c99979fc75521c41b587ebe9da3c928916b95"
+    },
+    {
+      "filename": "05-company-basic-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic-v2.png.json",
+      "prompt": "Edit Image1 companyBASICapprovalboard, Image2 shared06MASTER is the exact outer page geometry. SINGLE structural correction pass: match Image2desktop MAIN/RIGHTRAIL widths andTOPSTART. Currentrailtoo wideandstartsbesideselectorhalfwaydown. Make MAINendnearx944andRAILstartnearx959insidethe1120pxdesktopviewport, railwidthabout165–185px andtopimmediatelyunderheadernearidentity. Reflow mainfacts/comparisonwithoutchangingtheircontent. PC targetselector3siblingsfillMAINwidthonly andbelowidentity; companyTABSbelowselector thenbody. RAILunnumberedrecentnames,조회기준,actualbodycontents기업정보/같은기업종목비교/자료기준; keepsecondarysourceblockcompact,notonemainchildgiantcard.\nKeep enterprise549CURRENTgold +common495 +pref54, correct companytabs 기업정보 FIRST active /기업합산시총 second. Mobile currentlycorrectaggregatefullrow+common/pref2cols ALLvisible; preserveexactly. Preserve common/pref기본정보보기 buttons,aggregate합산시총보기, companybasicfactsSamsungElectronics/업종예시/설립일—/홈페이지,onecomparisoncommon495price74000+0.80,pref54price54000,total549,shares90.2/9.8,pricegap20000neutral. No duplicatefullconstituenttable, nofakeannualchartonbasicpage. Match themeiconneutraldarkink ofMASTER, notorange.\n1536x1024viewporttopaligned,fullbrand궁서풍serif,white,thinredrules,goldselection;mobiletopbrand+menu/search+recent+theme;bottom메인랭킹(active)검색. Preserve logicalorderidentity→targets→companytabs→companyfacts/compare. No exteriorboardtitle/labels.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/05-company-basic.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-d8dd275c-e07b-471d-b087-9c071a75649c.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "ff27207a70770abd5453b9722bfbd486f1c11129be752f16042b5aa246afcf26"
+    },
+    {
+      "filename": "06-company-marketcap-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap-v2.png.json",
+      "prompt": "Edit this image with ONE narrow semantic cleanup, preserve the exact current layout, all geometry, header/selector/menu positions, colors of brand and selected aggregate, mobile1+2columntargets, bottom3nav, data, charts and typography. In the desktop AND mobile same-company comparison table, change absolute price74,000원 from red to the same neutral dark ink as54,000원. Keep signed +0.80% red. Change stock rank1위 in that table from red to neutral/gold (rank is not a price return). Make current price difference20,000원 neutral dark ink rather than red. In annual record mark2026as2026(현재), not a concluded yearend, maintain current549조. Keep 06 stock buttons explicitly 종목 시총 보기 leading08. Do not change anything else. No additional title, no layout changes.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-8aca0145-3407-4071-bc3a-7e7831a74f1c.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "d181407d2d57f8b885a1577a878b48f6d5660f3e90489823f7fd757abae58be8"
+    },
+    {
+      "filename": "07-security-basic-layout.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-layout.png.json",
+      "prompt": "Edit ONLY the RIGHT MOBILE selector block. Swap the CONTENTS of its top wide Samsung-common button and its lower-left enterprise button. Top wide button MUST be 기업 전체(합산) / 549조 / 2개 종목, WHITE with NO 현재 badge. Lower-left HALF-WIDTH button MUST be 삼성전자 / 보통주005930 / 495조, GOLD with 현재 badge. Lower-right HALF-WIDTH button stays 삼성전자우 / 우선주005935 /54조, WHITE. Thus mobile fixed order is ENTERPRISE fullrow, then COMMON LEFT + PREFERRED RIGHT. Never move the current item to first. Keep the ENTIRE LEFT DESKTOP pixel-identical. Keep all remaining mobile header, tabs, quote, table, chart and bottom nav unchanged. Change only these two mobile button contents and selection colors; do not redesign any page or reorder any other element.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/07-security-basic-final.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-c76636c1-1420-4ba0-a941-ed674123498a.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "f2776bac669457d6490efb35f44d1acfdfc2fddec1dc5be890c4daf7cf7ca032"
+    },
+    {
+      "filename": "08-security-marketcap-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap-final.png.json",
+      "prompt": "Edit ONLY the LEFT DESKTOP viewport of this approval image. Preserve the ENTIRE RIGHT MOBILE viewport unchanged: mobilebrand/search, enterprisefullrow+commonpreferredside-by-side,8tabs2x4,495조current,capchart,bottomnav. The right mobile must remain a MOBILE SCREEN, never replace it with a sidebar.\nInside the LEFT desktop viewport (x0–1135 of1536canvas), reserve a supportingrail at x930–1125, width195px. Reflow existing leftmain ONLY into x24–910. Add rail unnumbered최근본list,조회기준예시2026.10.08,실제본문목차현재시총/종목비교/시총추이/주가추이/기간통계/연도별기록/계산식자료기준. Railstartimmediatelyunderdesktopheader at y80. The desktopheaderstillspansitswhole1135width, NOT mobilewidth. Desktoptarget3buttons stayinONEhorizontalrow withinmain,8stocktabsONErowbelowtargets. PreservecommonONLYgoldCURRENT,whiteaggregateandpreferred. Keep desktopcurrent495조rank1price74000+0.80 andthreecaplines.\nCorrect lowerdesktop ownstockannualtable: title 연도별기록(삼성전자보통주),2026(현재)=495조 not549;2025=462,2024=418,2023=381,2022=310. Aggregate549belongsonlytoselector/peertable/charttotal. Keepcompanysum549=495+54,period2026.07.08–10.08,allotherdata.\nOnly reflowLEFTmain/addINSIDELEFTrail/fixannual495. Do not change rightmobile. Do not create a huge rail in place of the mobile panel. Same1536x1024canvas,whiteBrecordroombrand,seriousKoreanserif.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/08-security-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-1441-7fa1-bb31-da39fcb97cd4/exec-21240c41-28d6-479e-b883-8e2ef5540816.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "089126a867ef12858a25fb9869a9638508f3a6a1d38cccdd4c09fc6f4a879b80"
+    },
+    {
+      "filename": "09-detail-per-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per-v2.png.json",
+      "prompt": "Use case: precise-object-edit. Edit IMAGE1, the just-generated unified Korean UI comp, in ONE bounded correction pass. IMAGE2 remains the approved06MASTER for the shared outerlayout. Preserve desktopLEFT/mobileRIGHT topalignment, white B records-room, sober궁서-style headings, fullwordmark, correctdesktopright rail, two-rowmobileheader, mobilebottomrankingnavigationonly, threeentitybuttons (aggregatefullrow andtwo stocksSIDE-BY-SIDE onmobile), and fixed8tabs (PC1row/mobile2x4). Preserve currentSamsung synthetic figures and 예시데이터2026.10.08. Do not restore theoldSKlayout or hide controls. Correct only these observed issues:\nIn BOTH views the two stock entity buttons must stay in the CURRENT PER context. Replace every \"종목 시총 보기\" inside 삼성전자/삼성전자우 buttons with \"PER 보기\"; selected common can say \"현재 PER\". Keep the aggregate button explicitly \"기업 시총 보기\" and keep549조/495조/54조 as marketcap identity context. Do not change entity order or currentcommongold. Make rank620위 DARK NEUTRAL, not red; only ranks1/2/3 may have special rank color. Remove unsupported denominator \"전체944개종목중\" and invented absolute daily change \"+600원\"; retain neutral74,000원 and red+0.80%. Mobile primary PER AREA chart must be VISIBLE/EXPANDED with points13,15,17,18.5 and compact 월간/연간/date controls, not just an accordion heading. Compress the mobile current summary and collapsed lower headings to fit the visible mainplot; do not hide any of the3entitybuttons or8metric tabs. Keep heatmap/distribution/price/history/CSV as readable lower headings. Same-range mean15.88,min13,max18.5,count4. Existing top layout and desktop rail are otherwise correct. Final lower sequence in bothviews: samecompanyPER comparison -> annualrecords -> fullhistoryCSV -> formula/basis -> nearbyPER previous/next. Do not invent total stock counts, unprovided sources or corporate PER.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/09-detail-per.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-a4f6c8c8-7992-40c9-b716-1837bbba9523.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "d0beeaa8ec3729a2cb7be30ee40b62eafea2b623e8400b90b7878ae77a80fe66"
+    },
+    {
+      "filename": "10-detail-pbr-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-final.png.json",
+      "prompt": "Use case: precise-object-edit. Make ONLY ONE VERY SMALL REPAIR to the attached existing UI approval image. Edit ONLY the entity-selection buttons in the RIGHT-HAND MOBILE view. The mobile aggregate button \"기업 전체(합산) 549조\" must be WHITE/neutral with NO \"현재\" badge. The common-stock button directly BELOW LEFT \"삼성전자 · 보통주005930 ·495조\" is the ONLY selected entity: retain its pale GOLD surface and place the small \"현재\" badge there. Preferred button belowRIGHT \"삼성전자우 ·우선주005935 ·54조\" remains WHITE/neutral. Preserve the EXACT existing geometry: aggregatefullrow, thencommonLEFT/preferredRIGHT. Do not change positions, sizes, text, figures or controls beyond this one selected-state repair. Do not edit the DESKTOP at all. Do not edit the mobile header, identity,8tabs,currentPBR1.85/560위/74,000원,charts,body,CSV,footer or any colors elsewhere. Preserve the1536x1024canvas and existing styling. No additions or redesign. The sole requested change is to remove the false aggregate selection and identify the common stock as the one current target.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/10-detail-pbr-v2.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-74d94b4f-d13b-45d0-9e77-1efc0d29285e.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "cc6a63a739b2bdda395b4e9a6b066ba54ab37ef950330f1bcbc81beec5bccd0c"
+    },
+    {
+      "filename": "11-detail-eps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps-v2.png.json",
+      "prompt": "Use case: precise-object-edit. Edit IMAGE1, the just-generated unified Korean UI comp, in ONE bounded correction pass. IMAGE2 remains the approved06MASTER for the shared outerlayout. Preserve desktopLEFT/mobileRIGHT topalignment, white B records-room, sober궁서-style headings, fullwordmark, correctdesktopright rail, two-rowmobileheader, mobilebottomrankingnavigationonly, threeentitybuttons (aggregatefullrow andtwo stocksSIDE-BY-SIDE onmobile), and fixed8tabs (PC1row/mobile2x4). Preserve currentSamsung synthetic figures and 예시데이터2026.10.08. Do not restore theoldSKlayout or hide controls. Correct only these observed issues:\nCorrect the IDENTITY metadata in BOTH views to ONLY \"보통주 · 005930 · KOSPI\". Remove \"우선주·005935\" from the selectedstock identity; preferredcodebelongsONLYinitsseparateentitybutton/comparison. Change stockbutton \"종목 시총 보기\" to \"EPS 보기\"/selected현재EPS;aggregatebutton기업시총보기 stays. Restore visible \"월간 / 연간\" aggregation controls separate from 최근3개월/전체/date range; keep four EPS points3600/3750/3900/4000, mean3812.50,min3600,max4000,count4. EPS primary chart is a clean LINE, remove the shaded AREA beneath it. Remove the invented \"전체2,000개종목중\" denominator. Add a small REAL samecompanyEPS comparison module BEFOREannualrecords: 삼성전자·보통주005930 EPS4,000원 주가74,000원; 삼성전자우·우선주005935 EPS4,000원 주가54,000원. No corporate aggregateEPS. PreservecurrentEPS4000,rank210 andannual2023=2800,2024=3200,2025=3600,2026.10=4000연중. Keep lower order same in PC/mobile: 기간통계 / 주가이력 / 같은기업종목비교 / 연도별마지막관측 / 전체이력CSV(선택기간무관) / 계산식·자료기준 / 인접EPS순위,contentsmatch. Preservecorrect3entitybutton arrangement,2x4mobiletabs,bottomrankingnav,anddesktopright rail.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/11-detail-eps.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-cc29865f-db8f-4eac-92d5-4615fefb47b3.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "f392e3bfe3052eccd6f4a3474b2a1cccfa3a5e2137c83a75267d60abe1cafce5"
+    },
+    {
+      "filename": "12-detail-bps-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-final.png.json",
+      "prompt": "Use case: precise-object-edit. Make ONLY ONE VERY SMALL LAYOUT REPAIR to the attached existing UI approval image. Edit ONLY the entity-selection block in the RIGHT-HAND MOBILE view, beneath \"기업 전체와 구성 종목\" and above the8metric tabs. Recompose its THREE currently side-by-side buttons into EXACTLY TWO ROWS within the existing block: TOP ROW is ONE FULL-WIDTH WHITE neutral button \"기업 전체(합산) /549조 /기업 시총 보기\"; SECOND ROW is TWO SIDE-BY-SIDE buttons, LEFT \"삼성전자 ·보통주005930 ·495조 ·BPS보기\" paleGOLD withsmall현재, RIGHT \"삼성전자우 ·우선주005935 ·54조 ·BPS보기\" WHITE neutral. AllTHREEtargets remain visible. Fit them in the same mobile target block area; preserve the nearby identity and8tabs positions, without hiding or moving content elsewhere. Do not change the DESKTOP: its3siblingbuttons stayONErow and8tabsstayONErow. Do not change the mobile two-rowheader,identity,2x4tabs,BPS40,000원,rank180위,price74,000원,yearendbars,periodcontrols,lowerbody,CSV,bottomnav,copy,figures or styling. Preserve1536x1024canvas. No other fixes, content additions, recoloring or polishing. The sole requested change is the mobile target layout from3columns to aggregatefullrow pluscommonLEFT/preferredRIGHT.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/12-detail-bps-v2.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-928f-7a10-8adb-1372660bb15f/exec-32593284-8be8-4901-ae49-54a892788799.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "0d0a8cdd20ef83b2a6c6b93adb96b1524fb64ea652544336cd29de5ba97b416b"
+    },
+    {
+      "filename": "13-detail-div-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div-v2.png.json",
+      "prompt": "Use case: ui-mockup. ONE targeted correction batch to image1. Image2 is the common geometry/style master only; do NOT copy its aggregate-selected context. Keep landscape1536x1024,desktop LEFT1120/mobile RIGHT360,top-aligned,no outside titles. Fix ALL following:\n1 Desktop must have MASTER'S supporting RIGHT RAIL approximately190–200px WIDE inside the1120px desktop, starting below header and beside identity. Reflow existing main content to approximately900px rather than deleting rail. Rail recent list UNNUMBERED; basis and actual contents below, no metric menu.\n2 This is INDIVIDUAL 삼성전자 COMMON005930 KOSPI DIV, not enterprise. Both views: aggregate549조 button WHITE and no현재; COMMON삼성전자495조 ONLY pale GOLD+현재; preferred54조 WHITE. Mobile aggregate fullrow and common/preferred2equal columns MUST stay. Stock button labels say \"배당수익률 보기\", not \"종목 시총 보기\", because switching stocks preserves DIV. Aggregate link remains explicit기업 합산 시총.\n3 Preserve fixed8tab order and activeDIV7th, mobile2x4, allvisible. Change780위 fromRED to dark neutral ink. Absolute74000원,2.00%,2.74% stay neutral. Only signedprice+0.80% red.\n4 Current2.00% is \"현재 제공값\". Only chart aggregation is \"제공 관측의 평균\"; remove the bottom sentence that defines ALL yield/current as an average. Keep formula1480/74000=2%. Keep fallingLINE2.54→2.35→2.14→2.00,월간/연간/기간직접지정 and nofill. Correct displayed price-history samples to 2026.07.08=58,303원,08.08=63,087원,09.08=69,067원,10.08=74,000원 so synthetic yield is coherent. Preserve lower records→CSV→basis→adjacent rank.\nPreserve all correct shared chrome,B style,synthetic labels and actualSamsung-official-value disclaimer. Never corporateDIV.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/13-detail-div.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-fb19a9f3-eb67-45df-ba5e-56c45669d377.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "205e712723afe90d37968bdfdd3145489137221f4259a97f5883ce51e9701405"
+    },
+    {
+      "filename": "14-detail-dps-v2.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps-v2.png.json",
+      "prompt": "Use case: ui-mockup. ONE targeted correction batch to image1; image2 is common geometric/style master, NOT the selected entity. Preserve1536x1024 desktopleft1120/mobile right360top-aligned,nooutsideheadings. Existing page body's DPScharts and fixedtabs are mostly correct; keep them.\nCRITICAL: title in BOTH views must be exactly \"삼성전자\", subtitle \"보통주 ·005930·KOSPI\", NEVER \"기업 전체\". This is currentCOMMON stock DPS1480원260위. Top aggregate549조 button WHITE with NO현재; COMMON삼성전자495조 ONLY PALE GOLD+현재; preferred54조WHITE. Mobile aggregatefullwidth thencommon/prefTWOcolumns, no hiddenbuttons. Stock link labels \"주당배당금 보기\", not종목시총보기; enterprise button means기업합산시총only. NEVER enterpriseDPS.\nKeep basic/marketcap/PER/PBR/EPS/BPS/DIV/DPS in EXACT fixedorder,DPSLAST; mobile2x4DPSlastbottomright. Preserve current1480,260위 and quote74000neutral,+0.80%red. Add the readable factual line \"이전 제공 기록1,440원 대비 +2.78%\" neutral. Preserve synthetic2023/2024/2025/2026 bars1200/1360/1440/1480 and comparisonfirstblank/13.33/5.88/2.78%,3년selected; mean1370. Keep flat supportingmatrix,histogram,ownpricehistory,two-concrete-stock comparison,annualrecords,CSV,basis.\nDesktop supporting right rail width/start must matchMASTER190–200px. Remove all ranknumbers from recenthistory, including1beforeSamsung. Body and railcontents sectionorder must agree. Keep allsamplelabels,neutralabsolutevalues and the official-value disclaimer. Nonewfeatures orforecasts.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/14-detail-dps.png",
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/06-company-marketcap.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-38f84004-e9d6-4ac3-9089-e0ca031165f4.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7f88c2e62003aa795e05b2ca20921182430c892cffa282e86086b12ea980680f"
+    },
+    {
+      "filename": "15-search-recent-final.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-final.png.json",
+      "prompt": "Use case: precise-object-edit. Edit this SINGLE supplied15-search-recent-v2 image with ONE narrowly bounded structural fix. Keep the existing1536x1024 canvas,desktop LEFT and singlemobileRIGHT,all wording,colors,selectedDIVtab,desktop search/recent/menu surfaces,header,temporarymobile searchsurface and bottomnavigation EXACTLY as they are. Do not redesign or polish anything else.\nONLY CHANGE THE MOBILE ENTITY SELECTOR directly below \"기업 전체와 구성 종목\". It currently wrongly has three tiny equal columns on one row. Recompose THAT ONE REGION into TWO ROWS: ROW1 \"기업 전체(합산) 549조 ·2개 종목\" spans the FULL mobile content width, WHITE unselected; ROW2 has TWO equal half-width sibling rectangular buttons SIDE BY SIDE: LEFT \"삼성전자 ·보통주005930 ·495조\" pale GOLD with small \"현재\", RIGHT \"삼성전자우 ·우선주005935 ·54조\" WHITE unselected. Each is an actual-looking pressable link with chevron. ALL THREE stay visible, no dropdown or overflow. Only COMMON has현재. This is commonSamsungDIVcontext,notenterprise.\nUse the spare vertical room by reducing gaps ONLY INSIDE THIS SELECTOR, or shift the immediately following tabs/searchsheet slightly downward while keeping every current part visible. Never shrink the buttons into one row, never removeaggregate orpreferred,never change thedesktop entity selector or otherPCcontent. Keep fixedmobiletabs basic/marketcap/PER/PBR onfirstrow andEPS/BPS/DIV/DPS onsecondrow,activeDIV7thunchanged. Keep the close-to-same-context searchsheet and bottom메인랭킹검색 once. Return the same image with only this mobile selector arrangement corrected.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/15-search-recent-v2.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-7f81af9d-94d3-4450-92f0-3e5848289ade.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7bf4e86550af7f14e10fda2dcf97e620a3b8ad17349b34a13838c0eb06088010"
+    },
+    {
+      "filename": "16-states-primary.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png.json",
+      "prompt": "Use case: precise-object-edit. Native image edit ONLY. Preserve the TOP FOUR fully formed mobile frames from this supplied state-sheet, arranged as a2×2grid, and REMOVE ONLY the bottomtwo abbreviatedframes. Output a clean approximately1536×1536 square board, no outside title, no extra content, no device photographs. Keep originaltopfour frames' wording,style,internalgeometry andALLtheir visiblecontrols exactly unchanged. Those states are loading,search-empty,period-data-empty andtransienterror.\nCRITICAL PRESERVATION in EACH of4frames: brand+menuheader;search/recent/theme secondrow;SamsungCOMMON005930identity;enterprise549조 FULLWIDTHrow;underitCOMMON495조LEFTgold현재 andPREFERRED54조RIGHTwhite SIDE-BY-SIDE;both8metric-tabrows withPERthirdactive;statebody;bottom메인랭킹검색ONCE. Nothing inside a retainedframe may be deleted, collapsed or shortened. No extra 상단메인랭킹. Reuse the fourgoodframes exactly andmake themlarger/readable when the lowerrow isremoved. Do not reconstruct thebadbottomtwo or create anynewstate. This is a preserve-four-frames recomposition, not a redesign.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-final.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-f7697c1c-6cb0-4965-b343-8a249937a608.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "sha256": "9b70daa054fae3d7d2166aa7b5f3b3071313773223d659cede64b6ce5a50bec5"
+    },
+    {
+      "filename": "16-states-secondary.png",
+      "path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png",
+      "prompt_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.prompt.txt",
+      "metadata_path": "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-secondary.png.json",
+      "prompt": "Use case: ui-mockup. Use the supplied successful4-frame state sheet as the exact visual and mobile-SHELL authority. Create ONE landscape1536×1024 board with ONLY TWO LARGE MOBILE FRAMES side by side, sameheight,topaligned,nocaptions. Copy the complete upper shell from a good referenceframe into BOTH newframes, then replace ONLY each statebody. No desktop andno4-frame grid.\nNEVER DELETE these layers in eitherframe: TOProw fullred/gold천하제일[star]단타대회 logo+menuONLY;SECONDrowsearch+최근본+theme;identity삼성전자 ·보통주005930·KOSPI and예시데이터2026.10.08;heading기업전체와구성종목;WHITEaggregate549조FULLWIDTHrow;belowitTWOHALFWIDTHbuttons common삼성전자495조LEFT GOLD현재 /preferred삼성전자우54조RIGHT WHITE;BOTH8tabrows fixed basic/marketcap/PER/PBR thenEPS/BPS/DIV/DPS,PERthirdactive;BODY;bottom메인랭킹검색ONCE. No top메인랭킹,nohiddenstock,no3buttonsinarow,noomittedtabrow. TheseareSamsungCOMMONPERdetailstates,notcorporatePERormarket-wide-rankings.\nLEFTframeBODY: title\"현재 자료 미제공\", supporting\"현재 PER — ·원천 미제공\". Two visibleactions\"마지막 제공 시점 보기\" and\"다른 지표 보기\". No numericpastvaluepresentedascurrent. Keepallentitybuttonsand8tabsABOVEthisbody.\nRIGHTframeBODY: title\"선택한 기준일 자료가 아직 미공개입니다\", supporting\"다른 지표와 종목 탐색은 계속할 수 있습니다\". Action\"최신 공개 자료 보기\". KeepALLsameentitybuttonsand8tabsABOVEbody. NoCSV or fakezero.\nUse shortbodymessagesandmoderatespacingsoFULLshellfitscomfortablyinbothlargeframes. Preserve referencewhiteBrecordsurface,darkink,thinredrules,flatgoldselectedcontrols. ExamplesnotactualSamsungofficialfacts. No additionalstates,newfeatures,largeillustrationsorlayoutrearrangement. CorrectcompletecontextinBOTHframesisthepriority.",
+      "references": [
+        "/Users/craigchoi/silla/cd4/.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/16-states-primary.png"
+      ],
+      "tool": "built-in image_gen.imagegen",
+      "source": "/Users/craigchoi/.codex/generated_images/01a120f9-abcd-7aa1-940d-3458e24645d0/exec-d31fcd8e-a7bb-4054-b853-32fe581ada13.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "b6ebbb6fc114415151363861cbbcfeb61e1996030e5804a59cbd6fd3adec9701"
+    }
+  ]
+}
