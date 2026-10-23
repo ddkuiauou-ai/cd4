@@ -1,5 +1,7 @@
 # shadcn/ui & UI Development Context
 
+Framework compatibility checked on 2026-10-23: Next.js 16.4.2 with React/React DOM 19.3.1 and React types 19.3.0. The existing component, theme and responsive layout contracts remain in place; validation evidence is recorded in [upgrade verification](next-upgrade-2026-10-23.md).
+
 This document serves as the **single source of truth** for all UI-related development in the 천하제일 단타대회 project, including shadcn/ui configuration, responsive design patterns, component guidelines, and service branding.
 
 **Last Updated:** June 15, 2025

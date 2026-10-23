@@ -1,0 +1,330 @@
+{
+  "date": "2026-10-23",
+  "implementation": {
+    "fuse": "7.5.0",
+    "esHangul": "2.4.0",
+    "fallback": "Only after zero direct results and outside IME composition; maximum five name suggestions; explicit selection required before Enter."
+  },
+  "dataset": {
+    "securities": 4751,
+    "sha256": "25fd03abab553d90750e3b7d1c64f61f8969bb2fd0ffba0572054eb82f2879a8"
+  },
+  "accuracy": {
+    "positives": 30,
+    "top1": 26,
+    "top5": 28,
+    "misses": [
+      "SK하닉스",
+      "두산에너리빌티"
+    ],
+    "negativesWithNoSuggestions": 10,
+    "negatives": 10,
+    "directControlsRetained": 10,
+    "directControls": 10,
+    "method": "Hand-authored typo scenarios for real names and tickers verified against the local 2026-10-23 search snapshot. These are evaluation examples, not observed user queries or representative traffic.",
+    "cases": [
+      {
+        "query": "삼성전저",
+        "expectedName": "삼성전자",
+        "expectedRank": 1
+      },
+      {
+        "query": "삼섬전자",
+        "expectedName": "삼성전자",
+        "expectedRank": 1
+      },
+      {
+        "query": "삼성전자자",
+        "expectedName": "삼성전자",
+        "expectedRank": 1
+      },
+      {
+        "query": "삼성자전",
+        "expectedName": "삼성전자",
+        "expectedRank": 2
+      },
+      {
+        "query": "삼성자",
+        "expectedName": "삼성전자",
+        "expectedRank": 2
+      },
+      {
+        "query": "하이닉서",
+        "expectedName": "SK하이닉스",
+        "expectedRank": 1
+      },
+      {
+        "query": "SK하닉스",
+        "expectedName": "SK하이닉스",
+        "expectedRank": null
+      },
+      {
+        "query": "sk하이닋스",
+        "expectedName": "SK하이닉스",
+        "expectedRank": 1
+      },
+      {
+        "query": "에코프로비앰",
+        "expectedName": "에코프로비엠",
+        "expectedRank": 1
+      },
+      {
+        "query": "에코포로",
+        "expectedName": "에코프로",
+        "expectedRank": 1
+      },
+      {
+        "query": "카카우",
+        "expectedName": "카카오",
+        "expectedRank": 1
+      },
+      {
+        "query": "카카오뱅쿠",
+        "expectedName": "카카오뱅크",
+        "expectedRank": 1
+      },
+      {
+        "query": "셀트리옹",
+        "expectedName": "셀트리온",
+        "expectedRank": 1
+      },
+      {
+        "query": "셀트리온제악",
+        "expectedName": "셀트리온제약",
+        "expectedRank": 1
+      },
+      {
+        "query": "삼상바이오로직스",
+        "expectedName": "삼성바이오로직스",
+        "expectedRank": 1
+      },
+      {
+        "query": "LG에너지솔류션",
+        "expectedName": "LG에너지솔루션",
+        "expectedRank": 1
+      },
+      {
+        "query": "한국전럭",
+        "expectedName": "한국전력",
+        "expectedRank": 1
+      },
+      {
+        "query": "한화에어로스페아스",
+        "expectedName": "한화에어로스페이스",
+        "expectedRank": 1
+      },
+      {
+        "query": "현대로탬",
+        "expectedName": "현대로템",
+        "expectedRank": 1
+      },
+      {
+        "query": "두산에너리빌티",
+        "expectedName": "두산에너빌리티",
+        "expectedRank": null
+      },
+      {
+        "query": "알테오잰",
+        "expectedName": "알테오젠",
+        "expectedRank": 1
+      },
+      {
+        "query": "리노공어",
+        "expectedName": "리노공업",
+        "expectedRank": 1
+      },
+      {
+        "query": "한국항공우쥬",
+        "expectedName": "한국항공우주",
+        "expectedRank": 1
+      },
+      {
+        "query": "한미반도채",
+        "expectedName": "한미반도체",
+        "expectedRank": 1
+      },
+      {
+        "query": "대항항공",
+        "expectedName": "대한항공",
+        "expectedRank": 1
+      },
+      {
+        "query": "포스코인터네셔널",
+        "expectedName": "포스코인터내셔널",
+        "expectedRank": 1
+      },
+      {
+        "query": "HD현대일랙트릭",
+        "expectedName": "HD현대일렉트릭",
+        "expectedRank": 1
+      },
+      {
+        "query": "SK텔레코",
+        "expectedName": "SK텔레콤",
+        "expectedRank": 1
+      },
+      {
+        "query": "navre",
+        "expectedName": "NAVER",
+        "expectedRank": 1
+      },
+      {
+        "query": "POSCO홀딩쓰",
+        "expectedName": "POSCO홀딩스",
+        "expectedRank": 1
+      }
+    ]
+  },
+  "engineTiming": {
+    "environment": "Node synchronous search only. Excludes DOM, browser paint/layout, data transfer, React scheduling, and IME composition. No timing assertions; results depend on machine and runtime.",
+    "nodeVersion": "v22.23.3",
+    "rounds": 50,
+    "warmup": 5,
+    "timing": {
+      "positiveCases": {
+        "samples": 1500,
+        "medianMs": 11.1689,
+        "p95Ms": 17.8711,
+        "maxMs": 73.5973
+      },
+      "negativeCases": {
+        "samples": 500,
+        "medianMs": 0.2817,
+        "p95Ms": 27.7252,
+        "maxMs": 42.8932
+      },
+      "directControls": {
+        "samples": 500,
+        "medianMs": 0.217,
+        "p95Ms": 0.4768,
+        "maxMs": 3.0208
+      }
+    },
+    "build": {
+      "strict": {
+        "firstBuildMs": 8.4349,
+        "samples": 7,
+        "medianMs": 6.7245,
+        "p95Ms": 8.4349,
+        "maxMs": 8.4349
+      },
+      "typo": {
+        "firstBuildMs": 13.0562,
+        "samples": 7,
+        "medianMs": 7.186,
+        "p95Ms": 13.0562,
+        "maxMs": 13.0562
+      }
+    }
+  },
+  "browserTiming": {
+    "environment": "Local Next.js development preview in Codex in-app browser, 4751-name snapshot already loaded, no CPU throttling. Six complete query replacements via browser fill, repeated five times; two initial exploratory samples excluded.",
+    "measurement": "React onChange handler start to layout-effect commit and two requestAnimationFrame callbacks; not a confirmed paint metric",
+    "limitations": "Starts at React onChange, excluding hardware/OS/event dispatch delay, data loading and physical Korean IME composition. Commit does not include paint. Two-frame timing is a proxy, not confirmed paint latency. Not a production or low-end mobile benchmark.",
+    "samplesSuperseded": 0,
+    "queries": [
+      {
+        "query": "005930",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 5.3,
+          "minMs": 4.8,
+          "maxMs": 14.7
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 14.2,
+          "minMs": 9,
+          "maxMs": 21.1
+        }
+      },
+      {
+        "query": "ㅅㅅㅈㅈ",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 7.1,
+          "minMs": 6.6,
+          "maxMs": 8.5
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 11.5,
+          "minMs": 9.9,
+          "maxMs": 16.3
+        }
+      },
+      {
+        "query": "삼성전자",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 6.4,
+          "minMs": 6.2,
+          "maxMs": 7.4
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 13.2,
+          "minMs": 10.3,
+          "maxMs": 14.1
+        }
+      },
+      {
+        "query": "삼성전저",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 31,
+          "minMs": 29.9,
+          "maxMs": 33.2
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 33.5,
+          "minMs": 32.3,
+          "maxMs": 35.8
+        }
+      },
+      {
+        "query": "하이닉서",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 21,
+          "minMs": 20.3,
+          "maxMs": 25.5
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 23,
+          "minMs": 22.1,
+          "maxMs": 27.5
+        }
+      },
+      {
+        "query": "카카우",
+        "inputToCommit": {
+          "samples": 5,
+          "medianMs": 21.8,
+          "minMs": 21.5,
+          "maxMs": 35.1
+        },
+        "inputToTwoFrames": {
+          "samples": 5,
+          "medianMs": 24.6,
+          "minMs": 24.5,
+          "maxMs": 68.7
+        }
+      }
+    ]
+  },
+  "validation": {
+    "targetedTestsPassed": 35,
+    "typecheck": "passed in source repository",
+    "eslint": "passed for changed search files, tests and benchmark",
+    "browser": "Verified typo label and five suggestions, no Enter navigation without selection, arrow selection of stock/company, exact code and initial search, numeric typo exclusion, 40-row direct cap. Desktop and 360px mobile keep dialog top fixed and shrink results body when empty."
+  },
+  "sourceHashes": {
+    "strict": "521fdbf6b4c43f129743af16169784b8dcb00a20c6075a212121138177a7c593",
+    "typo": "69ed2346deb3620b4670e8a02dd4fd1d2b8a704e1b897681f57095408a6b5b67",
+    "cases": "e86f5b5e45d0702ef14bd2ba89ddc3e5435c5700a3889c53ab8f6c30c2d7c79e"
+  },
+  "reproduce": "node scripts/benchmark-security-search.cjs /path/to/search-data.json --rounds=50 --warmup=5"
+}

@@ -300,6 +300,32 @@ a { text-underline-offset: 4px; }
 input { caret-color: var(--brand-ink); }
 * { scrollbar-color: var(--input) transparent; }
 :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+/* Anchor the input while the results below it grow or shrink. */
+.search-dialog {
+  --search-dialog-top: max(16px, env(safe-area-inset-top));
+  top: var(--search-dialog-top);
+  max-height: calc(100dvh - var(--search-dialog-top) - max(16px, env(safe-area-inset-bottom)));
+}
+.search-results-body { max-height: min(55dvh, 392px); }
+.search-input-row::after {
+  content: "";
+  position: absolute;
+  inset-inline: 12px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--ring);
+  opacity: 0;
+  pointer-events: none;
+}
+.search-input-row:focus-within::after { opacity: 1; }
+/* The row's single underline replaces the global outline for this input only. */
+.search-input:focus-visible { outline: none; box-shadow: none; }
+@media (min-width: 640px) {
+  .search-dialog { --search-dialog-top: min(12dvh, 96px); }
+}
+@media (forced-colors: active) {
+  .search-input-row:focus-within::after { background: Highlight; forced-color-adjust: none; }
+}
 .text-primary { color: var(--brand-ink); }
 .app-shell { display: flex; min-height: 100dvh; flex-direction: column; }
 .app-container { width: 100%; max-width: 1504px; margin-inline: auto; padding-inline: 16px; }

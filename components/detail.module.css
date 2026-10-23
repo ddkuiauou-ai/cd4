@@ -23,7 +23,7 @@
 .detail :global(.detail-entity-value) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .detail :global(.detail-entity-action) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }
 .detail :global(.detail-entity-chevron) { position: absolute; right: 6px; top: calc(50% - 8px); width: 16px; height: 16px; }
-.detail :global(.detail-metric-nav) { display: grid; width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; border-bottom: 1px solid var(--record-rule); background: var(--muted); }
+.detail :global(.detail-metric-nav) { display: grid; width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; background: var(--muted); }
 .detail :global(.detail-company-nav) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .detail :global(.detail-metric-nav a),
 .detail :global(.detail-metric-nav > span) { display: flex; min-height: 44px; align-items: center; justify-content: center; border-bottom: 3px solid transparent; padding: 8px 4px; text-align: center; color: var(--muted-foreground); font-size: 12px; }
@@ -147,7 +147,7 @@
   .detail :global(.detail-cap-record-grid .detail-summary-item:nth-child(even)),
   .detail :global(.detail-basic-record-grid .detail-summary-item:nth-child(even)) { border-left: 1px solid var(--border); padding-left: 16px; }
   .detail :global(.detail-cap-record-grid > .detail-comparison),
-  .detail :global(.detail-basic-record-grid > .detail-comparison) { padding-block: 16px; }
+  .detail :global(.detail-basic-record-grid > .detail-comparison) { border-top: 0; padding-block: 16px; }
   .detail :global(.detail-cap-record-grid .detail-comparison-table th),
   .detail :global(.detail-cap-record-grid .detail-comparison-table td),
   .detail :global(.detail-basic-record-grid .detail-comparison-table th),

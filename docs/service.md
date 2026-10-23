@@ -2,7 +2,9 @@
 
 ## Overview
 
-CD3 is a comprehensive stock information service providing real-time financial data, rankings, and analysis tools for Korean stock market investors. The service is built with Next.js 15 App Router and emphasizes mobile-first design with professional-grade financial data presentation and SEO optimization for search discovery.
+CD3 is a comprehensive stock information service providing real-time financial data, rankings, and analysis tools for Korean stock market investors. The service is built with Next.js 16.4.2 App Router and emphasizes mobile-first design with professional-grade financial data presentation and SEO optimization for search discovery.
+
+The 2026-10-23 framework update uses React/React DOM 19.3.1. Search JSON, CSV downloads, sitemap responses, static snapshots and trailing-slash routing are the relevant compatibility boundaries; see [upgrade verification](next-upgrade-2026-10-23.md) for results and the safe DB configuration used during checks.
 
 ## Core Services
 

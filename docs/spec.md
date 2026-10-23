@@ -4,15 +4,15 @@
 
 ### Core Framework
 
-- **Next.js**: v15.3.2
+- **Next.js**: v16.4.2
   - With Turbopack for development
   - React Server Components (RSC) enabled
   - App Router with parallel routes and intercepting routes
 
 ### Frontend
 
-- **React**: v19.0.0
-- **React DOM**: v19.0.0
+- **React**: v19.3.1
+- **React DOM**: v19.3.1
 - **TypeScript**: v5.x
 - **Tailwind CSS**: v4.x
   - With CSS variables enabled
@@ -49,7 +49,7 @@
 
 ### Performance & Optimization
 
-- **@next/third-parties**: v15.3.2 (Third-party optimization)
+- **@next/third-parties**: v16.4.2 (Third-party optimization)
 - **react-wrap-balancer**: v1.1.1 (Typography optimization)
 
 ### Data Visualization
@@ -71,15 +71,18 @@
 ### Development Tools
 
 - **ESLint**: v9.x
+- **eslint-config-next**: v16.4.2
 - **@eslint/eslintrc**: v3.x
 - **@types/node**: v20.x
-- **@types/react**: v19.1.5
-- **@types/react-dom**: v19.1.5
+- **@types/react**: v19.3.0
+- **@types/react-dom**: v19.3.0
 - **drizzle-kit**: v0.31.11
 - **@tailwindcss/postcss**: v4.x
 - **tailwindcss**: v4.x
 - **tw-animate-css**: v1.3.0
 - **typescript**: v5.x
+
+The 2026-10-23 framework update retains Node 22.23.3, pnpm 10.34.6, exact dependency pins, strict peer checks, the existing TypeScript alias and lint/build configuration. See [upgrade verification](next-upgrade-2026-10-23.md) for official sources, security conditions and validation limits.
 
 ### Color Palette
 
