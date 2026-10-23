@@ -10,10 +10,12 @@ import { StickyCompanyHeader } from './sticky-company-header';
 import { CompanyFinancialTabs } from './company-financial-tabs';
 import { DetailMobileNavigation } from './detail-mobile-navigation';
 import { RecentSecurityTracker } from './recent-security-tracker';
+import { recentDetailPath } from '@/lib/recent-securities';
 import { RecentSecuritiesSidebar } from './recent-securities-sidebar';
 import { PageNavigation } from './page-navigation';
 import { DetailMetricFacts } from './detail-metric-facts';
 import { DetailEntitySelector, detailEntityMembers } from './detail-entity-selector';
+import { DetailComparisonSummary } from './detail-comparison-summary';
 import { InteractiveChartSection } from './interactive-chart-section';
 import { DetailHistoryChart } from './detail-history-chart';
 import { DetailCurrentPrice } from './detail-current-price';
@@ -111,6 +113,10 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
   const quote = { close: price, rate: priceRecord?.rate == null || !Number.isFinite(Number(priceRecord.rate)) ? null : Number(priceRecord.rate), date: security?.priceDate, open: sourceValue(priceRecord?.open), volume: sourceValue(priceRecord?.volume) };
   const hasComparison = companySecs.length > 0 || Boolean(company?.securities.length);
   const stockBasic = basic && !companyPage;
+  const financialPage = !basic && metric !== 'marketcap';
+  const hasFinancialAnalysis = financialPage && ['per', 'bps', 'dps'].includes(metric);
+  const StatisticsSection = financialPage ? 'details' : 'section';
+  const AnnualSection = financialPage ? 'details' : 'section';
   const hasLifecycle = !companyPage && Boolean(security && ((security.listingPeriods?.length ?? 0) || (security.lifecycleEvents?.length ?? 0) || security.historicalPeriod));
   const sections = [
     { id: 'entity-selection', label: '기업 전체와 구성 종목' },
@@ -125,11 +131,18 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
       ...((security?.company || company?.company) ? [{ id: 'company-information', label: '기업 정보' }] : []),
       ...(hasComparison ? [{ id: 'securities-summary', label: '같은 기업의 종목 비교' }] : [])]
       : [...(metric === 'marketcap' && hasComparison ? [{ id: 'securities-summary', label: '같은 기업의 종목 비교' }] : []),
-        { id: 'chart-analysis', label: `${info.label} 추이와 분석` }, { id: 'indicators', label: '기간 통계' }, { id: 'annual-data', label: '연도별 기록' },
+        { id: 'chart-analysis', label: `${info.label} 추이와 분석` },
+        ...(financialPage ? [
+          { id: 'trend-statistics', label: '표시 관측 통계' },
+          ...(hasFinancialAnalysis ? [{ id: 'metric-analysis', label: '월별 기록 · 관측값 분포' }] : []),
+          { id: 'price-history', label: '주가 이력' },
+        ] : []),
+        { id: 'indicators', label: financialPage ? '조회 기간 상세 통계' : '기간 통계' },
+        ...(financialPage && hasComparison ? [{ id: 'securities-summary', label: `같은 기업의 종목 비교 (${info.label})` }] : []),
+        { id: 'annual-data', label: '연도별 기록' },
         ...(hasHistory ? [{ id: 'history-download', label: '전체 이력 CSV' }] : []), { id: 'metric-formula', label: '계산식' }]),
     ...(hasLifecycle ? [{ id: 'listing-history', label: '상장 기간 · 이름 변경' }] : []),
     { id: 'publication-basis', label: '조회 기준 · 자료 공개 정보' },
-    ...(!basic && metric !== 'marketcap' && hasComparison ? [{ id: 'securities-summary', label: `같은 기업의 종목 비교 (${info.label})` }] : []),
     ...(!basic && ranking?.currentRank != null && neighbors.length ? [{ id: 'nearby-ranks', label: `가까운 ${info.label} 순위` }] : []),
   ];
   const indicatorCards = [
@@ -150,22 +163,22 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
   const currentOverview = <section id="current-overview" className="detail-current-overview" aria-label="현재 공개값">
       <RankHeader rank={ranking?.currentRank} rankLabel={rankLabel} marketcap={current ?? undefined} marketcapLabel={companyPage ? '기업 전체 시가총액' : `현재 ${info.label}`} marketcapUnit={info.unit}
         marketcapDate={currentDate} price={price ?? undefined} priceDate={security?.priceDate} priceRate={quote.rate} basic={basic} priceLabel={companyPage ? '대표 보통주 주가' : '현재 주가'} exchange={security?.exchange} isCompanyLevel={companyPage} />
-      <p className="mt-2 text-xs text-muted-foreground">{companyPage ? '보통주·우선주 합산' : `${security?.type || '종목'} · ${security?.ticker || ''}`} · 순위 기준 {ranking?.rankDate || '—'}</p>
+      <p className="detail-current-basis">순위 기준 {ranking?.rankDate || '—'}</p>
       {!basic && current == null && <p role="status" className="mt-2 text-sm text-muted-foreground">{companyPage ? company?.state === 'unpublished' ? '아직 공개된 기업 합산값이 없습니다.' : company?.marketcapCompleteness === 'missing_input' ? '합산 자료가 부족합니다.' : '합산 근거를 확인 중입니다.' : security?.state === 'unpublished' ? '아직 공개된 종목 지표가 없습니다.' : states[metricState] || '자료 확인 필요'}{security?.state === 'published' && securityRecord?.[`${metric}LastProvided`] != null && ` · 마지막 제공값 ${text(sourceValue(securityRecord[`${metric}LastProvided`]), info.unit)} (${String(securityRecord[`${metric}LastProvidedDate`] ?? '—')})`}</p>}
       {exclusionLabel && <p className="mt-2 text-xs text-muted-foreground">순위 제외 사유: {exclusionLabel}</p>}
-      {stockBasic && <section id="price-information" className="detail-quote-facts" aria-label="거래 정보"><dl>
+      {stockBasic && <details id="price-information" className="detail-quote-facts"><summary>거래 정보 <span>시가 · 거래량 · 발행주식</span></summary><dl>
         {[["시가", text(quote.open, '원')], ["거래량", text(quote.volume, '주')], ["발행주식 수", text(security?.shares, '주')]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-      </dl><p>거래 기준 {quote.date || '—'} · 발행주식 기준 {security?.sharesDate || '—'}</p></section>}
+      </dl><p>거래 기준 {quote.date || '—'} · 발행주식 기준 {security?.sharesDate || '—'}</p></details>}
       </section>;
-  return <div className="app-container detail-grid">
+  return <div className={`app-container detail-grid${financialPage ? ' detail-financial-page' : ''}`}>
     {security && <RecentSecurityTracker secCode={secCode} securityId={security.securityId} routeCode={security.routeCode}
-      lastPath={route} name={security.name} korName={security.korName} ticker={security.ticker} exchange={security.exchange}
+      lastPath={recentDetailPath(route, {period: companyPage ? undefined : security.selectedPeriod?.periodId, start, end})} name={security.name} korName={security.korName} ticker={security.ticker} exchange={security.exchange}
       metricType={metric} metricValue={security[metric]} />}
     <div className="detail-content min-w-0">
       {historyError && <p role="alert" className="mb-4 text-sm text-destructive">{historyError} <button type="button" className="min-h-10 px-3 underline underline-offset-4" onClick={onRetry}>다시 시도</button></p>}
-      <nav aria-label="Breadcrumb" className="mb-2 flex flex-wrap gap-1 text-sm text-muted-foreground"><Link prefetch={false} href="/">홈</Link><span aria-hidden="true">·</span><Link prefetch={false} href={companyPage ? '/marketcaps' : `/${metric}`}>{companyPage ? '기업 시가총액 순위' : `종목 ${info.label} 순위`}</Link><span aria-hidden="true">·</span><span>{name}</span></nav>
+      <nav aria-label="Breadcrumb" className="detail-breadcrumb flex flex-wrap gap-1 text-muted-foreground"><Link prefetch={false} href="/">홈</Link><span aria-hidden="true">·</span><Link prefetch={false} href={companyPage ? '/marketcaps' : `/${metric}`}>{companyPage ? '기업 시가총액 순위' : `종목 ${info.label} 순위`}</Link><span aria-hidden="true">·</span><span>{name}</span></nav>
       <StickyCompanyHeader displayName={name} companyName={company?.companyKorName || security?.company?.korName} logoUrl={security?.company?.logo || company?.company?.logo}
-        titleSuffix={basic ? '기본 정보' : companyPage ? '시가총액' : info.name}
+        titleSuffix={basic ? '기본 정보' : companyPage ? '시가총액' : ['per', 'pbr', 'eps', 'bps'].includes(metric) ? info.label : info.name}
         detail={null}
         actions={<ShareButton title={`${name} ${basic ? '기본 정보' : info.label}`} text={`${name}의 ${basic ? '기업·종목 정보' : `${info.label} 추이와 지표`}를 ${siteConfig.name}에서 확인하세요.`} url={`${siteConfig.url}${route}/`} />} />
       <div className="detail-identity-meta"><p>{companyPage ? '기업 전체 · 보통주·우선주 합산' : [security?.type, security?.ticker, security?.exchange].filter(Boolean).join(' · ')}</p><p>공개 기준일 {asOf || '미공개'}</p></div>
@@ -174,6 +187,7 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
       {stockBasic ? <div className={`detail-basic-record-grid ${hasComparison ? 'detail-basic-has-comparison' : ''}`}>
         {currentOverview}
         {hasComparison && <DetailSecuritiesComparison company={company} companySecs={companySecs} security={security} metric="marketcap" companyPage={false} />}
+        <DetailMobileNavigation sections={sections} />
         <section id="price-history" className="detail-section detail-basic-price-history"><header className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-xl font-semibold">주가 이력</h2><p className="text-xs text-muted-foreground">{security?.ticker || '—'} · 제공된 실제 거래 기록</p></header>
           {invalid ? <p role="alert" className="text-sm text-destructive">시작일과 종료일을 확인해 주세요. 시작일은 종료일 이전이어야 합니다.</p> : historyPending ? historyPlaceholder() : <DetailPriceHistory rows={prices} start={start} end={end} />}
         </section>
@@ -182,36 +196,41 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
       </div> : !basic && metric === 'marketcap' && hasComparison ? <div className="detail-cap-record-grid">
         {currentOverview}<DetailSecuritiesComparison company={company} companySecs={companySecs} security={security} metric={metric} companyPage={companyPage} />
       </div> : currentOverview}
-      <DetailMobileNavigation sections={sections} />
+      {!stockBasic && <DetailMobileNavigation sections={sections} />}
       {basic ? <>{!stockBasic && <><BasicInformation security={security} company={company} companyPage={companyPage} quote={quote} />{hasComparison && <DetailSecuritiesComparison company={company} companySecs={companySecs} security={security} metric="marketcap" companyPage={companyPage} />}</>}</> : <>
         <section id="chart-analysis" className="detail-section space-y-5 border-t border-border py-6 sm:py-8">
-          <header className="space-y-1"><h2 className="text-xl font-semibold">{metric === 'marketcap' ? '시가총액 추이 · 차트 분석' : '차트 분석'}</h2><p className="text-sm text-muted-foreground">{metric === 'marketcap' ? '시가총액 추이와 종목별 구성 현황' : `${name}의 ${info.label} 변동 패턴과 분포를 다양한 차트로 분석합니다`}</p></header>
-          <details className="border-y border-border py-3"><summary className="cursor-pointer text-sm font-medium">기간 직접 지정</summary><form key={`${start || ''}:${end || ''}:${security?.selectedPeriod?.periodId || ''}`} action={route} className="mt-4 flex flex-wrap items-end gap-3">
+          <header className="space-y-1"><h2 className="text-xl font-semibold">{metric === 'marketcap' ? '시가총액 추이 · 차트 분석' : `${['div', 'dps'].includes(metric) ? info.name : info.label} ${metric === 'bps' ? '연말 기록' : '추이'}`}</h2>{metric === 'marketcap' && <p className="text-sm text-muted-foreground">시가총액 추이와 종목별 구성 현황</p>}{financialPage && <p className="text-sm text-muted-foreground">{metric === 'bps' ? '실제 12월 관측만 표시합니다. 현재 공개값과 기준일이 다를 수 있습니다.' : metric === 'dps' ? '제공된 주당배당금과 직전 제공 기록 대비 변화율입니다.' : '월간·연간은 제공 관측의 평균입니다.'}</p>}</header>
+          <details className="detail-date-range border-y border-border"><summary className="cursor-pointer text-sm font-medium">기간 직접 지정{financialPage && (start || end) ? ` · ${start || '처음'} ~ ${end || asOf || '마지막'}` : ''}</summary><form key={`${start || ''}:${end || ''}:${security?.selectedPeriod?.periodId || ''}`} action={route} className="my-3 flex flex-wrap items-end gap-3">
             {!companyPage && security?.selectedPeriod && <input type="hidden" name="period" value={security.selectedPeriod.periodId} />}
-            <label className="text-xs">시작일<input type="date" name="start" defaultValue={start} className="mt-1 block min-h-10 rounded-md border border-input bg-background px-3 text-sm" required /></label>
-            <label className="text-xs">종료일<input type="date" name="end" defaultValue={end || asOf} className="mt-1 block min-h-10 rounded-md border border-input bg-background px-3 text-sm" required /></label>
-            <button type="submit" className="min-h-10 rounded-md border border-border px-4 text-sm hover:bg-muted">기간 조회</button>{(start || end) && <Link prefetch={false} href={!companyPage && security?.selectedPeriod ? `${route}?period=${encodeURIComponent(security.selectedPeriod.periodId)}` : route} className="inline-flex min-h-10 items-center px-3 text-sm underline underline-offset-4">전체 기간으로</Link>}
+            <label className="text-sm">시작일<input type="date" name="start" defaultValue={start} className="mt-1 block min-h-11 rounded-md border border-input bg-background px-3 text-sm" required /></label>
+            <label className="text-sm">종료일<input type="date" name="end" defaultValue={end || asOf} className="mt-1 block min-h-11 rounded-md border border-input bg-background px-3 text-sm" required /></label>
+            <button type="submit" className="min-h-11 rounded-md border border-border px-4 text-sm hover:bg-muted">기간 조회</button>{(start || end) && <Link prefetch={false} href={!companyPage && security?.selectedPeriod ? `${route}?period=${encodeURIComponent(security.selectedPeriod.periodId)}` : route} className="inline-flex min-h-11 items-center px-3 text-sm underline underline-offset-4">전체 기간으로</Link>}
           </form></details>
-          {invalid && <p role="alert" className="text-sm text-destructive">시작일과 종료일을 확인해 주세요. 시작일은 종료일 이전이어야 합니다.</p>}
+          {invalid && <p id={financialPage ? 'trend-statistics' : undefined} role="alert" className="text-sm text-destructive">시작일과 종료일을 확인해 주세요. 시작일은 종료일 이전이어야 합니다.</p>}
           {!invalid && <div className="detail-chart-grid">
             {metric === 'marketcap' ? <div className="min-w-0 border border-border bg-background p-3 sm:p-5 lg:col-span-2">
               {historyPending ? historyPlaceholder() : companyHistoryAvailable ? <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="summary" selectedSecurityId={companyPage ? undefined : security?.securityId} selectedType={companyPage ? '시가총액 구성' : security?.type || '시가총액 구성'} start={start} end={end} /> : <DetailHistoryChart rows={selected.filter(row => start || end || row.date >= earlierDate(selected.at(-1)?.date || '', 3))} metric="marketcap" label="종목 시가총액" unit="원" />}
-            </div> : historyPending ? <div className="min-w-0 border border-border bg-background p-3 sm:p-5">{historyPlaceholder()}</div> : <>
-              <div className="detail-chart-record min-w-0"><h3 className="mb-3 text-base font-semibold">{info.label} {metric === 'bps' ? '연말 기록' : '추이'}</h3><DetailHistoryChart rows={selected} metric={metric} label={info.label} unit={info.unit} selectedEnd={analysisEnd} annual={metric === 'bps'} /></div>
-              {['per', 'bps', 'dps'].includes(metric) && <DetailFinancialAnalysis rows={selected} metric={metric} name={name} />}
-            </>}
+            </div> : historyPending ? <div id="trend-statistics" className="detail-chart-record min-w-0">{historyPlaceholder()}</div> :
+              <div className="detail-chart-record min-w-0"><DetailHistoryChart rows={selected} metric={metric} label={info.label} unit={info.unit} selectedStart={start} selectedEnd={end || analysisEnd} annual={metric === 'bps'} customRange={Boolean(start || end)} withStatistics /></div>}
             {metric === 'marketcap' && company && <CardCompanyMarketcap data={company} selectedSecurityId={companyPage ? undefined : security?.securityId} />}
-            <div className="detail-price-record min-w-0"><h3 className="text-base font-semibold">{companyPage ? '대표 종목 가격 이력' : start || end ? '기간별 가격 차트' : '최근 3개월 가격 차트'}</h3><p className="mt-1 mb-3 text-xs text-muted-foreground">{name} ({security?.ticker || '—'}) · 시가·고가·저가·종가·거래량</p>{historyPending ? historyPlaceholder() : <DetailPriceHistory rows={prices} start={start} end={end} />}</div>
+            {!financialPage && <div className="detail-price-record min-w-0"><h3 className="text-base font-semibold">{companyPage ? '대표 종목 가격 이력' : start || end ? '기간별 가격 차트' : '최근 3개월 가격 차트'}</h3><p className="mt-1 mb-3 text-xs text-muted-foreground">{name} ({security?.ticker || '—'}) · 시가·고가·저가·종가·거래량</p>{historyPending ? historyPlaceholder() : <DetailPriceHistory rows={prices} start={start} end={end} />}</div>}
           </div>}
         </section>
-        <section id="indicators" className="detail-section space-y-5 border-t border-border py-6 sm:py-8"><header className="space-y-1"><h2 className="text-xl font-semibold">핵심 지표 · 기간 통계</h2><p className="text-sm text-muted-foreground">{companyPage ? '등록 종목 합계' : info.label}의 기간별 분석</p><p className="text-xs leading-relaxed text-muted-foreground">평균은 이름에 표시된 기간을 분석하고, 최저·최고는 아래 분석 범위 전체를 기준으로 합니다. 직접 지정한 범위는 차트와 핵심 지표에 공통 적용됩니다.</p></header>
+        {hasFinancialAnalysis && <section id="metric-analysis" className="detail-financial-secondary">{invalid ? <p className="py-4 text-sm text-destructive">조회 기간을 확인해 주세요.</p> : historyPending ? historyPlaceholder() : <DetailFinancialAnalysis rows={selected} metric={metric} name={name} />}</section>}
+        {financialPage && <details id="price-history" className="detail-section detail-record-disclosure"><summary><h2>주가 이력</h2></summary><div className="detail-disclosure-content"><p className="mb-3 text-sm text-muted-foreground">{name} ({security?.ticker || '—'}) · 시가·고가·저가·종가·거래량</p>{invalid ? <p className="text-sm text-destructive">조회 기간을 확인해 주세요.</p> : historyPending ? historyPlaceholder() : <DetailPriceHistory rows={prices} start={start} end={end} />}</div></details>}
+        <StatisticsSection id="indicators" className={`detail-section space-y-5 border-t border-border py-6 sm:py-8${financialPage ? ' detail-record-disclosure' : ''}`}>
+          {financialPage && <summary><h2>조회 기간 상세 통계</h2></summary>}
+          <header className="space-y-1">{!financialPage && <h2 className="text-xl font-semibold">핵심 지표 · 기간 통계</h2>}<p className="text-sm text-muted-foreground">{companyPage ? '등록 종목 합계' : info.label}의 기간별 분석</p><p className="text-sm leading-relaxed text-muted-foreground">평균은 이름에 표시된 기간을 분석하고, 최저·최고는 아래 분석 범위 전체를 기준으로 합니다. 직접 지정한 범위는 차트와 핵심 지표에 공통 적용됩니다.</p></header>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{indicatorCards.map(({title,value,observations},index) => <div key={title} className="min-w-0 space-y-2 border-b border-border py-4"><p className="text-xs text-muted-foreground">{title}</p><p className="text-lg font-semibold tabular-nums">{value == null ? '—' : `${formatCompactBusinessValue(value)}${info.unit}`}</p><p className="text-xs text-muted-foreground">{index === 0 ? `지표 기준 ${currentDate || '—'}` : `분석 기준 ${analysisEnd}`}</p>{observations && <p className="text-xs leading-relaxed tabular-nums text-muted-foreground">실제 관측 {observations.start || '—'} ~ {observations.end || '—'} · {observations.count}개</p>}{index === 0 && (snapshotComparisonReason ? <p className="text-xs leading-relaxed text-muted-foreground">{snapshotComparisonReason}</p> : snapshotChange != null ? <p className="text-xs text-muted-foreground">{priorObservation!.date} 이력 대비 {Number(snapshotChange) > 0 ? '+' : ''}{formatBusinessValue(snapshotChange)}%</p> : snapshotDifference != null && priorValueSign != null && priorValueSign <= 0 ? <p className="text-xs leading-relaxed text-muted-foreground">{priorObservation!.date} 이력 대비 차이 {text(snapshotDifference, info.unit)} · 이전 값이 {priorValueSign === 0 ? '0' : '음수'}라 증감률 계산 불가</p> : null)}</div>)}<div className="min-w-0 space-y-2 border-b border-border py-4"><DetailCurrentPrice price={{close:quote.close,rate:quote.rate,date:quote.date}} /></div></div>
           <p className="text-xs leading-relaxed text-muted-foreground">분석 범위 {summary.start || '—'} ~ {summary.end || '—'} · 실제 제공 {summary.count}개. 평균은 제공 관측의 산술평균이며 결측은 제외하고 실제 0·음수를 포함합니다.{companyPage && ' 회사 평균은 날짜별 등록 종목 부분 합계의 평균이며, 관측된 종목 구성이 다른 날짜도 포함될 수 있습니다.'}</p>
-        </section>
-        <section id="annual-data" className="detail-section space-y-5 border-t border-border py-6 sm:py-8"><header className="space-y-1"><h2 className="text-xl font-semibold">연도별 데이터 · 기록</h2><p className="text-sm text-muted-foreground">{info.label}의 {metric === 'bps' ? '실제 연말' : '연도별 마지막 관측'} 기준 상세 데이터를 확인합니다</p></header>
+        </StatisticsSection>
+        {financialPage && hasComparison && <DetailSecuritiesComparison company={company} companySecs={companySecs} security={security} metric={metric} companyPage={companyPage} />}
+        <AnnualSection id="annual-data" className={`detail-section space-y-5 border-t border-border py-6 sm:py-8${financialPage ? ' detail-record-disclosure' : ''}`}>
+          {financialPage && <summary><h2>연도별 데이터 · 기록</h2></summary>}
+          <header className="space-y-1">{!financialPage && <h2 className="text-xl font-semibold">연도별 데이터 · 기록</h2>}<p className="text-sm text-muted-foreground">{info.label}의 {metric === 'bps' ? '실제 연말' : '연도별 마지막 관측'} 기준 상세 데이터를 확인합니다</p></header>
           {!invalid && metric === 'marketcap' && companyHistoryAvailable && (historyPending ? historyPlaceholder() : <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="detailed" selectedSecurityId={companyPage ? undefined : security?.securityId} selectedType={companyPage ? '시가총액 구성' : security?.type || '시가총액 구성'} start={start} end={end} />)}
           <DetailAnnualHistory rows={annualRows} label={companyPage ? '등록 종목 합계' : info.label} unit={info.unit} yearEndOnly={metric === 'bps'} />
-        </section>
+        </AnnualSection>
         {hasHistory && <section id="history-download" className="detail-section detail-history-download"><h2 className="mb-3 text-xl font-semibold">전체 이력 CSV</h2><CsvDownloadButton data={rawCsv} filename={filename} label="전체 이력 CSV" /><p className="text-xs text-muted-foreground">{!companyPage && security?.selectedPeriod ? '선택한 상장 기간의 전체 제공 이력' : '선택 기간과 관계없이 전체 제공 이력'}</p></section>}
         <details id="metric-formula" className="detail-formula mt-6 border-y border-border py-3 text-sm"><summary className="cursor-pointer font-medium">지표 설명 · 계산식</summary><div className="space-y-3 px-4 py-4 text-sm leading-relaxed text-muted-foreground"><p>{companyPage ? '기업 시가총액은 회사의 보통주·우선주 등 종목을 합산한 공개 결과입니다.' : info.formula}</p><p>현재 값·순위는 공개 결과를 표시합니다. 이력은 원천의 제공값을 분석하며 현재값과 기준일이 다를 수 있습니다.</p></div></details>
       </>}
@@ -231,8 +250,7 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
           <p className="leading-relaxed">현재 값과 순위는 이 공개 결과를 표시합니다. 과거 차트와 통계는 원천의 실제 관측 이력을 분석하며 값 가까이에 각 기준일을 표시합니다.{companyPage && ' 등록 종목 합계는 해당 날짜에 관측된 종목 값의 분석용 합계이며, 공개된 기업 전체 시가총액과 구분합니다.'}</p>
         </div>
       </details>
-      {!basic && metric !== 'marketcap' && hasComparison && <DetailSecuritiesComparison company={company} companySecs={companySecs} security={security} metric={metric} companyPage={companyPage} />}
-      {!basic && <DetailPager rows={neighbors} rank={ranking?.currentRank ?? null} metric={metric} companyPage={companyPage} />}
+      {!basic && <DetailPager rows={neighbors} rank={ranking?.currentRank ?? null} metric={metric} companyPage={companyPage} start={start} end={end} />}
     </div>
     <aside className="context-rail hidden xl:block"><div className="detail-rail-content space-y-6"><RecentSecuritiesSidebar currentSecCode={secCode} /><DetailMetricFacts rows={facts} note={`지표 기준 ${currentDate || '—'} · 순위 기준 ${ranking?.rankDate || '—'}`} /><section className="border-t border-border pt-5"><h3 className="mb-3 text-base font-semibold">이 페이지에서</h3><PageNavigation sections={sections} collapsible={false} /></section></div></aside>
   </div>;
@@ -242,8 +260,9 @@ function DetailSecuritiesComparison({ company, companySecs, security, metric, co
   const members = detailEntityMembers(company, companySecs, security);
   const info = DETAIL_METRICS[metric];
   return <section id="securities-summary" className="detail-section detail-comparison">
-    <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-xl font-semibold">같은 기업의 종목 비교{metric !== 'marketcap' ? ` (${info.label})` : ''}</h2><p className="text-xs text-muted-foreground">현재 공개된 종목별 값</p></header>
-    <div className="detail-table-scroll"><table className="detail-comparison-table">
+    <header className="detail-comparison-heading"><h2 className="text-xl font-semibold">같은 기업의 종목 비교{metric !== 'marketcap' ? ` (${info.label})` : ''}</h2></header>
+    {metric === 'marketcap' && <DetailComparisonSummary company={company} members={members} selectedSecurityId={companyPage ? undefined : security?.securityId} />}
+    <details className="detail-comparison-records" open={metric !== 'marketcap'}><summary>종목별 공개값 · 상세 표</summary><div className="detail-table-scroll"><table className="detail-comparison-table">
       <caption className="sr-only">같은 기업의 실제 구성 종목별 {info.label}와 주가. 대상 변경은 상단 기업 전체와 구성 종목 선택에서 할 수 있습니다.</caption>
       <thead><tr><th scope="col">종목</th><th scope="col">종목코드</th><th scope="col">{info.label}</th><th scope="col">주가</th><th scope="col">등락률</th></tr></thead>
       <tbody>{members.map(member => {
@@ -258,7 +277,7 @@ function DetailSecuritiesComparison({ company, companySecs, security, metric, co
         </tr>;
       })}{metric === 'marketcap' && company && <tr className="detail-comparison-total"><th scope="row">기업 전체(합산)</th><td>—</td><td title={text(company.state === 'published' ? company.totalMarketcap : null, '원')}>{company.state === 'published' && company.totalMarketcap != null ? `${formatCompactBusinessValue(company.totalMarketcap)}원` : '—'}</td><td>—</td><td>—</td></tr>}</tbody>
     </table></div>
-    <p className="mt-3 text-xs leading-relaxed text-muted-foreground">각 종목의 공개값이며 미제공 자료는 —로 표시합니다.{metric === 'marketcap' && company && ` 기업 합산 기준 ${company.totalMarketcapDate || '—'}.`} 주가는 해당 종목에 제공된 거래 기록입니다.</p>
+    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">각 종목의 공개값이며 미제공 자료는 —로 표시합니다.{metric === 'marketcap' && company && ` 기업 합산 기준 ${company.totalMarketcapDate || '—'}.`} 주가는 해당 종목에 제공된 거래 기록입니다.</p></details>
   </section>;
 }
 
@@ -272,11 +291,15 @@ function BasicInformation({ security, company, companyPage, quote, part = 'all' 
 }
 const infoLabel = (metric: DetailMetric) => DETAIL_METRICS[metric].label;
 
-function DetailPager({ rows, rank, metric, companyPage }: { rows: Record<string, unknown>[]; rank: number | null; metric: DetailMetric; companyPage: boolean }) {
+function DetailPager({ rows, rank, metric, companyPage, start, end }: { rows: Record<string, unknown>[]; rank: number | null; metric: DetailMetric; companyPage: boolean; start?: string; end?: string }) {
   if (rank == null) return null;
   return <nav id="nearby-ranks" aria-label="순위 이전 다음" className="mt-8 flex flex-wrap justify-between gap-3">{rows.filter(row => Number(row.currentRank ?? row.marketcapRank) !== rank).map(row => {
     const previous = Number(row.currentRank ?? row.marketcapRank) < rank;
-    const href = companyPage ? companyPath({ companyId: String(row.companyId), routeCode: typeof row.routeCode === 'string' ? row.routeCode : null }, 'marketcap') : securityPath({ securityId: String(row.securityId), exchange: String(row.exchange || ''), ticker: String(row.ticker || ''), routeCode: typeof row.routeCode === 'string' ? row.routeCode : null }, metric);
+    const path = companyPage ? companyPath({ companyId: String(row.companyId), routeCode: typeof row.routeCode === 'string' ? row.routeCode : null }, 'marketcap') : securityPath({ securityId: String(row.securityId), exchange: String(row.exchange || ''), ticker: String(row.ticker || ''), routeCode: typeof row.routeCode === 'string' ? row.routeCode : null }, metric);
+    const query = new URLSearchParams();
+    if (start) query.set('start', start);
+    if (end) query.set('end', end);
+    const href = query.size ? `${path}?${query}` : path;
     return <Link prefetch={false} key={href} href={href} className={`inline-flex min-h-14 flex-col justify-center rounded-md border border-border px-4 py-3 hover:bg-muted ${previous ? '' : 'ml-auto text-right'}`}><span className="text-xs text-muted-foreground">{previous ? '이전' : '다음'} {companyPage ? '기업 시가총액' : infoLabel(metric)} 순위</span><span className="text-sm font-medium">{String(row.korName || row.name || '')}</span></Link>;
   })}</nav>;
 }

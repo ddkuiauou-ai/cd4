@@ -3,8 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export function PageNavigation({ sections, offset }: {
-    sections: Array<{ id: string; label: string; icon?: ReactNode }>; offset?: number; collapsible?: boolean;
+export function PageNavigation({ sections, offset, onNavigate }: {
+    sections: Array<{ id: string; label: string; icon?: ReactNode }>; offset?: number; collapsible?: boolean; onNavigate?: () => void;
 }) {
     const [active, setActive] = useState(sections[0]?.id ?? null);
     useEffect(() => {
@@ -13,7 +13,7 @@ export function PageNavigation({ sections, offset }: {
             frame = 0;
             const header = document.querySelector<HTMLElement>('[data-site-header]');
             const detailHeader = document.querySelector<HTMLElement>('[data-detail-header]');
-            const measuredOffset = offset ?? (header?.getBoundingClientRect().height ?? 64) + (detailHeader?.getBoundingClientRect().height ?? 0) + 16;
+            const measuredOffset = offset ?? (header?.getBoundingClientRect().height ?? 64) + (detailHeader?.getBoundingClientRect().height ?? 0) + 24;
             let current = sections[0]?.id ?? null;
             for (const section of sections) {
                 const target = document.getElementById(section.id);
@@ -36,7 +36,7 @@ export function PageNavigation({ sections, offset }: {
         };
     }, [sections, offset]);
     return <nav aria-label="페이지 목차" className="space-y-1">
-        {sections.map(section => <a key={section.id} href={`#${section.id}`} aria-current={active === section.id ? 'location' : undefined}
+        {sections.map(section => <a key={section.id} href={`#${section.id}`} onClick={onNavigate} aria-current={active === section.id ? 'location' : undefined}
             className={cn('block min-h-10 border-l py-2 pl-3 text-sm transition-colors',
                 active === section.id ? 'border-primary font-semibold text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
             {section.label}

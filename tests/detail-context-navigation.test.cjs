@@ -17,7 +17,7 @@ function loadFor(pathname, extra = {}) {
     '@/components/recent-securities-sidebar':{RecentSecuritiesSidebar:empty},
     '@/components/page-navigation':{PageNavigation:({sections})=>React.createElement('nav',{'aria-label':'본문 목차'},sections.map(row=>React.createElement('a',{key:row.id,href:'#'+row.id},row.label)))},
     '@/components/interactive-chart-section':{InteractiveChartSection:empty},
-    '@/components/detail-history-chart':{DetailHistoryChart:empty},
+    '@/components/detail-history-chart':{DetailHistoryChart:props=>props.withStatistics ? React.createElement('aside',{id:'trend-statistics'},'표시 관측 통계') : null},
     '@/components/restored-detail-charts':{DetailFinancialAnalysis:empty,DetailPriceHistory:empty,DetailAnnualHistory:empty},
     '@/components/card-company-marketcap':{__esModule:true,default:empty},
     '@/components/share-button':{__esModule:true,default:empty},
@@ -123,7 +123,7 @@ test('detail hierarchy and actual section table of contents stay coherent withou
   const view = documentFor(DetailSurface,{...selectorProps,security:{...common,state:'published',price:'74000',priceState:'provided',priceDate:'2026-10-08',perState:'provided',perDate:'2026-10-08',publication,company:company.company},companyPage:false,metric:'per',search:{},ranking:{currentRank:620,rankDate:'2026-10-08'},neighbors:[{...preferred,currentRank:621}],history:[{date:'2026-10-08',value:'18.5'}],sourceHistory:[{date:'2026-10-08',per:'18.5'}],prices:common.prices});
   try {
     const doc = view.document;
-    const order = ['h1','#entity-selection','.detail-metric-nav','#current-overview','#chart-analysis','#indicators','#annual-data','#history-download','#metric-formula','#publication-basis','#securities-summary','#nearby-ranks'].map(selector=>{const node=doc.querySelector(selector);assert.ok(node,selector);return node;});
+    const order = ['h1','#entity-selection','.detail-metric-nav','#current-overview','#chart-analysis','#trend-statistics','#metric-analysis','#price-history','#indicators','#securities-summary','#annual-data','#history-download','#metric-formula','#publication-basis','#nearby-ranks'].map(selector=>{const node=doc.querySelector(selector);assert.ok(node,selector);return node;});
     for(let i=1;i<order.length;i++) assert.ok(order[i-1].compareDocumentPosition(order[i]) & 4,`order ${i}`);
     assert.equal(doc.querySelectorAll('nav[aria-label="기업 전체와 구성 종목 선택"]').length,1);
     assert.equal(doc.querySelectorAll('aside .detail-metric-nav, aside .security-comparison').length,0);
@@ -228,6 +228,41 @@ function primaryDetailProps(overrides={}) {
   return {...selectorProps,security:{...common,state:'published',marketcapState:'provided',price:'74000',priceState:'provided',priceDate:'2026-10-08',publication,company:company.company},search:{},ranking:{currentRank:1,rankDate:'2026-10-08'},neighbors:[],history:[],sourceHistory:[],prices:common.prices,...overrides};
 }
 
+test('financial secondary analysis keeps loading and invalid ranges distinct from missing source records',()=>{
+  for (const overrides of [{historyPending:true},{search:{start:'2026-10-08',end:'2026-01-01'}}]) {
+    let calls=0;
+    const {DetailSurface}=loadFor('/security/KOSPI.005930/per',{
+      '@/components/restored-detail-charts':{DetailPriceHistory:empty,DetailAnnualHistory:empty,DetailFinancialAnalysis:()=>{calls++;return React.createElement('p',null,'원천 데이터 없음');}},
+    })('components/detail-surface.tsx');
+    const view=documentFor(DetailSurface,primaryDetailProps({metric:'per',...overrides}));
+    try {
+      assert.equal(calls,0);
+      assert.ok(view.document.querySelector('#metric-analysis'));
+      assert.doesNotMatch(view.document.querySelector('#metric-analysis').textContent,/원천 데이터 없음/);
+      assert.match(view.document.querySelector('#metric-analysis').textContent,overrides.historyPending ? /불러오는 중/ : /조회 기간을 확인/);
+    } finally {view.close();}
+  }
+});
+
+test('recent tracking receives the resolved listing episode and displayed date window on basic and metric pages',()=>{
+  for (const [basic,suffix] of [[true,''],[false,'/marketcap']]) {
+    const tracked=[];
+    const {DetailSurface}=loadFor('/security/KOSPI.005930'+suffix,{
+      '@/components/recent-security-tracker':{RecentSecurityTracker:props=>{tracked.push(props);return null;}},
+    })('components/detail-surface.tsx');
+    const input=primaryDetailProps({basic,search:{start:'2026-09-01',end:['2026-10-01','ignored'],period:'unresolved'},security:{...primaryDetailProps().security,selectedPeriod:{periodId:'resolved-episode'}}});
+    const view=documentFor(DetailSurface,input);
+    try {
+      assert.equal(tracked.length,1);
+      const saved=new URL(tracked[0].lastPath,'https://example.test');
+      assert.equal(saved.pathname,'/security/KOSPI.005930'+suffix);
+      assert.equal(saved.searchParams.get('period'),'resolved-episode');
+      assert.equal(saved.searchParams.get('start'),'2026-09-01');
+      assert.equal(saved.searchParams.get('end'),'2026-10-01');
+    } finally {view.close();}
+  }
+});
+
 test('company cap groups the official summary with its comparison before the full-width history',()=>{
   const {DetailSurface} = loadFor('/company/KOSPI.005930/marketcap')('components/detail-surface.tsx');
   const view = documentFor(DetailSurface,primaryDetailProps({companyPage:true}));
@@ -253,7 +288,10 @@ test('basic stock pairs real current/history with comparison/company facts and k
   try {
     const doc=view.document, primary=doc.querySelector('.detail-basic-record-grid');
     assert.ok(primary.classList.contains('detail-basic-has-comparison'));
-    assert.deepEqual([...primary.children].map(node=>node.id),['current-overview','securities-summary','price-history','company-information','basic-information']);
+    assert.deepEqual([...primary.children].map(node=>node.id),['current-overview','securities-summary','','price-history','company-information','basic-information']);
+    const mobileNavigation = primary.querySelector('.detail-mobile-context');
+    assert.ok(mobileNavigation.compareDocumentPosition(doc.querySelector('#price-history')) & 4);
+    assert.equal(doc.querySelectorAll('.detail-mobile-context').length,1);
     assert.equal(observed.length,1);assert.strictEqual(observed[0].rows,prices);assert.equal(observed[0].start,'2026-10-01');assert.equal(observed[0].end,'2026-10-08');
     assert.equal(observed[0].rows[0].close,'0');assert.equal(observed[0].rows[0].volume,'9007199254740993');assert.equal(JSON.stringify(prices),before);
     assert.equal(doc.querySelectorAll('#price-information').length,1);assert.equal(doc.querySelectorAll('#price-history').length,1);

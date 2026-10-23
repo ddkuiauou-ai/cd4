@@ -51,7 +51,7 @@ export default function CardCompanyMarketcap({ data, selectedType = "시가총�
             <CardContent className="flex flex-1 flex-col px-5 pb-5 pt-0">
                 <div className="flex-1 space-y-3">
                     <div className="w-full">
-                        <div className="h-[320px] min-h-[320px] w-full min-w-0">
+                        <div className="min-h-[360px] w-full min-w-0">
                             {validComposition(data) ? <ChartPieMarketcap
                                 data={chartData}
                                 centerText={{

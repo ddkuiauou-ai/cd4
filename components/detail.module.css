@@ -3,20 +3,25 @@
 .detail :global(.detail-content h2),
 .detail :global(.detail-content h3),
 .detail :global(.detail-rail-content h3) { font-family: var(--font-display, serif); font-synthesis: none; font-weight: 400; letter-spacing: -.025em; }
-.detail :global(.detail-identity-meta) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin: 4px 0 18px; color: var(--muted-foreground); font-size: 12px; }
+.detail :global(.detail-breadcrumb) { margin-bottom: 4px; font-size: 12px; }
+.detail :global(.detail-title-suffix) { display: inline; margin: 0 0 0 8px; }
+.detail :global(.detail-identity-meta) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 4px 0 12px; color: var(--muted-foreground); font-size: 12px; }
 .detail :global(.detail-identity-meta p:first-child) { color: var(--foreground); }
-.detail :global(.detail-entity-section) { margin-bottom: 16px; border-top: 1px solid var(--record-rule); padding-top: 10px; }
-.detail :global(.detail-entity-section h2) { margin-bottom: 10px; font-size: 18px; font-weight: 400; }
+.detail :global(.detail-entity-section) { margin-bottom: 12px; border-top: 1px solid var(--record-rule); padding-top: 8px; }
+.detail :global(.detail-entity-section h2) { margin-bottom: 8px; font-size: 18px; font-weight: 400; }
 .detail :global(.detail-entity-grid) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.detail :global(.detail-entity-link) { position: relative; display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 4px; padding: 12px 24px 12px 12px; border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); transition: border-color 160ms ease-out, background-color 160ms ease-out; }
+.detail :global(.detail-entity-link) { position: relative; display: flex; min-width: 0; min-height: 72px; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 24px 8px 12px; border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); transition: border-color 160ms ease-out, background-color 160ms ease-out; }
 .detail :global(.detail-entity-link:hover) { border-color: var(--brand-ink); background: var(--muted); }
 .detail :global(.detail-entity-link[aria-current="page"]) { border-color: var(--selected-border); background: var(--selected); }
-.detail :global(.detail-entity-aggregate) { grid-column: 1 / -1; }
+.detail :global(.detail-entity-aggregate) { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 2px 12px; min-height: 60px; }
+.detail :global(.detail-entity-aggregate .detail-entity-name) { grid-column: 1; grid-row: 1; }
+.detail :global(.detail-entity-aggregate .detail-entity-meta) { grid-column: 1; grid-row: 2; }
+.detail :global(.detail-entity-aggregate .detail-entity-value) { grid-column: 2; grid-row: 1 / 3; }
 .detail :global(.detail-entity-name) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; overflow-wrap: anywhere; font-size: 14px; font-weight: 700; }
-.detail :global(.detail-entity-current) { padding: 2px 6px; background: var(--brand-ink); border-radius: 3px; color: var(--primary-foreground); font-size: 10px; font-weight: 600; white-space: nowrap; }
-.detail :global(.detail-entity-meta) { color: var(--muted-foreground); font-size: 11px; font-variant-numeric: tabular-nums; }
+.detail :global(.detail-entity-current) { padding: 2px 6px; background: var(--selected); border: 1px solid var(--selected-border); border-radius: 3px; color: var(--foreground); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.detail :global(.detail-entity-meta) { color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
 .detail :global(.detail-entity-value) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.detail :global(.detail-entity-action) { color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.detail :global(.detail-entity-action) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }
 .detail :global(.detail-entity-chevron) { position: absolute; right: 6px; top: calc(50% - 8px); width: 16px; height: 16px; }
 .detail :global(.detail-metric-nav) { display: grid; width: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; border-bottom: 1px solid var(--record-rule); background: var(--muted); }
 .detail :global(.detail-company-nav) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -25,18 +30,22 @@
 .detail :global(.detail-metric-nav a:hover) { background: var(--accent); color: var(--foreground); }
 .detail :global(.detail-metric-nav a[aria-current="page"]) { border-bottom-color: var(--record-rule); background: var(--background); color: var(--foreground); font-weight: 700; }
 .detail :global(.detail-metric-nav > span) { opacity: .65; }
-.detail :global(.detail-current-overview) { padding-block: 16px; }
+.detail :global(.detail-current-overview) { padding-block: 12px; }
+.detail :global(.detail-current-basis) { margin-top: 8px; color: var(--muted-foreground); font-size: 12px; }
 .detail :global(.detail-cap-record-grid),
 .detail :global(.detail-basic-record-grid) { display: grid; min-width: 0; gap: 0 24px; }
 .detail :global(.detail-cap-record-grid > *),
 .detail :global(.detail-basic-record-grid > *) { min-width: 0; }
-.detail :global(.detail-quote-facts) { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.detail :global(.detail-quote-facts) { margin-top: 12px; border-top: 1px solid var(--border); }
+.detail :global(.detail-quote-facts summary) { min-height: 44px; align-content: center; cursor: pointer; font-size: 14px; }
+.detail :global(.detail-quote-facts summary span) { margin-left: 8px; color: var(--muted-foreground); font-size: 12px; }
 .detail :global(.detail-quote-facts dl) { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; font-size: 12px; }
 .detail :global(.detail-quote-facts dt) { margin-bottom: 5px; color: var(--muted-foreground); }
 .detail :global(.detail-quote-facts dd) { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.detail :global(.detail-quote-facts > p) { margin-top: 10px; color: var(--muted-foreground); font-size: 11px; }
+.detail :global(.detail-quote-facts > p) { margin-top: 10px; color: var(--muted-foreground); font-size: 12px; }
 .detail :global(.detail-summary-grid) { border: 0; padding: 0; row-gap: 14px; }
 .detail :global(.detail-summary-value) { line-height: 1.25; overflow-wrap: anywhere; }
+.detail :global(.detail-summary-date) { font-size: 12px; }
 .detail :global(.detail-section) { border-top: 1px solid var(--record-rule); padding-block: 20px; }
 .detail :global(.detail-listing-history > section) { margin: 0; border: 0; border-radius: 0; padding: 0; }
 .detail :global(.detail-chart-grid) { display: grid; gap: 24px; }
@@ -52,6 +61,21 @@
 .detail :global(.detail-comparison-table thead) { background: var(--muted); color: var(--muted-foreground); }
 .detail :global(.detail-comparison-table tr[data-selected="true"]),
 .detail :global(.detail-comparison-total) { background: var(--selected); }
+.detail :global(.detail-comparison-heading) { margin-bottom: 12px; }
+.detail :global(.detail-composition-heading h3),
+.detail :global(.detail-price-gap > h3) { font-size: 16px; }
+.detail :global(.detail-composition-basis),
+.detail :global(.detail-comparison-note) { margin-top: 4px; color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+.detail :global(.detail-composition-list) { margin-block: 8px 12px; }
+.detail :global(.detail-composition-row) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding-block: 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail :global(.detail-composition-row dt) { min-width: 0; overflow-wrap: anywhere; }
+.detail :global(.detail-composition-row dd) { font-weight: 700; font-variant-numeric: tabular-nums; }
+.detail :global(.detail-price-gap) { margin-block: 12px; }
+.detail :global(.detail-price-gap-row) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 8px; font-size: 14px; line-height: 1.6; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.detail :global(.detail-price-gap-item + .detail-price-gap-item) { margin-top: 12px; }
+.detail :global(.detail-price-gap-row strong) { font-weight: 700; }
+.detail :global(.detail-comparison-records) { border-top: 1px solid var(--border); }
+.detail :global(.detail-comparison-records summary) { min-height: 44px; align-content: center; cursor: pointer; font-size: 13px; }
 .detail :global(.detail-history-download) { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .detail :global(.detail-history-download h2) { flex-basis: 100%; margin-bottom: 0; }
 .detail :global(.detail-formula),
@@ -62,12 +86,40 @@
 .detail :global(.detail-primary-sections > #chart-analysis:first-child) { border-top: 0; padding-top: 0; }
 .detail :global(.detail-rail-content) { display: flex; flex-direction: column; gap: 24px; }
 .detail :global(.detail-mobile-context) { padding-block: 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
-.detail :global(.detail-mobile-context summary) { cursor: pointer; min-height: 28px; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.detail :global(.detail-mobile-context summary) { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font-weight: 500; }
 .detail :global(.detail-mobile-context nav) { margin-top: 8px; }
+.detail :global(.detail-date-range summary) { min-height: 44px; align-content: center; }
+.detail :global(.detail-financial-page #chart-analysis) { display: grid; gap: 12px; }
+.detail :global(.detail-financial-page #chart-analysis > *) { margin-block: 0; }
+.detail :global(.detail-trend-grid) { display: grid; min-width: 0; gap: 20px 24px; }
+.detail :global(.detail-trend-main),
+.detail :global(.detail-trend-statistics) { min-width: 0; }
+.detail :global(.detail-trend-controls) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.detail :global(.detail-trend-controls button) { min-height: 44px; }
+.detail :global(.detail-trend-main > p),
+.detail :global(.detail-trend-range) { font-size: 13px; line-height: 1.5; }
+.detail :global(.detail-trend-statistics) { border-top: 1px solid var(--border); padding-top: 12px; }
+.detail :global(.detail-trend-statistics h3) { margin: 0 0 8px; border: 0; padding: 0; font-size: 18px; }
+.detail :global(.detail-trend-statistics-range),
+.detail :global(.detail-trend-statistics-basis) { color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.detail :global(.detail-trend-statistics dl) { margin-block: 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.detail :global(.detail-trend-statistics dl > div) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding-block: 8px; border-bottom: 1px solid var(--border); }
+.detail :global(.detail-trend-statistics dt) { color: var(--muted-foreground); }
+.detail :global(.detail-trend-statistics dd) { font-weight: 600; overflow-wrap: anywhere; }
+.detail :global(.detail-record-disclosure) { min-width: 0; border-top: 1px solid var(--record-rule); padding-block: 0; }
+.detail :global(.detail-record-disclosure > summary) { min-height: 52px; align-content: center; cursor: pointer; }
+.detail :global(.detail-record-disclosure > summary h2),
+.detail :global(.detail-record-disclosure > summary h3) { display: inline; margin: 0; border: 0; padding: 0; font-size: 18px; }
+.detail :global(.detail-record-disclosure > :not(summary)) { margin-block: 12px 20px; }
+.detail :global(.detail-disclosure-content) { min-width: 0; }
+.detail :global(.detail-financial-analysis-grid) { display: grid; min-width: 0; gap: 0 24px; }
 @media (min-width: 768px) {
   .detail :global(.detail-content) { padding-block: 24px; }
+  .detail :global(.detail-breadcrumb) { font-size: 14px; }
   .detail :global(.detail-entity-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .detail :global(.detail-entity-aggregate) { grid-column: auto; }
+  .detail :global(.detail-entity-aggregate) { display: flex; grid-column: auto; align-items: stretch; }
+  .detail :global(.detail-entity-link) { gap: 4px; padding-block: 12px; }
+  .detail :global(.detail-entity-action) { position: static; width: auto; height: auto; margin: 0; overflow: visible; white-space: normal; clip-path: none; color: var(--muted-foreground); font-size: 12px; font-weight: 400; }
   .detail :global(.detail-entity-name) { font-size: 16px; }
   .detail :global(.detail-entity-meta) { font-size: 12px; }
   .detail :global(.detail-metric-nav) { grid-template-columns: repeat(8, minmax(0, 1fr)); }
@@ -77,8 +129,12 @@
   .detail :global(.detail-chart-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
+  .detail :global(.detail-trend-grid) { grid-template-columns: minmax(0,2fr) minmax(220px,1fr); align-items: start; }
+  .detail :global(.detail-trend-statistics) { border-top: 0; border-left: 1px solid var(--border); padding-top: 0; padding-left: 20px; }
+  .detail :global(.detail-financial-analysis-grid) { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
   .detail :global(.detail-cap-record-grid) { grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); align-items: start; }
-  .detail :global(.detail-basic-has-comparison) { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: "current comparison" "history company" "basic basic"; align-items: start; }
+  .detail :global(.detail-basic-has-comparison) { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-areas: "current comparison" "navigation navigation" "history company" "basic basic"; align-items: start; }
+  .detail :global(.detail-basic-has-comparison > .detail-mobile-context) { grid-area: navigation; }
   .detail :global(.detail-basic-has-comparison > #current-overview) { grid-area: current; }
   .detail :global(.detail-basic-has-comparison > #securities-summary) { grid-area: comparison; }
   .detail :global(.detail-basic-has-comparison > #price-history) { grid-area: history; }
@@ -102,6 +158,6 @@
 }
 @media (max-width: 639px) {
   .detail :global(.detail-share > div:not(.fixed)) { display: flex; flex-direction: row; width: auto; gap: 4px; }
-  .detail :global(.detail-share > div:not(.fixed) button) { flex: none; width: 40px; min-width: 40px; height: 40px; padding: 8px; }
+  .detail :global(.detail-share > div:not(.fixed) button) { flex: none; width: 44px; min-width: 44px; height: 44px; padding: 10px; }
   .detail :global(.detail-share > div:not(.fixed) button span.text-xs) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }
 }

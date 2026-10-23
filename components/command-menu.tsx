@@ -16,7 +16,6 @@ import {
 } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
 
-import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { useSearchData } from "@/components/search-data";
 import { companyPath, securityPath, securityRouteCodes, companyRouteCodes } from "@/lib/entity-paths";
@@ -41,6 +40,13 @@ const classifiedSecurityTypes = new Set(["보통주", "우선주", "전환우선
 export function CommandMenu() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const trigger = React.useRef<HTMLButtonElement>(null);
+  const opener = React.useRef<HTMLElement | null>(null);
+  const openSearch = React.useCallback((source?: HTMLElement) => {
+    const active = document.activeElement;
+    opener.current = source ?? (active instanceof HTMLElement && active !== document.body ? active : trigger.current);
+    setOpen(true);
+  }, []);
   const { data, status, retry } = useSearchData(open);
   const { setTheme } = useTheme();
   const securityCodes = securityRouteCodes(data);
@@ -73,15 +79,16 @@ export function CommandMenu() {
         }
 
         e.preventDefault();
-        setOpen((open) => !open);
+        if (open) setOpen(false);
+        else openSearch();
       }
     };
 
-    const openSearch = () => setOpen(true);
+    const externalSearch = () => openSearch();
     document.addEventListener("keydown", down);
-    window.addEventListener("app:open-search", openSearch);
-    return () => { document.removeEventListener("keydown", down); window.removeEventListener("app:open-search", openSearch); };
-  }, []);
+    window.addEventListener("app:open-search", externalSearch);
+    return () => { document.removeEventListener("keydown", down); window.removeEventListener("app:open-search", externalSearch); };
+  }, [open, openSearch]);
 
   const runCommand = React.useCallback((command: () => unknown) => {
     setOpen(false);
@@ -91,21 +98,28 @@ export function CommandMenu() {
   return (
     <>
       <Button
+        type="button"
+        ref={trigger}
         variant="outline"
-        className={cn(
-          "relative h-10 w-full justify-start rounded-md bg-background text-sm font-normal text-muted-foreground shadow-none sm:pr-12 "
-        )}
-        onClick={() => setOpen(true)}
+        className="header-search-trigger"
+        aria-label="기업·종목 검색 열기"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={event => openSearch(event.currentTarget)}
       >
-        <div className="flex items-center space-x-2 w-full">
-          <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>기업 · 종목 검색</span>
-        </div>
-        <kbd className="pointer-events-none absolute right-[0.3rem] top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+        <Search aria-hidden="true" />
+        <span className="header-search-short" aria-hidden="true">검색</span>
+        <span className="header-search-long" aria-hidden="true">기업 · 종목 검색</span>
+        <kbd className="header-search-key" aria-hidden="true">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={open} onOpenChange={setOpen} onCloseAutoFocus={event => {
+        if (opener.current?.isConnected) {
+          event.preventDefault();
+          opener.current.focus({ preventScroll: true });
+        }
+      }}>
         <DialogTitle className="sr-only">검색창</DialogTitle> {/* Add sr-only DialogTitle */}
         <DialogDescription className="sr-only">기업, 종목을 검색하거나 테마를 변경할 수 있습니다.</DialogDescription> {/* Optional: Add sr-only DialogDescription */}
         <CommandInput placeholder="검색할 기업 또는 종목을 입력하세요" />

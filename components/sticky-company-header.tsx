@@ -74,13 +74,13 @@ export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyO
                 <div className="flex min-w-0 items-center gap-3">
                     <div className="min-w-0">
                         <h1 className={cn('break-keep [overflow-wrap:anywhere] font-bold tracking-tight sm:[overflow-wrap:normal]', pinned ? 'text-lg sm:text-xl' : 'text-2xl sm:text-[32px]')}>
-                            {displayName}<span className="mt-1 block text-sm font-medium text-muted-foreground sm:ml-2 sm:mt-0 sm:inline">{titleSuffix}</span>
+                            {displayName}<span className="detail-title-suffix mt-1 block text-sm font-medium text-muted-foreground sm:ml-2 sm:mt-0 sm:inline">{titleSuffix}</span>
                         </h1>
-                        <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        {(titleBadge || detail?.value || detail?.badge) && <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             {titleBadge && <span>{titleBadge}</span>}
                             {detail?.value && <span className="font-medium text-foreground tabular-nums">{detail.label ? `${detail.label} ` : ''}{detail.value}</span>}
                             {detail?.badge && <span>{detail.badge}</span>}
-                        </div>
+                        </div>}
                     </div>
                 </div>
                 {actions && <div className="detail-share shrink-0">{actions}</div>}

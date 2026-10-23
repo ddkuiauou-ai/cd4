@@ -188,7 +188,7 @@ test('detail uses one snapshot, preserves rich sections and exports the full exa
   const page=pageLoader(common);
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'per',search:{start:'2026-10-08',end:'2026-10-08'}}));
   assert.equal(page.calls(),1);
-  for(const text of ['차트 분석','핵심 지표','연도별 데이터','기간 직접 지정','전체 이력 CSV','전체 제공 이력'])assert.ok(html.includes(text),text);
+  for(const text of ['PER 추이','조회 기간 상세 통계','연도별 데이터','기간 직접 지정','전체 이력 CSV','전체 제공 이력'])assert.ok(html.includes(text),text);
   assert.equal(page.csv().data.length,2);assert.equal(page.csv().data[0].per,'0');assert.equal(page.csv().data[1].per,'10');
 });
 

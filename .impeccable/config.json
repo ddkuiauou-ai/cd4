@@ -49,6 +49,25 @@
         ],
         "createdAt": "2026-10-05T10:31:35.559Z",
         "reason": "Agent: scoreboard.html and desktop-shell.html are explicitly labeled design-review image prototypes; Scoreboard Logo aliases the same Nanum Myeongjo ExtraBold font bytes used by production. Preserve these comparison artifacts without expanding the product typography system."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "records",
+        "files": [
+          ".impeccable/mocks/2026-10-22-header/index.html",
+          ".impeccable/mocks/2026-10-22-header/preview.html"
+        ],
+        "createdAt": "2026-10-22T13:13:24.699Z",
+        "reason": "Agent: Records is a prototype-local alias for the exact app/fonts/ChosunGs.ttf bytes used by DESIGN.md 조선궁서 400; no new typeface was introduced."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sd gothic neo",
+        "files": [
+          ".impeccable/mocks/2026-10-22-header/preview.html"
+        ],
+        "createdAt": "2026-10-22T13:13:24.803Z",
+        "reason": "Agent: Apple SD Gothic Neo is the documented DESIGN.md body family; the detector split its name while parsing a CSS custom-property fallback. Scoped to this header prototype."
       }
     ]
   }

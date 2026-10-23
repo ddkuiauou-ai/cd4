@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { DetailAnnualTable } from './detail-annual-table';
 import { DetailHistoryChart } from './detail-history-chart';
 import { DETAIL_METRICS, actualCandlesticks, priceMovingAverages, earlierDate, monthlyHeatmap, type DetailMetric, type DetailObservation } from '@/lib/detail-presentation';
@@ -18,6 +18,8 @@ const DPSDistribution = dynamic(() => import('./chart-dps-distribution'), { ssr:
 const subscribe = () => () => {};
 
 export function DetailFinancialAnalysis({ rows, metric, name }: { rows: DetailObservation[]; metric: DetailMetric; name: string }) {
+  const [monthlyOpen, setMonthlyOpen] = useState(false);
+  const [distributionOpen, setDistributionOpen] = useState(false);
   const info = DETAIL_METRICS[metric];
   const summary = summarizeBusinessWindow(rows);
   const distributionProjection = projectBusinessChartRows(rows.filter(row => row.value != null));
@@ -34,17 +36,23 @@ export function DetailFinancialAnalysis({ rows, metric, name }: { rows: DetailOb
   const hasAnalysis = ['per', 'bps', 'dps'].includes(metric);
   const Heatmap = metric === 'bps' ? BPSHeatmap : metric === 'dps' ? DPSHeatmap : PERHeatmap;
   const Distribution = metric === 'bps' ? BPSDistribution : metric === 'dps' ? DPSDistribution : PERDistribution;
-  return hasAnalysis ? <>
-    <div className="min-w-0 space-y-3 border border-border bg-background p-3 sm:p-5">
-      <header className="space-y-1"><h3 className="text-base font-semibold">{info.label} 히트맵 분석</h3><p className="text-xs text-muted-foreground">{name}의 연도·월별 마지막 제공값을 비교합니다</p></header>
+  return hasAnalysis ? <div className="detail-financial-analysis-grid">
+    <details className="detail-record-disclosure" onToggle={event => setMonthlyOpen(event.currentTarget.open)}>
+      <summary><h3>월별 {info.label} 기록</h3></summary>
+      {monthlyOpen && <div className="detail-disclosure-content space-y-3">
+      <p className="text-sm text-muted-foreground">{name}의 연도·월별 마지막 제공값입니다.</p>
       {heatmap.length ? <Heatmap data={heatmap} minValue={0} maxValue={1} sourceValues={heatmapSourceValues} valueFormatter={heatmapFormat} /> : <p className="py-8 text-sm text-muted-foreground">등록된 {info.label} 데이터가 없습니다.</p>}
-      <p className="text-xs text-muted-foreground">빈 칸은 원천 미제공입니다. 실제 0·음수도 표시합니다.</p>
-    </div>
-    <div className="min-w-0 space-y-3 border border-border bg-background p-3 sm:p-5">
-      <header className="space-y-1"><h3 className="text-base font-semibold">{info.label} 분포 분석</h3><p className="text-xs text-muted-foreground">히스토그램과 밀도 곡선으로 전체 제공 관측의 분포를 확인합니다</p></header>
+      <p className="text-sm text-muted-foreground">빈 칸은 원천 미제공이며 실제 0·음수도 표시합니다.</p>
+      </div>}
+    </details>
+    <details className="detail-record-disclosure" onToggle={event => setDistributionOpen(event.currentTarget.open)}>
+      <summary><h3>{info.label} 관측값 분포</h3></summary>
+      {distributionOpen && <div className="detail-disclosure-content space-y-3">
+      <p className="text-sm text-muted-foreground">조회 기간의 제공 관측을 히스토그램과 밀도 곡선으로 표시합니다.</p>
       <Distribution data={distribution} formatCoordinate={distributionFormat} formatDetailCoordinate={distributionDetailFormat} sourceSummary={`평균 ${formatBusinessValue(summary.mean)}${info.unit} · 실제 제공 ${summary.count}개`} />
-    </div>
-  </> : <div className="min-w-0 space-y-3 border border-border bg-background p-3 sm:p-5"><header className="space-y-1"><h3 className="text-base font-semibold">{info.label} 추이 분석</h3><p className="text-xs text-muted-foreground">{name}의 월간·연간 제공 관측 평균</p></header><DetailHistoryChart rows={rows} metric={metric} label={info.label} unit={info.unit} /></div>;
+      </div>}
+    </details>
+  </div> : null;
 }
 
 export function DetailPriceHistory({ rows, start, end }: { rows: Record<string, unknown>[]; start?: string; end?: string }) {

@@ -7,9 +7,8 @@ export function ModeToggle() {
   const { setTheme, theme } = useTheme();
   return <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Button variant="ghost" className="theme-trigger" aria-label="테마 전환">
+      <Button type="button" variant="ghost" className="theme-trigger" aria-label="테마 전환" title="테마 전환">
         <span className="theme-icon-slot" aria-hidden="true"><SunIcon className="theme-icon-sun"/><MoonIcon className="theme-icon-moon"/></span>
-        <span className="theme-label" aria-hidden="true"><span className="theme-label-light">라이트</span><span className="theme-label-dark">다크</span></span>
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="min-w-44">

@@ -111,7 +111,7 @@ function CustomTooltip({ active, payload, formatDetailCoordinate }: { active?: b
         // 히스토그램 툴팁
         if ('bin' in data) {
             return (
-                <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
+                <div className="max-w-[calc(100vw-48px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
                         BPS 구간: {formatDetailCoordinate ? `${formatDetailCoordinate(data.binStart)}–${formatDetailCoordinate(data.binEnd)}` : data.bin}
                     </p>
@@ -126,7 +126,7 @@ function CustomTooltip({ active, payload, formatDetailCoordinate }: { active?: b
         // KDE 툴팁
         if ('x' in data) {
             return (
-                <div className="rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-md">
+                <div className="max-w-[calc(100vw-48px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-md">
                     <p className="text-sm font-medium text-foreground">
                         BPS: {formatDetailCoordinate ? formatDetailCoordinate(data.x) : `${(data.x / 1000).toFixed(0)}K`}원
                     </p>
@@ -150,7 +150,7 @@ export default function ChartBPSDistribution({ data, className, sourceSummary, f
                     <p className="text-sm font-medium text-muted-foreground">
                         BPS 분포 데이터 없음
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         표시할 데이터가 없습니다
                     </p>
                 </div>
@@ -177,9 +177,9 @@ export default function ChartBPSDistribution({ data, className, sourceSummary, f
 
     return (
         <div className={className}>
-            <div className="text-xs text-muted-foreground mb-2">
-                📊 KDE 곡선: 히스토그램으로는 보이지 않는 연속적인 분포 흐름을 보여줍니다
-            </div>
+            <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
+                막대는 구간별 관측 수, 곡선은 밀도 추정값입니다.
+            </p>
             <ResponsiveContainer width="100%" height={250}>
                 <ComposedChart
                     data={histogramData}
@@ -196,16 +196,15 @@ export default function ChartBPSDistribution({ data, className, sourceSummary, f
                         tickLine={false}
                         angle={-45}
                         textAnchor="end"
-                        height={30}
-                        interval={0}
-                        className="text-xs"
-                        tick={{ fill: "var(--muted-foreground)" }}
+                        height={56}
+                        interval="preserveStartEnd"
+                        minTickGap={16}
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 13 }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        className="text-xs"
-                        tick={{ fill: "var(--muted-foreground)" }}
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 13 }}
                         label={{ value: '빈도', angle: -90, position: 'insideLeft', fill: 'var(--muted-foreground)' }}
                     />
                     <Tooltip content={<CustomTooltip formatDetailCoordinate={formatDetailCoordinate} />} cursor={{ fill: "var(--muted)" }} />
@@ -225,9 +224,9 @@ export default function ChartBPSDistribution({ data, className, sourceSummary, f
                     />
                 </ComposedChart>
             </ResponsiveContainer>
-            <div className="text-xs text-muted-foreground mt-2 text-center">
-                <span className="text-chart-2 font-medium">KDE 곡선</span> |
-                {sourceSummary || "제공 관측 " + stats.count + "개"}
+            <div className="mt-2 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-2"><span className="w-4 border-t-2 border-chart-2" aria-hidden="true" />밀도 추정 곡선</span>
+                <span>{sourceSummary || "제공 관측 " + stats.count + "개"}</span>
             </div>
         </div>
     );

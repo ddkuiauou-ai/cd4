@@ -17,6 +17,7 @@ function loadMenu(data, status = "success") {
   const hooks = {
     ...React,
     useState: () => [true, (value) => openStates.push(value)],
+    useRef: () => ({ current: null }),
     useEffect: () => {},
     useCallback: (callback) => callback,
   };
@@ -204,6 +205,25 @@ test("the actual CMDK menu searches names, tickers and exchanges, and keyboard s
     assert.equal(visibleItems().length, 1); assert.match(visibleItems()[0].textContent, /우선검색기업/);
     await key("Enter");
     assert.equal(navigations.at(-1), "/security/KOSDAQ.005935/marketcap");
+
+    // A pointer/programmatic click need not focus its button (for example on
+    // touch Safari). Closing must still return to the actual header trigger.
+    await open();
+    await key("Escape");
+    await React.act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 0)));
+    assert.equal(document.activeElement, document.querySelector("#root button"));
+
+    // The existing bottom action opens the same dialog and is its own return
+    // target, rather than sending focus to the header at the top of the page.
+    const bottomAction = document.createElement("button");
+    bottomAction.textContent = "검색";
+    document.body.append(bottomAction);
+    bottomAction.focus();
+    await React.act(async () => window.dispatchEvent(new Event("app:open-search")));
+    assert.ok(input());
+    await key("Escape");
+    await React.act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 0)));
+    assert.equal(document.activeElement, bottomAction);
   } finally {
     if (mounted) await React.act(async () => mounted.unmount());
     dom.window.close();

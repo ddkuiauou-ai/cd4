@@ -13,9 +13,7 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    type PieLabelRenderProps,
 } from 'recharts';
-import { cn } from '@/lib/utils';
 import { createMarketcapSeries, getMarketcapSelectionColor, isMarketcapSeriesSelected } from '@/lib/chart-selection';
 
 const subscribeReady = () => () => {};
@@ -89,30 +87,6 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Readon
         );
     }
     return null;
-};
-
-const CustomLabel = ({ cx, cy, midAngle = 0, innerRadius, outerRadius, percentage = 0 }: PieLabelRenderProps & { percentage?: number }) => {
-    // 5% 이상인 경우만 라벨 표시 (임계값 낮춤)
-    if (percentage < 5) return null;
-
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.8; // 0.75 -> 0.8로 라벨을 조금 더 바깥쪽으로
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-        <text
-            x={x}
-            y={y}
-            fill="var(--background)"
-            textAnchor={x > cx ? 'start' : 'end'}
-            dominantBaseline="central"
-            fontSize={16} // 14 -> 16로 더 크게
-            fontWeight={600}
-        >
-            {`${percentage.toFixed(0)}%`}
-        </text>
-    );
 };
 
 interface StackedBarTooltipProps {
@@ -250,7 +224,6 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             cx="50%"
                             cy="50%"
                             labelLine={false}
-                            label={CustomLabel}
                             outerRadius="100%"
                             innerRadius="32%"
                             fill="var(--chart-3)"
@@ -321,24 +294,18 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 </div>
 
                 <div
-                    className="flex w-full flex-nowrap items-center justify-center overflow-x-auto text-center text-[11px] text-muted-foreground"
+                    className="flex w-full flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-sm text-foreground"
                     role="list"
                     aria-label="시가총액 구성 종목"
                 >
-                    {chartData.map((entry, index) => {
+                    {chartData.map((entry) => {
                         const isHighlighted = entry.highlighted;
 
                         return (
                             <span
                                 key={entry.key}
                                 role="listitem"
-                                className={cn(
-                                    'inline-flex items-center gap-1 whitespace-nowrap text-foreground',
-                                    hasAnnotation && !isHighlighted ? 'opacity-50' : 'opacity-100',
-                                    index < chartData.length - 1
-                                        ? "after:content-[','] after:mr-1 after:text-muted-foreground"
-                                        : '',
-                                )}
+                                className="inline-flex min-w-0 items-baseline gap-1.5"
                             >
                                 <span
                                     className="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-sm"
@@ -348,7 +315,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                                     }}
                                     aria-hidden="true"
                                 />
-                                <span className="font-medium tracking-tight">{entry.compactLabel}</span>
+                                <span className="min-w-0 break-words font-medium tracking-tight">{entry.compactLabel}</span>
+                                <span className="shrink-0 font-semibold tabular-nums">{entry.percentage.toFixed(1)}%</span>
                             </span>
                         );
                     })}

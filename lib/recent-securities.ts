@@ -1,4 +1,4 @@
-import { formatBusinessValue, formatCompactBusinessValue } from "./business-analysis";
+import { formatBusinessValue, formatCompactBusinessValue, isBusinessDay } from "./business-analysis";
 import { companyPath, companyRouteCodes, securityPath, securityRouteCodes, type SecurityRouteIdentity } from './entity-paths';
 /**
  * 최근 본 종목 관리 유틸리티
@@ -31,6 +31,48 @@ const STORAGE_KEY = 'recently-viewed-securities';
 const MAX_RECENT_SECURITIES = 10;
 let snapshotText: string | null | undefined;
 let snapshotRows: RecentlyViewedSecurity[] = [];
+
+type RecentDetailContext = { period?: string; start?: string; end?: string };
+
+/** Stored destinations are untrusted: accept detail routes and their known context only. */
+function parseRecentDetailPath(value: unknown) {
+    if (typeof value !== 'string' || /[\\#\u0000-\u0020]/.test(value)) return null;
+    const [pathname, queryText = '', ...extra] = value.split('?');
+    if (extra.length) return null;
+    const match = pathname.match(/^\/(security|company)\/([^/?#]+)(?:\/(marketcap|per|pbr|eps|bps|div|dps))?\/?$/);
+    if (!match) return null;
+    let identity: string;
+    try { identity = decodeURIComponent(match[2]); } catch { return null; }
+    if (!identity || identity === '.' || identity === '..' || /[\\/?#\u0000-\u0020]/.test(identity)) return null;
+    const source = new URLSearchParams(queryText);
+    const query = new URLSearchParams();
+    const period = source.get('period');
+    if (match[1] === 'security' && source.getAll('period').length === 1 && period && /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,199}$/.test(period)) query.set('period', period);
+    const start = source.get('start'), end = source.get('end');
+    const validRange = source.getAll('start').length <= 1 && source.getAll('end').length <= 1
+        && (!start || isBusinessDay(start)) && (!end || isBusinessDay(end)) && !(start && end && start > end);
+    if (validRange) {
+        if (start) query.set('start', start);
+        if (end) query.set('end', end);
+    }
+    return { kind: match[1], metric: match[3], pathname: `/${match[1]}/${encodeURIComponent(identity)}${match[3] ? `/${match[3]}` : ''}`, query };
+}
+
+function sanitizedRecentDetailPath(value: unknown): string | undefined {
+    const parsed = parseRecentDetailPath(value);
+    if (!parsed) return undefined;
+    const query = parsed.query.toString();
+    return `${parsed.pathname}${query ? `?${query}` : ''}`;
+}
+
+/** Build the recent destination from the resolved listing period and displayed range. */
+export function recentDetailPath(path: string, context: RecentDetailContext): string {
+    const query = new URLSearchParams();
+    for (const key of ['period', 'start', 'end'] as const) {
+        if (context[key]) query.set(key, context[key]);
+    }
+    return sanitizedRecentDetailPath(`${path}${query.size ? `?${query}` : ''}`) ?? '/marketcaps';
+}
 
 export function getRecentSecuritiesSnapshot(): RecentlyViewedSecurity[] {
     let stored: string | null = null;
@@ -101,7 +143,8 @@ export function getRecentlyViewedSecurities(): RecentlyViewedSecurity[] {
             item && typeof item.secCode === 'string' && typeof item.ticker === 'string' &&
             typeof item.name === 'string' && typeof item.exchange === 'string' &&
             Number.isFinite(item.lastViewed) && item.metrics && typeof item.metrics === 'object'
-        ).sort((a, b) => b.lastViewed - a.lastViewed).slice(0, MAX_RECENT_SECURITIES);
+        ).map(item => ({ ...item, lastPath: sanitizedRecentDetailPath(item.lastPath) }))
+            .sort((a, b) => b.lastViewed - a.lastViewed).slice(0, MAX_RECENT_SECURITIES);
     } catch (error) {
         console.error('Failed to load recently viewed securities:', error);
         return [];
@@ -132,7 +175,7 @@ export function addRecentlyViewedSecurity(
             // 기존 항목 업데이트 및 맨 앞으로 이동
             const existing = securities.splice(existingIndex, 1)[0];
             Object.assign(existing, security, { lastMetric: metricType });
-            existing.lastPath = security.lastPath || securityPath({ securityId: existing.securityId || secCode, routeCode: existing.routeCode ?? existing.secCode }, metricType);
+            existing.lastPath = sanitizedRecentDetailPath(security.lastPath) || securityPath({ securityId: existing.securityId || secCode, routeCode: existing.routeCode ?? existing.secCode }, metricType);
             existing.metrics[metricType] = { value: metricValue ?? null, lastViewed: now };
             existing.lastViewed = now;
             securities.unshift(existing);
@@ -145,7 +188,7 @@ export function addRecentlyViewedSecurity(
             securities.unshift({
                 ...security,
                 lastMetric: metricType,
-                lastPath: security.lastPath || securityPath({ securityId: security.securityId || secCode, routeCode: secCode }, metricType),
+                lastPath: sanitizedRecentDetailPath(security.lastPath) || securityPath({ securityId: security.securityId || secCode, routeCode: security.routeCode ?? secCode }, metricType),
                 lastViewed: now,
                 metrics: {
                     [metricType]: { value: metricValue ?? null, lastViewed: now }
@@ -213,7 +256,8 @@ export function getLastViewedMetric(security: RecentlyViewedSecurity): MetricTyp
 }
 
 export function getRecentSecurityPath(security: RecentlyViewedSecurity): string {
-    if (security.lastPath && /^\/(security|company)\/[^/?#]+(?:\/(marketcap|per|pbr|eps|bps|div|dps))?\/?$/.test(security.lastPath)) return security.lastPath;
+    const destination = sanitizedRecentDetailPath(security.lastPath);
+    if (destination) return destination;
     return securityPath({ securityId: security.securityId || security.secCode, routeCode: security.secCode }, getLastViewedMetric(security));
 }
 
@@ -229,15 +273,16 @@ export function migrateRecentSecurityIdentities(identities: readonly (SecurityRo
         const matches = byId ? [byId] : identities.filter(identity => `${identity.exchange}.${identity.ticker}` === item.secCode);
         const identity = matches.length === 1 ? matches[0] : null;
         const routeCode = identity ? aliases.get(identity.securityId) ?? null : item.routeCode;
-        const pathMatch = item.lastPath?.match(/^\/(security|company)\/[^/?#]+(?:\/(marketcap|per|pbr|eps|bps|div|dps))?\/?$/);
-        const path = !identity ? item.lastPath : pathMatch?.[1] === 'security'
-            ? securityPath({ ...identity, routeCode }, pathMatch[2])
-            : pathMatch?.[1] === 'company' && identity.companyId
-                ? companyPath({ companyId: identity.companyId, routeCode: companies.get(identity.companyId) ?? null }, pathMatch[2])
+        const destination = parseRecentDetailPath(item.lastPath);
+        const path = !identity ? item.lastPath : destination?.kind === 'security'
+            ? securityPath({ ...identity, routeCode }, destination.metric)
+            : destination?.kind === 'company' && identity.companyId
+                ? companyPath({ companyId: identity.companyId, routeCode: companies.get(identity.companyId) ?? null }, destination.metric)
                 : securityPath({ ...identity, routeCode }, getLastViewedMetric(item));
+        const query = destination?.query.toString();
         const updated: RecentlyViewedSecurity = identity ? { ...item, securityId: identity.securityId, routeCode,
             secCode: routeCode || identity.securityId,
-            lastPath: path } : item;
+            lastPath: path && query ? `${path}?${query}` : path } : item;
         const key = updated.securityId || updated.secCode;
         const previous = result.get(key);
         if (!previous) result.set(key, updated);
