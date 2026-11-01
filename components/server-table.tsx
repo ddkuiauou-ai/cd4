@@ -1,4 +1,4 @@
-import { createRankingRows, RANKING_METRICS, type RankingMetric, type RankingRow, type RankingScope } from "@/lib/ranking-view";
+import { RANKING_METRICS, type RankingMetric, type RankingRow, type RankingScope } from "@/lib/ranking-view";
 import { RankingPosition } from "@/components/ranking-position";
 import { RankingName, RankingValue } from "@/components/ranking-row-parts";
 import { RankingQuote } from "@/components/ranking-quote";
@@ -6,20 +6,12 @@ import styles from "./ranking-view.module.css";
 import { useId } from "react";
 
 interface ServerTableProps {
-  rows?: RankingRow[];
-  data?: readonly unknown[];
+  rows: RankingRow[];
   scope?: RankingScope;
   metric?: RankingMetric;
-  latestDate?: string;
-  updatedDate?: string;
-  title?: string;
-  subTitle?: string;
-  infoColumnHeader?: string;
-  headerActions?: React.ReactNode;
 }
 
-export function ServerTable({ rows, data = [], scope = "company", metric = "marketcap" }: ServerTableProps) {
-  const entries = rows ?? createRankingRows(data, metric, scope);
+export function ServerTable({ rows, scope = "company", metric = "marketcap" }: ServerTableProps) {
   const id = useId();
   return (
     <div className={styles.responsiveTable}>
@@ -34,7 +26,7 @@ export function ServerTable({ rows, data = [], scope = "company", metric = "mark
             <span className={styles.responsiveQuoteHeadings}><span>종가</span><span>등락률</span><span>추이</span></span>
           </th>
         </tr></thead>
-        <tbody role="rowgroup">{entries.map(row => <tr key={row.id} role="row">
+        <tbody role="rowgroup">{rows.map(row => <tr key={row.id} role="row">
           <td role="cell" headers={`${id}-rank`} className={styles.rankCell}><RankingPosition rank={row.rank} priorRank={row.priorRank} /></td>
           <td role="cell" headers={`${id}-identity`} className={styles.identityCell}><RankingName row={row} /></td>
           <td role="cell" headers={`${id}-metric`} className={styles.metricCell}><RankingValue row={row} /><span className={styles.metricHint} aria-hidden="true">{scope === "company" ? "시총" : RANKING_METRICS[metric].label}</span></td>

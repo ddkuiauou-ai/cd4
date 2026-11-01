@@ -15,7 +15,8 @@
 | [검증 규칙](rules/verification.md) | Bun 명령, test·lint·typecheck·빌드·DB·CI 조건 |
 | [Learnings](learnings.md) | 관련 작업 시작 시 읽고, 확인한 교정·실패 수정 뒤 갱신 |
 | [지침 개편 검증](agent-guidance-verification-2026-11-01.md) | 보존·이동·요구사항 대응과 읽기 경로 검증 결과 |
-| [PRODUCT](../PRODUCT.md)·[DESIGN](../DESIGN.md) | 현재 사용자 제품 결정·시각 기준과 변경 이력 |
+| [PRODUCT](../PRODUCT.md)·[DESIGN](../DESIGN.md) | 현재 사용자 제품 결정·시각 기준; 과거 결정은 아래 보존 자료와 구분 |
+| [화면별 구현 기준](../.impeccable/implementation-brief.md) | 랭킹·대시보드의 현행 surface brief 색인 |
 
 Bun 실행 규약과 아직 pnpm을 사용하는 package metadata·잠금파일·CI·정적 빌드 내부의
 차이는 검증 규칙에 기록한다. 아래 과거 문서의 실행 예시나 검사 결과가 이 차이를 해소하지 않는다.
@@ -42,6 +43,9 @@ tem은 별도 프로젝트에서 수집·정정·공식 계산·검증·공개�
 
 | 기록 | 확인 범위 |
 | --- | --- |
+| [2026-11-02 랭킹·푸터 정리](ranking-cleanup-verification-2026-11-02.md) | 현행 문서·과거 이력 분리, 미사용 코드·중간 시안 제거와 정리 전후 비교 |
+| [2026-11-02 랭킹 하단·푸터](ranking-footer-verification-2026-11-02.md) | 자료 안내·최근 미리보기·반응형 목차와 기존 헤더 패널 진입 |
+| [2026-11-02 반응형 랭킹](ranking-responsive-verification-2026-11-02.md) | 단일 표·본문 폭별 배치·정확한 차트·숫자 오버레이 |
 | [2026-10-23 패키지 업데이트](next-upgrade-2026-10-23.md) | 당시 패키지·설치·fixture export·기존 lint/DB 제한 |
 | [2026-10-23 반응형 헤더](responsive-header-2026-10-23.md) | 헤더 적용·검사 범위 |
 | [2026-10-22 재무 지표 화면](records-room-financial-metrics-2026-10-22.md) | 지표별 표현·검증 |
@@ -63,6 +67,10 @@ tem은 별도 프로젝트에서 수집·정정·공식 계산·검증·공개�
 
 ## 초기 조사·보존 자료
 
+- [제품 결정 이력](archive/product-decisions-2026-11-02.md)은 PRODUCT에서 분리한 날짜별 결정·시안·당시 작업 상태다.
+  [초기 Impeccable brief](archive/impeccable-briefs-2026-11-02.md)는 현행 surface로 대체된 계약의 보존본이다.
+- [2026-11-01 랭킹 시안 측정](archive/ranking-mock-review-2026-11-01.md)은 Learnings L8–L10의 당시 측정 근거다.
+  시안의 폭·경계·수치와 제품 구현의 폭·경계·검증을 구분한다.
 - [프로젝트 현황](project-current-state.md), [DAG 연동 조사](dag-integration.md),
   [업그레이드 인수인계](upgrade-handoff.md)는 초기 구조와 판단 근거다.
 - [Next.js 16 초기 평가](next16-upgrade-assessment-2026-10-05.md),

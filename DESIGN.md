@@ -262,7 +262,7 @@ components:
 - 모든 폭에서 한 줄인 공통 헤더와 세 단계 브랜드, 유지하는 모바일 하단 탐색, 항상 보이는 대상 선택과 지표 메뉴, 공통 위치의 데스크톱 보조 레일.
 - 실제 자료의 날짜·제공 상태·상장 기간을 유지하는 차트·표·CSV·빈 상태.
 
-값의 기준은 `app/globals.css`, `app/layout.tsx`, `components/detail.module.css`, `components/ranking-view.module.css`다. 화면 구조는 `.impeccable/mocks/2026-10-09-screen-comps/revisions/2026-10-14-layout-unified/layout-contract.md`와 실제 구성 요소를 함께 따른다. 이 문서와 sidecar는 검증 완료나 사용자 수락을 선언하지 않는다. sidecar의 구성 예시는 조회 결과가 아니다.
+값의 기준은 frontmatter와 `app/globals.css`, `app/layout.tsx`, `components/detail.module.css`, `components/ranking-view.module.css`다. 현재 화면 구조는 이 문서의 화면별 규칙, [랭킹 surface](.impeccable/surfaces/app-market-page-tsx.md), [대시보드 surface](.impeccable/surfaces/app-dashboard-page-tsx.md)와 실제 구성 요소를 함께 따른다. 이전 이미지 계약과 대체된 결정은 [제품 결정 이력](docs/archive/product-decisions-2026-11-02.md)에 보존한다. 이 문서와 sidecar는 검증 완료나 사용자 수락을 선언하지 않는다. sidecar의 구성 예시는 조회 결과가 아니다.
 
 ## Colors
 
@@ -319,11 +319,11 @@ frontmatter는 공통 위계를 정의하며 각 데이터 화면의 모든 보�
 
 페이지 제목은 순위의 `clamp(28px,3.2cqi,38px)`와 메인의 `clamp(30px,3.6vw,48px)`처럼 화면 폭과 정보량에 맞춘 연속 크기를 쓴다. 순위 제목은 실제 본문 컨테이너 폭을 따르며 680px 미만에서 28px, 340px 미만에서 26px다. 브랜드 글자의 27/30/32px와 세 단계 형태 전환, 공통 제목의 28/38px, 순위의 자릿수별 크기와 상세 주 값의 clamp는 서로 목적이 다르다. 순위 숫자와 큰 값의 폭이 바뀌어도 열 정렬·행 높이·숫자 식별을 유지한다. 화면별 단계는 해당 모듈이 소유하며 단일 굵은 제목 스타일로 합치지 않는다.
 
-**The One Rank Unit Rule.** 현재 순위와 이동량은 하나의 읽기 단위다. 데스크톱에서는 옆으로, 모바일에서는 같은 중심축 위아래로 놓는다. 숫자와 이동 화살표를 떨어진 배지로 만들지 않는다.
+**The One Rank Unit Rule.** 현재 순위와 이동량은 하나의 읽기 단위다. 랭킹의 단일 반응형 표에서는 모든 폭에서 같은 중심축 위아래로 놓는다. 이 규칙을 대시보드가 사용하는 공유 컴포넌트의 기본 가로 배치에 확대하지 않는다. 숫자와 이동 화살표를 떨어진 배지로 만들지 않는다.
 
 ## Layout
 
-공통 컨테이너의 최대 폭은 1504px이며 좌우 여백은 모바일 16px, 768px 이상 24px, 1280px 이상 32px다. 1280px 이상 순위·상세·메인은 유연한 본문과 248px 우측 레일을 공유한다. 레일은 최근 본·조회 기준·본문 순서와 맞는 목차를 이어준다. 최근 본에는 순위 번호를 붙이지 않고 별도 중복 지표 메뉴를 만들지 않는다.
+공통 컨테이너의 최대 폭은 1504px이며 좌우 여백은 모바일 16px, 768px 이상 24px, 1280px 이상 32px다. 1280px 이상 순위·상세·메인은 유연한 본문과 248px 우측 레일을 사용한다. 랭킹 레일은 짧은 최근 본 미리보기만 담고 조회 기준은 목록 아래 전체 폭으로 분리한다. 상세·대시보드는 각 화면의 기존 최근 본·조회 기준·목차 구성을 유지한다. 최근 본에는 순위 번호를 붙이지 않고 별도 중복 지표 메뉴를 만들지 않는다.
 
 ### Ranking Footer and Ending
 

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { businessChartSegments, formatBusinessValue } from "@/lib/business-analysis";
+import { formatBusinessValue } from "@/lib/business-analysis";
 import { exactRankingValue, formatRankingRate, formatRankingValue, RANKING_METRICS, type RankingRow } from "@/lib/ranking-view";
-import { RankingSparklineEndpoint } from "./ranking-sparkline-endpoint";
 import styles from "./ranking-view.module.css";
 
 export function RankingName({ row }: { row: RankingRow }) {
@@ -18,21 +17,4 @@ export function RankingRate({ row }: { row: RankingRow }) {
   const direction = row.rate == null || row.rate === 0 ? "flat" : row.rate > 0 ? "up" : "down";
   const label = row.close == null ? "가격 정보 없음" : `최근 종가 ${formatBusinessValue(row.close)}원${row.priceDate ? ` · 가격 관측일 ${row.priceDate}` : ""} · 저장된 전일 대비 ${formatRankingRate(row.rate)}`;
   return <span className={styles.rate} data-direction={direction} title={label} aria-label={label}>{formatRankingRate(row.rate)}</span>;
-}
-
-export function RankingPrice({ row }: { row: RankingRow }) {
-  return <span className={styles.price} title={row.priceDate ? `가격 관측일 ${row.priceDate}` : undefined}>{row.close == null ? "가격 정보 없음" : `${formatBusinessValue(row.close)}원`}</span>;
-}
-
-export function RankingSparkline({ row }: { row: RankingRow }) {
-  const observations = row.prices.flatMap(price => price.date ? [{ date: price.date, value: price.close }] : []);
-  const segments = businessChartSegments(observations, 108, 20);
-  if (!segments.length) return <span className={styles.noTrend} aria-label="가격 추이 정보 없음">—</span>;
-  const direction = row.rate == null || row.rate === 0 ? "flat" : row.rate > 0 ? "up" : "down";
-  const endpoint = formatBusinessValue(observations.at(-1)?.value ?? null) === "—"
-    ? null : segments.at(-1)?.split(" ").at(-1)?.split(",").map(Number);
-  return <span className={styles.sparkline} data-direction={direction} role="img" aria-label={`${row.name} 가격 관측 ${observations[0]?.date}–${observations.at(-1)?.date}. 결측 구간은 연결하지 않습니다.`}>
-    <svg viewBox="-2 -2 112 24" width={110} height={24} preserveAspectRatio="none" aria-hidden="true">{segments.map((points, index) => <g key={index}><polyline points={points} fill="none" stroke="currentColor" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />{points.split(" ").length === 1 && <circle cx={points.split(",")[0]} cy={points.split(",")[1]} r={2} fill="currentColor" />}</g>)}</svg>
-    {endpoint && <RankingSparklineEndpoint identity={row.id} left={(endpoint[0] + 2) / 112 * 100} top={(endpoint[1] + 2) / 24 * 100} />}
-  </span>;
 }

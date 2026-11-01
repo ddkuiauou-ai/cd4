@@ -1,17 +1,9 @@
-# 황금 전광판 구현
+# 현재 화면별 구현 기준
 
-Scope: 기존 국내 주식 조회 서비스의 ranking/detail/dashboard. Visitor mode: Operate. 구현 근거는 사용자 확정 white-shell 시안과 docs/ui-implementation-plan-2026-10-05.md. 실제 서버 데이터·URL·지표 공식과 전체 랭킹 탐색을 보존한다.
+이 파일은 화면별 brief의 색인이다. 공통 제품 방향은 [PRODUCT](../PRODUCT.md), 시각 토큰과 배치는 [DESIGN](../DESIGN.md)이 소유한다. 같은 계약을 여기에 다시 복제하지 않는다.
 
-## Direction contract
+- [랭킹 `/`·전체 지표 순위](surfaces/app-market-page-tsx.md): 본문 폭에 따른 단일 표·차트 오버레이·자료 안내·랭킹 전용 목차 푸터.
+- [대시보드](surfaces/app-dashboard-page-tsx.md): 기업 합산 TOP 5·실제 주가 흐름·전체 지표 바로가기와 기존 패널·푸터.
+- 상세는 DESIGN의 대상 우선·구성 종목·지표별 기록 규칙과 해당 실제 페이지를 함께 읽는다.
 
-THESIS: 큰 현재 순위와 중립 이동량을 하나의 읽기 단위로 보여주고, 넓은 화면에서는 조회 목록과 최근·기준 정보를 나란히 제공한다.
-
-OWN-WORLD: 실제 나눔명조800의 빨강 ‘천하제일’/금색 ‘단타대회’ 사이 원본 별 SVG. 화이트 본문과 옅은 중립 레일, 다크 중립 표면. 금색은 브랜드·선택·다운로드, 빨강/파랑은 주가, 중립은 순위 이동이다.
-
-STORY: 지표 메뉴 → 전체 순위 → 기업 합산 또는 실제 종목 상세 → 다른 지표/보통주·우선주 비교 → 전체 CSV. 최근 기록으로 마지막 지표에 돌아온다. 검색은 실제 상세로 이동한다.
-
-FIRST VIEWPORT: 데스크톱은 로고/메인·랭킹/검색/고정 크기 테마 버튼, 그 아래 7개 지표. 본문 제목·기준일·전체 CSV와 큰 순위 표, 우측 300px 최근·기준 패널. 모바일은 전체 로고·검색·지표 뒤 중앙축의 순위 묶음과 값 아래 추이. 상세는 요약 아래 로컬 지표 메뉴와 실제 차트다.
-
-FORM: 사용자 선택 A ‘황금 전광판’, 최신 white-shell 비교와 라이트·다크 캡처. 기존 선택을 구현하는 작업으로 새 seed 추첨은 적용하지 않는다. 시안의 예시 날짜·행 수·PNG 좌표는 데이터 계약이 아니다.
-
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+초기 황금 전광판 구현 brief와 당시 대시보드 복구 기준은 [2026-11-02 보존본](../docs/archive/impeccable-briefs-2026-11-02.md)으로 옮겼다. 과거 시안·날짜별 검증을 현재 구현 지침이나 작업 승인으로 사용하지 않는다.

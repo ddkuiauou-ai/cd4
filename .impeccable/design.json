@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T14:14:10.346956+00:00",
+  "generatedAt": "2026-11-01T16:38:32.065054+00:00",
   "title": "Design System: 천하제일 단타대회 · B 대회 기록실",
   "extensions": {
     "colorMeta": {
@@ -786,11 +786,19 @@
     ],
     "breakpoints": [
       {
-        "name": "wordmark-mobile",
+        "name": "wordmark-short",
+        "value": "360px"
+      },
+      {
+        "name": "header-search-short",
         "value": "390px"
       },
       {
-        "name": "annual-table",
+        "name": "header-search-long",
+        "value": "520px"
+      },
+      {
+        "name": "annual-table-and-header-labels",
         "value": "640px"
       },
       {
@@ -798,12 +806,24 @@
         "value": "768px"
       },
       {
-        "name": "inline-header-search",
+        "name": "wordmark-full",
+        "value": "960px"
+      },
+      {
+        "name": "ranking-footer-four-columns",
         "value": "1100px"
       },
       {
         "name": "shared-context-rail",
         "value": "1280px"
+      },
+      {
+        "name": "ranking-quote-overlay-container-max",
+        "value": "400px"
+      },
+      {
+        "name": "ranking-quote-inline-container-min",
+        "value": "850px"
       }
     ]
   },
@@ -812,9 +832,9 @@
       "name": "Brand Wordmark",
       "kind": "custom",
       "refersTo": "brand-wordmark",
-      "description": "공식 원본 ChosunGs.ttf를 next/font/local로 읽는 조선궁서400·전체 이름·원본 별 SVG. 별의 원본 타원과 path 및 색은 보존하며 합성 볼드와 글자 외곽선은 사용하지 않는다.",
-      "html": "<a class=\"ds-wordmark\" href=\"/\" aria-label=\"천하제일 단타대회 · 랭킹\"><span class=\"ds-brand-first\">천하제일</span><svg class=\"ds-brand-star\" viewBox=\"0 0 40.97 40.15\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><ellipse class=\"ds-star-disc\" cx=\"20.48\" cy=\"20.08\" rx=\"19.48\" ry=\"19.08\"></ellipse><path class=\"ds-star-symbol\" d=\"M21.15,7.55l.07.04,2.91,8.63.1.15,9.65.29-7.79,5.67c.8,3.11,1.65,6.21,2.33,9.34-2.5-1.86-4.93-3.83-7.38-5.75l-.2.08-7.38,5.45c.72-3.09,1.66-6.13,2.44-9.21l-7.65-5.64,9.68-.24c1.12-2.93,2.02-5.93,3.21-8.83Z\"></path></svg><span class=\"ds-brand-last\">단타대회</span></a>",
-      "css": ".ds-wordmark{display:inline-flex;align-items:center;gap:4px;width:max-content;font-family:var(--font-display,var(--font-records,Gungsuh)),serif;font-weight:400;font-synthesis:none;font-size:24px;line-height:1.2;white-space:nowrap;letter-spacing:-.035em;text-decoration:none}.ds-brand-first{color:var(--brand-red,#c61628)}.ds-brand-last{color:var(--brand-ink,#906200)}.ds-brand-star{width:26px;height:26px;flex:none}.ds-star-disc{fill:#f8ad02;stroke:#000;stroke-miterlimit:10;stroke-width:2px}.ds-star-symbol{fill:#dc3030;stroke-width:0}.ds-wordmark:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px}@media(min-width:390px){.ds-wordmark{font-size:26px}.ds-brand-star{width:28px;height:28px}}@media(min-width:768px){.ds-wordmark{font-size:32px;gap:5px}.ds-brand-star{width:32px;height:32px}}"
+      "description": "components/site-header.tsx의 메인 링크. 조선궁서 400과 public/icon.svg 원본을 사용하며 960px 이상 전체 이름, 360–959px 천·별·단, 360px 미만 별만 표시한다. 접근성 이름은 전체 이름·메인을 유지한다. 예시 SVG는 원본 형태와 색을 보존한다.",
+      "html": "<a class=\"ds-wordmark\" href=\"/dashboard\" aria-label=\"천하제일 단타대회 · 메인\"><span class=\"ds-brand-first ds-brand-full\" aria-hidden=\"true\">천하제일</span><span class=\"ds-brand-first ds-brand-short\" aria-hidden=\"true\">천</span><svg class=\"ds-brand-star\" viewBox=\"0 0 40.97 40.15\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><ellipse class=\"ds-star-disc\" cx=\"20.48\" cy=\"20.08\" rx=\"19.48\" ry=\"19.08\"></ellipse><path class=\"ds-star-symbol\" d=\"M21.15,7.55l.07.04,2.91,8.63.1.15,9.65.29-7.79,5.67c.8,3.11,1.65,6.21,2.33,9.34-2.5-1.86-4.93-3.83-7.38-5.75l-.2.08-7.38,5.45c.72-3.09,1.66-6.13,2.44-9.21l-7.65-5.64,9.68-.24c1.12-2.93,2.02-5.93,3.21-8.83Z\"></path></svg><span class=\"ds-brand-last ds-brand-short\" aria-hidden=\"true\">단</span><span class=\"ds-brand-last ds-brand-full\" aria-hidden=\"true\">단타대회</span></a>",
+      "css": ".ds-wordmark{display:inline-flex;align-items:center;justify-content:center;flex:none;gap:3px;width:max-content;min-width:44px;min-height:44px;font-family:var(--font-display,var(--font-records,Gungsuh)),serif;font-weight:400;font-synthesis:none;font-size:27px;line-height:1.2;white-space:nowrap;letter-spacing:-.035em;text-decoration:none}.ds-brand-full,.ds-brand-short{display:none}.ds-brand-first{color:var(--brand-red,#c61628)}.ds-brand-last{color:var(--brand-ink,#906200)}.ds-brand-star{width:28px;height:28px;flex:none}.ds-star-disc{fill:#f8ad02;stroke:#000;stroke-miterlimit:10;stroke-width:2px}.ds-star-symbol{fill:#dc3030;stroke-width:0}.ds-wordmark:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px}@media(min-width:360px){.ds-brand-short{display:inline}}@media(min-width:768px){.ds-wordmark{font-size:30px;gap:4px}.ds-brand-star{width:30px;height:30px}}@media(min-width:960px){.ds-brand-short{display:none}.ds-brand-full{display:inline}.ds-wordmark{font-size:32px;gap:5px}.ds-brand-star{width:32px;height:32px}}"
     },
     {
       "name": "Primary Button",
@@ -836,9 +856,9 @@
       "name": "Ghost Theme Button",
       "kind": "button",
       "refersTo": "theme-trigger",
-      "description": "모든 폭에서 40×40px의 테마 버튼과 20×20px 동일 아이콘 슬롯. 실제 메뉴는 라이트·다크·기기 설정과 저장 선택을 제공한다. 표본은 모양만 나타낸다.",
-      "html": "<button class=\"ds-theme\" aria-label=\"테마 전환\"><span class=\"ds-theme-icons\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-sun\" aria-hidden=\"true\"><path d=\"M7.5 0C7.77614 0 8 0.223858 8 0.5V2.5C8 2.77614 7.77614 3 7.5 3C7.22386 3 7 2.77614 7 2.5V0.5C7 0.223858 7.22386 0 7.5 0ZM2.1967 2.1967C2.39196 2.00144 2.70854 2.00144 2.90381 2.1967L4.31802 3.61091C4.51328 3.80617 4.51328 4.12276 4.31802 4.31802C4.12276 4.51328 3.80617 4.51328 3.61091 4.31802L2.1967 2.90381C2.00144 2.70854 2.00144 2.39196 2.1967 2.1967ZM0.5 7C0.223858 7 0 7.22386 0 7.5C0 7.77614 0.223858 8 0.5 8H2.5C2.77614 8 3 7.77614 3 7.5C3 7.22386 2.77614 7 2.5 7H0.5ZM2.1967 12.8033C2.00144 12.608 2.00144 12.2915 2.1967 12.0962L3.61091 10.682C3.80617 10.4867 4.12276 10.4867 4.31802 10.682C4.51328 10.8772 4.51328 11.1938 4.31802 11.3891L2.90381 12.8033C2.70854 12.9986 2.39196 12.9986 2.1967 12.8033ZM12.5 7C12.2239 7 12 7.22386 12 7.5C12 7.77614 12.2239 8 12.5 8H14.5C14.7761 8 15 7.77614 15 7.5C15 7.22386 14.7761 7 14.5 7H12.5ZM10.682 4.31802C10.4867 4.12276 10.4867 3.80617 10.682 3.61091L12.0962 2.1967C12.2915 2.00144 12.608 2.00144 12.8033 2.1967C12.9986 2.39196 12.9986 2.70854 12.8033 2.90381L11.3891 4.31802C11.1938 4.51328 10.8772 4.51328 10.682 4.31802ZM8 12.5C8 12.2239 7.77614 12 7.5 12C7.22386 12 7 12.2239 7 12.5V14.5C7 14.7761 7.22386 15 7.5 15C7.77614 15 8 14.7761 8 14.5V12.5ZM10.682 10.682C10.8772 10.4867 11.1938 10.4867 11.3891 10.682L12.8033 12.0962C12.9986 12.2915 12.9986 12.608 12.8033 12.8033C12.608 12.9986 12.2915 12.9986 12.0962 12.8033L10.682 11.3891C10.4867 11.1938 10.4867 10.8772 10.682 10.682ZM5.5 7.5C5.5 6.39543 6.39543 5.5 7.5 5.5C8.60457 5.5 9.5 6.39543 9.5 7.5C9.5 8.60457 8.60457 9.5 7.5 9.5C6.39543 9.5 5.5 8.60457 5.5 7.5ZM7.5 4.5C5.84315 4.5 4.5 5.84315 4.5 7.5C4.5 9.15685 5.84315 10.5 7.5 10.5C9.15685 10.5 10.5 9.15685 10.5 7.5C10.5 5.84315 9.15685 4.5 7.5 4.5Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-moon\" aria-hidden=\"true\"><path d=\"M2.89998 0.499976C2.89998 0.279062 2.72089 0.0999756 2.49998 0.0999756C2.27906 0.0999756 2.09998 0.279062 2.09998 0.499976V1.09998H1.49998C1.27906 1.09998 1.09998 1.27906 1.09998 1.49998C1.09998 1.72089 1.27906 1.89998 1.49998 1.89998H2.09998V2.49998C2.09998 2.72089 2.27906 2.89998 2.49998 2.89998C2.72089 2.89998 2.89998 2.72089 2.89998 2.49998V1.89998H3.49998C3.72089 1.89998 3.89998 1.72089 3.89998 1.49998C3.89998 1.27906 3.72089 1.09998 3.49998 1.09998H2.89998V0.499976ZM5.89998 3.49998C5.89998 3.27906 5.72089 3.09998 5.49998 3.09998C5.27906 3.09998 5.09998 3.27906 5.09998 3.49998V4.09998H4.49998C4.27906 4.09998 4.09998 4.27906 4.09998 4.49998C4.09998 4.72089 4.27906 4.89998 4.49998 4.89998H5.09998V5.49998C5.09998 5.72089 5.27906 5.89998 5.49998 5.89998C5.72089 5.89998 5.89998 5.72089 5.89998 5.49998V4.89998H6.49998C6.72089 4.89998 6.89998 4.72089 6.89998 4.49998C6.89998 4.27906 6.72089 4.09998 6.49998 4.09998H5.89998V3.49998ZM1.89998 6.49998C1.89998 6.27906 1.72089 6.09998 1.49998 6.09998C1.27906 6.09998 1.09998 6.27906 1.09998 6.49998V7.09998H0.499976C0.279062 7.09998 0.0999756 7.27906 0.0999756 7.49998C0.0999756 7.72089 0.279062 7.89998 0.499976 7.89998H1.09998V8.49998C1.09998 8.72089 1.27906 8.89997 1.49998 8.89997C1.72089 8.89997 1.89998 8.72089 1.89998 8.49998V7.89998H2.49998C2.72089 7.89998 2.89998 7.72089 2.89998 7.49998C2.89998 7.27906 2.72089 7.09998 2.49998 7.09998H1.89998V6.49998ZM8.54406 0.98184L8.24618 0.941586C8.03275 0.917676 7.90692 1.1655 8.02936 1.34194C8.17013 1.54479 8.29981 1.75592 8.41754 1.97445C8.91878 2.90485 9.20322 3.96932 9.20322 5.10022C9.20322 8.37201 6.82247 11.0878 3.69887 11.6097C3.45736 11.65 3.20988 11.6772 2.96008 11.6906C2.74563 11.702 2.62729 11.9535 2.77721 12.1072C2.84551 12.1773 2.91535 12.2458 2.98667 12.3128L3.05883 12.3795L3.31883 12.6045L3.50684 12.7532L3.62796 12.8433L3.81491 12.9742L3.99079 13.089C4.11175 13.1651 4.23536 13.2375 4.36157 13.3059L4.62496 13.4412L4.88553 13.5607L5.18837 13.6828L5.43169 13.7686C5.56564 13.8128 5.70149 13.8529 5.83857 13.8885C5.94262 13.9155 6.04767 13.9401 6.15405 13.9622C6.27993 13.9883 6.40713 14.0109 6.53544 14.0298L6.85241 14.0685L7.11934 14.0892C7.24637 14.0965 7.37436 14.1002 7.50322 14.1002C11.1483 14.1002 14.1032 11.1453 14.1032 7.50023C14.1032 7.25044 14.0893 7.00389 14.0623 6.76131L14.0255 6.48407C13.991 6.26083 13.9453 6.04129 13.8891 5.82642C13.8213 5.56709 13.7382 5.31398 13.6409 5.06881L13.5279 4.80132L13.4507 4.63542L13.3766 4.48666C13.2178 4.17773 13.0353 3.88295 12.8312 3.60423L12.6782 3.40352L12.4793 3.16432L12.3157 2.98361L12.1961 2.85951L12.0355 2.70246L11.8134 2.50184L11.4925 2.24191L11.2483 2.06498L10.9562 1.87446L10.6346 1.68894L10.3073 1.52378L10.1938 1.47176L9.95488 1.3706L9.67791 1.2669L9.42566 1.1846L9.10075 1.09489L8.83599 1.03486L8.54406 0.98184ZM10.4032 5.30023C10.4032 4.27588 10.2002 3.29829 9.83244 2.40604C11.7623 3.28995 13.1032 5.23862 13.1032 7.50023C13.1032 10.593 10.596 13.1002 7.50322 13.1002C6.63646 13.1002 5.81597 12.9036 5.08355 12.5522C6.5419 12.0941 7.81081 11.2082 8.74322 10.0416C8.87963 10.2284 9.10028 10.3497 9.34928 10.3497C9.76349 10.3497 10.0993 10.0139 10.0993 9.59971C10.0993 9.24256 9.84965 8.94373 9.51535 8.86816C9.57741 8.75165 9.63653 8.63334 9.6926 8.51332C9.88358 8.63163 10.1088 8.69993 10.35 8.69993C11.0403 8.69993 11.6 8.14028 11.6 7.44993C11.6 6.75976 11.0406 6.20024 10.3505 6.19993C10.3853 5.90487 10.4032 5.60464 10.4032 5.30023Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg></span><span class=\"ds-theme-label\"><span class=\"ds-theme-light\">라이트</span><span class=\"ds-theme-dark\">다크</span></span></button>",
-      "css": ".ds-theme{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:14px;font-weight:500;border-radius:calc(var(--radius,.5rem) - 2px);height:40px;padding:8px 16px;text-decoration:none;cursor:pointer;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);width:40px;padding:8px;flex:none;gap:8px;border:0;background:transparent;color:var(--foreground,#111b2c)}.ds-theme:hover{background:var(--accent,#f1f1f1)}.ds-theme:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;}.ds-theme-icons{display:grid;place-items:center;width:20px;height:20px;flex:none}.ds-theme-icons svg{grid-area:1/1;width:20px;height:20px;transition:opacity .15s ease-out}.ds-theme-sun{opacity:1;color:var(--foreground,#111b2c)}.ds-theme-moon{opacity:0;color:var(--foreground,#111b2c)}.ds-theme-label{display:none}.ds-theme-light,.ds-theme-dark{grid-area:1/1}.ds-theme-dark{visibility:hidden}:host-context(.dark) .ds-theme-sun{opacity:0}:host-context(.dark) .ds-theme-moon{opacity:1}:host-context(.dark) .ds-theme-light{visibility:hidden}:host-context(.dark) .ds-theme-dark{visibility:visible}@media(prefers-reduced-motion:reduce){.ds-theme-icons svg{transition-duration:.01ms}}.ds-theme[data-theme=dark] .ds-theme-sun{opacity:0}.ds-theme[data-theme=dark] .ds-theme-moon{opacity:1}.ds-theme[data-theme=dark] .ds-theme-light{visibility:hidden}.ds-theme[data-theme=dark] .ds-theme-dark{visibility:visible}"
+      "description": "components/mode-toggle.tsx와 공통 헤더의 44×44px 테마 버튼, 20×20px 동일 아이콘 슬롯. 실제 메뉴는 라이트·다크·기기 설정과 저장 선택을 제공한다. 표본은 아이콘 진입 버튼의 모양만 나타낸다.",
+      "html": "<button class=\"ds-theme\" aria-label=\"테마 전환\"><span class=\"ds-theme-icons\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-sun\" aria-hidden=\"true\"><path d=\"M7.5 0C7.77614 0 8 0.223858 8 0.5V2.5C8 2.77614 7.77614 3 7.5 3C7.22386 3 7 2.77614 7 2.5V0.5C7 0.223858 7.22386 0 7.5 0ZM2.1967 2.1967C2.39196 2.00144 2.70854 2.00144 2.90381 2.1967L4.31802 3.61091C4.51328 3.80617 4.51328 4.12276 4.31802 4.31802C4.12276 4.51328 3.80617 4.51328 3.61091 4.31802L2.1967 2.90381C2.00144 2.70854 2.00144 2.39196 2.1967 2.1967ZM0.5 7C0.223858 7 0 7.22386 0 7.5C0 7.77614 0.223858 8 0.5 8H2.5C2.77614 8 3 7.77614 3 7.5C3 7.22386 2.77614 7 2.5 7H0.5ZM2.1967 12.8033C2.00144 12.608 2.00144 12.2915 2.1967 12.0962L3.61091 10.682C3.80617 10.4867 4.12276 10.4867 4.31802 10.682C4.51328 10.8772 4.51328 11.1938 4.31802 11.3891L2.90381 12.8033C2.70854 12.9986 2.39196 12.9986 2.1967 12.8033ZM12.5 7C12.2239 7 12 7.22386 12 7.5C12 7.77614 12.2239 8 12.5 8H14.5C14.7761 8 15 7.77614 15 7.5C15 7.22386 14.7761 7 14.5 7H12.5ZM10.682 4.31802C10.4867 4.12276 10.4867 3.80617 10.682 3.61091L12.0962 2.1967C12.2915 2.00144 12.608 2.00144 12.8033 2.1967C12.9986 2.39196 12.9986 2.70854 12.8033 2.90381L11.3891 4.31802C11.1938 4.51328 10.8772 4.51328 10.682 4.31802ZM8 12.5C8 12.2239 7.77614 12 7.5 12C7.22386 12 7 12.2239 7 12.5V14.5C7 14.7761 7.22386 15 7.5 15C7.77614 15 8 14.7761 8 14.5V12.5ZM10.682 10.682C10.8772 10.4867 11.1938 10.4867 11.3891 10.682L12.8033 12.0962C12.9986 12.2915 12.9986 12.608 12.8033 12.8033C12.608 12.9986 12.2915 12.9986 12.0962 12.8033L10.682 11.3891C10.4867 11.1938 10.4867 10.8772 10.682 10.682ZM5.5 7.5C5.5 6.39543 6.39543 5.5 7.5 5.5C8.60457 5.5 9.5 6.39543 9.5 7.5C9.5 8.60457 8.60457 9.5 7.5 9.5C6.39543 9.5 5.5 8.60457 5.5 7.5ZM7.5 4.5C5.84315 4.5 4.5 5.84315 4.5 7.5C4.5 9.15685 5.84315 10.5 7.5 10.5C9.15685 10.5 10.5 9.15685 10.5 7.5C10.5 5.84315 9.15685 4.5 7.5 4.5Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg><svg width=\"15\" height=\"15\" viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ds-theme-moon\" aria-hidden=\"true\"><path d=\"M2.89998 0.499976C2.89998 0.279062 2.72089 0.0999756 2.49998 0.0999756C2.27906 0.0999756 2.09998 0.279062 2.09998 0.499976V1.09998H1.49998C1.27906 1.09998 1.09998 1.27906 1.09998 1.49998C1.09998 1.72089 1.27906 1.89998 1.49998 1.89998H2.09998V2.49998C2.09998 2.72089 2.27906 2.89998 2.49998 2.89998C2.72089 2.89998 2.89998 2.72089 2.89998 2.49998V1.89998H3.49998C3.72089 1.89998 3.89998 1.72089 3.89998 1.49998C3.89998 1.27906 3.72089 1.09998 3.49998 1.09998H2.89998V0.499976ZM5.89998 3.49998C5.89998 3.27906 5.72089 3.09998 5.49998 3.09998C5.27906 3.09998 5.09998 3.27906 5.09998 3.49998V4.09998H4.49998C4.27906 4.09998 4.09998 4.27906 4.09998 4.49998C4.09998 4.72089 4.27906 4.89998 4.49998 4.89998H5.09998V5.49998C5.09998 5.72089 5.27906 5.89998 5.49998 5.89998C5.72089 5.89998 5.89998 5.72089 5.89998 5.49998V4.89998H6.49998C6.72089 4.89998 6.89998 4.72089 6.89998 4.49998C6.89998 4.27906 6.72089 4.09998 6.49998 4.09998H5.89998V3.49998ZM1.89998 6.49998C1.89998 6.27906 1.72089 6.09998 1.49998 6.09998C1.27906 6.09998 1.09998 6.27906 1.09998 6.49998V7.09998H0.499976C0.279062 7.09998 0.0999756 7.27906 0.0999756 7.49998C0.0999756 7.72089 0.279062 7.89998 0.499976 7.89998H1.09998V8.49998C1.09998 8.72089 1.27906 8.89997 1.49998 8.89997C1.72089 8.89997 1.89998 8.72089 1.89998 8.49998V7.89998H2.49998C2.72089 7.89998 2.89998 7.72089 2.89998 7.49998C2.89998 7.27906 2.72089 7.09998 2.49998 7.09998H1.89998V6.49998ZM8.54406 0.98184L8.24618 0.941586C8.03275 0.917676 7.90692 1.1655 8.02936 1.34194C8.17013 1.54479 8.29981 1.75592 8.41754 1.97445C8.91878 2.90485 9.20322 3.96932 9.20322 5.10022C9.20322 8.37201 6.82247 11.0878 3.69887 11.6097C3.45736 11.65 3.20988 11.6772 2.96008 11.6906C2.74563 11.702 2.62729 11.9535 2.77721 12.1072C2.84551 12.1773 2.91535 12.2458 2.98667 12.3128L3.05883 12.3795L3.31883 12.6045L3.50684 12.7532L3.62796 12.8433L3.81491 12.9742L3.99079 13.089C4.11175 13.1651 4.23536 13.2375 4.36157 13.3059L4.62496 13.4412L4.88553 13.5607L5.18837 13.6828L5.43169 13.7686C5.56564 13.8128 5.70149 13.8529 5.83857 13.8885C5.94262 13.9155 6.04767 13.9401 6.15405 13.9622C6.27993 13.9883 6.40713 14.0109 6.53544 14.0298L6.85241 14.0685L7.11934 14.0892C7.24637 14.0965 7.37436 14.1002 7.50322 14.1002C11.1483 14.1002 14.1032 11.1453 14.1032 7.50023C14.1032 7.25044 14.0893 7.00389 14.0623 6.76131L14.0255 6.48407C13.991 6.26083 13.9453 6.04129 13.8891 5.82642C13.8213 5.56709 13.7382 5.31398 13.6409 5.06881L13.5279 4.80132L13.4507 4.63542L13.3766 4.48666C13.2178 4.17773 13.0353 3.88295 12.8312 3.60423L12.6782 3.40352L12.4793 3.16432L12.3157 2.98361L12.1961 2.85951L12.0355 2.70246L11.8134 2.50184L11.4925 2.24191L11.2483 2.06498L10.9562 1.87446L10.6346 1.68894L10.3073 1.52378L10.1938 1.47176L9.95488 1.3706L9.67791 1.2669L9.42566 1.1846L9.10075 1.09489L8.83599 1.03486L8.54406 0.98184ZM10.4032 5.30023C10.4032 4.27588 10.2002 3.29829 9.83244 2.40604C11.7623 3.28995 13.1032 5.23862 13.1032 7.50023C13.1032 10.593 10.596 13.1002 7.50322 13.1002C6.63646 13.1002 5.81597 12.9036 5.08355 12.5522C6.5419 12.0941 7.81081 11.2082 8.74322 10.0416C8.87963 10.2284 9.10028 10.3497 9.34928 10.3497C9.76349 10.3497 10.0993 10.0139 10.0993 9.59971C10.0993 9.24256 9.84965 8.94373 9.51535 8.86816C9.57741 8.75165 9.63653 8.63334 9.6926 8.51332C9.88358 8.63163 10.1088 8.69993 10.35 8.69993C11.0403 8.69993 11.6 8.14028 11.6 7.44993C11.6 6.75976 11.0406 6.20024 10.3505 6.19993C10.3853 5.90487 10.4032 5.60464 10.4032 5.30023Z\" fill=\"currentColor\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"></path></svg></span></button>",
+      "css": ".ds-theme{display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;padding:0;flex:none;border:0;border-radius:4px;background:transparent;color:var(--foreground,#111b2c);cursor:pointer}.ds-theme:hover{background:var(--selected,var(--accent,#f1f1f1))}.ds-theme:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px}.ds-theme-icons{display:grid;place-items:center;width:20px;height:20px;flex:none}.ds-theme-icons svg{grid-area:1/1;width:20px;height:20px;transition:opacity .15s ease-out}.ds-theme-sun{opacity:1}.ds-theme-moon{opacity:0}:host-context(.dark) .ds-theme-sun,.ds-theme[data-theme=dark] .ds-theme-sun{opacity:0}:host-context(.dark) .ds-theme-moon,.ds-theme[data-theme=dark] .ds-theme-moon{opacity:1}@media(prefers-reduced-motion:reduce){.ds-theme-icons svg{transition-duration:.01ms}}"
     },
     {
       "name": "Search Field",
@@ -876,9 +896,9 @@
       "name": "Ranking Position",
       "kind": "custom",
       "refersTo": "ranking-position",
-      "description": "현재 순위와 방향별 이동량의 묶음. 숫자는 조선궁서 400이고 1/2/3위만 금색·빨강·파랑이며 이동량은 상승 빨강·하락 파랑·유지 중립색이다. 설명의 클릭·Escape·외부 클릭과 결측은 실제 제품 코드가 처리한다.",
-      "html": "<div class=\"ds-position-wrap\"><button type=\"button\" class=\"ds-position\" data-rank=\"6\" data-digits=\"1\" aria-label=\"6위. 이전 7위 → 현재 6위 · 1계단 상승\" aria-describedby=\"ds-rank-note\"><span class=\"ds-rank\">6</span><span class=\"ds-movement\" data-direction=\"up\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7M12 19V5\"></path></svg>1</span></button><div id=\"ds-rank-note\" role=\"tooltip\" class=\"ds-rank-note\">이전 7위 → 현재 6위 · 1계단 상승<span>이전 순위 대비 · 주가 등락과 별개</span></div></div>",
-      "css": ".ds-position-wrap{position:relative;width:max-content;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-position{display:flex;align-items:center;justify-content:flex-start;gap:6px;min-height:44px;padding:0;background:none;border:0;cursor:help;font-variant-numeric:tabular-nums;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-rank{font-family:var(--font-display,var(--font-records,Gungsuh)),serif;font-size:38px;font-weight:400;font-synthesis:none;line-height:1;letter-spacing:-.025em;color:var(--foreground,#111b2c)}.ds-position[data-rank=\"1\"] .ds-rank{color:var(--rank-first,#a87500)}.ds-position[data-rank=\"2\"] .ds-rank{color:var(--rank-second,#c61628)}.ds-position[data-rank=\"3\"] .ds-rank{color:var(--rank-third,#174dc6)}.ds-position[data-digits=\"3\"] .ds-rank{font-size:26px}.ds-position[data-digits=\"4\"] .ds-rank{font-size:22px}.ds-position[data-digits=\"5\"] .ds-rank{font-size:18px}.ds-movement{display:inline-flex;align-items:center;justify-content:center;gap:2px;color:var(--muted-foreground,#506079);font-size:12px;line-height:1.2;font-weight:400;white-space:nowrap}.ds-movement[data-direction=up]{color:var(--market-up)}.ds-movement[data-direction=down]{color:var(--market-down)}.ds-movement svg{display:block;width:12px;height:12px;stroke-width:1.7;flex:none}.ds-position:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;border-radius:3px}.ds-rank-note{display:none;position:absolute;left:0;top:100%;width:max-content;max-width:min(260px,calc(100vw - 36px));z-index:20;padding:10px 12px;background:var(--popover,#fff);color:var(--popover-foreground,#111b2c);border:1px solid var(--border,#ccd3df);border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 4px 14px #0002}.ds-rank-note span{display:block;margin-top:2px;color:var(--muted-foreground,#506079);font-size:11px}.ds-position-wrap:hover .ds-rank-note,.ds-position-wrap:focus-within .ds-rank-note{display:block}@media(max-width:767px){.ds-position{width:44px;flex-direction:column;justify-content:center;gap:1px}.ds-rank{font-size:30px;line-height:1.05}.ds-position[data-digits=\"3\"] .ds-rank{font-size:22px}.ds-position[data-digits=\"4\"] .ds-rank,.ds-position[data-digits=\"5\"] .ds-rank{font-size:18px}.ds-movement{font-size:11px;line-height:1.1;gap:1px}.ds-movement svg{width:10px;height:10px}}@media(max-width:359px){.ds-position{width:40px}}"
+      "description": "components/ranking-position.tsx에 랭킹 표 내부 스타일을 적용한 예시. 랭킹에서는 모든 폭에서 현재 순위·이동량을 같은 중심축에 쌓는다. 대시보드의 공유 기본 가로 배치는 별도다. 순위 식별색과 상승 빨강·하락 파랑·유지 중립색의 의미를 구분하며 실제 설명의 클릭·Escape·외부 클릭은 제품 코드가 처리한다.",
+      "html": "<div class=\"ds-ranking-position-context\"><div class=\"ds-position-wrap\"><button type=\"button\" class=\"ds-position\" data-rank=\"6\" data-digits=\"1\" aria-label=\"6위. 이전 7위 → 현재 6위 · 1계단 상승\" aria-describedby=\"ds-rank-note\"><span class=\"ds-rank\">6</span><span class=\"ds-movement\" data-direction=\"up\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7M12 19V5\"></path></svg>1</span></button><div id=\"ds-rank-note\" role=\"tooltip\" class=\"ds-rank-note\">이전 7위 → 현재 6위 · 1계단 상승<span>이전 순위 대비 · 주가 등락과 별개</span></div></div></div>",
+      "css": ".ds-ranking-position-context{container:ds-ranking-position/inline-size;width:100%;min-width:0}.ds-position-wrap{position:relative;width:max-content;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-position{display:flex;align-items:center;justify-content:center;flex-direction:column;width:100%;gap:3px;min-height:48px;padding:0;background:none;border:0;cursor:help;font-variant-numeric:tabular-nums;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);}.ds-rank{font-family:var(--font-display,var(--font-records,Gungsuh)),serif;font-size:clamp(30px,4.2cqi,38px);font-weight:400;font-synthesis:none;line-height:1.1;letter-spacing:-.025em;color:var(--foreground,#111b2c)}.ds-position[data-rank=\"1\"] .ds-rank{color:var(--rank-first,#a87500)}.ds-position[data-rank=\"2\"] .ds-rank{color:var(--rank-second,#c61628)}.ds-position[data-rank=\"3\"] .ds-rank{color:var(--rank-third,#174dc6)}.ds-position[data-digits=\"3\"] .ds-rank{font-size:23px}.ds-position[data-digits=\"4\"] .ds-rank{font-size:clamp(14px,calc(1.3cqi + 10px),17px)}.ds-position[data-digits=\"5\"] .ds-rank{font-size:clamp(14px,calc(1.3cqi + 10px),17px)}.ds-movement{display:inline-flex;align-items:center;justify-content:center;gap:2px;color:var(--muted-foreground,#506079);font-size:11px;line-height:1.2;font-weight:400;white-space:nowrap}.ds-movement[data-direction=up]{color:var(--market-up)}.ds-movement[data-direction=down]{color:var(--market-down)}.ds-movement svg{display:block;width:12px;height:12px;stroke-width:1.7;flex:none}.ds-position:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;border-radius:3px}.ds-rank-note{display:none;position:absolute;left:0;top:100%;width:max-content;max-width:min(260px,calc(100vw - 36px));z-index:20;padding:10px 12px;background:var(--popover,#fff);color:var(--popover-foreground,#111b2c);border:1px solid var(--border,#ccd3df);border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 4px 14px #0002}.ds-rank-note span{display:block;margin-top:2px;color:var(--muted-foreground,#506079);font-size:11px}.ds-position-wrap:hover .ds-rank-note,.ds-position-wrap:focus-within .ds-rank-note{display:block}"
     },
     {
       "name": "Sparse Company History",
@@ -909,36 +929,26 @@
     "northStar": "B 대회 기록실",
     "overview": "숫자를 보러 왔다가 다른 종목도 구경하는 서비스다. 흰 읽기 표면, 짙은 남색 데이터, 진지한 궁서 제목, 빨강·금색 전체 이름과 원본 별, 색 있는 상위 세 순위, 얇은 빨강 괘선이 기록실의 성격을 만든다. 제목의 표정과 종목을 오가는 재미를 살리면서 필요한 숫자와 자료 기준에 바로 도달하게 한다.",
     "keyCharacteristics": [
-      "공식 배포 원본 조선궁서 400을 사용하는 전체 로고·제목·큰 순위 숫자.",
+      "공식 배포 원본 조선궁서 400을 사용하는 반응형 브랜드 글자·제목·큰 순위 숫자.",
       "흰 바탕과 짙은 남색 잉크, 금색 선택, 빨강 구획선, 상위 세 순위의 금색·빨강·파랑.",
       "상세는 기업 합산과 실제 모든 구성 종목을 먼저 보여주고, 선택한 대상 아래에 고정 순서의 지표 메뉴를 놓는 계층. 랭킹은 지표 선택을 먼저 둔다.",
-      "모바일 두 줄 헤더, 항상 보이는 대상 선택과 지표 메뉴, 공통 위치의 데스크톱 보조 레일.",
+      "모든 폭에서 한 줄인 공통 헤더와 세 단계 브랜드, 유지하는 모바일 하단 탐색, 항상 보이는 대상 선택과 지표 메뉴, 공통 위치의 데스크톱 보조 레일.",
       "실제 자료의 날짜·제공 상태·상장 기간을 유지하는 차트·표·CSV·빈 상태."
     ],
     "rules": [
       {
         "name": "The Separate Signals Rule",
-        "body": "현재 순위 식별색과 순위 이동·가격 등락의 의미를 구분하며 방향은 각 원천값으로 판단한다.",
+        "body": "현재 순위의 식별색, 순위 이동 계단 수, 부호 있는 가격 등락은 서로 다른 의미다. 2026-11-01 사용자 요청에 따라 랭킹 이동량은 이전 순위 대비 상승이면 빨강, 하락이면 파랑, 같으면 중립색 ‘유지’로 표시한다. 가격 추이는 저장된 전일 대비 부호에 따라 같은 상승·하락색을 사용하며 0·결측은 중립색이다. 순위 방향과 주가 방향은 각각의 원천값으로 판단하고 화살표·설명·백분율을 함께 유지한다.",
         "section": "colors"
       },
       {
         "name": "The One Rank Unit Rule",
-        "body": "현재 순위와 이동량을 한 읽기 단위로 두고 모바일 중심축을 공유한다.",
+        "body": "현재 순위와 이동량은 하나의 읽기 단위다. 랭킹의 단일 반응형 표에서는 모든 폭에서 같은 중심축 위아래로 놓는다. 이 규칙을 대시보드가 사용하는 공유 컴포넌트의 기본 가로 배치에 확대하지 않는다. 숫자와 이동 화살표를 떨어진 배지로 만들지 않는다.",
         "section": "typography"
       },
       {
         "name": "The Ranking Metric First Rule",
-        "body": "`/`의 랭킹과 모든 지표 순위 화면에서는 일곱 지표를 첫 탐색 단계로 두고, 시가총액에만 기업 합산/종목별 집계 기준을 제공한다. 다른 지표는 ‘종목별 기준’을 표시한다. 지표 선택은 금색 밑줄, 집계 기준 선택은 금색 면으로 구분하며 모바일에서는 일곱 메뉴를 한 줄 가로 스크롤로 제공한다. 이 규칙은 `/dashboard`와 상세의 대상 우선 계층을 변경하지 않는다.",
-        "section": "layout"
-      },
-      {
-        "name": "The Entity Before Metric Rule",
-        "body": "기업 전체와 모든 실제 구성 종목을 고정 지표 메뉴보다 앞에 노출한다. 모바일 기업 전체 한 행과 구성 종목 두 열, 종목 탭 두 행×네 열을 유지한다.",
-        "section": "layout"
-      },
-      {
-        "name": "The Companion Records Rule",
-        "body": "1024px 이상 시총 상세는 현재 요약과 실제 구성 종목 비교를 나란히 두고 전체 폭 이력을 이어간다. 종목 기본은 현재/비교, 가격 이력/기업 정보, 기본 정보 순서의 두 열 기록이다. 모바일 DOM은 현재→비교→가격 이력→기업·기본 정보, 상장 이력 접근은 핵심 아래에 유지한다. 실제 비교·가격 자료만 사용하며 구현 기록을 최종 사용자 수락으로 간주하지 않는다.",
+        "body": "`/`의 랭킹과 모든 지표 순위 화면에서는 일곱 지표를 첫 탐색 단계로 두고, 시가총액에만 기업 합산/종목별 집계 기준을 제공한다. 다른 지표는 ‘종목별 기준’을 표시한다. 지표 선택은 금색 밑줄, 집계 기준 선택은 금색 면으로 구분한다. 2026-11-01 요청에 따라 본문 폭 680px 미만에서는 일곱 지표를 한 줄의 가로 스크롤 메뉴로 제공한다. 항목은 줄바꿈·축소하지 않고 최소 44px 터치 높이와 포커스 여백을 유지한다. 처음 진입·지표 변경·메뉴 폭 변경 시 선택 항목이 가려졌을 때만 메뉴 내부를 좌우로 조정하고 페이지의 세로 위치는 유지한다. 이 규칙은 `/dashboard`와 상세의 대상 우선 계층을 변경하지 않는다.",
         "section": "layout"
       },
       {
@@ -948,17 +958,12 @@
       },
       {
         "name": "The Stable Theme Slot Rule",
-        "body": "모든 폭의 40px 버튼과 20px 아이콘 슬롯을 고정해 검색과 인접 컨트롤이 움직이지 않게 한다.",
+        "body": "테마 버튼은 모든 폭에서 44×44px, sun/moon은 같은 20×20px grid 슬롯을 사용한다. 테마 변경으로 검색·최근 본·인접 컨트롤이 이동하지 않아야 한다. 첫 방문은 기기 설정, 수동 선택은 저장된 설정을 따른다. 2026-10-23 헤더 A의 44px 터치 영역이 이전 40px 버튼 규칙을 대체한다.",
         "section": "elevation"
-      },
-      {
-        "name": "The Data and Lifecycle Rule",
-        "body": "실제 0·음수·미제공·공개 기준·관측일·상장 기간을 보존하고 현재값과 마지막 제공값을 섞지 않는다.",
-        "section": "components"
       }
     ],
     "dos": [
-      "**Do** 전체 이름·원본 별·조선궁서 400의 표정을 유지한다.",
+      "**Do** 원본 별·조선궁서 400의 표정을 유지하고 브랜드 형태를 화면 폭에 맞춘다. 접근성 이름은 전체 이름을 유지한다.",
       "**Do** 상세에서 기업 전체와 실제 모든 구성 종목을 지표 메뉴보다 먼저 보여준다.",
       "**Do** 상세의 현재 대상만 금색으로 선택하고 지표의 순서와 위치를 고정한다. 랭킹은 금색 지표 밑줄과 시가총액 집계 기준 선택을 구분한다.",
       "**Do** 현재 순위의 식별색과 순위 이동·가격 등락의 의미를 구분하고 각 방향을 독립적으로 판단한다.",
@@ -967,7 +972,7 @@
     ],
     "donts": [
       "**Don't** 기업 합산값과 대표 보통주 값을 같게 취급하거나 기업 PER을 만든다.",
-      "**Don't** 대상과 고정 지표를 모바일 dropdown·가로 스크롤 뒤로 숨긴다.",
+      "**Don't** 상세의 대상과 고정 지표를 모바일 dropdown·가로 스크롤 뒤로 숨긴다. 랭킹의 일곱 지표는 별도 승인된 한 줄 가로 스크롤 규칙을 따른다.",
       "**Don't** 미제공·미관측을 0으로 채우거나 마지막 제공값을 현재값으로 쓴다.",
       "**Don't** 단일 날짜의 장식용 추이·실시간 주장·역사적 괴리율 기능을 꾸며낸다.",
       "**Don't** 다른 종목에 상장 기간 ID를 넘기거나 과거 기간에 현재값을 섞는다.",

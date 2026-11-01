@@ -2,23 +2,25 @@
 version: 1
 slug: "app-market-page-tsx"
 primary_target: "app/(market)/page.tsx"
-related_targets: ["app/company/[secCode]/marketcap/page.tsx","app/security/[secCode]/marketcap/page.tsx","app/dashboard/page.tsx"]
+related_targets: ["components/ranking-page-view.tsx", "components/ranking-quote.tsx", "components/ranking-directory-footer.tsx", "app/(market)/layout.tsx"]
 ---
 
-# 황금 전광판 구현
+# 랭킹: 지표부터 전체 순위까지
 
-Scope: 기존 국내 주식 조회 서비스의 ranking/detail/dashboard. Visitor mode: Operate. 구현 근거는 사용자 확정 white-shell 시안과 docs/ui-implementation-plan-2026-10-05.md. 실제 서버 데이터·URL·지표 공식과 전체 랭킹 탐색을 보존한다.
+Scope: `/`와 기업 합산·종목별 시가총액 및 PER/PBR/EPS/BPS/배당수익률/주당배당금의 전체 순위·페이지. Visitor mode: Operate. 현재 계약은 [PRODUCT](../../PRODUCT.md), [DESIGN](../../DESIGN.md)이며 상세·대시보드·공통 헤더의 별도 규칙을 덮지 않는다.
 
-## Direction contract
+THESIS: 모든 본문 폭에서 순위·종목·지표·주가의 읽기 축을 유지하며 남는 공간을 차트에 배분한다. 전체 순위에서 상세와 CSV로 이어지고 하단에서는 자료 기준과 다음 지표를 찾는다.
 
-THESIS: 큰 현재 순위와 중립 이동량을 하나의 읽기 단위로 보여주고, 넓은 화면에서는 조회 목록과 최근·기준 정보를 나란히 제공한다.
+OWN-WORLD: B 대회 기록실의 조선궁서 400, 원본 별, 빨강·금색 브랜드, 흰 읽기 표면과 다크 토큰을 사용한다. 상위 세 순위의 식별색과 순위 이동·가격 등락을 구분한다. 순위 이동과 주가 방향은 각각 계산하며 상승 빨강·하락 파랑·유지 중립색이다.
 
-OWN-WORLD: 실제 나눔명조800의 빨강 ‘천하제일’/금색 ‘단타대회’ 사이 원본 별 SVG. 화이트 본문과 옅은 중립 레일, 다크 중립 표면. 금색은 브랜드·선택·다운로드, 빨강/파랑은 주가, 중립은 순위 이동이다.
+STORY: 제목 → 일곱 지표 → 시가총액 집계 범위 또는 종목별 기준·시장·가격 기준 일자·CSV → 한 벌의 순위표 → 페이지 이동 → 전체 폭 자료 안내 → 데스크탑 콘텐츠 목차. 본문 680px 미만의 지표 메뉴는 한 줄로 가로 스크롤하고 현재 선택 항목을 드러낸다. 기업명은 합산 상세, 실제 종목은 해당 종목 상세로 이동한다.
 
-STORY: 지표 메뉴 → 전체 순위 → 기업 합산 또는 실제 종목 상세 → 다른 지표/보통주·우선주 비교 → 전체 CSV. 최근 기록으로 마지막 지표에 돌아온다. 검색은 실제 상세로 이동한다.
+RESPONSIVE: 브라우저 폭 대신 랭킹 본문의 실제 폭을 따른다. 850px 이상은 식별 190–220px·지표 108–128px 상한 뒤 종가 → 등락률 → 차트를 펼치고 차트 높이는 44–60px로 늘린다. 401–849px는 순위·식별·지표·주가 네 축을 유지하고 종가·등락률 아래 차트를 둔다. 400px 이하는 종가 → 차트 → 등락률 오버레이, 355px 이하는 지표를 식별 아래 같은 시작점에 놓는다. 랭킹의 순위 숫자와 이동량은 모든 폭에서 같은 중심축 위아래에 놓는다.
 
-FIRST VIEWPORT: 데스크톱은 로고/메인·랭킹/검색/고정 크기 테마 버튼, 그 아래 7개 지표. 본문 제목·기준일·전체 CSV와 큰 순위 표, 우측 300px 최근·기준 패널. 모바일은 전체 로고·검색·지표 뒤 중앙축의 순위 묶음과 값 아래 추이. 상세는 요약 아래 로컬 지표 메뉴와 실제 차트다.
+QUOTE: 정확한 십진 계산에서 얻은 좌표·날짜 간격·결측 구간·단일 관측점을 유지한다. 위쪽 종가와 아래쪽 등락률 각각 우측 우선·좌측 대안만 검사하고 선분·점·14px 끝점과 겹치면 중앙 안전 배치로 돌아간다. 기본 88px에서 긴 숫자에 맞춰 높이를 늘리되 선 높이 30px 이상을 확보한다. 초기 HTML도 안전 배치이며 최신 가격이 결측이면 끝점을 표시하지 않는다. 측정·폰트 로딩·화면 밖 정지·동작 줄이기 계약은 실제 구현을 따른다.
 
-FORM: 사용자 선택 A ‘황금 전광판’, 최신 white-shell 비교와 라이트·다크 캡처. 기존 선택을 구현하는 작업으로 새 seed 추첨은 적용하지 않는다. 시안의 예시 날짜·행 수·PNG 좌표는 데이터 계약이 아니다.
+ENDING: 최근 본 미리보기는 최대 4개, 화면 높이 650px 미만에서 3개다. 폭 1280px 이상·높이 600px 이상에서만 248px 레일이 목록·페이지 이동 영역 안에 고정하며 내부 스크롤은 없다. 조회 기준은 그 아래 전체 폭으로 분리한다. 768px 미만은 데스크탑 푸터를 높이·포커스까지 숨기고 기존 하단 메뉴를 유지한다. 768–1099px는 브랜드 전체 폭+세 탐색 그룹, 1100px 이상은 네 열 목차다. 전체 최근 기록은 기존 헤더 패널을 열고 Escape 후 호출 버튼으로 돌아간다.
 
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+DATA: 공개 기준일·가격 관측일/범위·revision·정확한 값·합산 자료 부족·공개/0건/갱신 상태를 보존한다. 기업 합산 시총과 대표 보통주 가격은 같은 범위가 아니다. 첫 20행과 다음 100행, 공식 순서·상세 링크·전체 CSV·페이지 계약을 유지하며 외부 API·DTO·DB를 이 brief로 변경하지 않는다.
+
+EVIDENCE: [반응형 적용 검증](../../docs/ranking-responsive-verification-2026-11-02.md), [하단·푸터 검증](../../docs/ranking-footer-verification-2026-11-02.md). 날짜별 결과는 현재 배포나 사용자 최종 수락을 뜻하지 않는다. 대체된 brief는 [보존본](../../docs/archive/impeccable-briefs-2026-11-02.md)에 있다.

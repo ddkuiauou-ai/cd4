@@ -31,18 +31,6 @@
 .table th:last-child,.table td:last-child { padding-right:4px; }
 .table tbody tr { transition:background-color 160ms ease-out; }
 .table tbody tr:hover,.table tbody tr:focus-within { background:var(--record-selection,#fff5cf); }
-.rankColumn { width:76px; }
-.nameColumn { width:27%; }
-.table .valueColumn { width:21%; text-align:right; }
-.table .quoteCell,.table .quoteGroupHeading { padding-left:28px; }
-.table .quoteGroupHeading { text-align:center; }
-.quoteGroupHeading>span:first-child { display:block; margin-bottom:5px; }
-.quoteGroup,.quoteHeadings { display:grid; grid-template-columns:minmax(0,1fr) minmax(124px,1fr); gap:20px; align-items:center; }
-.quoteHeadings { border-top:1px solid var(--border); padding-top:6px; color:var(--muted-foreground); font-size:11px; font-weight:400; }
-.quoteHeadings>span:first-child { text-align:left; }
-.quoteHeadings>span:last-child { text-align:right; }
-.quoteValues { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:baseline; gap:3px 12px; text-align:right; }
-.columnHint { display:block; color:var(--muted-foreground); font-size:11px; font-weight:400; }
 .nameLink { display:flex; align-items:center; justify-content:flex-start; gap:8px; min-width:0; min-height:44px; padding:4px 0; }
 .identity { display:block; min-width:0; }
 .name { display:block; font-size:16px; line-height:1.4; font-weight:650; word-break:keep-all; overflow-wrap:anywhere; }
@@ -69,7 +57,6 @@
 .table .sparkline { width:100%; max-width:260px; }
 .table .sparkline svg { width:100%; height:28px; }
 .noTrend { display:inline-block; font-size:12px; color:var(--muted-foreground); }
-.mobileTable { display:none; }
 .positionWrap { position:relative; }
 .position { display:flex; align-items:center; justify-content:flex-start; gap:8px; min-height:48px; padding:0; background:none; border:0; cursor:help; font-variant-numeric:tabular-nums; }
 .rank { font-family:var(--font-display),serif; font-size:38px; font-weight:400; font-synthesis:none; line-height:1; letter-spacing:-.025em; color:var(--foreground); }
@@ -93,47 +80,22 @@
 .pageLink { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--border); border-radius:3px; font-size:13px; font-weight:500; white-space:nowrap; }
 .pageLink:hover { background:var(--muted); }
 .pageLink[rel=next] { background:var(--primary); border-color:var(--primary); color:var(--primary-foreground); }
-.dataNote { color:var(--muted-foreground); font-size:12px; line-height:1.7; margin:18px 0 28px; max-width:75ch; }
-.contextSection { padding:24px 0; }
-.contextSection h2 { font-family:var(--font-display),serif; font-size:20px; line-height:1.4; font-weight:400; font-synthesis:none; margin:0 0 10px; padding-bottom:10px; border-bottom:1px solid var(--brand-red,#bd2b30); }
-.contextSection dl { margin:0; font-size:12px; }
-.contextSection dl>div { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding:10px 0; }
-.contextSection dt { color:var(--muted-foreground); flex:none; }
-.contextSection dd { margin:0; text-align:right; overflow-wrap:anywhere; }
-.contextSection p { color:var(--muted-foreground); font-size:12px; line-height:1.7; margin-top:18px; }
-.rankKey { font-size:11px; line-height:1.7; margin-top:18px; color:var(--muted-foreground); }
-.rankKey strong,.rankKey span { display:block; }
-.rankKey strong { color:var(--foreground); font-weight:600; margin-bottom:4px; }
 .empty { padding:48px 0; border-block:1px solid var(--border); }
 .empty h2 { font-family:var(--font-display),serif; font-size:24px; margin-bottom:10px; font-weight:400; font-synthesis:none; }
 .empty p { font-size:14px; line-height:1.7; color:var(--muted-foreground); }
 
-.publicationDetails { grid-column:1/-1; margin:12px 0 24px; color:var(--muted-foreground); font-size:12px; line-height:1.7; }
-.publicationDetails summary { cursor:pointer; width:max-content; min-height:36px; display:flex; align-items:center; }
-.publicationDetails p { overflow-wrap:anywhere; }
 .valueDetails { display:inline-block; max-width:100%; vertical-align:middle; }
 .valueDetails summary { cursor:pointer; list-style:none; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
 .valueDetails summary:hover,.valueDetails[open] summary { text-decoration:underline; text-decoration-style:dotted; text-underline-offset:4px; }
 .valueDetails summary::-webkit-details-marker { display:none; }
 .valueDetails p { margin-top:6px; font-size:12px; line-height:1.6; white-space:normal; overflow-wrap:anywhere; font-weight:400; color:var(--muted-foreground); }
 .completeness { display:block; color:var(--muted-foreground); font-size:11px; line-height:1.5; margin-top:3px; }
-.position:focus-visible,.nameLink:focus-visible,.scopeOptions a:focus-visible,.metricNavigation a:focus-visible,.valueDetails summary:focus-visible,.publicationDetails summary:focus-visible,.pageLink:focus-visible { outline:2px solid var(--ring); outline-offset:3px; border-radius:3px; }
+.position:focus-visible,.nameLink:focus-visible,.scopeOptions a:focus-visible,.metricNavigation a:focus-visible,.valueDetails summary:focus-visible,.pageLink:focus-visible { outline:2px solid var(--ring); outline-offset:3px; border-radius:3px; }
 
 /* A narrow desktop with the rail has the same layout as a tablet of equal content width. */
 @container ranking (width < 960px) {
   .tableToolbar { gap:12px 20px; }
   .basis { flex-basis:240px; justify-content:flex-start; }
-  .rankColumn { width:70px; }
-  .nameColumn { width:32%; }
-  .table .valueColumn { width:25%; }
-  .table .quoteCell,.table .quoteGroupHeading { padding-left:24px; }
-  .quoteGroup { grid-template-columns:minmax(0,1fr); gap:7px; }
-  .quoteGroup .sparkline { max-width:180px; justify-self:end; }
-  .quoteGroup .sparkline svg { height:22px; }
-  .quoteHeadings { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:2px 8px; border:0; padding-top:0; }
-  .quoteHeadings>span:first-child::after { content:" ·"; }
-  .table .quoteGroupHeading { text-align:right; }
-  .quoteValues { gap:3px 8px; }
   .table td { padding-block:16px; }
   .table .position { flex-direction:column; align-items:center; justify-content:center; gap:4px; width:48px; }
 }
@@ -151,29 +113,13 @@
   .basis>div { flex-wrap:wrap; gap:2px 5px; }
   .download a { font-size:12px; padding:8px 10px; }
   .download>div>p { font-size:10px; max-width:142px; }
-  .desktopTable { display:none; }
-  .mobileTable { display:block; }
   .table th { padding:10px 4px; font-size:11px; }
   .table td { padding:12px 4px; height:auto; }
-  .rankColumn { width:46px; }
-  .table .valueColumn { width:40%; }
-  .table .mobilePrimary td { border-bottom:0; vertical-align:top; padding-top:14px; padding-bottom:0; }
-  .table .mobilePrimary .mobileRankCell { border-bottom:1px solid var(--border); }
-  .table .mobileSecondary td { padding:4px 4px 14px; }
-  .table .mobileEntry:hover tr,.table .mobileEntry:focus-within tr { background:var(--record-selection,#fff5cf); }
-  :global(.dark) .table .mobileEntry:hover tr,:global(.dark) .table .mobileEntry:focus-within tr { background:var(--record-selection,#342c17); }
   .name { font-size:14px; }
   .nameLink { gap:3px; padding:0; min-height:44px; }
   .rowArrow { width:13px; height:13px; }
   .code { font-size:10px; margin-top:3px; }
   .value { font-size:18px; line-height:1.6; }
-  .mobilePriceGroup { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:16px; align-items:end; }
-  .mobileTrend { min-width:0; }
-  .mobileTrend .columnHint { font-size:10px; margin-bottom:4px; }
-  .mobileTrend .sparkline { max-width:160px; }
-  .mobileTrend .sparkline svg { height:22px; }
-  .mobilePriceGroup .price { font-size:12px; font-weight:400; }
-  .mobilePriceGroup .rate { font-size:12px; }
   .table .position { width:38px; min-height:44px; }
   .rank { font-size:32px; line-height:1.05; }
   .position[data-digits="3"] .rank { font-size:23px; }
@@ -183,13 +129,10 @@
   .listFooter { align-items:flex-start; flex-direction:column; margin-top:18px; gap:12px; }
   .pager { width:100%; justify-content:space-between; gap:8px; }
   .pageLink { font-size:12px; padding:8px 10px; }
-  .dataNote { font-size:11px; }
 }
 @container ranking (width < 340px) {
-  .rankColumn { width:42px; }
   .value { font-size:16px; }
   .name { font-size:13px; }
-  .mobilePriceGroup { gap:10px; }
   .pageHeader h1 { font-size:26px; }
 }
 @media(prefers-reduced-motion:reduce) {

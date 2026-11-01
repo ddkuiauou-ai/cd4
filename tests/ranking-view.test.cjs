@@ -377,24 +377,28 @@ test("ambiguous aliases use immutable IDs, prices stay exact, and dated chart ga
   assert.deepEqual(rows[0].prices.map(price => price.date), ["2026-10-02", "2026-10-03", "2026-10-06"]);
   const loader = createBusinessPageLoader();
   const React = require("react");
-  const { RankingRate, RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
-  const rate = documentOf((await loader.renderElement(React.createElement(RankingRate, { row: rows[0] }))).html);
-  assert.match(rate.querySelector("span").getAttribute("aria-label"), /9,007,199,254,740,993원.*2026-10-06.*-1\.23%/);
-  const sparkline = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row: rows[0] }))).html);
-  assert.equal(sparkline.querySelectorAll("polyline").length, 2);
-  assert.equal(sparkline.querySelectorAll("circle").length, 2);
-  assert.match(sparkline.querySelector('[role="img"]').getAttribute("aria-label"), /2026-10-02–2026-10-06/);
+  const { RankingQuote } = loader.load("components/ranking-quote.tsx");
+  const quote = documentOf((await loader.renderElement(React.createElement(RankingQuote, { row: rows[0] }))).html);
+  assert.equal(quote.querySelector(".price").textContent, "9,007,199,254,740,993원");
+  assert.equal(quote.querySelector(".price").getAttribute("title"), "가격 관측일 2026-10-06");
+  assert.equal(quote.querySelector(".price").getAttribute("aria-label"), "종가 9,007,199,254,740,993원");
+  assert.match(quote.querySelector(".rate").getAttribute("aria-label"), /9,007,199,254,740,993원.*2026-10-06.*-1\.23%/);
+  assert.equal(quote.querySelectorAll("polyline").length, 2);
+  assert.equal(quote.querySelectorAll("circle").length, 2);
+  assert.match(quote.querySelector('[role="img"]').getAttribute("aria-label"), /2026-10-02–2026-10-06.*결측 구간은 연결하지 않습니다/);
   const adjacent = view.createRankingRows([publishedSecurity(2, { prices: [
     { date: "2026-10-02", close: "9007199254740992" }, { date: "2026-10-03", close: "9007199254740993" },
   ] })], "marketcap", "security")[0];
-  const exactChart = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row: adjacent }))).html);
-  assert.equal(exactChart.querySelector("polyline").getAttribute("points"), "0.00,20.00 108.00,0.00");
+  const exactChart = documentOf((await loader.renderElement(React.createElement(RankingQuote, { row: adjacent }))).html);
+  const [, , width, height] = exactChart.querySelector("svg").getAttribute("viewBox").split(" ").map(Number);
+  const points = exactChart.querySelector("polyline").getAttribute("points").split(" ").map(pair => pair.split(",").map(Number));
+  assert.deepEqual(points, [[7, height - 7], [width - 7, 7]], "A one-won change above the safe integer range must span the plot without flattening");
 });
 
 test("sparkline and quote directions follow the stored daily rate independently of the whole price trend", async () => {
   const loader = createBusinessPageLoader();
   const React = require("react");
-  const { RankingRate, RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
+  const { RankingQuote } = loader.load("components/ranking-quote.tsx");
   for (const [rate, direction, prices] of [
     [2, "up", ["200", "100"]], [-2, "down", ["100", "200"]],
     [0, "flat", ["100", "200"]], [null, "flat", ["200", "100"]],
@@ -402,8 +406,7 @@ test("sparkline and quote directions follow the stored daily rate independently 
     const row = view.createRankingRows([publishedSecurity(1, { prices: [
       { date: "2026-10-05", close: prices[0] }, { date: "2026-10-06", close: prices[1], rate },
     ] })], "marketcap", "security")[0];
-    const document = documentOf((await loader.renderElement(React.createElement(React.Fragment, null,
-      React.createElement(RankingSparkline, { row }), React.createElement(RankingRate, { row })))).html);
+    const document = documentOf((await loader.renderElement(React.createElement(RankingQuote, { row }))).html);
     assert.equal(document.querySelector(".sparkline").dataset.direction, direction);
     assert.equal(document.querySelector(".rate").dataset.direction, direction);
     assert.equal(document.querySelector(".rate").textContent, view.formatRankingRate(rate));
@@ -413,27 +416,43 @@ test("sparkline and quote directions follow the stored daily rate independently 
 test("the latest endpoint follows the last plotted price through gaps, exact large values and a single zero observation", async () => {
   const loader = createBusinessPageLoader();
   const React = require("react");
-  const { RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
+  const { RankingQuote } = loader.load("components/ranking-quote.tsx");
   const date = index => `2026-10-${String(index + 1).padStart(2, "0")}`;
-  for (const { values, endpoint, segments } of [
-    { values: ["9007199254740992", "9007199254740993"], endpoint: [110 / 112 * 100, 2 / 24 * 100], segments: 1 },
-    { values: ["100", null, "200"], endpoint: [110 / 112 * 100, 2 / 24 * 100], segments: 2 },
-    { values: ["0"], endpoint: [50, 50], segments: 1 },
-    { values: ["100", null], endpoint: null, segments: 1 },
-    { values: ["100", "not-a-price"], endpoint: null, segments: 1 },
-    { values: [null], endpoint: null, segments: 0 },
+  for (const { values, endpoint, segments, isolated } of [
+    { values: ["9007199254740992", "9007199254740993"], endpoint: [1, 0], segments: 1, isolated: 0 },
+    { values: ["100", null, "200"], endpoint: [1, 0], segments: 2, isolated: 2 },
+    { values: ["0"], endpoint: [.5, .5], segments: 1, isolated: 1 },
+    { values: ["100", null], endpoint: null, segments: 1, isolated: 1 },
+    { values: ["100", "not-a-price"], endpoint: null, segments: 1, isolated: 1 },
+    { values: [null], endpoint: null, segments: 0, isolated: 0 },
   ]) {
     const row = view.createRankingRows([publishedSecurity(1, { prices: values.map((close, index) => ({ date: date(index), close })) })], "marketcap", "security")[0];
-    const document = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row }))).html);
+    const document = documentOf((await loader.renderElement(React.createElement(RankingQuote, { row }))).html);
     assert.equal(document.querySelectorAll("polyline").length, segments);
+    assert.equal(document.querySelectorAll("circle").length, isolated);
     const marker = document.querySelector(".sparklineEndpoint");
-    if (!endpoint) assert.equal(marker, null);
+    if (!endpoint) {
+      assert.equal(marker, null);
+      assert.equal(document.querySelector(".price").textContent, "가격 정보 없음");
+      if (!segments) {
+        assert.equal(document.querySelector("svg"), null);
+        assert.equal(document.querySelector('[role="img"]').getAttribute("aria-label"), "가격 추이 정보 없음");
+      }
+    }
     else {
       assert.ok(marker);
       assert.equal(marker.getAttribute("aria-hidden"), "true");
       assert.equal(marker.closest("svg"), null, "The endpoint must keep its circular shape outside a stretched SVG");
-      assert.ok(Math.abs(parseFloat(marker.style.left) - endpoint[0]) < 0.001);
-      assert.ok(Math.abs(parseFloat(marker.style.top) - endpoint[1]) < 0.001);
+      const svg = document.querySelector("svg");
+      const [, , width, height] = svg.getAttribute("viewBox").split(" ").map(Number);
+      const finalPoint = [...svg.querySelectorAll("polyline")].at(-1).getAttribute("points").split(" ").at(-1).split(",").map(Number);
+      const expectedPoint = [7 + endpoint[0] * (width - 14), 7 + endpoint[1] * (height - 14)];
+      assert.deepEqual(finalPoint, expectedPoint);
+      assert.equal(svg.getAttribute("preserveAspectRatio"), "none");
+      assert.equal(svg.getAttribute("aria-hidden"), "true");
+      assert.ok(Math.abs(parseFloat(marker.style.left) - finalPoint[0] / width * 100) < 0.001);
+      assert.ok(Math.abs(parseFloat(marker.style.top) - finalPoint[1] / height * 100) < 0.001);
+      if (values.length === 1) assert.equal(document.querySelector(".price").textContent, "0원");
     }
   }
 });
