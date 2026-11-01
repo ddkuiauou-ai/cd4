@@ -1,0 +1,8 @@
+.preview { padding:0; }
+.count { color:var(--muted-foreground); font-size:12px; font-variant-numeric:tabular-nums; }
+.previewList { list-style:none; margin:0; padding:0; }
+.previewList li { border-bottom:1px solid var(--border); }
+.previewList li>a { padding:14px 0; }
+.allRecords { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:44px; color:var(--muted-foreground); font-size:13px; text-align:left; }
+.allRecords:hover { color:var(--foreground); }
+@media (height < 650px) { .previewList li:nth-child(n+4) { display:none; } }

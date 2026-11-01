@@ -5,10 +5,11 @@ import { SiteFooter } from "@/components/site-footer";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { cn } from "@/lib/utils";
 
-export function AppShell({ children, navigation, className }: {
+export function AppShell({ children, navigation, className, footer = <SiteFooter /> }: {
   children: ReactNode;
   navigation?: ReactNode;
   className?: string;
+  footer?: ReactNode;
 }) {
   return (
     <MobileHeaderProvider>
@@ -17,7 +18,7 @@ export function AppShell({ children, navigation, className }: {
         <SiteHeader />
         {navigation ? <div className="app-container shell-navigation">{navigation}</div> : null}
         <main id="main-content" className={cn("app-main", className)}>{children}</main>
-        <SiteFooter />
+        {footer}
         <BottomNavigation />
       </div>
     </MobileHeaderProvider>

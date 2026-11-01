@@ -189,7 +189,7 @@ test('scoped ranking loading and failures keep the real market context and metri
     const checkContext = () => {
       const context = document.querySelector('.tableToolbar');
       assert.match(context.querySelector('.targetControl').textContent, /종목별 기준/);
-      assert.match(context.querySelector('.basis').textContent, /시장코스피.*지표 기준2026.10.06/);
+      assert.match(context.querySelector('.basis').textContent, /시장코스피.*기준 일자정보 없음/);
       const nav = document.querySelector('nav[aria-label="전체 순위 지표"]');
       assert.equal(nav.querySelectorAll('a').length, 7);
       assert.equal(nav.querySelector('[aria-current="page"]').textContent, 'PER');

@@ -127,6 +127,30 @@ export function getMetricUrlParam(label: string): string {
     return typeMap[label] || 'per';
 }
 
+/** A ticker has one identity across listing periods, markets and legacy SID changes. */
+export function getRecentSecurityKey(security: Pick<RecentlyViewedSecurity, 'ticker' | 'secCode'>): string {
+    return security.ticker ? `ticker:${security.ticker}` : `code:${security.secCode}`;
+}
+
+function normalizeRecentSecurities(securities: RecentlyViewedSecurity[]): RecentlyViewedSecurity[] {
+    const result = new Map<string, RecentlyViewedSecurity>();
+    for (const item of [...securities].sort((a, b) => b.lastViewed - a.lastViewed)) {
+        const key = getRecentSecurityKey(item);
+        const newest = result.get(key);
+        if (!newest) {
+            result.set(key, { ...item, metrics: { ...item.metrics } });
+            continue;
+        }
+        // Keep the newest visit's name, destination and period; merge each metric by its own timestamp.
+        for (const metric of Object.keys(METRIC_CONFIG) as MetricType[]) {
+            const candidate = item.metrics[metric];
+            const current = newest.metrics[metric];
+            if (candidate && (!current || candidate.lastViewed > current.lastViewed)) newest.metrics[metric] = candidate;
+        }
+    }
+    return [...result.values()].slice(0, MAX_RECENT_SECURITIES);
+}
+
 /**
  * 로컬 스토리지에서 최근 본 종목 목록을 가져옵니다.
  */
@@ -139,16 +163,29 @@ export function getRecentlyViewedSecurities(): RecentlyViewedSecurity[] {
 
         const parsed: unknown = JSON.parse(stored);
         if (!Array.isArray(parsed)) return [];
-        return parsed.filter((item): item is RecentlyViewedSecurity =>
+        return normalizeRecentSecurities(parsed.filter((item): item is RecentlyViewedSecurity =>
             item && typeof item.secCode === 'string' && typeof item.ticker === 'string' &&
             typeof item.name === 'string' && typeof item.exchange === 'string' &&
             Number.isFinite(item.lastViewed) && item.metrics && typeof item.metrics === 'object'
-        ).map(item => ({ ...item, lastPath: sanitizedRecentDetailPath(item.lastPath) }))
-            .sort((a, b) => b.lastViewed - a.lastViewed).slice(0, MAX_RECENT_SECURITIES);
+        ).map(item => ({ ...item, lastPath: sanitizedRecentDetailPath(item.lastPath) })));
     } catch (error) {
         console.error('Failed to load recently viewed securities:', error);
         return [];
     }
+}
+
+/** Persist local repairs after mounting, keeping external-store snapshot reads side-effect free. */
+export function repairRecentlyViewedSecurities(): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored || !Array.isArray(JSON.parse(stored))) return;
+        const repaired = JSON.stringify(getRecentlyViewedSecurities());
+        if (stored !== repaired) {
+            localStorage.setItem(STORAGE_KEY, repaired);
+            notifyRecentSecuritiesChanged();
+        }
+    } catch { /* Normalized records remain readable when storage cannot be written. */ }
 }
 
 /**
@@ -167,36 +204,15 @@ export function addRecentlyViewedSecurity(
         const now = Date.now();
         const secCode = security.secCode;
 
-        // 기존 항목 찾기 및 업데이트
-        const existingIndex = securities.findIndex(s => security.securityId && s.securityId
-            ? s.securityId === security.securityId : s.secCode === secCode);
+        const updated = normalizeRecentSecurities([{
+            ...security,
+            lastMetric: metricType,
+            lastPath: sanitizedRecentDetailPath(security.lastPath) || securityPath({ securityId: security.securityId || secCode, routeCode: security.routeCode ?? secCode }, metricType),
+            lastViewed: now,
+            metrics: { [metricType]: { value: metricValue ?? null, lastViewed: now } },
+        }, ...securities]);
 
-        if (existingIndex >= 0) {
-            // 기존 항목 업데이트 및 맨 앞으로 이동
-            const existing = securities.splice(existingIndex, 1)[0];
-            Object.assign(existing, security, { lastMetric: metricType });
-            existing.lastPath = sanitizedRecentDetailPath(security.lastPath) || securityPath({ securityId: existing.securityId || secCode, routeCode: existing.routeCode ?? existing.secCode }, metricType);
-            existing.metrics[metricType] = { value: metricValue ?? null, lastViewed: now };
-            existing.lastViewed = now;
-            securities.unshift(existing);
-        } else {
-            // 새 항목 추가 (최대 개수 제한 확인)
-            if (securities.length >= MAX_RECENT_SECURITIES) {
-                securities.pop(); // 가장 오래된 항목 제거
-            }
-
-            securities.unshift({
-                ...security,
-                lastMetric: metricType,
-                lastPath: sanitizedRecentDetailPath(security.lastPath) || securityPath({ securityId: security.securityId || secCode, routeCode: security.routeCode ?? secCode }, metricType),
-                lastViewed: now,
-                metrics: {
-                    [metricType]: { value: metricValue ?? null, lastViewed: now }
-                }
-            });
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(securities.slice(0, MAX_RECENT_SECURITIES)));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         notifyRecentSecuritiesChanged();
     } catch (error) {
         console.error('Failed to save recently viewed security:', error);
@@ -270,7 +286,8 @@ export function migrateRecentSecurityIdentities(identities: readonly (SecurityRo
     const result = new Map<string, RecentlyViewedSecurity>();
     for (const item of recent) {
         const byId = identities.find(identity => identity.securityId === (item.securityId || item.secCode));
-        const matches = byId ? [byId] : identities.filter(identity => `${identity.exchange}.${identity.ticker}` === item.secCode);
+        const matches = byId ? [byId] : identities.filter(identity => item.ticker
+            ? identity.ticker === item.ticker : `${identity.exchange}.${identity.ticker}` === item.secCode);
         const identity = matches.length === 1 ? matches[0] : null;
         const routeCode = identity ? aliases.get(identity.securityId) ?? null : item.routeCode;
         const destination = parseRecentDetailPath(item.lastPath);

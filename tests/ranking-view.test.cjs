@@ -118,8 +118,7 @@ async function renderPage(route, {
 }
 
 function documentOf(html) { return new JSDOM(html).window.document; }
-function desktopRows(document) { return [...document.querySelectorAll(".desktopTable tbody tr")]; }
-function mobileRows(document) { return [...document.querySelectorAll(".mobileTable tbody tr")].filter(row => row.querySelector("button.position")); }
+function rankingRows(document) { return [...document.querySelectorAll(".responsiveTable table tbody tr")]; }
 
 test("ranking metrics precede scope, market context and export, and metric changes retain the market without reusing another publication revision", async () => {
   const scopeKey = "kosdaq-preferred";
@@ -135,14 +134,16 @@ test("ranking metrics precede scope, market context and export, and metric chang
   const csv = document.querySelector('a[href^="/ranking-data/"]');
   assert.match(target.textContent, /종목별 기준/);
   assert.equal(target.querySelector("nav"), null);
-  assert.match(basis.textContent, /시장코스닥 우선주.*지표 기준2026.10.06/);
+  assert.deepEqual([...basis.querySelectorAll("dt")].map(label => label.textContent), ["시장", "기준 일자"]);
+  assert.match(basis.textContent, /시장코스닥 우선주.*기준 일자정보 없음/);
+  assert.doesNotMatch(basis.textContent, /2026.10.06/, "A publication date must not stand in for a missing price observation");
   assert.equal(metrics.querySelectorAll("a").length, 7);
   assert.equal(metrics.querySelector('[aria-current="page"]').textContent, "PER");
   assert.equal(metrics.querySelector('a[title="주가순자산비율"]').getAttribute("href"), `/pbr?scope=${scopeKey}`);
   assert.equal(metrics.compareDocumentPosition(context) & 4, 4);
   assert.equal(target.compareDocumentPosition(basis) & 4, 4);
   assert.equal(basis.compareDocumentPosition(csv) & 4, 4);
-  assert.equal(csv.compareDocumentPosition(document.querySelector(".desktopTable")) & 4, 4);
+  assert.equal(csv.compareDocumentPosition(document.querySelector(".responsiveTable")) & 4, 4);
   assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'));
 });
 
@@ -160,10 +161,12 @@ test("company and security market-cap targets keep a fixed visible order and lin
     assert.equal(metrics.compareDocumentPosition(targets) & 4, 4);
     assert.equal(targets.querySelectorAll("a")[0].getAttribute("href"), "/marketcaps");
     assert.equal(targets.querySelectorAll("a")[1].getAttribute("href"), "/marketcap");
-    assert.match(document.querySelector(".tableToolbar .basis").textContent, /시총 기준2026.10.06/);
+    assert.equal(document.querySelector(".tableToolbar .contextLabel"), null);
+    assert.match(document.querySelector(".tableToolbar .basis").textContent, /시장코스피 · 코스닥 전체/);
+    assert.match(document.querySelector(".tableToolbar .basis").textContent, /기준 일자정보 없음/);
     if (scope === "company") {
-      assert.ok(document.querySelector('.desktopTable a[href="/company/company-1/marketcap"]'));
-      assert.match(document.querySelector(".dataNote").textContent, /기업 시총은 보통주·우선주 합산.*가격·등락·추이는 대표 보통주 기준/);
+      assert.ok(document.querySelector('.responsiveTable a[href="/company/company-1/marketcap"]'));
+      assert.match(document.querySelector(".dataBasis").textContent, /보통주와 우선주를 합산.*대표 보통주 기준/);
       assert.equal(metrics.querySelector('a[title="주가수익비율"]').getAttribute("href"), "/per");
     }
   }
@@ -175,9 +178,9 @@ test("actual company routes render the twenty official entities with stable link
     const { html, text, calls } = await renderPage(route, { items, total: 121 });
     const document = documentOf(html);
     assert.deepEqual(calls, [["company", 1, undefined]]);
-    assert.equal(desktopRows(document).length, 20);
-    assert.equal(mobileRows(document).length, 20);
-    assert.deepEqual(mobileRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.marketcapRank)));
+    assert.equal(document.querySelectorAll(".ranking-main table").length, 1);
+    assert.equal(rankingRows(document).length, 20);
+    assert.deepEqual(rankingRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.marketcapRank)));
     assert.match(text, /공식기업20/);
     assert.match(text, /전체 121개 기업 · 1–20위/);
     assert.ok(document.querySelector('a[href="/company/company-20/marketcap"]'));
@@ -193,18 +196,87 @@ test("all seven actual metric pages use tem ranks without replacing their order 
     const { html, text, calls } = await renderPage(`app/(market)/${metric}/page.tsx`, { items });
     const document = documentOf(html);
     assert.deepEqual(calls, [["security", metric, 1, "asc", "krx-all", undefined]]);
-    assert.equal(desktopRows(document).length, 20);
-    assert.equal(mobileRows(document).length, 20);
-    assert.deepEqual(mobileRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.currentRank)));
+    assert.equal(document.querySelectorAll(".ranking-main table").length, 1);
+    assert.equal(rankingRows(document).length, 20);
+    assert.deepEqual(rankingRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.currentRank)));
     assert.ok(document.querySelector(`a[href="/security/KOSPI.005930/${metric}"]`));
     const exportURL = new URL(document.querySelector('a[href^="/ranking-data/"]').getAttribute("href"), "https://example.test");
     assert.equal(exportURL.pathname, `/ranking-data/securities-${metric}.csv`);
     assert.equal(exportURL.searchParams.get("revision"), publication.revision);
     assert.equal(exportURL.searchParams.get("scope"), "krx-all");
-    assert.match(text, /공개 기준일 2026-10-06/);
+    assert.match(text, /공개 기준일 2026\.10\.06/);
     assert.match(text, /2000-01-04/);
     assert.match(text, /9,007,199,254,740,993/);
   }
+});
+
+test("one server-rendered table associates each entity's four cells with accessible column headers", async () => {
+  const { html } = await renderPage("app/(market)/page.tsx", {
+    items: [publishedCompany(1, { securities: [{ securityId: "common-1", type: "보통주", exchange: "KOSPI", ticker: "005930", prices: [
+      { date: "2026-10-05", close: "9007199254740992" },
+      { date: "2026-10-06", close: "9007199254740993", rate: "-1.23" },
+    ] }] })], total: 1,
+  });
+  const document = documentOf(html);
+  const tables = document.querySelectorAll(".ranking-main table");
+  assert.equal(tables.length, 1, "Viewport changes must reuse one server-rendered set of rows");
+  const table = tables[0];
+  assert.equal(table.getAttribute("role"), "table");
+  assert.match(table.querySelector("caption").textContent, /기업 합산.*순위.*주가 등락과 별개/);
+  const headers = [...table.querySelectorAll('thead th[scope="col"]')];
+  assert.equal(headers.length, 4);
+  assert.equal(new Set(headers.map(header => header.id)).size, 4);
+  headers.forEach(header => {
+    assert.ok(header.id);
+    assert.equal(header.getAttribute("role"), "columnheader");
+  });
+  const rows = rankingRows(document);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].getAttribute("role"), "row");
+  const cells = [...rows[0].querySelectorAll(":scope > td")];
+  assert.equal(cells.length, 4);
+  cells.forEach((cell, index) => {
+    assert.equal(cell.getAttribute("role"), "cell");
+    assert.ok(cell.getAttribute("headers")?.split(/\s+/).includes(headers[index].id));
+  });
+  assert.equal(table.querySelectorAll("button.position").length, 1);
+  assert.equal(table.querySelectorAll(".nameLink").length, 1);
+  assert.equal(table.querySelectorAll(".valueDetails").length, 1);
+  assert.ok(cells[1].querySelector('a[href="/company/company-1/marketcap"]'));
+  assert.match(cells[2].querySelector(".valueDetails p").textContent, /9,007,199,254,740,993.*2026-10-06/);
+  assert.match(cells[3].textContent, /9,007,199,254,740,993원/);
+  assert.match(cells[3].textContent, /-1\.23%/);
+  assert.match(cells[3].querySelector('[role="img"]').getAttribute("aria-label"), /2026-10-05–2026-10-06/);
+  assert.ok(cells[3].querySelector("svg polyline"), "Price history must exist before browser measurements run");
+});
+
+test("server-rendered responsive quotes preserve gaps, a zero price, and latest missing-price states", async () => {
+  const { html } = await renderPage("app/(market)/marketcap/page.tsx", {
+    items: [
+      publishedSecurity(1, { prices: [
+        { date: "2026-10-04", close: "100" },
+        { date: "2026-10-05", close: null },
+        { date: "2026-10-06", close: "200", rate: "2" },
+      ] }),
+      publishedSecurity(2, { prices: [{ date: "2026-10-06", close: "0", rate: "0" }] }),
+      publishedSecurity(3, { prices: [
+        { date: "2026-10-05", close: "100" },
+        { date: "2026-10-06", close: null, rate: null },
+      ] }),
+      publishedSecurity(4, { prices: [] }),
+    ], total: 4,
+  });
+  const quotes = rankingRows(documentOf(html)).map(row => row.cells[3]);
+  assert.equal(quotes.length, 4);
+  assert.equal(quotes[0].querySelectorAll("polyline").length, 2, "Missing observations must not be bridged");
+  assert.ok(quotes[0].querySelector(".sparklineEndpoint"));
+  assert.match(quotes[1].textContent, /0원/);
+  assert.ok(quotes[1].querySelector(".sparklineEndpoint"), "A valid zero observation must retain its endpoint");
+  assert.equal(quotes[2].querySelectorAll("polyline").length, 1);
+  assert.equal(quotes[2].querySelector(".sparklineEndpoint"), null, "An older valid point must not stand in for a missing latest endpoint");
+  assert.match(quotes[2].textContent, /가격 정보 없음/);
+  assert.equal(quotes[3].querySelector("svg"), null);
+  assert.match(quotes[3].textContent, /가격 정보 없음/);
 });
 
 test("official ranking values preserve supplied zero and negatives and are not filtered by current master status", async () => {
@@ -214,7 +286,7 @@ test("official ranking values preserve supplied zero and negatives and are not f
     publishedSecurity(9, { value: "9007199254740993.125", priorRank: null }),
   ], total: 3 });
   const document = documentOf(html);
-  const rows = desktopRows(document);
+  const rows = rankingRows(document);
   assert.deepEqual(rows.map(row => row.querySelector("button[data-rank]").dataset.rank), ["1", "6", "9"]);
   assert.deepEqual(rows.map(row => row.querySelector(".valueDetails p").textContent), [
     "0배지표 관측일 2000-01-04", "-12.3배지표 관측일 2000-01-04", "9,007,199,254,740,993.125배지표 관측일 2000-01-04",
@@ -222,7 +294,7 @@ test("official ranking values preserve supplied zero and negatives and are not f
   assert.match(rows[0].textContent, /우선주/);
   assert.match(rows[1].querySelector("button").getAttribute("aria-label"), /2계단 하락/);
   assert.match(rows[2].querySelector("button").getAttribute("aria-label"), /이전 순위 정보가 없습니다/);
-  assert.equal(mobileRows(document).length, 3);
+  assert.equal(rows.length, 3);
 });
 
 test("metric page two renders the hundred-item next window and carries both revision and scope", async () => {
@@ -235,8 +307,8 @@ test("metric page two renders the hundred-item next window and carries both revi
     });
     const document = documentOf(html);
     assert.deepEqual(calls, [["security", metric, 2, "asc", scope, publication.revision]]);
-    assert.equal(desktopRows(document).length, 100);
-    assert.equal(mobileRows(document).length, 100);
+    assert.equal(document.querySelectorAll(".ranking-main table").length, 1);
+    assert.equal(rankingRows(document).length, 100);
     assert.match(text, /공식종목21/);
     assert.match(text, /공식종목120/);
     assert.match(text, /전체 120개 종목 · 21–120위/);
@@ -253,8 +325,8 @@ test("company page two renders one hundred official totals with a first-page pre
   });
   const document = documentOf(html);
   assert.deepEqual(calls, [["company", 2, publication.revision]]);
-  assert.equal(desktopRows(document).length, 100);
-  assert.equal(mobileRows(document).length, 100);
+  assert.equal(document.querySelectorAll(".ranking-main table").length, 1);
+  assert.equal(rankingRows(document).length, 100);
   const pager = document.querySelector('nav[aria-label="순위 목록 페이지"]');
   assert.equal(pager.querySelector("a").getAttribute("href"), `/marketcaps?revision=${publication.revision}`);
   assert.equal(pager.querySelectorAll("a").length, 1);
@@ -265,11 +337,11 @@ test("published zero-member rankings allow a header-only export while unpublishe
   assert.match(completed.text, /공개된 순위 대상은 0개/);
   assert.match(completed.text, /자료 갱신 번호 9007199254740993/);
   assert.match(completed.html, /securities-per\.csv\?revision=9007199254740993/);
-  assert.doesNotMatch(completed.html, /다음 페이지|<tbody>/);
+  assert.doesNotMatch(completed.html, /다음 페이지|<tbody\b/);
   const unpublished = await renderPage("app/(market)/per/page.tsx", { total: 0, state: "unpublished", resultPublication: null });
   assert.match(unpublished.text, /아직 공개된 순위가 없습니다/);
   assert.doesNotMatch(unpublished.text, /완료됐으며.*0건/);
-  assert.doesNotMatch(unpublished.html, /ranking-data\/|다음 페이지|<tbody>/);
+  assert.doesNotMatch(unpublished.html, /ranking-data\/|다음 페이지|<tbody\b/);
 });
 
 test("a replaced revision refreshes from the same scope and does not display new rows under an old URL", async () => {
@@ -280,7 +352,7 @@ test("a replaced revision refreshes from the same scope and does not display new
   assert.deepEqual(calls, [["security", "per", 2, "asc", "kospi", "1"]]);
   assert.match(text, /자료가 갱신되었습니다/);
   assert.match(html, /href="\/per\?scope=kospi"[^>]*>최신 자료 보기/);
-  assert.doesNotMatch(html, /<tbody>|ranking-data\/|다음 페이지/);
+  assert.doesNotMatch(html, /<tbody\b|ranking-data\/|다음 페이지/);
 });
 
 test("invalid page numbers and nonexistent current pages produce 404 rather than an empty result", async () => {
@@ -319,20 +391,116 @@ test("ambiguous aliases use immutable IDs, prices stay exact, and dated chart ga
   assert.equal(exactChart.querySelector("polyline").getAttribute("points"), "0.00,20.00 108.00,0.00");
 });
 
-test("partial and missing company inputs remain ranked and the price basis states the actual range", async () => {
+test("sparkline and quote directions follow the stored daily rate independently of the whole price trend", async () => {
+  const loader = createBusinessPageLoader();
+  const React = require("react");
+  const { RankingRate, RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
+  for (const [rate, direction, prices] of [
+    [2, "up", ["200", "100"]], [-2, "down", ["100", "200"]],
+    [0, "flat", ["100", "200"]], [null, "flat", ["200", "100"]],
+  ]) {
+    const row = view.createRankingRows([publishedSecurity(1, { prices: [
+      { date: "2026-10-05", close: prices[0] }, { date: "2026-10-06", close: prices[1], rate },
+    ] })], "marketcap", "security")[0];
+    const document = documentOf((await loader.renderElement(React.createElement(React.Fragment, null,
+      React.createElement(RankingSparkline, { row }), React.createElement(RankingRate, { row })))).html);
+    assert.equal(document.querySelector(".sparkline").dataset.direction, direction);
+    assert.equal(document.querySelector(".rate").dataset.direction, direction);
+    assert.equal(document.querySelector(".rate").textContent, view.formatRankingRate(rate));
+  }
+});
+
+test("the latest endpoint follows the last plotted price through gaps, exact large values and a single zero observation", async () => {
+  const loader = createBusinessPageLoader();
+  const React = require("react");
+  const { RankingSparkline } = loader.load("components/ranking-row-parts.tsx");
+  const date = index => `2026-10-${String(index + 1).padStart(2, "0")}`;
+  for (const { values, endpoint, segments } of [
+    { values: ["9007199254740992", "9007199254740993"], endpoint: [110 / 112 * 100, 2 / 24 * 100], segments: 1 },
+    { values: ["100", null, "200"], endpoint: [110 / 112 * 100, 2 / 24 * 100], segments: 2 },
+    { values: ["0"], endpoint: [50, 50], segments: 1 },
+    { values: ["100", null], endpoint: null, segments: 1 },
+    { values: ["100", "not-a-price"], endpoint: null, segments: 1 },
+    { values: [null], endpoint: null, segments: 0 },
+  ]) {
+    const row = view.createRankingRows([publishedSecurity(1, { prices: values.map((close, index) => ({ date: date(index), close })) })], "marketcap", "security")[0];
+    const document = documentOf((await loader.renderElement(React.createElement(RankingSparkline, { row }))).html);
+    assert.equal(document.querySelectorAll("polyline").length, segments);
+    const marker = document.querySelector(".sparklineEndpoint");
+    if (!endpoint) assert.equal(marker, null);
+    else {
+      assert.ok(marker);
+      assert.equal(marker.getAttribute("aria-hidden"), "true");
+      assert.equal(marker.closest("svg"), null, "The endpoint must keep its circular shape outside a stretched SVG");
+      assert.ok(Math.abs(parseFloat(marker.style.left) - endpoint[0]) < 0.001);
+      assert.ok(Math.abs(parseFloat(marker.style.top) - endpoint[1]) < 0.001);
+    }
+  }
+});
+
+test("ranking movement exposes its own direction and preserves unchanged and unavailable states", async () => {
+  const loader = createBusinessPageLoader();
+  const React = require("react");
+  const { RankingPosition } = loader.load("components/ranking-position.tsx");
+  for (const [rank, priorRank, direction, label] of [
+    [3, 10, "up", "7계단 상승"], [10, 3, "down", "7계단 하락"], [3, 3, "flat", "순위 유지"],
+    [3, null, null, "이전 순위 정보가 없습니다"], [null, 3, null, "순위 정보 없음"],
+  ]) {
+    const document = documentOf((await loader.renderElement(React.createElement(RankingPosition, { rank, priorRank }))).html);
+    const movement = document.querySelector(".movement");
+    assert.ok(document.querySelector("button").getAttribute("aria-label").includes(label));
+    if (!direction) assert.equal(movement, null);
+    else {
+      assert.equal(movement.dataset.direction, direction);
+      assert.equal(movement.textContent, direction === "flat" ? "유지" : "7");
+    }
+  }
+});
+
+test("responsive ranking rows keep price and rank directions independent", async () => {
+  const scenarios = [
+    { rank: 1, priorRank: 3, rate: -2, priceDirection: "down", rankDirection: "up" },
+    { rank: 4, priorRank: 2, rate: 2, priceDirection: "up", rankDirection: "down" },
+    { rank: 5, priorRank: 5, rate: 0, priceDirection: "flat", rankDirection: "flat" },
+    { rank: 6, priorRank: null, rate: null, priceDirection: "flat", rankDirection: null },
+  ];
+  const { html } = await renderPage("app/(market)/marketcap/page.tsx", { total: 4,
+    items: scenarios.map(({ rank, priorRank, rate }) => publishedSecurity(rank, { priorRank, prices: [
+      { date: "2026-10-05", close: "100" }, { date: "2026-10-06", close: "200", rate },
+    ] })),
+  });
+  const document = documentOf(html);
+  const entries = rankingRows(document);
+  assert.equal(entries.length, scenarios.length);
+  entries.forEach((entry, index) => {
+    const scenario = scenarios[index];
+    assert.equal(entry.querySelector(".rate").dataset.direction, scenario.priceDirection);
+    assert.equal(entry.querySelector(".sparkline").dataset.direction, scenario.priceDirection);
+    assert.equal(entry.querySelector(".sparklineEndpoint").getAttribute("aria-hidden"), "true");
+    const movement = entry.querySelector(".movement");
+    assert.equal(movement?.dataset.direction ?? null, scenario.rankDirection);
+  });
+});
+
+test("partial and missing company inputs remain ranked with the latest price date in the toolbar and the actual range in context", async () => {
   const common = date => ({ securityId: `common-${date}`, exchange: "KOSPI", ticker: "005930", type: "보통주",
     prices: [{ date, close: "83000", rate: "2", volume: "1200" }] });
   const { html, text } = await renderPage("app/(market)/marketcaps/page.tsx", { items: [
     publishedCompany(1, { value: null, marketcap: null, securities: [common("2026-10-02")], marketcapCompleteness: "missing_input" }),
     publishedCompany(2, { securities: [common("2026-10-06")], marketcapCompleteness: "insufficient_link" }),
     publishedCompany(3),
-  ], total: 3 });
+  ], total: 3, resultPublication: { ...publication, asOf: "2026-10-08" } });
   const document = documentOf(html);
-  assert.equal(desktopRows(document).length, 3);
+  assert.equal(rankingRows(document).length, 3);
   assert.match(text, /합산 자료 부족/);
   assert.match(text, /합산 자료 연결 근거 부족/);
-  assert.match(text, /가격 관측일 2026-10-02–2026-10-06/);
-  assert.match(desktopRows(document)[2].textContent, /대표 종목 없음/);
-  assert.ok(desktopRows(document)[2].querySelector('a[href="/company/company-3/marketcap"]'));
-  assert.match(desktopRows(document)[0].querySelector(".valueDetails summary").getAttribute("aria-label"), /지표 정보 없음/);
+  const basis = document.querySelector(".tableToolbar .basis");
+  assert.deepEqual([...basis.querySelectorAll("dt")].map(label => label.textContent), ["시장", "기준 일자"]);
+  assert.match(basis.textContent, /기준 일자2026.10.06/);
+  assert.doesNotMatch(basis.textContent, /2026.10.02|2026.10.08|시총 기준|주가 기준/);
+  assert.match(document.querySelector(".dataBasis").textContent, /공개 기준일2026.10.08/);
+  assert.match(text, /가격 관측일 2026\.10\.02–2026\.10\.06/);
+  assert.match(rankingRows(document)[2].textContent, /대표 종목 없음/);
+  assert.ok(rankingRows(document)[2].querySelector('a[href="/company/company-3/marketcap"]'));
+  assert.match(rankingRows(document)[0].querySelector(".valueDetails summary").getAttribute("aria-label"), /지표 정보 없음/);
 });

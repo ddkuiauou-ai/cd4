@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { RankingDirectoryFooter } from "@/components/ranking-directory-footer";
 
 export default function MarketLayout({
     children,
@@ -6,7 +7,7 @@ export default function MarketLayout({
     children: React.ReactNode;
 }) {
     return (
-        <AppShell>
+        <AppShell footer={<RankingDirectoryFooter />}>
             <div className="app-container">{children}</div>
         </AppShell>
     );

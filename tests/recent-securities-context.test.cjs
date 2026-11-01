@@ -106,5 +106,5 @@ test('loading stored rows sanitizes destinations before any consumer reads them'
   assert.equal(rows[1].lastPath, undefined);
 }, [
   record({ lastPath: '/security/relisted-id/per?period=old&end=2026-10-08&unknown=discard' }),
-  record({ secCode: 'other', securityId: 'other', lastViewed: 10, lastPath: '//evil.test/security/id' }),
+  record({ secCode: 'other', securityId: 'other', ticker: '000001', lastViewed: 10, lastPath: '//evil.test/security/id' }),
 ]));

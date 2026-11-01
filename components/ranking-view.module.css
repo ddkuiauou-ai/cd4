@@ -9,7 +9,6 @@
 .metricNavigation a:not([aria-current]):hover { color:var(--foreground); background:var(--muted); }
 .tableToolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; margin-bottom:20px; }
 .targetControl { display:flex; align-items:center; gap:10px; flex:none; }
-.contextLabel { color:var(--muted-foreground); font-size:12px; white-space:nowrap; }
 .scopeLabel { display:block; padding-block:12px; font-size:13px; font-weight:600; }
 .scopeOptions { display:flex; border:1px solid var(--border); border-radius:3px; }
 .scopeOptions a { display:flex; align-items:center; justify-content:center; min-height:44px; min-width:92px; padding:8px 14px; font-size:13px; font-weight:600; }
@@ -57,8 +56,16 @@
 .rate[data-direction="flat"] { color:var(--foreground); }
 .rate[data-direction="up"] { color:var(--market-up,#dc3030); }
 .rate[data-direction="down"] { color:var(--market-down,#1d5fbf); }
-.sparkline { display:inline-flex; max-width:100%; color:var(--market-down,#2457d6); vertical-align:middle; }
+.sparkline { position:relative; display:inline-flex; max-width:100%; color:var(--muted-foreground); vertical-align:middle; }
+.sparkline[data-direction="up"] { color:var(--market-up); }
+.sparkline[data-direction="down"] { color:var(--market-down); }
 .sparkline svg { display:block; max-width:100%; }
+.sparklineEndpoint { --chart-endpoint-gold:#ffd700; position:absolute; width:14px; height:14px; box-sizing:border-box; border:2px dotted var(--chart-endpoint-gold); background:transparent; border-radius:50%; transform:translate(-50%,-50%) rotate(var(--endpoint-angle,0deg)); pointer-events:none; filter:drop-shadow(0 0 1px color-mix(in srgb,var(--chart-endpoint-gold) 50%,transparent)); animation:endpointBlink 1.8s ease-in-out infinite; animation-play-state:paused; }
+.sparklineEndpoint[data-animate="true"] { animation-play-state:running; }
+@keyframes endpointBlink {
+  0%,100% { opacity:1; }
+  50% { opacity:.12; }
+}
 .table .sparkline { width:100%; max-width:260px; }
 .table .sparkline svg { width:100%; height:28px; }
 .noTrend { display:inline-block; font-size:12px; color:var(--muted-foreground); }
@@ -74,6 +81,8 @@
 .position[data-rank="3"] .rank { color:var(--rank-third,#174dc6); }
 :global(.dark) .table tbody tr:hover,:global(.dark) .table tbody tr:focus-within { background:var(--record-selection,#342c17); }
 .movement { display:inline-flex; align-items:center; justify-content:center; gap:2px; color:var(--muted-foreground); font-size:12px; line-height:1.2; white-space:nowrap; font-weight:500; }
+.movement[data-direction="up"] { color:var(--market-up); }
+.movement[data-direction="down"] { color:var(--market-down); }
 .movement svg { display:block; height:12px; width:12px; flex-shrink:0; stroke-width:1.8; }
 .rankNote { position:absolute; left:0; top:100%; width:max-content; max-width:min(260px,calc(100vw - 36px)); z-index:20; padding:10px 12px; color:var(--popover-foreground); background:var(--popover); border:1px solid var(--border); border-radius:4px; font-size:13px; font-weight:400; line-height:1.5; box-shadow:0 4px 14px #0002; }
 .rankNote span { display:block; color:var(--muted-foreground); margin-top:2px; font-size:11px; }
@@ -131,11 +140,10 @@
 @container ranking (width < 680px) {
   .pageHeader { margin-bottom:14px; }
   .pageHeader h1 { font-size:28px; margin-bottom:12px; }
-  .metricNavigation { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0 8px; }
-  .metricNavigation a { font-size:13px; padding:8px 2px; min-height:44px; }
+  .metricNavigation { flex-wrap:nowrap; gap:0 16px; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; padding:6px; scroll-padding-inline:6px; scrollbar-width:thin; }
+  .metricNavigation a { flex:0 0 auto; min-width:44px; font-size:13px; padding:8px 6px; min-height:44px; }
   .tableToolbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px 12px; margin-bottom:14px; align-items:center; }
   .targetControl { grid-column:1/-1; gap:10px; }
-  .contextLabel { font-size:11px; }
   .scopeOptions { flex:1; }
   .scopeOptions a { flex:1; min-width:0; }
   .scopeLabel { padding-block:4px; }
@@ -178,8 +186,6 @@
   .dataNote { font-size:11px; }
 }
 @container ranking (width < 340px) {
-  .metricNavigation { gap:0 2px; }
-  .metricNavigation a { font-size:12px; }
   .rankColumn { width:42px; }
   .value { font-size:16px; }
   .name { font-size:13px; }
@@ -188,4 +194,72 @@
 }
 @media(prefers-reduced-motion:reduce) {
   .table tbody tr,.rowArrow { transition:none; }
+  .sparklineEndpoint { animation:none; opacity:1; }
+}
+
+/* One semantic table; only the contents of each row reflow. Legacy/dashboard styles stay scoped out. */
+.responsiveTable { width:100%; min-width:0; }
+.responsiveRanking { display:block; width:100%; }
+.responsiveRanking thead,.responsiveRanking tbody { display:block; width:100%; }
+.responsiveRanking tr { display:grid; grid-template-columns:clamp(30px,calc(4cqi + 15px),58px) minmax(0,1fr) clamp(84px,calc(12cqi + 40px),150px) minmax(0,1.18fr); grid-template-areas:"rank identity metric quote"; column-gap:clamp(8px,1.8cqi,20px); align-items:center; border-bottom:1px solid var(--border); }
+.responsiveRanking thead tr { border-top:1px solid var(--brand-red); }
+.responsiveRanking th,.responsiveRanking td { display:block; min-width:0; width:auto; height:auto; padding:12px 0; border:0; }
+.responsiveRanking th:first-child,.responsiveRanking td:first-child,.responsiveRanking th:last-child,.responsiveRanking td:last-child { padding-inline:0; }
+.responsiveRanking th { color:var(--muted-foreground); font-size:11px; font-weight:400; }
+.responsiveRanking tbody tr { min-height:80px; padding-block:12px; }
+.responsiveRanking td { padding-block:0; }
+.responsiveRanking th:nth-child(1),.responsiveRanking .rankCell { grid-area:rank; }
+.responsiveRanking th:nth-child(2),.responsiveRanking .identityCell { grid-area:identity; }
+.responsiveRanking .metricCell { grid-area:metric; text-align:right; }
+.responsiveRanking .quoteHeading,.responsiveRanking .responsiveQuoteCell { grid-area:quote; }
+.responsiveRanking .quoteHeading { text-align:right; }
+.responsiveQuoteHeadings { display:flex; justify-content:flex-end; gap:4px; font-size:11px; }
+.responsiveRanking .position { flex-direction:column; align-items:center; justify-content:center; width:100%; gap:3px; }
+.responsiveRanking .rank { font-size:clamp(30px,4.2cqi,38px); line-height:1.1; }
+.responsiveRanking .position[data-digits="3"] .rank { font-size:23px; }
+.responsiveRanking .position[data-digits="4"] .rank,.responsiveRanking .position[data-digits="5"] .rank { font-size:clamp(14px,calc(1.3cqi + 10px),17px); }
+.responsiveRanking .movement { font-size:11px; }
+.responsiveRanking .identity { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; }
+.responsiveRanking .nameLink { gap:4px; }
+.responsiveRanking .name { font-size:16px; line-height:1.45; }
+.responsiveRanking .code { display:flex; flex-wrap:wrap; margin:0; font-size:11px; line-height:1.5; }
+.responsiveRanking .code>span { white-space:nowrap; }
+.responsiveRanking .value { font-size:clamp(19px,calc(.5cqi + 17px),22px); }
+.responsiveRanking .valueDetails { vertical-align:baseline; }
+.compactMetricHeading,.metricHint { display:none; }
+.responsiveQuote { --quote-mode:stack; position:relative; container:quote / inline-size; display:grid; grid-template-columns:minmax(0,1fr) 50px; gap:4px 8px; align-items:baseline; min-width:0; }
+.responsiveQuote>.price { grid-column:1; grid-row:1; justify-self:end; max-width:100%; text-align:right; font-size:14px; line-height:20px; }
+.responsiveQuote>.rate { grid-column:2; grid-row:1; justify-self:end; font-size:12px; line-height:18px; }
+.responsiveQuote .quotePlot { grid-column:1/-1; grid-row:2; display:flex; align-items:center; justify-content:center; width:100%; max-width:none; height:clamp(44px,calc(28px + 8cqi),60px); }
+.responsiveQuote .quotePlot svg { width:100%; height:100%; max-width:none; overflow:visible; }
+@container ranking (min-width:850px) {
+  .responsiveRanking tr { grid-template-columns:clamp(30px,calc(4cqi + 15px),58px) clamp(190px,22cqi,220px) clamp(108px,12cqi,128px) minmax(0,1fr); }
+  .responsiveQuote { --quote-mode:inline; grid-template-columns:100px 50px minmax(0,1fr); column-gap:14px; align-items:center; }
+  .responsiveQuote .quotePlot { grid-column:3; grid-row:1; height:clamp(44px,calc(16cqi - 29px),60px); }
+  .responsiveQuoteHeadings { display:grid; grid-template-columns:100px 50px minmax(0,1fr); column-gap:14px; }
+}
+@container ranking (max-width:400px) {
+  .responsiveRanking tbody tr { padding-block:10px; }
+  .responsiveQuote { --quote-mode:overlay; min-height:88px; grid-template-columns:minmax(0,1fr); grid-template-rows:max-content minmax(52px,1fr) max-content; gap:0; }
+  .responsiveQuote>.price { grid-column:1; grid-row:1; width:max-content; font-size:13px; line-height:18px; }
+  .responsiveQuote>.rate { grid-column:1; grid-row:3; width:max-content; font-size:12px; line-height:16px; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
+  .responsiveQuote .quotePlot { grid-column:1; grid-row:2; height:100%; min-height:52px; }
+  .responsiveQuote[data-measured="true"] { display:block; height:var(--quote-height,88px); }
+  .responsiveQuote[data-measured="true"]>.price,.responsiveQuote[data-measured="true"]>.rate { position:absolute; z-index:1; }
+  .responsiveQuote[data-measured="true"]>.price { top:0; left:var(--price-left,0px); }
+  .responsiveQuote[data-measured="true"]>.rate { bottom:0; left:var(--rate-left,0px); }
+  .responsiveQuote[data-measured="true"] .quotePlot { position:absolute; inset:0; height:100%; }
+}
+@container ranking (max-width:355px) {
+  .responsiveRanking tr { grid-template-columns:28px minmax(0,1fr) clamp(105px,calc(50cqi - 60px),118px); grid-template-areas:"rank identity quote" "rank metric quote"; column-gap:8px; row-gap:2px; }
+  .responsiveRanking .identity { display:grid; grid-template-columns:minmax(0,1fr); justify-items:start; gap:2px; }
+  .responsiveRanking .name { font-size:15px; }
+  .responsiveRanking .nameLink { padding:0; }
+  .responsiveRanking .rowArrow { display:none; }
+  .responsiveRanking td.metricCell { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 6px; text-align:left; }
+  .responsiveRanking .metricCell .completeness { flex-basis:100%; }
+  .responsiveRanking .metricCell .value { font-size:18px; }
+  .responsiveRanking th.metricCell { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .compactMetricHeading,.metricHint { display:inline; font-size:11px; font-weight:400; color:var(--muted-foreground); }
+  .responsiveQuoteHeadings { display:none; }
 }

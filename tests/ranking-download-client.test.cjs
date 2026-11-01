@@ -38,6 +38,9 @@ test('real ranking downloader validates pinned revision and scope before saving,
     await React.act(async () => mounted.render(React.createElement(CsvDownloadButton, { key: ++key,
       scope: 'security', metric: 'per', scopeKey: 'kospi', revision: basis.revision, refreshHref: '/per?scope=kospi' })));
     const link = document.querySelector('a[href^="/ranking-data/"]');
+    assert.equal(link.textContent, '전체 순위 CSV');
+    assert.equal(document.querySelector('[role="status"]').textContent, '');
+    assert.doesNotMatch(document.body.textContent, /전체 순위 · 엑셀에서 열 수 있어요/);
     await React.act(async () => link.click());
   }
   try {

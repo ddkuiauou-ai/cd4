@@ -141,8 +141,8 @@ export function CsvDownloadButton({
         </Button>
       )}
       {(message || isRanking) && (
-        <p role="status" aria-live="polite" className={cn("max-w-72 text-xs leading-relaxed", hasError ? "text-destructive" : "text-muted-foreground")}>
-          {message || "전체 순위 · 엑셀에서 열 수 있어요"}
+        <p role="status" aria-live="polite" className={cn("max-w-72 text-xs leading-relaxed", hasError ? "text-destructive" : "text-muted-foreground", !message && "sr-only")}>
+          {message}
           {hasNewBasis && <a href={refreshHref ?? (scope === "company" ? "/marketcaps" : `/${metric}?scope=${encodeURIComponent(scopeKey)}`)} className="ml-2 rounded-sm text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">최신 자료 보기</a>}
         </p>
       )}

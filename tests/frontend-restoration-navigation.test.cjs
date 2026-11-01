@@ -42,7 +42,7 @@ test('display rounding never changes exact integers and zero/negative values sta
 
 test('old recent aliases are upgraded without losing metrics or linking an ambiguous code arbitrarily', () => {
   const key = 'recently-viewed-securities';
-  const record = (secCode, lastViewed, metrics, securityId) => ({ secCode, securityId, name: 'Samsung', korName: '삼성전자', ticker: '005930', exchange: 'KOSPI', lastViewed, metrics });
+  const record = (secCode, lastViewed, metrics, securityId) => ({ secCode, securityId, name: 'Samsung', korName: '삼성전자', ticker: secCode.includes('.') ? secCode.split('.')[1] : '005930', exchange: 'KOSPI', lastViewed, metrics });
   const storage = new Map([[key, JSON.stringify([
     record('KOSPI.005930', 20, { pbr: { value: '0', lastViewed: 20 } }),
     record('id', 10, { marketcap: { value: '9007199254740993', lastViewed: 10 } }, 'id'),
