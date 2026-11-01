@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { metricItems } from "@/lib/metric-navigation";
 import { cn } from "@/lib/utils";
 import { companyPath, securityPath, type CompanyRouteIdentity, type SecurityRouteIdentity } from "@/lib/entity-paths";
+import { useCompanyTabNavigation } from './company-tab-navigation';
 
 export function CompanyFinancialTabs({ secCode, security, company, className, periodId, start, end }: {
     secCode?: string;
@@ -16,6 +17,7 @@ export function CompanyFinancialTabs({ secCode, security, company, className, pe
     end?: string;
 }) {
     const pathname = usePathname().replace(/\/$/, '');
+    const navigateCompanyTab = useCompanyTabNavigation();
     const companyContext = pathname.startsWith('/company/');
     const base = companyContext
         ? company ? companyPath(company) : secCode ? `/company/${encodeURIComponent(secCode)}` : null
@@ -24,6 +26,7 @@ export function CompanyFinancialTabs({ secCode, security, company, className, pe
         ? [{key: 'basic', label: '기업 정보'}, {key: 'marketcap', label: '기업 합산 시총'}]
         : [{key: 'basic', label: '기본 정보'}, ...metricItems];
     return <nav aria-label={companyContext ? '기업 상세 페이지' : '종목 상세 페이지'}
+        data-active-tab={companyContext ? pathname === `${base}/marketcap` ? 'marketcap' : 'info' : undefined}
         className={cn('detail-metric-nav', companyContext && 'detail-company-nav', className)}>
         {items.map(({key, label}) => {
             const baseHref = base ? `${base}${key === 'basic' ? '' : `/${key}`}` : null;
@@ -34,7 +37,10 @@ export function CompanyFinancialTabs({ secCode, security, company, className, pe
             const href = baseHref && query.size ? `${baseHref}?${query}` : baseHref;
             const active = pathname === baseHref;
             if (!href) return <span key={key} aria-disabled="true" title="연결된 대상이 없습니다">{label}</span>;
-            return <Link key={key} href={href} prefetch={false} aria-current={active ? 'page' : undefined}>{label}</Link>;
+            return <Link key={key} href={href} prefetch={false} aria-current={active ? 'page' : undefined}
+                onNavigate={companyContext && navigateCompanyTab ? event => {
+                    if (navigateCompanyTab(href)) event.preventDefault();
+                } : undefined}>{label}</Link>;
         })}
     </nav>;
 }

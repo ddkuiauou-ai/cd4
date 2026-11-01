@@ -230,46 +230,6 @@ export const pension = pgTable(
   ]
 );
 
-export const displayName = pgTable(
-  "display_name",
-  {
-    id: serial("id").primaryKey(),
-    value: text("value").notNull(),
-    order: integer("order").default(0),
-    companyId: text("company_id")
-      .notNull()
-      .references(() => company.companyId),
-    companyName: text("company_name").notNull(),
-    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-  },
-  (table) => [
-    index("display_name_company_id_idx").on(table.companyId),
-    index("display_name_value_idx").on(table.value),
-    index("display_name_created_at_idx").on(table.createdAt),
-  ]
-);
-
-export const searchName = pgTable(
-  "search_name",
-  {
-    id: serial("id").primaryKey(),
-    value: text("value").notNull(),
-    companyId: text("company_id")
-      .notNull()
-      .references(() => company.companyId),
-    companyName: text("company_name").notNull(),
-    order: integer("order").default(0),
-    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-  },
-  (table) => [
-    index("search_name_company_id_idx").on(table.companyId),
-    index("search_name_value_idx").on(table.value),
-    index("search_name_created_at_idx").on(table.createdAt),
-  ]
-);
-
 export const security = pgTable(
   "security",
   {
@@ -479,12 +439,12 @@ export const price = pgTable(
     nonnegativeCheck("price_transaction_nonnegative_check", table.transaction),
     finiteCheck("price_rate_finite_check", table.rate),
     finiteCheck("price_fvolume_finite_check", table.fvolume),
-    index("price_security_id_idx").on(table.securityId),
+    index("price_security_id_idx").on(table.securityId).where(sql`${table.securityId} IS NOT NULL`),
     index("price_date_idx").on(table.date),
     index("price_ticker_idx").on(table.ticker),
     index("price_year_month_idx").on(table.year, table.month),
     index("price_created_at_idx").on(table.createdAt),
-    index("price_security_id_date_idx").on(table.securityId, table.date),
+    index("price_security_id_date_idx").on(table.securityId, table.date).where(sql`${table.securityId} IS NOT NULL`),
     index("price_exchange_date_idx").on(table.exchange, table.date),
     index("price_ticker_exchange_idx").on(table.ticker, table.exchange),
     index("price_date_exchange_idx").on(table.date, table.exchange), // Renamed from idx_price_date_exchange
@@ -523,12 +483,12 @@ export const marketcap = pgTable(
     nonnegativeCheck("marketcap_transaction_nonnegative_check", table.transaction),
     nonnegativeCheck("marketcap_marketcap_nonnegative_check", table.marketcap),
     nonnegativeCheck("marketcap_shares_nonnegative_check", table.shares),
-    index("marketcap_security_id_idx").on(table.securityId),
+    index("marketcap_security_id_idx").on(table.securityId).where(sql`${table.securityId} IS NOT NULL`),
     index("marketcap_date_idx").on(table.date),
     index("marketcap_ticker_idx").on(table.ticker),
     index("marketcap_year_month_idx").on(table.year, table.month),
     index("marketcap_created_at_idx").on(table.createdAt),
-    index("marketcap_security_id_date_idx").on(table.securityId, table.date),
+    index("marketcap_security_id_date_idx").on(table.securityId, table.date).where(sql`${table.securityId} IS NOT NULL`),
     index("marketcap_date_exchange_idx").on(table.date, table.exchange), // Renamed from idx_marketcap_date_exchange
   ]
 );
@@ -581,12 +541,12 @@ export const bppedd = pgTable(
     finiteCheck("bppedd_div_finite_check", table.div),
     rawStateCheck("bppedd_dps_state_check", table.dps, table.dpsState),
     finiteCheck("bppedd_dps_finite_check", table.dps),
-    index("bppedd_security_id_idx").on(table.securityId),
+    index("bppedd_security_id_idx").on(table.securityId).where(sql`${table.securityId} IS NOT NULL`),
     index("bppedd_date_idx").on(table.date),
     index("bppedd_ticker_idx").on(table.ticker),
     index("bppedd_year_month_idx").on(table.year, table.month),
     index("bppedd_created_at_idx").on(table.createdAt),
-    index("bppedd_security_id_date_idx").on(table.securityId, table.date),
+    index("bppedd_security_id_date_idx").on(table.securityId, table.date).where(sql`${table.securityId} IS NOT NULL`),
     index("bppedd_date_exchange_idx").on(table.date, table.exchange), // Renamed from idx_bppedd_date_exchange
   ]
 );
@@ -609,7 +569,7 @@ export const stockcodename = pgTable(
     nonemptyCheck("stockcodename_ticker_check", table.ticker),
     nonemptyCheck("stockcodename_source_ref_check", table.sourceRef),
     primaryKey({ columns: [table.date, table.ticker, table.exchange] }),
-    index("stockcodename_security_id_idx").on(table.securityId),
+    index("stockcodename_security_id_idx").on(table.securityId).where(sql`${table.securityId} IS NOT NULL`),
     index("stockcodename_ticker_idx").on(table.ticker),
     index("stockcodename_name_idx").on(table.name),
     index("stockcodename_exchange_idx").on(table.exchange),
@@ -618,129 +578,6 @@ export const stockcodename = pgTable(
   ]
 );
 
-export const tmp_bppedds = pgTable(
-  "tmp_bppedds",
-  {
-    date: timestamp("date", { mode: "date", withTimezone: true }).notNull(),
-    ticker: text("ticker").notNull(),
-    sourceRef: text("source_ref").notNull(),
-    bps: doublePrecision("bps"),
-    bpsState: sourceFieldStateEnum("bps_state").notNull(),
-    per: doublePrecision("per"),
-    perState: sourceFieldStateEnum("per_state").notNull(),
-    pbr: doublePrecision("pbr"),
-    pbrState: sourceFieldStateEnum("pbr_state").notNull(),
-    eps: doublePrecision("eps"),
-    epsState: sourceFieldStateEnum("eps_state").notNull(),
-    div: doublePrecision("div"),
-    divState: sourceFieldStateEnum("div_state").notNull(),
-    dps: doublePrecision("dps"),
-    dpsState: sourceFieldStateEnum("dps_state").notNull(),
-    exchange: text("exchange").notNull(),
-    createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => [
-    dailyCheck("tmp_bppedds_daily_check", table.date),
-    nonemptyCheck("tmp_bppedds_exchange_check", table.exchange),
-    nonemptyCheck("tmp_bppedds_ticker_check", table.ticker),
-    nonemptyCheck("tmp_bppedds_source_ref_check", table.sourceRef),
-    rawStateCheck("tmp_bppedds_bps_state_check", table.bps, table.bpsState),
-    finiteCheck("tmp_bppedds_bps_finite_check", table.bps),
-    rawStateCheck("tmp_bppedds_per_state_check", table.per, table.perState),
-    finiteCheck("tmp_bppedds_per_finite_check", table.per),
-    rawStateCheck("tmp_bppedds_pbr_state_check", table.pbr, table.pbrState),
-    finiteCheck("tmp_bppedds_pbr_finite_check", table.pbr),
-    rawStateCheck("tmp_bppedds_eps_state_check", table.eps, table.epsState),
-    finiteCheck("tmp_bppedds_eps_finite_check", table.eps),
-    rawStateCheck("tmp_bppedds_div_state_check", table.div, table.divState),
-    finiteCheck("tmp_bppedds_div_finite_check", table.div),
-    rawStateCheck("tmp_bppedds_dps_state_check", table.dps, table.dpsState),
-    finiteCheck("tmp_bppedds_dps_finite_check", table.dps),
-    primaryKey({ columns: [table.date, table.ticker, table.exchange] }),
-    index("tmp_bppedds_ticker_idx").on(table.ticker),
-    index("tmp_bppedds_date_idx").on(table.date),
-    index("tmp_bppedds_exchange_idx").on(table.exchange),
-    index("tmp_bppedds_date_exchange_idx").on(table.date, table.exchange),
-  ]
-);
-
-export const tmp_marketcaps = pgTable(
-  "tmp_marketcaps",
-  {
-    date: timestamp("date", { mode: "date", withTimezone: true }).notNull(),
-    ticker: text("ticker").notNull(),
-    sourceRef: text("source_ref").notNull(),
-    close: doublePrecision("close").notNull(),
-    marketcap: bigint("marketcap", { mode: "bigint" }).notNull(),
-    volume: bigint("volume", { mode: "bigint" }).notNull(),
-    transaction: bigint("transaction", { mode: "bigint" }),
-    shares: bigint("shares", { mode: "bigint" }).notNull(),
-    exchange: text("exchange").notNull(),
-    createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => [
-    dailyCheck("tmp_marketcaps_daily_check", table.date),
-    nonemptyCheck("tmp_marketcaps_exchange_check", table.exchange),
-    nonemptyCheck("tmp_marketcaps_ticker_check", table.ticker),
-    nonemptyCheck("tmp_marketcaps_source_ref_check", table.sourceRef),
-    finiteCheck("tmp_marketcaps_close_finite_check", table.close),
-    nonnegativeCheck("tmp_marketcaps_close_nonnegative_check", table.close),
-    nonnegativeCheck("tmp_marketcaps_volume_nonnegative_check", table.volume),
-    nonnegativeCheck("tmp_marketcaps_transaction_nonnegative_check", table.transaction),
-    nonnegativeCheck("tmp_marketcaps_marketcap_nonnegative_check", table.marketcap),
-    nonnegativeCheck("tmp_marketcaps_shares_nonnegative_check", table.shares),
-    primaryKey({ columns: [table.date, table.ticker, table.exchange] }),
-    index("tmp_marketcaps_ticker_idx").on(table.ticker),
-    index("tmp_marketcaps_date_idx").on(table.date),
-    index("tmp_marketcaps_exchange_idx").on(table.exchange),
-    index("tmp_marketcaps_date_exchange_idx").on(table.date, table.exchange),
-  ]
-);
-
-export const tmp_prices = pgTable(
-  "tmp_prices",
-  {
-    date: timestamp("date", { mode: "date", withTimezone: true }).notNull(),
-    ticker: text("ticker").notNull(),
-    sourceRef: text("source_ref").notNull(),
-    open: doublePrecision("open").notNull(),
-    high: doublePrecision("high").notNull(),
-    low: doublePrecision("low").notNull(),
-    close: doublePrecision("close").notNull(),
-    volume: bigint("volume", { mode: "bigint" }).notNull(),
-    transaction: bigint("transaction", { mode: "bigint" }),
-    rate: doublePrecision("rate"),
-    exchange: text("exchange").notNull(),
-    createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => [
-    dailyCheck("tmp_prices_daily_check", table.date),
-    nonemptyCheck("tmp_prices_exchange_check", table.exchange),
-    nonemptyCheck("tmp_prices_ticker_check", table.ticker),
-    nonemptyCheck("tmp_prices_source_ref_check", table.sourceRef),
-    finiteCheck("tmp_prices_open_finite_check", table.open),
-    nonnegativeCheck("tmp_prices_open_nonnegative_check", table.open),
-    finiteCheck("tmp_prices_high_finite_check", table.high),
-    nonnegativeCheck("tmp_prices_high_nonnegative_check", table.high),
-    finiteCheck("tmp_prices_low_finite_check", table.low),
-    nonnegativeCheck("tmp_prices_low_nonnegative_check", table.low),
-    finiteCheck("tmp_prices_close_finite_check", table.close),
-    nonnegativeCheck("tmp_prices_close_nonnegative_check", table.close),
-    nonnegativeCheck("tmp_prices_volume_nonnegative_check", table.volume),
-    nonnegativeCheck("tmp_prices_transaction_nonnegative_check", table.transaction),
-    finiteCheck("tmp_prices_rate_finite_check", table.rate),
-    primaryKey({ columns: [table.date, table.ticker, table.exchange] }),
-    index("tmp_prices_ticker_idx").on(table.ticker),
-    index("tmp_prices_date_idx").on(table.date),
-    index("tmp_prices_exchange_idx").on(table.exchange),
-    index("tmp_prices_date_exchange_idx").on(table.date, table.exchange),
-  ]
-);
-
-/** A code has one security identity and any number of reviewed, disjoint listing episodes. */
 export const securityListingPeriod = pgTable("security_listing_period", {
   periodId: text("period_id").primaryKey(),
   securityId: text("security_id").notNull().references(() => security.securityId),
@@ -749,8 +586,6 @@ export const securityListingPeriod = pgTable("security_listing_period", {
   lastPresentOn: date("last_present_on", {mode:"string"}).notNull(),
   listingSourceRef: text("listing_source_ref").notNull(),
   delistingSourceRef: text("delisting_source_ref"),
-  relistingReviewRef: text("relisting_review_ref"),
-  mappingRef: text("mapping_ref"),
   createdAt: timestamp("created_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
   updatedAt: timestamp("updated_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
 }, table => [
@@ -762,8 +597,6 @@ export const securityListingPeriod = pgTable("security_listing_period", {
   check("security_listing_period_end_proof_check", sql`(${table.delistingDate} IS NULL) = (${table.delistingSourceRef} IS NULL)`),
   nonemptyCheck("security_listing_period_listing_ref_check",table.listingSourceRef),
   nonemptyCheck("security_listing_period_delisting_ref_check",table.delistingSourceRef),
-  nonemptyCheck("security_listing_period_review_ref_check",table.relistingReviewRef),
-  nonemptyCheck("security_listing_period_mapping_ref_check",table.mappingRef),
 ]);
 
 /** Name events continue through delisted gaps; unknown precision never fabricates an exact date. */
@@ -771,30 +604,27 @@ export const securityEvent = pgTable("security_event", {
   eventId: text("event_id").primaryKey(),
   securityId: text("security_id").notNull().references(() => security.securityId),
   companyId: text("company_id").references(() => company.companyId),
-  eventType: text("event_type",{enum:['security_name_change','company_name_change']}).notNull(),
+  eventType: text("event_type",{enum:['security_name_change','company_name_change','market_transfer']}).notNull(),
   effectiveOn: date("effective_on",{mode:"string"}),
   datePrecision: text("date_precision",{enum:['day','year','unknown']}).notNull(),
   eventYear: integer("event_year"),
   oldName: text("old_name").notNull(), newName: text("new_name").notNull(),
   sourceRef: text("source_ref").notNull(),
   basis: text("basis",{enum:['roster_observed','disclosure','reviewed']}).notNull(),
-  reviewRef: text("review_ref"), mappingRef: text("mapping_ref"),
   createdAt: timestamp("created_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
   updatedAt: timestamp("updated_at",{withTimezone:true,mode:"date"}).defaultNow().notNull(),
 }, table => [
   index("security_event_security_date_idx").on(table.securityId,table.effectiveOn),
-  check("security_event_kind_check",sql`${table.eventType} IN ('security_name_change','company_name_change')
+  check("security_event_kind_check",sql`${table.eventType} IN ('security_name_change','company_name_change','market_transfer')
     AND (${table.eventType} <> 'company_name_change' OR ${table.companyId} IS NOT NULL)`),
   check("security_event_precision_check",sql`(${table.datePrecision} = 'day' AND ${table.effectiveOn} IS NOT NULL
       AND isfinite(${table.effectiveOn}) AND (${table.eventYear} IS NULL OR ${table.eventYear} = extract(year from ${table.effectiveOn})))
     OR (${table.datePrecision} = 'year' AND ${table.effectiveOn} IS NULL AND ${table.eventYear} IS NOT NULL AND ${table.eventYear} BETWEEN 1 AND 9999)
     OR (${table.datePrecision} = 'unknown' AND ${table.effectiveOn} IS NULL AND ${table.eventYear} IS NULL)`),
-  check("security_event_basis_check",sql`${table.basis} IN ('roster_observed','disclosure','reviewed')
-    AND (${table.basis} NOT IN ('reviewed','disclosure') OR ${table.reviewRef} IS NOT NULL)`),
+  check("security_event_basis_check",sql`${table.basis} IN ('roster_observed','disclosure','reviewed')`),
   check("security_event_changed_name_check",sql`${table.oldName} <> ${table.newName}`),
   nonemptyCheck("security_event_old_name_check",table.oldName),nonemptyCheck("security_event_new_name_check",table.newName),
-  nonemptyCheck("security_event_source_ref_check",table.sourceRef),nonemptyCheck("security_event_review_ref_check",table.reviewRef),
-  nonemptyCheck("security_event_mapping_ref_check",table.mappingRef),
+  nonemptyCheck("security_event_source_ref_check",table.sourceRef),
 ]);
 
 export const securityRank = pgTable("security_rank", {
@@ -848,28 +678,12 @@ export const securityRank = pgTable("security_rank", {
 
 export const companyRelations = relations(company, ({ many }) => ({
   pensions: many(pension),
-  displayNames: many(displayName),
-  searchNames: many(searchName),
   securities: many(security),
 }));
 
 export const pensionRelations = relations(pension, ({ one }) => ({
   company: one(company, {
     fields: [pension.companyId],
-    references: [company.companyId],
-  }),
-}));
-
-export const displayNameRelations = relations(displayName, ({ one }) => ({
-  company: one(company, {
-    fields: [displayName.companyId],
-    references: [company.companyId],
-  }),
-}));
-
-export const searchNameRelations = relations(searchName, ({ one }) => ({
-  company: one(company, {
-    fields: [searchName.companyId],
     references: [company.companyId],
   }),
 }));
@@ -926,12 +740,8 @@ export type InsertPension = typeof pension.$inferInsert;
 export type SelectPension = typeof pension.$inferSelect;
 
 // DisplayName Types
-export type InsertDisplayName = typeof displayName.$inferInsert;
-export type SelectDisplayName = typeof displayName.$inferSelect;
 
 // SearchName Types
-export type InsertSearchName = typeof searchName.$inferInsert;
-export type SelectSearchName = typeof searchName.$inferSelect;
 
 // Security Types
 export type InsertSecurity = typeof security.$inferInsert;
@@ -954,16 +764,10 @@ export type InsertStockcodename = typeof stockcodename.$inferInsert;
 export type SelectStockcodename = typeof stockcodename.$inferSelect;
 
 // Tmp_bppedds Types
-export type InsertTmpBppedds = typeof tmp_bppedds.$inferInsert;
-export type SelectTmpBppedds = typeof tmp_bppedds.$inferSelect;
 
 // Tmp_marketcaps Types
-export type InsertTmpMarketcaps = typeof tmp_marketcaps.$inferInsert;
-export type SelectTmpMarketcaps = typeof tmp_marketcaps.$inferSelect;
 
 // Tmp_prices Types
-export type InsertTmpPrices = typeof tmp_prices.$inferInsert;
-export type SelectTmpPrices = typeof tmp_prices.$inferSelect;
 
 // SecurityRank Types
 export type InsertSecurityRank = typeof securityRank.$inferInsert;

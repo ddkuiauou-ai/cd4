@@ -14,9 +14,9 @@ const { migrate } = require("drizzle-orm/postgres-js/migrator");
 
 const migrationsFolder = path.resolve(__dirname, "../drizzle");
 const requiredTables = [
-  "bppedd", "company", "display_name", "marketcap", "pension", "price",
-  "search_name", "security", "security_rank", "stockcodename",
-  "tmp_bppedds", "tmp_marketcaps", "tmp_prices",
+  "bppedd", "company", "marketcap", "pension", "price",
+  "security", "security_rank", "stockcodename",
+  "security_listing_period", "security_event",
   "result_publication",
 ];
 const expectedMetrics = ["marketcap", "bps", "per", "pbr", "eps", "div", "dps"];

@@ -692,7 +692,7 @@
       },
       "headline": {
         "displayName": "조회 제목",
-        "purpose": "공통 제목은38px 궁서400. 순위는clamp(28px,3.2vw,44px),메인은clamp(30px,3.6vw,48px)와화면별모바일규칙을쓴다. 모듈의보조크기를전역토큰으로증식하지않는다."
+        "purpose": "공통 제목은 38px 궁서 400. 순위는 본문 컨테이너 기준 clamp(28px,3.2cqi,38px), 메인은 clamp(30px,3.6vw,48px)와 화면별 모바일 규칙을 쓴다. 순위는 본문 폭 680px 미만에서 28px, 340px 미만에서 26px다. 모듈의 보조 크기를 전역 토큰으로 증식하지 않는다."
       },
       "headline-mobile": {
         "displayName": "조회 제목 · 모바일",
@@ -777,6 +777,11 @@
         "name": "brand-star",
         "value": "transform 180ms ease-out",
         "purpose": "워드마크 hover에서 원본 별의 작은 회전. reduced-motion 규칙을 따른다."
+      },
+      {
+        "name": "company-tab-selection",
+        "value": "transform 180ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "기업 정보·기업 합산 시총의 공통 하단 기준선 위에서 선택 밑줄을 이동한다. prefers-reduced-motion에서는 transition: none을 사용한다."
       }
     ],
     "breakpoints": [
@@ -847,9 +852,9 @@
       "name": "Metric Navigation",
       "kind": "nav",
       "refersTo": "metric-navigation",
-      "description": "전체 순위를 고르는 일곱 지표. 모바일 네 열 그리드·넓은 화면 일곱 열로 모두 노출하며 상세의 기본정보 포함8탭과 구분한다.",
-      "html": "<nav class=\"ds-metrics\" aria-label=\"순위 지표\"><a href=\"/marketcaps\" aria-current=\"page\">시가총액</a><a href=\"/per\">PER</a><a href=\"/pbr\">PBR</a><a href=\"/eps\">EPS</a><a href=\"/bps\">BPS</a><a href=\"/div\">배당수익률</a><a href=\"/dps\">주당배당금</a></nav>",
-      "css": ".ds-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--border,#ccd3df);border-bottom:2px solid var(--record-rule,#c61628);font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif);font-size:13px}.ds-metrics a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 4px;text-align:center;color:var(--foreground,#111b2c);text-decoration:none;border-bottom:2px solid transparent}.ds-metrics a[aria-current=page]{border-bottom-color:var(--record-rule,#c61628);background:var(--selected,#fff2bc);font-weight:700}.ds-metrics a:hover{background:var(--selected,#fff2bc)}.ds-metrics a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px}@media(min-width:768px){.ds-metrics{grid-template-columns:repeat(7,minmax(0,1fr))}}"
+      "description": "2026-10-30 승인된 랭킹 A의 첫 탐색 단계. 일곱 지표를 본문 폭 680px 미만에서 네 열·두 행으로 모두 노출하고 넓은 화면에서는 텍스트 메뉴로 읽는다. 활성 지표는 금색 밑줄이며 상세의 기본 정보 포함 8탭과 구분한다.",
+      "html": "<div class=\"ds-ranking-nav-context\"><nav class=\"ds-metrics\" aria-label=\"순위 지표\"><a href=\"/marketcaps\" aria-current=\"page\">시가총액</a><a href=\"/per\">PER</a><a href=\"/pbr\">PBR</a><a href=\"/eps\">EPS</a><a href=\"/bps\">BPS</a><a href=\"/div\">배당수익률</a><a href=\"/dps\">주당배당금</a></nav></div>",
+      "css": ".ds-ranking-nav-context{container:ds-ranking-nav/inline-size}.ds-metrics{display:flex;flex-wrap:wrap;align-items:center;gap:4px 24px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif)}.ds-metrics a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 4px;border-bottom:3px solid transparent;color:var(--muted-foreground,#506079);font-size:14px;line-height:1.4;font-weight:500;white-space:nowrap;text-align:center;text-decoration:none}.ds-metrics a[aria-current=page]{color:var(--foreground,#111b2c);border-bottom-color:var(--primary,#f0cc62);font-weight:700}.ds-metrics a:not([aria-current]):hover{color:var(--foreground,#111b2c);background:var(--muted,#f7f7f7)}.ds-metrics a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;border-radius:3px}@container ds-ranking-nav (width < 680px){.ds-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 8px}.ds-metrics a{font-size:13px;padding:8px 2px}}@container ds-ranking-nav (width < 340px){.ds-metrics{gap:0 2px}.ds-metrics a{font-size:12px}}"
     },
     {
       "name": "Period Chip",
@@ -906,7 +911,7 @@
     "keyCharacteristics": [
       "공식 배포 원본 조선궁서 400을 사용하는 전체 로고·제목·큰 순위 숫자.",
       "흰 바탕과 짙은 남색 잉크, 금색 선택, 빨강 구획선, 상위 세 순위의 금색·빨강·파랑.",
-      "기업 합산과 실제 모든 구성 종목을 먼저 보여주고, 선택한 대상 아래에 고정 순서의 지표 메뉴를 놓는 계층.",
+      "상세는 기업 합산과 실제 모든 구성 종목을 먼저 보여주고, 선택한 대상 아래에 고정 순서의 지표 메뉴를 놓는 계층. 랭킹은 지표 선택을 먼저 둔다.",
       "모바일 두 줄 헤더, 항상 보이는 대상 선택과 지표 메뉴, 공통 위치의 데스크톱 보조 레일.",
       "실제 자료의 날짜·제공 상태·상장 기간을 유지하는 차트·표·CSV·빈 상태."
     ],
@@ -922,6 +927,11 @@
         "section": "typography"
       },
       {
+        "name": "The Ranking Metric First Rule",
+        "body": "`/`의 랭킹과 모든 지표 순위 화면에서는 일곱 지표를 첫 탐색 단계로 두고, 시가총액에만 기업 합산/종목별 집계 기준을 제공한다. 다른 지표는 ‘종목별 기준’을 표시한다. 지표 선택은 금색 밑줄, 집계 기준 선택은 금색 면으로 구분하며 모바일에서도 일곱 메뉴를 두 행에 모두 노출한다. 이 규칙은 `/dashboard`와 상세의 대상 우선 계층을 변경하지 않는다.",
+        "section": "layout"
+      },
+      {
         "name": "The Entity Before Metric Rule",
         "body": "기업 전체와 모든 실제 구성 종목을 고정 지표 메뉴보다 앞에 노출한다. 모바일 기업 전체 한 행과 구성 종목 두 열, 종목 탭 두 행×네 열을 유지한다.",
         "section": "layout"
@@ -929,6 +939,11 @@
       {
         "name": "The Companion Records Rule",
         "body": "1024px 이상 시총 상세는 현재 요약과 실제 구성 종목 비교를 나란히 두고 전체 폭 이력을 이어간다. 종목 기본은 현재/비교, 가격 이력/기업 정보, 기본 정보 순서의 두 열 기록이다. 모바일 DOM은 현재→비교→가격 이력→기업·기본 정보, 상장 이력 접근은 핵심 아래에 유지한다. 실제 비교·가격 자료만 사용하며 구현 기록을 최종 사용자 수락으로 간주하지 않는다.",
+        "section": "layout"
+      },
+      {
+        "name": "The Company Pair Navigation Rule",
+        "body": "2026-10-24 승인된 기업 정보·기업 합산 시총 두 페이지에서는 같은 기업명·기준일·대상 선택·메뉴 위치를 유지한다. 두 메뉴는 모든 폭에서 같은 너비와 48px 높이를 가지며, 전체 1px 기준선과 선택 3px 밑줄 모두 `record-rule`을 사용해 같은 하단 좌표에 겹친다. 이 기업 메뉴 규칙이 위 중립 기준선 규칙보다 우선한다. 선택 밑줄은 180ms `cubic-bezier(.16,1,.3,1)`로 이동하고 동작 줄이기 설정에서는 즉시 바뀐다. 페이지별 본문 구성과 검증 근거는 `.impeccable/review/2026-10-24-company-implementation/surface-brief.md`에 둔다.",
         "section": "layout"
       },
       {
@@ -944,8 +959,8 @@
     ],
     "dos": [
       "**Do** 전체 이름·원본 별·조선궁서 400의 표정을 유지한다.",
-      "**Do** 기업 전체와 실제 모든 구성 종목을 지표 메뉴보다 먼저 보여준다.",
-      "**Do** 현재 대상만 금색으로 선택하고 지표의 순서와 위치를 고정한다.",
+      "**Do** 상세에서 기업 전체와 실제 모든 구성 종목을 지표 메뉴보다 먼저 보여준다.",
+      "**Do** 상세의 현재 대상만 금색으로 선택하고 지표의 순서와 위치를 고정한다. 랭킹은 금색 지표 밑줄과 시가총액 집계 기준 선택을 구분한다.",
       "**Do** 순위 식별색·중립 이동량·부호 있는 가격 등락을 구분한다.",
       "**Do** 실제 공개 기준·관측일·제공 상태·상장 기간을 차트·CSV까지 보존한다.",
       "**Do** 실제 코드·링크·키보드 탐색과 기기/저장 테마를 유지한다."

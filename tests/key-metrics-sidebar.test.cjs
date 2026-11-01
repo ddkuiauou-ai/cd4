@@ -41,7 +41,7 @@ test('each period mean reports its own actual supplied dates and count including
   assert.match(stat(empty.html,'12개월 평균'),/실제 관측 — ~ — · 0개/);assert.match(stat(empty.html,'10년 평균'),/실제 관측 2020-01-01 ~ 2020-01-01 · 1개/);
 });
 
-test('company period means disclose partial sums with changing observed cohorts and share the custom window with both charts',async()=>{
+test('company period means disclose partial sums with changing observed cohorts and share the custom window with the single aggregate chart',async()=>{
   const company={companyId:'company',companyName:'Test',companyKorName:'테스트',state:'published',publication,totalMarketcap:'500',totalMarketcapDate:'2026-10-08',securities:[]};
   const history=[{date:'2024-10-01',totalMarketcap:'200',securitiesBreakdown:{a:'200',b:null},observedSecurityIds:['a'],observedCount:1,targetCount:2,partial:true},{date:'2026-10-08',totalMarketcap:'500',securitiesBreakdown:{a:'200',b:'300'},observedSecurityIds:['a','b'],observedCount:2,targetCount:2,partial:false}];
   const {html}=await render({...base,company,history},{},true);
@@ -51,7 +51,7 @@ test('company period means disclose partial sums with changing observed cohorts 
   assert.match(html,/직접 지정한 범위는 차트와 핵심 지표에 공통 적용/);
   const custom=await render({...base,company,history},{start:'2024-10-01',end:'2024-10-01'},true);
   assert.match(stat(custom.html,'12개월 평균'),/200원/);assert.match(stat(custom.html,'12개월 평균'),/실제 관측 2024-10-01 ~ 2024-10-01 · 1개/);
-  assert.equal(custom.fixture.charts.length,2);assert.ok(custom.fixture.charts.every(chart=>chart.start==='2024-10-01'&&chart.end==='2024-10-01'));
+  assert.equal(custom.fixture.charts.length,1);assert.equal(custom.fixture.charts[0].type,'summary');assert.equal(custom.fixture.charts[0].start,'2024-10-01');assert.equal(custom.fixture.charts[0].end,'2024-10-01');
 });
 
 test('an end-only custom range gives the standalone marketcap chart the same raw observations as the statistics',async()=>{
@@ -69,12 +69,21 @@ test('current price uses stored rate only from the matching published price reco
   const mismatch=await render({...base,priceHistory:[{date:'2026-10-08',close:'999',rate:8}]});assert.equal(mismatch.facts.rows.find(([label])=>label==='현재 주가')[1],'36,000원');assert.equal(mismatch.facts.rows.find(([label])=>label==='전일 대비')[1],'—');
 });
 
-test('selected security quote is independent of the company representative quote',async()=>{
+test('selected security quote remains independent while the company shows representative quotes in its constituent table and keeps the rail to scope facts',async()=>{
   const selected=await render();assert.equal(selected.facts.rows.find(([label])=>label==='전일 대비')[1],'+2.13%');
   const company={companyId:'company',companyName:'Test',companyKorName:'테스트',state:'published',publication,totalMarketcap:'500',totalMarketcapDate:'2026-10-07',securities:[]};
-  const representative={...security,securityId:'common',type:'보통주',price:'72000',priceDate:'2026-10-07'};
-  const aggregated={...base,company,security:representative,history:[{date:'2026-10-07',totalMarketcap:'500',securitiesBreakdown:{},observedSecurityIds:[]}],priceHistory:[{date:'2026-10-07',close:'72000',rate:-1}]};
-  const rendered=await render(aggregated,{},true);assert.equal(rendered.facts.rows.find(([label])=>label==='현재 주가')[1],'72,000원');assert.equal(rendered.facts.rows.find(([label])=>label==='전일 대비')[1],'-1.00%');assert.match(rendered.facts.note,/2026-10-07/);
+  const priceHistory=[{date:'2026-10-07',close:'72000',rate:-1}];
+  const representative={...security,securityId:'common',korName:'테스트',type:'보통주',marketcap:'500',marketcapDate:'2026-10-07',price:'72000',priceDate:'2026-10-07',prices:priceHistory};
+  const aggregated={...base,company:{...company,securities:[representative]},security:representative,companySecs:[representative],history:[{date:'2026-10-07',totalMarketcap:'500',securitiesBreakdown:{common:'500'},observedSecurityIds:['common']}],priceHistory};
+  const rendered=await render(aggregated,{},true);
+  assert.deepEqual(rendered.facts.rows,[['공개 기준일','2026-10-08'],['대상','기업 전체'],['구성 종목','1개']]);assert.match(rendered.facts.note,/2026-10-07/);
+  const dom=new JSDOM(rendered.html);
+  try {
+    const doc=dom.window.document,quote=doc.querySelector('#securities-summary tbody tr td:last-child');
+    assert.match(quote.textContent,/72,000원-1\.00%/);assert.match(quote.title,/2026-10-07/);
+    assert.doesNotMatch(doc.querySelector('#current-overview').textContent,/72,000원|-1\.00%/);
+    assert.equal(doc.querySelector('#price-history').open,false);
+  } finally {dom.window.close();}
 });
 
 test('metric comparison uses a matching raw observation at the displayed snapshot date and value',async()=>{
@@ -95,6 +104,13 @@ test('nonpositive prior metrics show an exact difference and the reason percenta
 test('company snapshot stays separate from registered history and cohort changes suppress comparisons',async()=>{
   const company={companyId:'company',companyName:'Test',companyKorName:'테스트',state:'published',publication,totalMarketcap:'500',totalMarketcapDate:'2026-10-05',securities:[]};
   const history=[{date:'2026-09-30',totalMarketcap:'400',securitiesBreakdown:{a:'400'},observedSecurityIds:['a'],observedCount:1,targetCount:2,partial:true},{date:'2026-10-05',totalMarketcap:'500',securitiesBreakdown:{a:'500'},observedSecurityIds:['a'],observedCount:1,targetCount:2,partial:true},{date:'2026-10-08',totalMarketcap:'999',securitiesBreakdown:{a:'999'},observedSecurityIds:['a'],observedCount:1,targetCount:2,partial:true}];
-  const same=await render({...base,company,history},{},true);assert.equal(same.facts.rows.find(([label])=>label==='현재 시가총액')[1],'500원');assert.match(stat(same.html,'현재 시가총액'),/2026-09-30 이력 대비 \+25%/);
+  const same=await render({...base,company,history},{},true);
+  const dom=new JSDOM(same.html);
+  try {
+    const current=dom.window.document.querySelector('#current-overview');
+    assert.match(current.textContent,/500원/);assert.match(current.textContent,/시가총액 기준 2026-10-05/);assert.doesNotMatch(current.textContent,/999원/);
+  } finally {dom.window.close();}
+  assert.equal(same.facts.rows.some(([label])=>label==='현재 시가총액'),false,'the company rail describes the scope rather than duplicating the main value');
+  assert.match(stat(same.html,'현재 시가총액'),/2026-09-30 이력 대비 \+25%/);
   const different=await render({...base,company,history:history.map((row,index)=>index===0?{...row,observedSecurityIds:['a','b']}:row)},{},true);assert.doesNotMatch(stat(different.html,'현재 시가총액'),/이력 대비|차이|%/);assert.match(stat(different.html,'현재 시가총액'),/관측 종목 구성이 달라 이전 이력과의 비교를 표시하지 않습니다/);assert.match(different.html,/등록 종목 합계/);
 });

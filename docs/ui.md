@@ -2,7 +2,9 @@
 
 Framework compatibility checked on 2026-10-23: Next.js 16.4.2 with React/React DOM 19.3.1 and React types 19.3.0. The existing component, theme and responsive layout contracts remain in place; validation evidence is recorded in [upgrade verification](next-upgrade-2026-10-23.md).
 
-This document serves as the **single source of truth** for all UI-related development in the 천하제일 단타대회 project, including shadcn/ui configuration, responsive design patterns, component guidelines, and service branding.
+이 문서는 과거 UI 패턴·컴포넌트 예시를 보존한다. 현재 UI 작업 지침은
+[UI·Impeccable Rules](rules/ui.md), 제품·시각 기준은 [PRODUCT](../PRODUCT.md)와
+[DESIGN](../DESIGN.md)이다. 아래의 과거 팔레트·테마·레이아웃을 최신 승인 위에 적용하지 않는다.
 
 **Last Updated:** June 15, 2025
 

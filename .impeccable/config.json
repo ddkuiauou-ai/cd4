@@ -68,6 +68,46 @@
         ],
         "createdAt": "2026-10-22T13:13:24.803Z",
         "reason": "Agent: Apple SD Gothic Neo is the documented DESIGN.md body family; the detector split its name while parsing a CSS custom-property fallback. Scoped to this header prototype."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "records",
+        "files": [
+          ".impeccable/mocks/2026-10-24-company-tabs/index.html",
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.css",
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.html"
+        ],
+        "createdAt": "2026-10-23T18:01:43.673Z",
+        "reason": "Agent: Records aliases the existing app/fonts/ChosunGs.ttf asset; DESIGN.md specifies the same ChosunGs typography."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sd gothic neo",
+        "files": [
+          ".impeccable/mocks/2026-10-24-company-tabs/index.html",
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.css",
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.html"
+        ],
+        "createdAt": "2026-10-23T18:01:43.788Z",
+        "reason": "Agent: Apple SD Gothic Neo is the existing DESIGN.md body font; detector tokenization omitted Apple."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.css"
+        ],
+        "createdAt": "2026-10-23T18:06:11.916Z",
+        "reason": "Agent: The flagged border is the 2px paper-colored separator between common and preferred segments of the composition bar, not a card accent. Verified in source and paired mock screenshots."
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/2026-10-24-company-tabs/preview.html"
+        ],
+        "createdAt": "2026-10-23T18:06:12.020Z",
+        "reason": "Agent: The flagged detail-fold wrapper delegates inset to its summary child, which has padding-block:10px and min-height:44px. The detector ignores that child padding; existing desktop/mobile captures and finish review confirm readable spacing."
       }
     ]
   }

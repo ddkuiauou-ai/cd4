@@ -46,29 +46,32 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
   const offset = currentPage === 1 ? 0 : 20 + (currentPage - 2) * 100;
   const nextCount = Math.max(0, Math.min(100, totalCount - offset - rows.length));
   const entity = scope === "company" ? "기업" : "종목";
-  const title = metric === "marketcap" ? `${scope === "company" ? "기업 합산" : "종목별"} 시가총액 순위` : RANKING_METRICS[metric].title;
+  const title = metric === "marketcap" ? "시가총액 순위" : RANKING_METRICS[metric].title;
   const marketLabel = scopeNames[scopeKey] ?? scopeKey;
   return (
     <div className="ranking-shell">
-      <section className="ranking-main" aria-labelledby="ranking-title">
+      <section className={`ranking-main ${styles.rankingMain}`} aria-labelledby="ranking-title">
         <header className={styles.pageHeader}>
           <h1 id="ranking-title">{title}</h1>
-          <div className={styles.marketContext}>
-            <div className={styles.targetControl}><span className={styles.contextLabel}>대상</span>
-              {metric === "marketcap" ? <nav className={styles.scopeOptions} aria-label="시가총액 조회 범위">
-                <Link prefetch={false} href="/marketcaps" aria-current={scope === "company" ? "page" : undefined}>기업 합산</Link>
-                <Link prefetch={false} href={`/marketcap${scopeKey !== "krx-all" ? `?scope=${encodeURIComponent(scopeKey)}` : ""}`} aria-current={scope === "security" ? "page" : undefined}>종목별</Link>
-              </nav> : <span className={styles.scopeLabel}>종목별</span>}
-            </div>
-            <dl className={styles.basis}><div><dt>시장</dt><dd>{marketLabel}</dd></div><div><dt>공개 기준일</dt><dd>{formatDate(latestDate)}</dd></div></dl>
+          <div className={styles.metricSection}>
+            <MarketNav metric={metric} scope={scope} scopeKey={scopeKey} />
           </div>
         </header>
-        <div className={styles.metricSection}>
-          <MarketNav metric={metric} scope={scope} scopeKey={scopeKey} />
-          {scope === "company" && <p className={styles.scopeHint}>시가총액은 기업 합산으로, PER 등 주당 지표는 종목별로 확인합니다.</p>}
-        </div>
         <div className={styles.tableToolbar}>
-          <p className={styles.tableContext}><strong>{scope === "company" ? "기업 합산" : "종목별"} · {RANKING_METRICS[metric].label}</strong><span>{entity}명을 누르면 해당 지표 상세로 이동합니다.</span></p>
+          <div className={styles.targetControl}>
+            {metric === "marketcap" ? <>
+              <span className={styles.contextLabel}>집계 기준</span>
+              <nav className={styles.scopeOptions} aria-label="시가총액 조회 범위">
+                <Link prefetch={false} href="/marketcaps" aria-current={scope === "company" ? "page" : undefined}>기업 합산</Link>
+                <Link prefetch={false} href={`/marketcap${scopeKey !== "krx-all" ? `?scope=${encodeURIComponent(scopeKey)}` : ""}`} aria-current={scope === "security" ? "page" : undefined}>종목별</Link>
+              </nav>
+            </> : <span className={styles.scopeLabel}>종목별 기준</span>}
+          </div>
+          <dl className={styles.basis}>
+            <div><dt>시장</dt><dd>{marketLabel}</dd></div>
+            <div><dt>{metric === "marketcap" ? "시총 기준" : "지표 기준"}</dt><dd>{formatDate(latestDate)}</dd></div>
+            {priceDate && <div><dt>주가 기준</dt><dd>{formatDate(priceDate)}</dd></div>}
+          </dl>
           {state === "published" && !revisionChanged && !feedback && <div className={styles.download}><CsvDownloadButton scope={scope} metric={metric} scopeKey={scopeKey} revision={revision}
             refreshHref={refreshHref} expectedDate={latestDate} expectedTotalCount={totalCount} staticSource={staticCsvSource} /></div>}
         </div>

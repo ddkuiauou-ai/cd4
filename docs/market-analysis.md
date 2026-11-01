@@ -1,5 +1,9 @@
 # CD3 Market Analysis Functions
 
+> 과거 분석 함수 설명이다. 아래 함수·`market-utils.ts`의 실제 구현 여부를 먼저 확인한다.
+> 현재 선택 기간 분석과 공식 지표 계산의 책임은 [데이터 Rules](rules/data-temporal.md)를 따른다.
+> 이 문서를 근거로 미구현 지표·매매 신호·공식 계산을 서비스에 새로 추가하지 않는다.
+
 This document outlines the technical analysis functions used in the CD3 Stock Information Service.
 
 **Last Updated:** May 27, 2025

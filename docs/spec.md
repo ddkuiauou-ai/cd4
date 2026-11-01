@@ -1,5 +1,10 @@
 # CD3 Project Technical Specification
 
+> 기존 명세의 과거 예시·미구현 API/명령·테마 규칙이 섞여 있다. 현재 작업은
+> [AGENTS](../AGENTS.md)와 [앱·서버 Rules](rules/app-server.md), [검증 Rules](rules/verification.md)를 따른다.
+> 버전·경로·스크립트는 실제 소스와 package.json, UI는 PRODUCT·DESIGN으로 확인한다.
+> 아래의 pnpm 실행 예시·dark default·존재하지 않는 `/api/*`를 현행 지시로 적용하지 않는다.
+
 ## Technology Stack
 
 ### Core Framework

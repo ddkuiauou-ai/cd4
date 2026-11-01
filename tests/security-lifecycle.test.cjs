@@ -130,3 +130,14 @@ test('batched latest-episode DTO cannot call a publication before its listing cu
  const result=await load('lib/static-build/read-security-batch.ts').readSecurityBatch(db,state.securities,new Map(state.companies.map(r=>[r.companyId,r])),state.publications[0],state.publications[1],new Map());
  assert.equal(result.items[0].security.publication,null);assert.equal(result.items[0].security.state,'unpublished');assert.equal(result.items[0].security.price,null);
 });
+
+
+test('market transfer stays within a ticker listing episode and appears as its own event',()=>{
+ const {load}=fixture(),f=load('lib/security-lifecycle.ts');
+ const periods=[period('continuous','2020-01-02')];
+ const event={...nameEvent,eventId:'transfer',eventType:'market_transfer',effectiveOn:'2023-01-19',eventYear:2023,oldName:'KONEX',newName:'KOSDAQ',basis:'roster_observed',sourceRef:'krx:stockcodename:2023-01-19'};
+ const timeline=f.lifecycleTimeline(periods,[event]);
+ assert.deepEqual(timeline.map(row=>row.label),['상장','시장 이전']);
+ assert.equal(timeline[1].detail,'KONEX → KOSDAQ');
+ assert.equal(f.nameForListingPeriod('한주라이트메탈',[event],periods[0]),'한주라이트메탈');
+});

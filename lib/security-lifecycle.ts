@@ -3,14 +3,13 @@ export interface SecurityListingPeriod {
   displayName?: string; displayExchange?: string;
   periodId: string; securityId: string; listingDate: string; delistingDate: string | null;
   lastPresentOn: string; listingSourceRef: string; delistingSourceRef: string | null;
-  relistingReviewRef: string | null; mappingRef: string | null;
 }
 export interface SecurityLifecycleEvent {
   eventId: string; securityId: string; companyId: string | null;
-  eventType: 'security_name_change' | 'company_name_change'; effectiveOn: string | null;
+  eventType: 'security_name_change' | 'company_name_change' | 'market_transfer'; effectiveOn: string | null;
   datePrecision: 'day' | 'year' | 'unknown'; eventYear: number | null;
   oldName: string; newName: string; sourceRef: string;
-  basis: 'roster_observed' | 'disclosure' | 'reviewed'; reviewRef: string | null; mappingRef: string | null;
+  basis: 'roster_observed' | 'disclosure' | 'reviewed';
 }
 export const listingContains = (period: SecurityListingPeriod | null | undefined, date: string | null | undefined) =>
   !period || Boolean(date && date >= period.listingDate && (!period.delistingDate || date < period.delistingDate));
@@ -59,6 +58,6 @@ export function lifecycleTimeline(periods: readonly SecurityListingPeriod[], eve
   for (const event of events) timeline.push({id:event.eventId,
     date:event.datePrecision === 'day' ? event.effectiveOn : event.eventYear ? String(event.eventYear) : null,
     dateLabel:event.datePrecision === 'day' ? event.effectiveOn || '날짜 미확정' : event.eventYear ? `${event.eventYear}년 (일자 미확정)` : '날짜 미확정',
-    label:event.eventType === 'company_name_change' ? '회사명 변경' : '종목명 변경', detail:`${event.oldName} → ${event.newName}`, sourceRef:event.sourceRef});
+    label:event.eventType === 'market_transfer' ? '시장 이전' : event.eventType === 'company_name_change' ? '회사명 변경' : '종목명 변경', detail:`${event.oldName} → ${event.newName}`, sourceRef:event.sourceRef});
   return timeline.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999') || a.id.localeCompare(b.id));
 }

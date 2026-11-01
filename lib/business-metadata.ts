@@ -83,7 +83,9 @@ export async function companyMetadata(code: string, marketcapDetail = false): Pr
   if (!identity) return missingMetadata("회사를 찾을 수 없습니다");
   const name = identity.korName || identity.name;
   const routes = await getEntityRouteInventory();
-  return businessMetadata(`${name} 회사 공식 시가총액`, `${name}의 공식 시가총액, 합산 기준일과 완전성, 공개 순위를 확인하세요. 자료나 연결 근거가 부족한 상태를 함께 표시합니다.`,
+  return businessMetadata(`${name} ${marketcapDetail ? '기업 합산 시총' : '기업 정보'}`, marketcapDetail
+    ? `${name}의 기업 합산 시가총액, 공개 순위, 구성 종목 비중과 실제 관측 이력을 확인하세요.`
+    : `${name}의 기업 정보와 구성 종목별 시가총액·주가를 확인하세요. 자료별 기준일과 미제공 상태를 함께 표시합니다.`,
     companyPath({ ...identity, routeCode: routes.companies.get(identity.companyId) ?? null }, marketcapDetail ? "marketcap" : undefined));
 }
 

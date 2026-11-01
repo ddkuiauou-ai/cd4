@@ -22,19 +22,24 @@ export function ServerTable({ rows, data = [], scope = "company", metric = "mark
     <div className={styles.desktopTable}>
       <table className={styles.table}>
         <caption className="sr-only">{scope === "company" ? "기업 합산" : "종목별"} {RANKING_METRICS[metric].label} 순위. 순위 변화는 이전 순위 대비이며 주가 등락과 별개입니다.</caption>
+        <colgroup><col className={styles.rankColumn} /><col className={styles.nameColumn} /><col className={styles.valueColumn} /><col /></colgroup>
         <thead><tr>
-          <th scope="col" className={styles.rankColumn}>순위 · 이동</th>
+          <th scope="col">순위 · 이동</th>
           <th scope="col">{scope === "company" ? "기업" : "종목"}</th>
-          <th scope="col" className={styles.trendColumn}>최근 추이</th>
-          <th scope="col" className={styles.valueColumn}>{RANKING_METRICS[metric].label}</th>
-          <th scope="col" className={styles.quoteColumn}>{scope === "company" ? "대표 보통주" : "주가"}<span className={styles.columnHint}>최근 종가 · 전일 대비</span></th>
+          <th scope="col" className={styles.valueColumn}>{scope === "company" ? "합산 시가총액" : RANKING_METRICS[metric].label}</th>
+          <th scope="col" className={styles.quoteGroupHeading}>
+            <span>{scope === "company" ? "대표 보통주" : "주가"}</span>
+            <span className={styles.quoteHeadings}><span>주가 추이</span><span>종가 · 전일 대비</span></span>
+          </th>
         </tr></thead>
         <tbody>{entries.map(row => <tr key={row.id}>
           <td><RankingPosition rank={row.rank} priorRank={row.priorRank} /></td>
           <td><RankingName row={row} /></td>
-          <td className={styles.trendColumn}><RankingSparkline row={row} /></td>
-          <td className={styles.valueColumn}><RankingValue row={row} /><div className={styles.tableInlineTrend}><RankingSparkline row={row} /></div></td>
-          <td className={styles.quoteColumn}><RankingPrice row={row} /><RankingRate row={row} /></td>
+          <td className={styles.valueColumn}><RankingValue row={row} /></td>
+          <td className={styles.quoteCell}><div className={styles.quoteGroup}>
+            <RankingSparkline row={row} />
+            <div className={styles.quoteValues}><RankingPrice row={row} /><RankingRate row={row} /></div>
+          </div></td>
         </tr>)}</tbody>
       </table>
     </div>

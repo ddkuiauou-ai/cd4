@@ -300,3 +300,102 @@ test('basic stock pairs real current/history with comparison/company facts and k
     for(let i=1;i<toc.length;i++) assert.ok(doc.querySelector(toc[i-1].getAttribute('href')).compareDocumentPosition(doc.querySelector(toc[i].getAttribute('href'))) & 4);
   } finally {view.close();}
 });
+
+test('company tabs share an identity and comparison while information leads with facts and marketcap leads with its official value',()=>{
+  const corporation={name:'Samsung Electronics',korName:'삼성전자',industry:'전자 제조업',establishedDate:'1969-01-13',homepage:'https://example.com/company'};
+  const detailCompany={...company,company:corporation,companyName:corporation.name};
+  const range={start:'2026-09-01',end:'2026-10-08'};
+  const shared=[];
+  for(const basic of [true,false]) {
+    const headerProps=[];
+    const pathname='/company/KOSPI.005930'+(basic?'':'/marketcap');
+    const {DetailSurface}=loadFor(pathname,{
+      '@/components/sticky-company-header':{StickyCompanyHeader:props=>{headerProps.push(props);return React.createElement('h1',null,props.displayName,props.titleSuffix);}},
+    })('components/detail-surface.tsx');
+    const view=documentFor(DetailSurface,primaryDetailProps({company:detailCompany,companyPage:true,basic,search:range}));
+    try {
+      const doc=view.document;
+      const nav=doc.querySelector('nav[aria-label="기업 상세 페이지"]');
+      const tabs=[...nav.querySelectorAll('a')];
+      assert.deepEqual(tabs.map(link=>link.textContent),['기업 정보','기업 합산 시총']);
+      assert.equal(tabs.filter(link=>link.getAttribute('aria-current')==='page').length,1);
+      assert.equal(new URL(tabs.find(link=>link.getAttribute('aria-current')==='page').href,'https://example.test').pathname,pathname);
+      for(const link of tabs) {
+        const destination=new URL(link.href,'https://example.test');
+        assert.equal(destination.searchParams.get('start'),range.start);
+        assert.equal(destination.searchParams.get('end'),range.end);
+        assert.equal(destination.searchParams.get('period'),null);
+      }
+      const firstSection=nav.nextElementSibling.querySelector('section');
+      assert.equal(firstSection.id,basic?'company-information':'current-overview');
+      if(basic) {
+        assert.equal(doc.querySelectorAll('#company-information').length,1);
+        const facts=Object.fromEntries([...firstSection.querySelectorAll('tbody tr')].map(row=>[row.querySelector('th').textContent,row.querySelector('td').textContent]));
+        assert.equal(facts['기업명'],'삼성전자');assert.equal(facts['영문명'],corporation.name);
+        assert.equal(facts['업종'],corporation.industry);assert.equal(facts['설립일'],corporation.establishedDate);
+        assert.equal(firstSection.querySelector('a').href,corporation.homepage);
+        assert.equal(doc.querySelector('#current-overview'),null);
+        assert.equal(doc.querySelector('#chart-analysis'),null);
+      } else {
+        assert.equal(firstSection.querySelector('h2').textContent,'기업 합산 시가총액');
+        assert.match(firstSection.textContent,/549조원/);assert.match(firstSection.textContent,/1위/);
+        assert.equal(doc.querySelector('#company-information'),null);
+      }
+      assert.equal(doc.querySelectorAll('#basic-information, #price-information, [data-role="price"], [data-role="change"]').length,0);
+      const comparison=doc.querySelector('#securities-summary');
+      assert.equal(doc.querySelectorAll('#securities-summary').length,1);
+      assert.ok(firstSection.compareDocumentPosition(comparison)&4);
+      const table=comparison.querySelector('table');
+      assert.ok(table);assert.equal(table.closest('details'),null,'constituent values are visible without opening a disclosure');
+      assert.deepEqual([...table.querySelectorAll('tbody a')].map(link=>new URL(link.href,'https://example.test').pathname),[
+        '/security/KOSPI.005930'+(basic?'':'/marketcap'),'/security/KOSPI.005935'+(basic?'':'/marketcap'),
+      ]);
+      const toc=[...doc.querySelectorAll('aside nav[aria-label="본문 목차"] a')];
+      const targets=toc.map(link=>{
+        const matches=doc.querySelectorAll(link.getAttribute('href'));
+        assert.equal(matches.length,1,link.textContent);
+        return matches[0];
+      });
+      assert.ok(targets.includes(firstSection));assert.ok(targets.includes(comparison));
+      for(let i=1;i<targets.length;i++) assert.ok(targets[i-1].compareDocumentPosition(targets[i])&4,`company TOC order ${i}`);
+      assert.equal(headerProps.length,1);
+      shared.push({header:{displayName:headerProps[0].displayName,titleSuffix:headerProps[0].titleSuffix,detail:headerProps[0].detail},identity:doc.querySelector('.detail-identity-meta').textContent,
+        table:[...table.rows].map(row=>[...row.cells].map(cell=>cell.textContent))});
+    } finally {view.close();}
+  }
+  assert.deepEqual(shared[0],shared[1],'the shared identity and constituent facts stay consistent across both company views');
+});
+
+test('company marketcap presents one aggregate history and keeps the real representative price history in a closed secondary section',()=>{
+  const charts=[],priceCharts=[];
+  const {DetailSurface}=loadFor('/company/KOSPI.005930/marketcap',{
+    '@/components/interactive-chart-section':{InteractiveChartSection:props=>{charts.push(props);return React.createElement('div',{'data-testid':'company-history'});}},
+    '@/components/restored-detail-charts':{DetailFinancialAnalysis:empty,DetailAnnualHistory:empty,DetailPriceHistory:props=>{priceCharts.push(props);return React.createElement('div',{'data-testid':'representative-history'});}},
+    '@/components/card-company-marketcap':{__esModule:true,default:()=>React.createElement('div',{'data-testid':'duplicate-composition'})},
+  })('components/detail-surface.tsx');
+  const prices=[{date:'2026-09-01',close:'0'},{date:'2026-10-08',close:'74000',rate:0}];
+  const history=[{date:'2026-09-01',value:'540000000000000'},{date:'2026-10-08',value:'549000000000000'}];
+  const input=primaryDetailProps({companyPage:true,basic:false,prices,history,sourceHistory:history.map(row=>({date:row.date,totalMarketcap:row.value})),search:{start:'2026-09-01',end:'2026-10-08'}});
+  const before=JSON.stringify(input);
+  const view=documentFor(DetailSurface,input);
+  try {
+    const doc=view.document;
+    assert.equal(charts.length,1);assert.equal(charts[0].type,'summary');assert.strictEqual(charts[0].companyMarketcapData,company);
+    assert.equal(charts[0].start,input.search.start);assert.equal(charts[0].end,input.search.end);
+    assert.ok(doc.querySelector('#chart-analysis [data-testid="company-history"]'));
+    assert.equal(doc.querySelector('[data-testid="duplicate-composition"]'),null);
+    const priceHistory=doc.querySelector('#price-history');
+    assert.equal(doc.querySelectorAll('#price-history').length,1);assert.equal(priceHistory.tagName,'DETAILS');assert.equal(priceHistory.open,false);
+    assert.match(priceHistory.querySelector('summary').textContent,/대표 종목 가격 이력/);
+    assert.ok(priceHistory.querySelector('[data-testid="representative-history"]'));
+    assert.ok(doc.querySelector('#annual-data').compareDocumentPosition(priceHistory)&4);
+    assert.equal(priceCharts.length,1);assert.strictEqual(priceCharts[0].rows,prices);
+    assert.equal(priceCharts[0].start,input.search.start);assert.equal(priceCharts[0].end,input.search.end);
+    assert.equal(JSON.stringify(input),before,'presentational regrouping must not mutate the real histories');
+    const targets=[...doc.querySelectorAll('aside nav[aria-label="본문 목차"] a')].map(link=>{
+      const matches=doc.querySelectorAll(link.getAttribute('href'));assert.equal(matches.length,1,link.textContent);return matches[0];
+    });
+    assert.ok(targets.includes(doc.querySelector('#history-download')));assert.ok(targets.includes(priceHistory));
+    for(let i=1;i<targets.length;i++) assert.ok(targets[i-1].compareDocumentPosition(targets[i])&4);
+  } finally {view.close();}
+});

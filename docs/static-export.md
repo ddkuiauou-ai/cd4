@@ -1,6 +1,10 @@
 # 전체 정적 빌드 사용법
 
-Next.js 16.4 / React 19.3, Node **22.23.3**, pnpm **10.34.6** 기준이다. 기존 `pnpm dev`, `pnpm build`, `pnpm start`의 DB 조회 모드도 유지한다.
+> 현재 작업은 [검증·실행 Rules](rules/verification.md)와 [데이터·Temporal Rules](rules/data-temporal.md)를 먼저 읽는다. 프로젝트 스크립트 호출은 `bun run <script>`를 사용한다. 이 문서의 2026-10-09 측정값은 당시 결과이며 현재 실행 성공을 뜻하지 않는다.
+
+DB 조회 모드의 `bun run dev`, `bun run build`, `bun run start`도 유지한다. 기존 Node **22.23.3** 실행 환경과 스크립트 내부의 `node` 명령은 Bun 호출 규약과 별개다.
+
+**남아 있는 실행 제약:** `package.json`의 `packageManager`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`과 배포 CI는 아직 pnpm 기준이다. `scripts/static-tools.cjs`의 `runtimeInfo({ enforce: true })`는 정적 빌드·벤치마크에서 Node 22.23.3과 pnpm 10.34.6을 검사한다. `bun run`으로 호출해도 이 검사는 유지된다. 준비된 의존성과 런타임을 먼저 확인하고, 조건이 맞지 않으면 미실행 원인을 보고한다. 이 지침 개편은 lockfile·CI·런타임을 이전하지 않았으며 Bun 전용 설치의 재현성을 검증하지 않았다. 새 설치나 이 제약의 변경은 별도 의존성 전환 작업이다.
 
 2026-10-09의 전체 빌드와 검증은 완료했다. 실제 페이지·파일 수, 종류별 용량, 단계 시간, 병렬 처리 비교와 브라우저 전송량은 [검증·성능 보고서](static-export-verification-2026-10-09.md)와 [상세 JSON](static-export-verification-2026-10-09.json)에 기록했다.
 
@@ -9,10 +13,9 @@ Next.js 16.4 / React 19.3, Node **22.23.3**, pnpm **10.34.6** 기준이다. 기�
 외부에서 프리징한 PostgreSQL 데이터를 기존 `.env` 연결 설정으로 읽는다. 입력 추출은 읽기 전용이며 DB에 값을 쓰지 않는다.
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm build:static
-pnpm verify:static
-pnpm preview:static
+bun run build:static
+bun run verify:static
+bun run preview:static
 ```
 
 미리보기는 `http://127.0.0.1:4173`에서 **`out/` 파일만** 제공한다. Next 서버와 DB 연결을 사용하지 않는다. 업로드 대상은 `out/` 전체다. `.txt`와 `__next.*` 탐색 파일, `_next/`, `static-data/`, `_headers`를 함께 보존한다. 이 명령들은 Netlify에 업로드하지 않는다.
@@ -29,8 +32,8 @@ pnpm preview:static
 - 현재값·기본 분석·연도별 표·SEO는 HTML에 들어간다. 차트·기간 분석·전체 이력 CSV는 종목과 자료 종류별 공유 JSON을 사용한다.
 - JSON은 열 정의와 행 배열로 저장한다. 금융 값·큰 정수·revision은 문자열을 유지한다. PER/EPS와 PBR/BPS는 같은 보조 자료를 참조한다. 종목이 달라도 내용이 같으면 동일한 해시 주소를 사용하며, 파일 생성 시각을 이력 내용에 넣지 않는다.
 - 내용 해시가 붙은 JSON·CSV·JS·CSS는 장기 캐시하고, HTML·검색·사이트맵·일반 CSV 주소는 재검증한다. Next 탐색용 RSC `.txt`에는 `text/x-component`를 지정한다. 헤더는 [Netlify `_headers` 규칙](https://docs.netlify.com/manage/routing/headers/)에 맞춰 결과물에 생성한다.
-- `start/end`, `scope`, `revision`은 브라우저에서 기존 규칙으로 해석한다. 초기 HTML의 기본 내용을 보존하는 작은 클라이언트 경계를 사용한다. 뒤로가기와 새로고침도 URL을 기준으로 복원한다.
-- 순위 CSV는 공개 범위별 정적 명세로 기준일·revision·행 수를 검증한다. 상세 CSV는 선택한 기간과 관계없이 전체 제공 이력을 내보낸다. 일반 `/ranking-data/*.csv` 주소도 유지한다.
+- `start/end`, `scope`, `revision`, `period`는 브라우저에서 기존 규칙으로 해석한다. 초기 HTML의 기본 내용을 보존하는 작은 클라이언트 경계를 사용한다. 뒤로가기와 새로고침도 URL을 기준으로 복원한다.
+- 순위 CSV는 공개 범위별 정적 명세로 기준일·revision·행 수를 검증한다. 상세 CSV는 화면의 `start/end` 범위와 무관하게 선택 상장기의 전체 제공 이력을 내보내며 `?period=`의 상장기 경계는 유지한다. 일반 `/ranking-data/*.csv` 주소도 유지한다.
 - 해석 가능한 별칭은 정식 URL로 이동하는 작은 HTML을 생성한다. 이동 시 검색 파라미터와 해시를 보존하며, 모호하거나 존재하지 않는 대상은 404다.
 - 검색 데이터는 검색창을 열 때 받고, 차트 자료는 진행 중 요청과 완료 결과를 공유한다. 최근 종목은 검색 데이터의 선행 다운로드를 일으키지 않는다.
 
@@ -39,23 +42,23 @@ pnpm preview:static
 ## 비교와 튜닝
 
 ```sh
-pnpm benchmark:static
+bun run benchmark:static
 ```
 
 기본 40개 이상 표본에서 고정 입력을 사용해 워커 `2/4/8` × 동시 작업 `2`, 선택한 워커 × 동시 작업 `1/2/4/8`을 비교한다. 각 설정은 같은 컴파일 캐시 조건에서 3회 측정하며 중앙값을 사용한다. 캐시 없는 빌드는 별도로 기록한다. 5% 이내 속도 차이에서는 메모리를 적게 사용하는 설정을 선택한다. 표본 성능은 전체 빌드 완료를 대신하지 않는다.
 
 직접 설정을 비교할 때는 `STATIC_BUILD_CPUS`, `STATIC_BUILD_CONCURRENCY`를 사용한다. 개발 전용 experimental 옵션과 정적 production 옵션은 `next.config.ts`에서 분리한다. 타입 검사와 Next 탐색 파일을 생략하지 않는다.
 
-같은 소스의 완료된 벤치마크가 있으면 `pnpm build:static`이 선택된 워커·동시 작업 수를 자동으로 사용한다. 명시한 환경 변수가 우선하며, 유효한 측정이 없으면 `4 × 2`를 사용한다. 소스가 바뀐 과거 측정은 자동 적용하지 않는다.
+같은 소스의 완료된 벤치마크가 있으면 `bun run build:static`이 선택된 워커·동시 작업 수를 자동으로 사용한다. 명시한 환경 변수가 우선하며, 유효한 측정이 없으면 `4 × 2`를 사용한다. 소스가 바뀐 과거 측정은 자동 적용하지 않는다. 기존 벤치마크 코드가 출력하는 pnpm 명령 문자열은 아직 남아 있으므로 실행 시 실제 스크립트를 확인해 Bun 호출 규약을 적용한다.
 
 Tailwind는 `app/globals.css`의 명시한 앱 소스 경로만 스캔한다. 독립 작업 폴더에서 의존성·이전 출력·보고서를 훑지 않도록 [명시적 소스 등록](https://tailwindcss.com/docs/detecting-classes-in-source-files)을 사용한다. 다른 최상위 폴더에 화면 코드를 추가하면 해당 `@source`도 등록한다.
 
-이미 추출한 동일 입력으로 다시 빌드하려면 `pnpm build:static --reuse`를 사용한다. 새로운 영업일에는 기본 `pnpm build:static`으로 입력을 새로 추출한다. `--reuse`는 현재 DB에서 새 데이터를 읽는 명령이 아니다.
+이미 추출한 동일 입력으로 다시 빌드하려면 `bun run build:static --reuse`를 사용한다. 새로운 영업일에는 기본 `bun run build:static`으로 입력을 새로 추출한다. `--reuse`는 현재 DB에서 새 데이터를 읽는 명령이 아니다.
 
 브라우저 응답 바이트를 로컬에서 기록하려면 다음 명령을 사용한다.
 
 ```sh
-pnpm preview:static --traffic-report .static-build/reports/browser-traffic.json
+bun run preview:static --traffic-report .static-build/reports/browser-traffic.json
 ```
 
 이 기록은 로컬 브라우저에 실제로 쓴 응답 본문 바이트다. 로컬 Brotli/gzip 압축을 사용하며 HTTP 헤더, Netlify CDN의 실제 압축·캐시·청구량과 구분한다. 캐시 없는 최초 방문은 새 로컬 포트에서 측정한다. 업로드 크기와 방문자 전송량도 서로 다른 수치다.
@@ -67,9 +70,9 @@ Legacy Free의 [월 100GB 전송량](https://docs.netlify.com/manage/accounts-an
 실행별 로그·단계 시간·표본 RSS·디스크 여유는 `.static-build/reports/<실행 ID>/report.json`에 남는다. 마지막 빌드·전수 검사·벤치마크 보고서는 각각 `build-latest.json`, `verify-latest.json`, `benchmark-latest.json`이다. RSS는 측정대상 Node 하위 프로세스를 주기적으로 더한 표본값이며, 조율하는 부모 프로세스·네이티브 하위 프로세스·매우 짧은 최고점은 포함하지 않는다.
 
 ```sh
-pnpm test
-pnpm typecheck
-pnpm lint
+bun run test
+bun run typecheck
+bun run lint
 node scripts/verify-static-input.cjs
 ```
 

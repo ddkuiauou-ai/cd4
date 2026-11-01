@@ -1,5 +1,10 @@
 # CD → tem 업무 데이터 저장 계약 v2
 
+> 이 계약의 설치·테이블 수·운영 상태와 근거 보관 설명은 작성 당시 기준이다.
+> 현재 작업은 [데이터·Temporal Rules](rules/data-temporal.md)를 먼저 읽고 schema/journal 및
+> tem의 현행 업무·운영 규칙과 대조한다. 정상 원문 artifact·승인/hash 원장을 새로 요구하거나,
+> 과거 적용 결과를 현재 DB 상태로 간주하지 않는다. 계약 의미가 충돌하면 담당 범위별로 인계한다.
+
 작성일: 2026-10-07, Asia/Seoul. 구현 기준: `db/schema-postgres.ts`와 `drizzle/0000` → `0001` → `0002_simplify_publication.sql`. **신규 DB용이며 기존 업무 데이터 이전 계약이 아니다.** v2는 값·컬럼·업무키를 유지하고 과한 공개 검증 함수/trigger를 제거한다.
 
 > 2026-10-13 후속: 코드당 하나의 종목 ID와 여러 상장 기간·독립 이름 사건은 [새 lifecycle 계약](security-lifecycle-contract-2026-10-13.md)을 따른다. 아래의 코드 재사용 시 서로 다른 SID 전제는 새 계약으로 대체한다.

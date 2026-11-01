@@ -119,24 +119,29 @@ async function renderPage(route, {
 
 function documentOf(html) { return new JSDOM(html).window.document; }
 function desktopRows(document) { return [...document.querySelectorAll(".desktopTable tbody tr")]; }
-function mobileRows(document) { return [...document.querySelectorAll(".mobileTable tbody tr")]; }
+function mobileRows(document) { return [...document.querySelectorAll(".mobileTable tbody tr")].filter(row => row.querySelector("button.position")); }
 
-test("ranking context precedes metrics and export, and metric changes retain the market without reusing another publication revision", async () => {
+test("ranking metrics precede scope, market context and export, and metric changes retain the market without reusing another publication revision", async () => {
   const scopeKey = "kosdaq-preferred";
   const { html } = await renderPage("app/(market)/per/page.tsx", {
     items: [publishedSecurity(1)], searchParams: { scope: scopeKey, revision: publication.revision },
     resultPublication: { ...publication, scopeKey },
   });
   const document = documentOf(html);
-  const context = document.querySelector(".marketContext");
+  const context = document.querySelector(".tableToolbar");
+  const target = context.querySelector(".targetControl");
+  const basis = context.querySelector(".basis");
   const metrics = document.querySelector('nav[aria-label="전체 순위 지표"]');
   const csv = document.querySelector('a[href^="/ranking-data/"]');
-  assert.match(context.textContent, /종목별.*시장코스닥 우선주.*공개 기준일2026.10.06/);
+  assert.match(target.textContent, /종목별 기준/);
+  assert.equal(target.querySelector("nav"), null);
+  assert.match(basis.textContent, /시장코스닥 우선주.*지표 기준2026.10.06/);
   assert.equal(metrics.querySelectorAll("a").length, 7);
   assert.equal(metrics.querySelector('[aria-current="page"]').textContent, "PER");
   assert.equal(metrics.querySelector('a[title="주가순자산비율"]').getAttribute("href"), `/pbr?scope=${scopeKey}`);
-  assert.equal(context.compareDocumentPosition(metrics) & 4, 4);
-  assert.equal(metrics.compareDocumentPosition(csv) & 4, 4);
+  assert.equal(metrics.compareDocumentPosition(context) & 4, 4);
+  assert.equal(target.compareDocumentPosition(basis) & 4, 4);
+  assert.equal(basis.compareDocumentPosition(csv) & 4, 4);
   assert.equal(csv.compareDocumentPosition(document.querySelector(".desktopTable")) & 4, 4);
   assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'));
 });
@@ -148,13 +153,18 @@ test("company and security market-cap targets keep a fixed visible order and lin
   ]) {
     const { html } = await renderPage(route, { items });
     const document = documentOf(html);
-    const targets = document.querySelector('nav[aria-label="시가총액 조회 범위"]');
+    const targets = document.querySelector('.ranking-main nav[aria-label="시가총액 조회 범위"]');
+    const metrics = document.querySelector('nav[aria-label="전체 순위 지표"]');
     assert.deepEqual([...targets.querySelectorAll("a")].map(link => link.textContent), ["기업 합산", "종목별"]);
     assert.equal(targets.querySelector('[aria-current="page"]').textContent, scope === "company" ? "기업 합산" : "종목별");
-    assert.match(document.querySelector(".tableContext").textContent, /해당 지표 상세/);
+    assert.equal(metrics.compareDocumentPosition(targets) & 4, 4);
+    assert.equal(targets.querySelectorAll("a")[0].getAttribute("href"), "/marketcaps");
+    assert.equal(targets.querySelectorAll("a")[1].getAttribute("href"), "/marketcap");
+    assert.match(document.querySelector(".tableToolbar .basis").textContent, /시총 기준2026.10.06/);
     if (scope === "company") {
       assert.ok(document.querySelector('.desktopTable a[href="/company/company-1/marketcap"]'));
-      assert.match(document.querySelector(".scopeHint").textContent, /주당 지표는 종목별/);
+      assert.match(document.querySelector(".dataNote").textContent, /기업 시총은 보통주·우선주 합산.*가격·등락·추이는 대표 보통주 기준/);
+      assert.equal(metrics.querySelector('a[title="주가수익비율"]').getAttribute("href"), "/per");
     }
   }
 });
@@ -167,6 +177,7 @@ test("actual company routes render the twenty official entities with stable link
     assert.deepEqual(calls, [["company", 1, undefined]]);
     assert.equal(desktopRows(document).length, 20);
     assert.equal(mobileRows(document).length, 20);
+    assert.deepEqual(mobileRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.marketcapRank)));
     assert.match(text, /공식기업20/);
     assert.match(text, /전체 121개 기업 · 1–20위/);
     assert.ok(document.querySelector('a[href="/company/company-20/marketcap"]'));
@@ -184,6 +195,7 @@ test("all seven actual metric pages use tem ranks without replacing their order 
     assert.deepEqual(calls, [["security", metric, 1, "asc", "krx-all", undefined]]);
     assert.equal(desktopRows(document).length, 20);
     assert.equal(mobileRows(document).length, 20);
+    assert.deepEqual(mobileRows(document).map(row => row.querySelector("button[data-rank]").dataset.rank), items.map(item => String(item.currentRank)));
     assert.ok(document.querySelector(`a[href="/security/KOSPI.005930/${metric}"]`));
     const exportURL = new URL(document.querySelector('a[href^="/ranking-data/"]').getAttribute("href"), "https://example.test");
     assert.equal(exportURL.pathname, `/ranking-data/securities-${metric}.csv`);

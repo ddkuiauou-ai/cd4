@@ -11,7 +11,6 @@ export interface SearchNameResult {
   name: string; korName: string; type: string | null; exchange: string;
   routeCode?: string | null; companyRouteCode?: string | null;
 }
-export interface DisplayNameResult { id: number; value: string; companyName: string; }
 
 export async function getSecuritySearchNames(): Promise<SearchNameResult[]> {
   if (isStaticBuild()) return getStaticIdentities().toSorted((a,b) => a.korName.localeCompare(b.korName) || a.securityId.localeCompare(b.securityId));
@@ -22,9 +21,6 @@ export async function getSecuritySearchNames(): Promise<SearchNameResult[]> {
   const securities = securityRouteCodes(rows), companies = companyRouteCodes(rows);
   return rows.map(row => ({ ...row, routeCode: securities.get(row.securityId) ?? null,
     companyRouteCode: row.companyId ? companies.get(row.companyId) ?? null : null }));
-}
-export async function getDisplaySearchNames(): Promise<DisplayNameResult[]> {
-  return db.query.displayName.findMany({ columns: { id: true, value: true, companyName: true } });
 }
 export const findSecurityByName = getSecurityByCode;
 
@@ -54,6 +50,5 @@ export async function searchCompanies(query: string, limit = 10) {
   });
 }
 export const getSearchNames2 = getSecuritySearchNames;
-export const getSearchNames = getDisplaySearchNames;
 export const getSecurityByName = findSecurityByName;
 export const getCompanyByName = findCompanyByName;

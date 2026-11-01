@@ -187,10 +187,13 @@ test('scoped ranking loading and failures keep the real market context and metri
       totalPages: 1, totalCount: 1, basePath: '/per', scopeKey: 'krx-all', state: 'published', publication };
     await React.act(async () => root.render(React.createElement(StaticRankingPage, { initial, manifest: manifest() })));
     const checkContext = () => {
-      assert.match(document.querySelector('.marketContext').textContent, /종목별.*코스피.*2026.10.06/);
+      const context = document.querySelector('.tableToolbar');
+      assert.match(context.querySelector('.targetControl').textContent, /종목별 기준/);
+      assert.match(context.querySelector('.basis').textContent, /시장코스피.*지표 기준2026.10.06/);
       const nav = document.querySelector('nav[aria-label="전체 순위 지표"]');
       assert.equal(nav.querySelectorAll('a').length, 7);
       assert.equal(nav.querySelector('[aria-current="page"]').textContent, 'PER');
+      assert.equal(nav.compareDocumentPosition(context) & 4, 4);
       assert.equal(document.querySelector('tbody'), null);
       assert.equal(document.querySelector('a[href^="/ranking-data/"]'), null);
       assert.doesNotMatch(document.body.textContent, /정적종목/);

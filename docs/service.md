@@ -1,5 +1,10 @@
 # CD3 Web Services Documentation
 
+> 이 문서에는 과거 기능 설명과 미확인 예시가 남아 있다. 현재 제품 범위는
+> [PRODUCT](../PRODUCT.md), 서버·데이터 책임은 [앱 Rules](rules/app-server.md)와
+> [데이터 Rules](rules/data-temporal.md)를 따른다. 아래의 real-time 표현을
+> 현재 실시간 수집·계산·표시 보장으로 사용하지 않고 실제 경로·공개 기준일을 확인한다.
+
 ## Overview
 
 CD3 is a comprehensive stock information service providing real-time financial data, rankings, and analysis tools for Korean stock market investors. The service is built with Next.js 16.4.2 App Router and emphasizes mobile-first design with professional-grade financial data presentation and SEO optimization for search discovery.

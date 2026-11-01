@@ -4,6 +4,7 @@ import { compareBusinessValues } from '@/lib/business-analysis';
 import { detailObservations, sourceValue, type DetailMetric } from '@/lib/detail-presentation';
 import { DetailSurface, prepareDetailAnalysis, type DetailSurfaceProps, type DetailSearch } from './detail-surface';
 import { StaticDetailClient } from './static-detail-client';
+import { CompanyDetailClient } from './company-detail-client';
 import type { DetailCorporation, DetailPublication } from './detail-types';
 
 export type { DetailSearch } from './detail-surface';
@@ -54,10 +55,12 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
 }
 
 async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'company', id: string) {
-  if (process.env.NEXT_OUTPUT_MODE?.toLowerCase() !== 'export') return <DetailSurface {...props} />;
+  if (process.env.NEXT_OUTPUT_MODE?.toLowerCase() !== 'export') return kind === 'company' ? <CompanyDetailClient {...props} /> : <DetailSurface {...props} />;
   const clientKey = `${kind}:${id}:${props.metric}`;
   const selectablePeriod = kind === 'security' && (props.security?.listingPeriods?.length ?? 0) > 1;
-  if (process.env.STATIC_DETAIL_INLINE === '1') return props.basic && !selectablePeriod ? <DetailSurface {...props} /> : <StaticDetailClient key={clientKey} initial={props} />;
+  if (process.env.STATIC_DETAIL_INLINE === '1') return props.basic && !selectablePeriod
+    ? kind === 'company' ? <CompanyDetailClient {...props} /> : <DetailSurface {...props} />
+    : <StaticDetailClient key={clientKey} initial={props} />;
   const compact = compactDetailProps(props);
   const initial = {...compact, initialAnalysis: prepareDetailAnalysis(props)};
   const { getStaticDetailAssets } = await import('@/lib/static-build/server');

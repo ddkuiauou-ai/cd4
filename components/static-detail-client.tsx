@@ -7,6 +7,7 @@ import { detailObservations, sourceValue } from '@/lib/detail-presentation';
 import { loadStaticDetailData, type StaticDataRow } from '@/lib/static-data';
 import type { StaticDetailAssets } from '@/lib/static-detail-contract';
 import { DetailSurface, type DetailSearch, type DetailSurfaceProps } from './detail-surface';
+import { CompanyDetailClient } from './company-detail-client';
 
 function DetailSearchObserver({ onChange }: {onChange: (search: DetailSearch) => void}) {
   const search = useSearchParams();
@@ -62,10 +63,11 @@ export function StaticDetailClient({initial, assets}: {initial: DetailSurfacePro
   const withinSelected=<Row extends {date?:unknown}>(rows:readonly Row[])=>filterListingRows(rows,selectedPeriod)
     .filter(row=>!security?.publication?.asOf || typeof row.date==='string'&&row.date<=security.publication.asOf);
   const filtered = Boolean(search.start || search.end || periodId);
+  const Surface = initial.companyPage ? CompanyDetailClient : DetailSurface;
   if(invalidPeriod) return <p role="alert" className="app-container py-8">선택한 상장 기간을 찾을 수 없습니다.</p>;
   return <>
     <Suspense fallback={null}><DetailSearchObserver onChange={onSearch} /></Suspense>
-    <DetailSurface {...initial} security={security} company={historicalPeriod?null:company}
+    <Surface {...initial} security={security} company={historicalPeriod?null:company}
       companySecs={historicalPeriod?[]:initial.companySecs} ranking={historicalPeriod?null:initial.ranking} neighbors={historicalPeriod?[]:initial.neighbors}
       history={initial.companyPage?history:withinSelected(history)}
       prices={initial.companyPage?loaded?.prices ?? initial.prices:withinSelected(loaded?.prices ?? initial.prices)}

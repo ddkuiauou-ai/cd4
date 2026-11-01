@@ -1,246 +1,109 @@
-# CD - Korean Stock Information Service
+# CD — 천하제일 단타대회
 
-> **현재 업무 데이터 기준:** [CD → tem 저장 계약 v2](docs/cd-business-schema-contract-2026-10-07.md), [PostgreSQL 18 설치 안내](docs/postgresql.md), [검증 기록](docs/cd-business-schema-verification-2026-10-07.md), [문서 안내](docs/README.md)를 먼저 읽으세요. 설치 버전과 명령은 `package.json`, 의존성은 `pnpm-lock.yaml`이 기준입니다. 이전 DAG/Next.js 조사 문서는 해당 날짜의 기록입니다.
+국내 주식의 시가총액·PER·PBR·EPS·BPS·배당수익률·주당배당금 전체 순위와
+기업·종목 이력을 조회하고 CSV로 내려받는 Next.js 서비스 앱이다.
+모바일에서 숫자를 빠르게 읽는 경험과 SEO 유입을 중시한다.
+제품 목적은 [PRODUCT.md](PRODUCT.md), 시각 기준은 [DESIGN.md](DESIGN.md)에 있다.
+실시간 거래·회원·포트폴리오·대회 참가 기능은 현재 제품 범위로 가정하지 않는다.
 
-CD provides raw Korean stock history and the currently published official metrics, company market caps, and rankings. It supports a full static export from frozen input files and a Node.js standalone server for request-time database views. See the [static build guide](docs/static-export.md) for the manual-upload workflow and the [completed full-build report](docs/static-export-verification-2026-10-09.md) for measured size, performance and verification results.
+에이전트는 [AGENTS.md](AGENTS.md)에서 시작해 작업에 맞는 Rules와 Learnings를 읽는다.
+사람을 위한 문서 경로는 [문서 안내](docs/README.md), 개발 절차는
+[개발 지침](docs/development-guidelines.md)에 있다.
 
-tem collects and corrects source data, resolves dated security identities, and calculates, validates, and publishes official results. CD owns the business schema, exact DTOs, queries and display. Period averages, minimum/maximum values and changes are calculated by CD for the selected screen window.
+## 구조와 책임
 
-## 🎯 Project Overview
+| 경로·프로젝트 | 책임 |
+| --- | --- |
+| `app/`, `components/`, `hooks/` | App Router 페이지·서버 렌더링·메타데이터·클라이언트 상호작용 |
+| `db/`, `drizzle/` | PostgreSQL 연결, Drizzle 업무 스키마, 버전별 migration |
+| `lib/data/`, `lib/select.ts` | 공개 결과·원천 이력 조회, 정확한 DTO, 기존 조회 경로 |
+| `lib/business-analysis.ts` 등 | 선택한 화면 기간의 평균·최소·최대·변화 분석 |
+| `lib/static-build/`, `scripts/*static*` | 고정 입력 추출, 정적 HTML·공유 JSON·CSV·사이트맵 생성·검증 |
+| 별도 `tem` 프로젝트 | 원천 수집·정정·당시 종목 연결, 공식 최신값·회사 합계·순위 계산·검증·공개 |
 
-- **Target Market**: Korean stock market (KOSPI/KOSDAQ/KONEX, subject to source coverage)
-- **Design Philosophy**: Professional, quantitative, mobile-optimized
-- **Primary Goal**: Information delivery with SEO optimization for search discovery
+CD의 Next.js 서버는 조회·SSR·메타데이터·라우트를 처리한다. tem의 Workflow·Activity·Worker를
+이 저장소에 복제하지 않는다. 연결 경로와 현재 계약은 [데이터·Temporal 규칙](docs/rules/data-temporal.md)에 있다.
 
-## 🛠 Technology Stack
+## 실행과 검사
 
-- **Framework**: Next.js 16.4 App Router, React 19.3, Node.js standalone server ([upgrade verification](docs/next164-upgrade-2026-10-09.md))
-- **UI Components**: shadcn/ui (New York style, slate base)
-- **Styling**: Tailwind CSS 4 (mobile-first approach)
-- **Database**: PostgreSQL 18, Drizzle ORM `postgres-js` adapter and the `postgres` driver
-- **Deployment**: `pnpm build:static` produces the complete `out/` directory; Node.js standalone mode remains available
+선언 버전은 [package.json](package.json), Node 버전은 [.nvmrc](.nvmrc)를 확인한다.
+Next.js 코드를 바꾸기 전에 설치된 `node_modules/next/dist/docs/`의 관련 가이드를 읽는다.
+PostgreSQL 연결 환경은 [.env.example](.env.example)과 [DB 안내](docs/postgresql.md)를 참고한다.
+비밀값과 전체 연결 문자열을 출력하지 않는다.
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 22 (use the exact version in `.nvmrc`)
-- pnpm 10 (required package manager; follow `packageManager` in `package.json`)
-- PostgreSQL 18 with the committed schema; tem prepares source rows and published official results
-
-### Installation
-
-```bash
-# Clone the repository
-git clone [repository-url]
-cd cd4
-
-# Install dependencies (pnpm only)
-pnpm install --frozen-lockfile
-
-# Set up environment variables
-cp .env.example .env
-# Configure your PostgreSQL connection and other required variables
-
-# Start development server
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-To initialize a **new empty PostgreSQL 18 database**, follow the [installation guide](docs/postgresql.md). Install `0000_postgresql_init.sql` → `0001_business_result_contract.sql` → `0002_simplify_publication.sql` for the final **14 tables**. The one new table, `result_publication`, describes the currently published official result; the existing security/company/rank tables hold its values. 0002 removes four custom functions and eight triggers and adds three row CHECKs, without changing columns or input formats. tem validates each result bundle before publishing its rows and header in one transaction. Creating tables does not populate market data. Existing data migration and baseline are outside this change.
-
-KRX daily timestamps represent Asia/Seoul midnight, while business-date DTOs use Korean `YYYY-MM-DD`. Actual zero and negative indicator values are preserved; missing fields are NULL with explicit states. `bigint`, `numeric`, and revision values remain exact decimal strings in JSON/CSV. Latest missing values and last provided values are shown separately. See the [input and publication contract](docs/cd-business-schema-contract-2026-10-07.md).
-
-The schema is **installed in DCD** at `192.168.50.27:25433/dcd`, using `silla` on PostgreSQL 18.6. The target was confirmed empty before the initial installation; 0002 then applied successfully and a repeat run made no changes (both exit 0). At 2026-10-07 05:16:56 KST, the final catalog and all three migration hashes matched: 14 tables, 286 columns, 71 secondary indexes, 12 FKs, 168 CHECKs and six enums. No CD custom guard functions or public custom triggers remain; three publication FKs remain initially deferred. All 14 business tables are empty. PCD was neither accessed nor changed.
-
-The isolated PG18 test passed (1 pass, 0 fail, 0 skip), including a test writer's key locking, expected revision checks, final validation and rollback. All 130 unit/regression tests, typecheck and `db:check` passed. A production build using actual DCD passed, followed by 13 HTTP checks each on development port 3001 and standalone port 3107 (26 passes): ten unpublished ranking pages returned 200, two unpublished CSV endpoints returned 404, and search returned 200 with `[]`. Development port 3001 is running after restart. Actual tem collection, writer and official calculation integration still await data; the test writer and empty-state checks do not establish that integration.
-
-## 📁 Project Structure
-
-```
-├── app/                    # Next.js App Router pages
-├── components/             # Reusable UI components
-├── lib/
-│   ├── data/              # Published snapshots, raw history queries and exact DTOs
-│   ├── business-analysis.ts  # Selected-window screen analysis
-│   └── business-metadata.ts  # Identity-based page metadata
-├── drizzle/               # 0000 → 0001 → 0002 installation SQL and snapshots
-├── docs/                  # Project documentation
-│   ├── development-guidelines.md  # Comprehensive development guide
-│   ├── spec.md            # Technical specifications
-│   ├── ui.md              # UI/Component guidelines
-│   └── service.md         # Service features documentation
-└── db/                    # Database schema and configuration
-```
-
-## 🎨 Design System
-
-### Color Standards (Korean Stock Market)
-
-- **Price Up/Profit**: `#D60000` (Red)
-- **Price Down/Loss**: `#0066CC` (Blue)
-- **Neutral**: `#6B7280` (Gray)
-- **UI Base**: Black, white, gray tones only
-
-### Mobile-First Approach
-
-- **Ultra-small (≤400px)**: List layouts, minimal padding
-- **Small (401-768px)**: Optimized cards with strategic spacing
-- **Large (1025px+)**: Multi-column grids, full table views
-
-## 📖 Development Guidelines
-
-### Essential Rules
-
-1. **Use shadcn/ui first** for all UI components
-2. **Avoid nested cards** on small screens (≤400px)
-3. **Follow Korean market color standards**
-4. **Maintain mobile-first responsive design**
-5. **Use Context7 for technical guidance when uncertain**
-
-### Database Operations
-
-The maintained schema is `db/schema-postgres.ts`, the runtime connection is `db/index.ts`, and the installation SQL is in `drizzle/`. Apply the committed migration chain: 0002 removes the custom publication guards while preserving PK/UNIQUE/FK and row CHECKs. A schema push does not replace the migration ledger or the three initially deferred publication FK declarations. tem checks input validity, revision and result coverage, serializes writers for the same publication key, and publishes rows and header in one transaction. cd4 does not provide a Turso, libSQL, or SQLite deployment path. tem follows the [current CD business contract](docs/cd-business-schema-contract-2026-10-07.md).
-
-Current read queries and DTO conversion are in `lib/data`. Official values are written by tem, then read with matching publication identifiers and a consistent request snapshot:
-
-```typescript
-// Read the published result; CD does not recalculate official company totals/ranks.
-// lib/data/company.ts, lib/data/security.ts, lib/data/publication.ts
-
-// Use snake_case in database, camelCase in TypeScript
-```
-
-### Component Development
-
-```bash
-# Always check shadcn first for new components
-pnpm dlx shadcn@latest add [component-name]
-```
-
-## 🔍 Key Features
-
-- **Market Cap Rankings**: Company and security rankings
-- **Financial Metrics**: Latest and last provided PER, PBR, EPS, BPS, DIV and DPS, with dates and missing states
-- **Source History**: Selected-period source observations and screen analysis
-- **Mobile Optimization**: Responsive design for all screen sizes
-- **SEO Optimization**: Generated HTML, metadata, sitemap, and structured data
-- **Market Data**: tem source data and currently published official calculation results
-
-## 📚 Documentation
-
-- **[Development Guidelines](docs/development-guidelines.md)**: Comprehensive development standards
-- **[Technical Specifications](docs/spec.md)**: Detailed technology stack and configuration
-- **[UI Guidelines](docs/ui.md)**: Component patterns and responsive design
-- **[Service Documentation](docs/service.md)**: API and service features
-- **[CD → tem Contract](docs/cd-business-schema-contract-2026-10-07.md)**: Exact inputs, missing states, correction and atomic publication rules
-- **[PostgreSQL Guide](docs/postgresql.md)**: PostgreSQL 18 connection and new empty DB installation
-- **[Verification Record](docs/cd-business-schema-verification-2026-10-07.md)**: Actual isolated checks and remaining integration limits
-
-## 🚀 Build and Deployment
-
-### Development Commands
-
-```bash
-# Start development server
-pnpm dev
-
-# Run linting
-pnpm lint
-
-# Run the independent typecheck and existing isolated regression tests
-pnpm typecheck
-pnpm test
-```
-
-### Full static output
+사용자 지정 실행 규약은 **Bun으로 프로젝트 스크립트 실행**이다.
+현재 `packageManager`·잠금파일·CI와 정적 빌드 내부의 pnpm 검사는 아직 일치하지 않는다.
+기존 설치를 임의로 다시 만들거나 잠금파일을 바꾸지 말고
+[검증 규칙의 실행 조건과 미정합](docs/rules/verification.md)을 먼저 읽는다.
+아래는 실제 정의된 script 이름이며 Bun 설치 재현·전체 빌드 통과를 의미하지 않는다.
 
 ```sh
-pnpm build:static
-pnpm verify:static
-pnpm preview:static
+bun run dev
+bun run test
+bun run test:main
+bun run lint
+bun run typecheck
+bun run build
+bun run start
 ```
 
-The build reads frozen PostgreSQL data once, then generates pages using private file input. `preview:static` serves only `out/`, without Next or a database. Upload the complete directory manually, including `_headers`, shared data and Next navigation files. See [reproduction and measurements](docs/static-export.md). No deployment runs as part of these commands.
+`test`·`test:main`은 기존 `node --test`를 실행한다. Bun 테스트 실행기로 교체하지 않는다.
+DB 조회를 사용하는 개발·서버 빌드는 적절한 데이터 환경이 필요하다.
+검사는 변경 범위에 맞게 선택하고, 실패·미실행·과거 성공을 구분한다.
 
-### PostgreSQL Commands
+## 정적 출력과 서버 실행
 
-```bash
-# Generate and check versioned migrations without a database connection
-pnpm db:generate
-pnpm db:check
+두 모드를 지원한다. 정적 모드는 프리징된 PostgreSQL 입력을 한 번 추출한 뒤
+비공개 파일 입력으로 페이지를 생성한다. 새 데이터는 재빌드·배포 후 공개된다.
+서버 모드는 요청 시 DB 조회와 해당 캐시 정책을 사용한다.
 
-# Apply pending committed migrations; fresh installation is 0000 → 0001 → 0002
-pnpm db:migrate
-
-# Open the configured PostgreSQL database in Drizzle Studio
-pnpm db:studio
-
-# PostgreSQL 18 is required; missing/unsupported tools fail rather than silently skip
-pnpm test:db
-# For a version-specific native installation:
-# CD_TEST_PG_BIN=/opt/homebrew/opt/postgresql@18/bin pnpm test:db
+```sh
+# 실행 전 검증 규칙에서 정적 빌드의 pnpm 내부 검사·데이터 조건을 확인
+bun run build:static
+bun run verify:static
+bun run preview:static
 ```
 
-Drizzle's connection commands read `.env` and process environment variables. A nonempty `DATABASE_URL` takes precedence over individual PostgreSQL fields. Confirm host, port, database and account before applying the installation SQL. `test:db` ignores application connection settings and uses its own temporary local cluster. See the [PostgreSQL guide](docs/postgresql.md).
+정적 미리보기는 `out/`만 제공하며 Next 서버나 DB를 사용하지 않는다.
+업로드할 때는 `_headers`, 공유 자료, `_next/`, `.txt`·`__next.*` 탐색 파일을 포함한
+전체 출력을 보존한다. 입력 추출·파일 형식·재사용 조건은 [정적 빌드 안내](docs/static-export.md)를 따른다.
+과거 검증 보고서의 pnpm 실행 예시는 당시 기록이며 현재 명령 규약은 위 검증 규칙이 우선한다.
 
-### Production Builds
+기본 `build`는 standalone 출력을 생성한다. `start`는 통상적인 로컬 production 확인 명령으로,
+standalone 경고가 발생할 수 있다. standalone 산출물을 직접 실행할 때는
+`public`과 `.next/static`을 서버 산출물에 함께 패키징하고 Node로 실행한다.
+[배포 안내](VERCEL_SETUP.md)의 모드별 설명도 현재 설정과 대조한다.
 
-#### Node.js server build
+R2·Netlify CI는 기존 수동 `workflow_dispatch` 방식의 배포 경로이며 로컬 `build:static`과
+단계가 다르다. 검사·빌드 성공은 외부 업로드나 운영 공개 성공을 뜻하지 않는다.
+이 문서 개편은 workflow를 실행하거나 배포 설정을 바꾸지 않는다.
 
-```bash
-pnpm build
-pnpm start
-```
+## 데이터 계약
 
-Without `NEXT_OUTPUT_MODE=export`, the Next configuration creates standalone output. `pnpm start` runs the conventional local production check and Next prints a standalone warning. For the generated standalone server, package `public` and `.next/static` with it before starting the entry point:
+- 공식 값·회사 합계·순위는 tem이 공개한 결과를 읽으며 CD가 재계산해 대체하지 않는다.
+- 업무일은 Asia/Seoul 기준으로 해석한다. 큰 정수·numeric·revision은 JSON/CSV에서
+  정확한 십진 문자열을 유지하고, 실제 0·음수와 NULL·미제공 상태를 구분한다.
+- 최신 결측과 마지막 제공값, 미공개와 정상 공개 0건, 조회 실패를 서로 구분한다.
+- [저장 계약](docs/cd-business-schema-contract-2026-10-07.md)과
+  [상장기 계약](docs/security-lifecycle-contract-2026-10-13.md)을 실제 스키마·migration과 대조한다.
+  오래된 문서의 테이블 수·migration 끝 번호를 현재 상태로 가정하지 않는다.
+- migration은 versioned SQL과 journal을 따른다. schema push로 설치 이력·수동 SQL 제약을 대체하지 않는다.
+  실제 DB 적용 전 대상·요청 범위를 확인한다.
 
-```bash
-cp -R public .next/standalone/public
-cp -R .next/static .next/standalone/.next/static
-PORT=3000 HOSTNAME=127.0.0.1 pnpm exec node .next/standalone/server.js
-```
+`bun run db:check`는 migration 일관성 검사이고 `bun run test:db`는 전용 임시 PostgreSQL 18
+클러스터의 계약 검사다. `db:generate`는 파일을 생성하며 `db:migrate`·`db:studio`는
+설정된 DB에 연결한다. 환경 요구와 실행 범위는 [검증 규칙](docs/rules/verification.md)을 따른다.
 
-#### Historical static export workflows
+2026-10-07 DCD 설치·빈 상태·HTTP 결과는 [당시 검증 기록](docs/cd-business-schema-verification-2026-10-07.md)에 있다.
+현재 DB 내용·tem 실제 처리·운영 배포 성공은 별도로 확인해야 한다.
 
-The existing R2/Netlify workflows and export setting describe the earlier fixed-snapshot deployment. Current pages query the database at request time and use dynamic route behavior. The current implementation targets server mode; an export requires a separately agreed snapshot/export design. Automated rebuild, upload and deployment are outside this change.
+## UI와 기여
 
-For the previous mode's history, read [Next.js 16 upgrade verification](docs/next16-upgrade-verification-2026-10-05.md) and [Vercel setup](VERCEL_SETUP.md). Those records do not establish that the new dynamic views can be exported unchanged.
+기존 shadcn/ui 구성 요소를 먼저 검토하고 [UI 규칙](docs/rules/ui.md)과 Impeccable을 사용한다.
+가격 상승 빨강·하락 파랑의 의미를 유지하되 실제 토큰은 `DESIGN.md`와 소스를 따른다.
+순위 이동·가격 등락·순위 식별색을 구분하고 모바일·데스크톱, 라이트·다크와 접근성을 검증한다.
+테마는 첫 방문 기기 설정을 따르고 사용자의 수동 선택을 보존한다.
 
-Financial result revisions are separate from compiler artifacts and source-history corrections. The initial implementation does not add long-lived data caching; page and CSV requests detect a replaced result revision.
-
-Deployment is a separate operation from local tests and builds. The current change does not publish the site or change deployment workflows.
-
-Measure current generated URLs, total files, output size, peak memory, and build/upload times against the same data snapshot. Historical page counts and build durations are not current performance guarantees.
-
-### SEO Features
-
-- **Sitemap**: Generated from actual static HTML output, or served by Route Handlers in server mode
-- **Robots.txt**: Optimized for search engine crawling
-- **Structured Data**: JSON-LD for rich snippets
-- **Meta Tags**: Complete OpenGraph and Twitter Card support
-- **Mobile-First**: Responsive design with proper viewport settings
-
-### Performance Targets
-
-- **LCP**: < 2.5 seconds
-- **FID**: < 100ms
-- **CLS**: < 0.1
-- **Bundle Size**: < 100KB initial JavaScript
-
-## 🤝 Contributing
-
-1. Follow the development guidelines in `docs/development-guidelines.md`
-2. Use pnpm for package management
-3. Ensure mobile-first responsive design
-4. Maintain Korean stock market color standards
-5. Update relevant documentation for any changes
-
-## 📄 License
-
-[Your License Here]
-
----
-
-For detailed development instructions, please refer to the [Development Guidelines](docs/development-guidelines.md).
+진행 중인 변경을 보존하고 요청과 관련된 파일만 수정한다. Git 작업은 현재 위임 범위를 따르며,
+일반 commit·push 위임을 이력 재작성·작업 폐기 권한으로 확대하지 않는다.
+확인한 교정과 실패 원인은 [Learnings](docs/learnings.md)에 근거·적용 범위·검증 상태와 함께 남긴다.

@@ -1,2 +1,2 @@
-import { DetailLoading } from '@/components/detail-loading';
-export default function Loading() { return <DetailLoading />; }
+import { CompanyDetailLoading } from '@/components/company-detail-loading';
+export default function Loading() { return <CompanyDetailLoading />; }
