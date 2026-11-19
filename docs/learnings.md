@@ -200,3 +200,12 @@
 - 확인한 원인·근거: 오래된 surface와 중복 brief가 이전 글꼴·순위 색·배치를 현재 계약처럼 설명했고, 구형 렌더러를 직접 검사하는 테스트도 남았다. [정리 검증](ranking-cleanup-verification-2026-11-02.md)에 삭제·보존 범위를 기록했다.
 - 다음 행동: 현재 규칙은 실제 구현과 맞추고 대체된 결정·측정은 날짜별 기록으로 연결한다. 미사용 코드의 참조 묶음을 확인하고 계약 테스트는 현행 렌더러로 옮긴다. 최종 승인 시안과 검증 근거는 해시로 보존을 확인한다.
 - 적용 범위·예외: 요청받은 작업 흔적 정리. 과거 승인 자료·검증 기록을 일괄 삭제하거나 당시 결과를 최신 상태로 덮어쓰지 않는다.
+
+## L15 — 프로덕션 빌드 전에 NODE_ENV 확인
+
+- **발생 조건** 개발 세션의 `NODE_ENV=development`를 상속한 셸에서 프로덕션 빌드를 실행할 때.
+- **잘못된 행동** 상속된 값을 확인하지 않고 `bun run build`를 실행했다.
+- **확인한 원인·근거** Next.js 16.4.6에서 컴파일과 타입 검사는 통과했지만 `/_global-error` 사전 렌더링이 `useContext` 오류로 중단됐다. [Next.js NODE_ENV 안내](https://nextjs.org/docs/messages/non-standard-node-env)
+- **다음 행동** 빌드 전에 `NODE_ENV`를 확인한다. 개발용 값이 상속됐으면 해당 실행에서 제거하거나 `production`으로 지정한다.
+- **적용 범위·예외** `bun run build`와 `bun run build:static`의 프로덕션 실행 환경.
+- **검증 상태** `NODE_ENV=production`에서 합성 PostgreSQL 데이터를 사용한 standalone 빌드와 정적 내보내기가 모두 통과했다.

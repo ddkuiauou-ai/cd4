@@ -27,6 +27,8 @@ const nextConfig = (phase: string): NextConfig => ({
 
   // 빌드 최적화
   experimental: {
+    agentUpgrade: 'security',
+
     // Next 16.4: 개발 중 지연 컴파일과 CSS worker로 작업 비용을 줄인다.
     ...(phase === PHASE_DEVELOPMENT_SERVER ? {
       // GC가 제거한 작업을 HMR이 참조하는 패닉과 반복 새로고침을 피한다.
