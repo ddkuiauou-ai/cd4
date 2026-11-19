@@ -51,9 +51,9 @@
   결정성·재시도·버전/재실행 등 해당 변경에 필요한 절차를 적용한다.
 - 현재 별도 checkout은 `/Users/craigchoi/tem`이다. 그곳의
   [AGENTS.md](../../../../tem/AGENTS.md), [CD 업무 규칙](../../../../tem/docs/cd-rules.md),
-  [v2 운영 안내](../../../../tem/docs/cd-v2-operations.md)를 작업 시 다시 확인한다.
+  [CD 운영 안내](../../../../tem/docs/cd-operations.md)를 작업 시 다시 확인한다.
   이 로컬 상대 링크는 해당 배치를 전제로 하며 다른 clone에서는 실제 checkout을 찾는다.
-- 확인된 tem 실행 환경은 Python `.venv`와 `cd_temporal.v2.runtime` Worker다.
+- 확인된 tem 실행 환경은 Python `.venv`와 `cd_temporal.runtime` Worker다.
   Workflow·Activity·Worker 구성/queue·실행·검증은 tem 문서에 두고 여기 복제하지 않는다.
   CD의 Bun 명령 규약을 Python Worker에 강제하지 않는다.
 - Temporal CLI가 필요한 작업에서만 설치 여부와 실제 제공 명령을 확인한다.

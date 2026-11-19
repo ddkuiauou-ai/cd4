@@ -62,6 +62,8 @@ const finiteCheck = (name: string, column: AnyPgColumn) => check(name,
   sql`${column} IS NULL OR (${column} > '-Infinity'::double precision AND ${column} < 'Infinity'::double precision)`);
 const nonnegativeCheck = (name: string, column: AnyPgColumn) => check(name,
   sql`${column} IS NULL OR ${column} >= 0`);
+const adjustedBarCheck = (name: string, open: AnyPgColumn, high: AnyPgColumn, low: AnyPgColumn, close: AnyPgColumn) => check(name,
+  sql.join([open, high, low, close].map(column => sql`(${column} >= 0 AND ${column} < 'Infinity'::double precision)`), sql` AND `));
 const metadataCheck = (name: string, key: AnyPgColumn, revision: AnyPgColumn, calculation: AnyPgColumn) => check(name,
   sql`(${key} IS NULL AND ${revision} IS NULL AND ${calculation} IS NULL) OR
     (${key} IS NOT NULL AND length(btrim(${key})) > 0 AND ${revision} IS NOT NULL AND ${revision} > 0 AND ${calculation} IS NOT NULL)`);
@@ -410,6 +412,12 @@ export const price = pgTable(
     high: doublePrecision("high").notNull(),
     low: doublePrecision("low").notNull(),
     close: doublePrecision("close").notNull(),
+    advOpen: doublePrecision("adv_open"),
+    advHigh: doublePrecision("adv_high"),
+    advLow: doublePrecision("adv_low"),
+    advClose: doublePrecision("adv_close"),
+    advSource: text("adv_source"),
+    advObservedAt: timestamp("adv_observed_at", { withTimezone: true, mode: "string" }),
     volume: bigint("volume", { mode: "bigint" }).notNull(),
     fvolume: doublePrecision("fvolume"),
     transaction: bigint("transaction", { mode: "bigint" }),
@@ -437,6 +445,11 @@ export const price = pgTable(
     nonnegativeCheck("price_close_nonnegative_check", table.close),
     nonnegativeCheck("price_volume_nonnegative_check", table.volume),
     nonnegativeCheck("price_transaction_nonnegative_check", table.transaction),
+    adjustedBarCheck("price_adv_ohlc_check", table.advOpen, table.advHigh, table.advLow, table.advClose),
+    check("price_adv_observation_check", sql`num_nonnulls(${table.advOpen}, ${table.advHigh}, ${table.advLow},
+      ${table.advClose}, ${table.advSource}, ${table.advObservedAt}) IN (0, 6)
+      AND (${table.advSource} IS NULL OR length(btrim(${table.advSource})) > 0)
+      AND (${table.advObservedAt} IS NULL OR isfinite(${table.advObservedAt}))`),
     finiteCheck("price_rate_finite_check", table.rate),
     finiteCheck("price_fvolume_finite_check", table.fvolume),
     index("price_security_id_idx").on(table.securityId).where(sql`${table.securityId} IS NOT NULL`),
@@ -450,6 +463,29 @@ export const price = pgTable(
     index("price_date_exchange_idx").on(table.date, table.exchange), // Renamed from idx_price_date_exchange
   ]
 );
+
+/** Adjusted bars as CD first observed them. Rebuilding raw daily rows must preserve recorded versions. */
+export const priceAdjustmentHistory = pgTable("price_adjustment_history", {
+  date: timestamp("date", { withTimezone: true, mode: "date" }).notNull(),
+  exchange: text("exchange").notNull(),
+  ticker: text("ticker").notNull(),
+  securityId: text("security_id").references(() => security.securityId),
+  observedAt: timestamp("observed_at", { withTimezone: true, mode: "string" }).notNull(),
+  advOpen: doublePrecision("adv_open").notNull(),
+  advHigh: doublePrecision("adv_high").notNull(),
+  advLow: doublePrecision("adv_low").notNull(),
+  advClose: doublePrecision("adv_close").notNull(),
+  advSource: text("adv_source").notNull(),
+}, table => [
+  primaryKey({ columns: [table.date, table.exchange, table.ticker, table.observedAt] }),
+  index("price_adjustment_history_ticker_date_idx").on(table.exchange, table.ticker, table.date, table.observedAt.desc()),
+  dailyCheck("price_adjustment_history_date_check", table.date),
+  nonemptyCheck("price_adjustment_history_exchange_check", table.exchange),
+  nonemptyCheck("price_adjustment_history_ticker_check", table.ticker),
+  nonemptyCheck("price_adjustment_history_source_check", table.advSource),
+  check("price_adjustment_history_observed_at_check", sql`isfinite(${table.observedAt})`),
+  adjustedBarCheck("price_adjustment_history_ohlc_check", table.advOpen, table.advHigh, table.advLow, table.advClose),
+]);
 
 export const marketcap = pgTable(
   "marketcap",

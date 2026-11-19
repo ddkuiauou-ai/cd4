@@ -1,5 +1,5 @@
 import * as schema from "@/db/schema-postgres";
-import { and, asc, eq, getTableColumns, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import type { SecurityListingPeriod } from "../security-lifecycle";
 import type { ReadDatabase } from "./publication";
@@ -37,9 +37,47 @@ export async function readPriceHistory(tx: ReadDatabase, securityIds: readonly s
   return toDataDTO(await tx.select({ ...getTableColumns(schema.price),
     open: sql<string>`${schema.price.open}::text`, high: sql<string>`${schema.price.high}::text`,
     low: sql<string>`${schema.price.low}::text`, close: sql<string>`${schema.price.close}::text`,
+    advOpen: sql<string | null>`${schema.price.advOpen}::text`, advHigh: sql<string | null>`${schema.price.advHigh}::text`,
+    advLow: sql<string | null>`${schema.price.advLow}::text`, advClose: sql<string | null>`${schema.price.advClose}::text`,
+    advObservedAt: sql<string | null>`to_char(${schema.price.advObservedAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
     fvolume: sql<string | null>`${schema.price.fvolume}::text`,
   }).from(schema.price).where(and(inArray(schema.price.securityId, [...securityIds]),
     listingHistoryFilter(schema.price.securityId,schema.price.date,period), from ? gte(schema.price.date, from) : undefined, to ? lte(schema.price.date, to) : undefined)).orderBy(asc(schema.price.date)));
+}
+
+export interface AdjustedPriceRange {
+  exchange: string;
+  ticker: string;
+  start?: string;
+  end?: string;
+  /** Inclusive CD observation cutoff. Omit for the latest published adjustment. */
+  observedAsOf?: string;
+}
+
+export async function readAdjustedPriceHistory(tx: ReadDatabase, range: AdjustedPriceRange) {
+  const { from, to } = historyRange(range.start, range.end);
+  const cutoff = range.observedAsOf;
+  if (cutoff !== undefined) {
+    // Pass the original microseconds to PostgreSQL, including when two versions share a millisecond.
+    const instant = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?(?:Z|[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00))$/.exec(cutoff);
+    if (!instant || businessDate(instant[1]) !== instant[1]) {
+      throw new Error("관측 기준 시각에는 날짜·시각과 UTC 오프셋이 필요합니다.");
+    }
+  }
+  const table = cutoff === undefined ? schema.price : schema.priceAdjustmentHistory;
+  const observedAt = cutoff === undefined ? schema.price.advObservedAt : schema.priceAdjustmentHistory.observedAt;
+  const rows = await tx.selectDistinctOn([table.date], {
+    date: table.date, exchange: table.exchange, ticker: table.ticker, securityId: table.securityId,
+    advOpen: sql<string>`${table.advOpen}::text`, advHigh: sql<string>`${table.advHigh}::text`,
+    advLow: sql<string>`${table.advLow}::text`, advClose: sql<string>`${table.advClose}::text`,
+    advSource: table.advSource,
+    advObservedAt: sql<string>`to_char(${observedAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+  }).from(table).where(and(
+    eq(table.exchange, range.exchange), eq(table.ticker, range.ticker), isNotNull(observedAt),
+    cutoff === undefined ? undefined : lte(observedAt, cutoff),
+    from && gte(table.date, from), to && lte(table.date, to),
+  )).orderBy(asc(table.date), desc(observedAt));
+  return toDataDTO(rows);
 }
 
 export async function readMarketcapHistory(tx: ReadDatabase, securityIds: readonly string[], start?: string, end?: string, period?: SecurityListingPeriod | null) {
@@ -68,12 +106,16 @@ export async function readRecentPrices(tx: ReadDatabase, securityIds: readonly s
   const rows = await tx.execute<{
     id: number; securityId: string; date: Date | string; ticker: string; exchange: string; sourceRef: string;
     name: string | null; korName: string | null; open: string; high: string; low: string; close: string;
+    advOpen: string | null; advHigh: string | null; advLow: string | null; advClose: string | null;
+    advSource: string | null; advObservedAt: string | null;
     volume: string; fvolume: string | null; transaction: string | null; rate: number | null;
     year: number; month: number; createdAt: Date | string; updatedAt: Date | string;
   }>(sql`SELECT p.id, p.security_id AS "securityId", p.date, p.ticker, p.exchange,
     p.source_ref AS "sourceRef", p.name, p.kor_name AS "korName", p.open::text AS open, p.high::text AS high,
     p.low::text AS low, p.close::text AS close, p.volume::text AS volume, p.fvolume::text AS fvolume,
     p.transaction::text AS transaction, p.rate,
+    p.adv_open::text AS "advOpen", p.adv_high::text AS "advHigh", p.adv_low::text AS "advLow", p.adv_close::text AS "advClose",
+    p.adv_source AS "advSource", to_char(p.adv_observed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "advObservedAt",
     p.year, p.month, p.created_at AS "createdAt", p.updated_at AS "updatedAt"
     FROM unnest(ARRAY[${sql.join(ids.map(id => sql`${id}`), sql`, `)}]::text[]) AS wanted(security_id)
     CROSS JOIN LATERAL (SELECT * FROM price WHERE security_id = wanted.security_id ${to ? sql`AND date <= ${to.toISOString()}::timestamptz` : sql``}

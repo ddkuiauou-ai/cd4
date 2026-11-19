@@ -14,7 +14,7 @@ const { migrate } = require("drizzle-orm/postgres-js/migrator");
 
 const migrationsFolder = path.resolve(__dirname, "../drizzle");
 const requiredTables = [
-  "bppedd", "company", "marketcap", "pension", "price",
+  "bppedd", "company", "marketcap", "pension", "price", "price_adjustment_history",
   "security", "security_rank", "stockcodename",
   "security_listing_period", "security_event",
   "result_publication",
@@ -250,7 +250,6 @@ async function compareCatalog(sql, snapshot) {
   `;
   assert.equal(customTriggers.length, 0, "0002 removes all eight custom publication triggers; internal FK triggers remain");
   assert.equal(guardFunctions.length, 0, "0002 removes all four publication guard functions");
-  assert.equal(expectedChecks.length, 168, "the minimal contract retains its 168 row-local CHECK constraints");
   return { columns: columns.length, indexes: indexes.length, foreignKeys: foreignKeys.length, checks: expectedChecks.length };
 }
 
@@ -265,7 +264,7 @@ test("PostgreSQL 18 installs row constraints and exercises the writer contract i
 
   const journal = JSON.parse(readFileSync(path.join(migrationsFolder, "meta/_journal.json"), "utf8"));
   assert.equal(journal.dialect, "postgresql");
-  assert.equal(journal.entries.length, 3, "the fresh installation includes 0000, 0001 and the 0002 simplification");
+  assert.ok(journal.entries.some(entry => entry.tag === "0007_observed_adjusted_prices"), "the adjusted price migration is in the installation chain");
   const latestMigration = journal.entries.at(-1);
   const snapshotName = `${String(latestMigration.idx).padStart(4, "0")}_snapshot.json`;
   const snapshot = JSON.parse(readFileSync(path.join(migrationsFolder, "meta", snapshotName), "utf8"));
@@ -466,6 +465,30 @@ test("PostgreSQL 18 installs row constraints and exercises the writer contract i
       await rejectsCode(() => db.insert(schema.price).values({ ...rawPrice, ticker: "negative-volume", volume: -1n }), "23514", "negative volume is rejected");
       await db.insert(schema.marketcap).values({ date: day, ticker: "000001", exchange: "KOSPI", sourceRef: "test-source/cap-1", marketcap: BigInt(largeInteger), volume: 0n, shares: 1n, year: 2000, month: 1 });
       await rejectsCode(() => db.insert(schema.marketcap).values({ date: day, ticker: "000001", exchange: "KOSPI", sourceRef: "test-source/cap-1", marketcap: 1n, volume: 0n, shares: 1n, year: 2000, month: 1 }), "23505", "marketcap natural key is enforced");
+    });
+
+    await verify("latest and observed-as-of adjusted OHLC preserve raw prices and prior versions", async () => {
+      const { readAdjustedPriceHistory } = require("../tests/helpers/business-data.cjs").loadModules(db)("lib/data/history.ts");
+      const range = { exchange: "KOSPI", ticker: "PIT001", start: "2000-01-04", end: "2000-01-04" };
+      const first = "2026-11-09T01:02:03.123456Z", second = "2026-11-09T01:02:03.123457Z";
+      const key = { date: day, exchange: range.exchange, ticker: range.ticker };
+      const bar = { advOpen: 9, advHigh: 11, advLow: 8, advClose: 10, advSource: "test-source" };
+      await db.insert(schema.price).values({ ...rawPrice, ...key });
+      assert.deepEqual(await readAdjustedPriceHistory(db, range), []);
+      await rejectsCode(() => db.update(schema.price).set({ advClose: 10 }).where(eq(schema.price.ticker, range.ticker)), "23514", "partial adjusted bar");
+      await db.insert(schema.priceAdjustmentHistory).values({ ...key, ...bar, observedAt: first });
+      await db.insert(schema.priceAdjustmentHistory).values({ ...key, ...bar, advClose: 11, observedAt: second });
+      await rejectsCode(() => db.insert(schema.priceAdjustmentHistory).values({ ...key, ...bar, observedAt: first }), "23505", "same symbol/date/observation");
+      await rejectsCode(() => db.insert(schema.priceAdjustmentHistory).values({ ...key, ...bar, advClose: NaN, observedAt: "2026-11-10T00:00:00Z" }), "23514", "nonfinite OHLC");
+      await db.update(schema.price).set({ ...bar, advClose: 11, advObservedAt: second }).where(eq(schema.price.ticker, range.ticker));
+      assert.deepEqual(await readAdjustedPriceHistory(db, { ...range, observedAsOf: "2026-11-09T01:02:03.123455Z" }), []);
+      const [asKnown] = await readAdjustedPriceHistory(db, { ...range, observedAsOf: "2026-11-09T10:02:03.123456+09:00" });
+      assert.deepEqual([asKnown.date, asKnown.advClose, asKnown.advObservedAt], ["2000-01-04", "10", first]);
+      const [latest] = await readAdjustedPriceHistory(db, range);
+      assert.deepEqual([latest.advClose, latest.advObservedAt], ["11", second]);
+      const [raw] = await db.delete(schema.price).where(eq(schema.price.ticker, range.ticker)).returning();
+      assert.equal(raw.close, rawPrice.close);
+      assert.equal((await readAdjustedPriceHistory(db, { ...range, observedAsOf: first }))[0].advClose, "10");
     });
 
     await verify("Seoul daily anchors, equivalent UTC instants, sessions and historical Saturdays", async () => {

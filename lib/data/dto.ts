@@ -1,6 +1,6 @@
 /** Exact, JSON-safe values at the database → web boundary. */
 type FinancialDTOKey = "price" | "shares" | "marketcap" | "bps" | "per" | "pbr" | "eps" | "div" | "dps"
-  | "open" | "high" | "low" | "close" | "volume" | "fvolume" | "transaction" | "value"
+  | "advOpen" | "advHigh" | "advLow" | "advClose" | "open" | "high" | "low" | "close" | "volume" | "fvolume" | "transaction" | "value"
   | `${"price" | "shares" | "marketcap" | "bps" | "per" | "pbr" | "eps" | "div" | "dps"}LastProvided`;
 type FinancialDTO<Value> = Value extends number ? string : DataDTO<Value>;
 export type DataDTO<Value> = Value extends bigint | Date ? string
@@ -8,7 +8,7 @@ export type DataDTO<Value> = Value extends bigint | Date ? string
   : Value extends object ? { [Key in keyof Value]: Key extends FinancialDTOKey ? FinancialDTO<Value[Key]> : DataDTO<Value[Key]> } : Value;
 
 const financialKeys = new Set<string>(["price", "shares", "marketcap", "bps", "per", "pbr", "eps", "div", "dps",
-  "open", "high", "low", "close", "volume", "fvolume", "transaction", "value",
+  "advOpen", "advHigh", "advLow", "advClose", "open", "high", "low", "close", "volume", "fvolume", "transaction", "value",
   ...["price", "shares", "marketcap", "bps", "per", "pbr", "eps", "div", "dps"].map(metric => `${metric}LastProvided`)]);
 
 const businessDay = new Intl.DateTimeFormat("en-CA", {

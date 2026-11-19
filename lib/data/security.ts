@@ -6,7 +6,7 @@ import { readSecurityLifecycles } from "./security-lifecycle";
 import { businessDate, toDataDTO } from "./dto";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { currentCompany, representativeSecurityOrder } from "./company";
-import { readMarketcapHistory, readMetricsHistory, readPriceHistory, readRecentPrices, readRouteCodes } from "./history";
+import { readAdjustedPriceHistory, type AdjustedPriceRange, readMarketcapHistory, readMetricsHistory, readPriceHistory, readRecentPrices, readRouteCodes } from "./history";
 import {
   COMPANY_PUBLICATION_KEY, currentRankFilter, DEFAULT_SCOPE, isCurrentResult, publicationState,
   readPublication, readSnapshot, SECURITY_PUBLICATION_KEY, securityRankPublicationKey,
@@ -155,6 +155,9 @@ export async function readCompanySecurities(tx: ReadDatabase, companyId: string)
 }
 
 export const getCompanySecurities = (companyId: string) => readSnapshot(tx => readCompanySecurities(tx, companyId));
+export const getAdjustedPriceHistory = (range: AdjustedPriceRange) =>
+  readSnapshot(tx => readAdjustedPriceHistory(tx, range));
+
 export const getSecurityPriceHistory = (id: string, start?: string, end?: string) =>
   id ? readSnapshot(tx => readPriceHistory(tx, [id], start, end)) : Promise.resolve([]);
 export const getSecurityMetricsHistory = (id: string, start?: string, end?: string) =>
