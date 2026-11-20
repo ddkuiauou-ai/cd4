@@ -17,6 +17,8 @@ CD는 업무 DB를 조회해 화면을 제공하고, 별도 `tem`은 수집·정
 | `tests/**`, `scripts/**`, 빌드·CI·검사 선택·완료 보고 | [검증 규칙](docs/rules/verification.md) |
 | 지침·계약 문서 정리 | [문서 안내](docs/README.md) · 해당 분야 규칙 · [문서 검증](docs/rules/verification.md#변경별-최소-확인) |
 
+기업·종목 상세를 변경할 때는 [상세 화면 brief](.impeccable/surfaces/components-detail-surface-tsx.md)의 10개 화면 순서, 종목별 제공 상태, CSV 범위와 서버·정적 검수 기준을 함께 읽는다.
+
 ## 공통 작업 원칙
 
 - 성공 조건을 먼저 정한다. 해석에 따라 결과가 크게 달라질 때만 확인하고, 요청을 충족하는 가장 단순한 변경에 집중한다.
