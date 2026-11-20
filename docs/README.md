@@ -1,25 +1,12 @@
 # CD 문서 안내
 
-새 작업은 [AGENTS.md](../AGENTS.md)를 진입점으로 삼는다.
-현재 요청·작업 대상 확인 → 관련 Rules 선택 → 관련 Learnings와 근거 읽기 → 수행·검증 순서다.
-링크된 상세 파일이 자동으로 로드된다고 가정하지 않는다.
+작업별 읽기 경로는 [AGENTS.md](../AGENTS.md#작업을-시작할-때), 실행 안내는 [README](../README.md)에 있다.
 
 ## 현재 지침과 기준
 
-| 문서 | 역할·읽는 조건 |
-| --- | --- |
-| [개발 지침](development-guidelines.md) | 사람을 위한 작업 경로, 기존 가이드와의 연결 |
-| [앱·서버 규칙](rules/app-server.md) | 페이지·서버 조회·Route Handler·SEO·캐시 변경 |
-| [UI 규칙](rules/ui.md) | UX/UI 설계·구현·검토, Impeccable 사용 |
-| [데이터·Temporal 규칙](rules/data-temporal.md) | DB·DTO·공식 결과·상장기·tem 경계 변경 |
-| [검증 규칙](rules/verification.md) | Bun 명령, test·lint·typecheck·빌드·DB·CI 조건 |
-| [Learnings](learnings.md) | 관련 작업 시작 시 읽고, 확인한 교정·실패 수정 뒤 갱신 |
-| [지침 개편 검증](agent-guidance-verification-2026-11-01.md) | 보존·이동·요구사항 대응과 읽기 경로 검증 결과 |
-| [PRODUCT](../PRODUCT.md)·[DESIGN](../DESIGN.md) | 현재 사용자 제품 결정·시각 기준; 과거 결정은 아래 보존 자료와 구분 |
-| [화면별 구현 기준](../.impeccable/implementation-brief.md) | 랭킹·대시보드의 현행 surface brief 색인 |
-
-Bun 실행 규약과 아직 pnpm을 사용하는 package metadata·잠금파일·CI·정적 빌드 내부의
-차이는 검증 규칙에 기록한다. 아래 과거 문서의 실행 예시나 검사 결과가 이 차이를 해소하지 않는다.
+- 개발 절차는 [작업 안내](development-guidelines.md), 실행 환경과 명령은 [검증 규칙](rules/verification.md)을 따른다.
+- 제품 범위는 [PRODUCT](../PRODUCT.md), 승인된 화면은 [DESIGN](../DESIGN.md), 화면별 적용 범위는 [brief 색인](../.impeccable/implementation-brief.md)에서 확인한다.
+- 실패 사례와 최종 기준은 [Learnings](learnings.md)에서 찾는다. 결정이 바뀌면 해당 기준 문서와 이를 가리키는 링크를 맞추고, 이전 결정·검증 결과는 날짜별 기록에 보존한다.
 
 ## 데이터·출력 계약
 
@@ -43,9 +30,11 @@ tem은 별도 프로젝트에서 수집·정정·공식 계산·검증·공개�
 
 | 기록 | 확인 범위 |
 | --- | --- |
+| [2026-11-20까지의 Learnings 검증 발췌](archive/learning-evidence-2026-11-20.md) | 최근 기록·랭킹·빌드 환경·상장기·검색의 당시 측정과 표본 범위 |
 | [2026-11-02 랭킹·푸터 정리](ranking-cleanup-verification-2026-11-02.md) | 현행 문서·과거 이력 분리, 미사용 코드·중간 시안 제거와 정리 전후 비교 |
 | [2026-11-02 랭킹 하단·푸터](ranking-footer-verification-2026-11-02.md) | 자료 안내·최근 미리보기·반응형 목차와 기존 헤더 패널 진입 |
 | [2026-11-02 반응형 랭킹](ranking-responsive-verification-2026-11-02.md) | 단일 표·본문 폭별 배치·정확한 차트·숫자 오버레이 |
+| [2026-11-01 지침 개편 검증](agent-guidance-verification-2026-11-01.md) | 최초 Rules 도입과 당시 지침 로딩·문서 이관 검증 |
 | [2026-10-23 패키지 업데이트](next-upgrade-2026-10-23.md) | 당시 패키지·설치·fixture export·기존 lint/DB 제한 |
 | [2026-10-23 반응형 헤더](responsive-header-2026-10-23.md) | 이전 헤더의 적용·검사 범위. 현재 기준은 [공통 헤더 규칙](../DESIGN.md#global-header) |
 | [2026-10-22 재무 지표 화면](records-room-financial-metrics-2026-10-22.md) | 지표별 표현·검증 |

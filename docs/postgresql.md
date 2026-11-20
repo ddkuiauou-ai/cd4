@@ -2,7 +2,7 @@
 
 > 현재 작업은 [데이터·Temporal Rules](rules/data-temporal.md)와 [검증·실행 Rules](rules/verification.md)를 먼저 읽는다. 스크립트는 `bun run <script>`로 호출하되 기존 Node 실행기를 유지한다. `packageManager`·lockfile·CI는 아직 pnpm 기준이며 Bun 설치 전환은 완료되지 않았다.
 
-이 문서의 **0000 → 0002 설치·14개 테이블·DCD 상태는 2026-10-07의 기록**이다. 현재 설치 판단은 [schema](../db/schema-postgres.ts), [migration journal](../drizzle/meta/_journal.json), 실제 SQL과 대상 DB의 적용 이력을 함께 확인한다. 후속 migration과 진행 중인 미커밋 변경이 있으므로 아래 과거 건수나 SQL 목록을 현재 전체 체인으로 사용하지 않는다. 문서 개편에서 DB 적용 상태를 재확인하거나 migration을 실행하지 않았다.
+이 문서의 **0000 → 0002 설치·14개 테이블·DCD 상태는 2026-10-07의 기록**이다. 현재 설치 판단은 [schema](../db/schema-postgres.ts), [migration journal](../drizzle/meta/_journal.json), 실제 SQL과 대상 DB의 적용 이력을 함께 확인한다.
 
 당시 변경은 **신규 빈 PostgreSQL 18 업무 DB**에 설치했다. 기존 데이터 이전·정리·baseline은 그 범위에 포함하지 않았다. 앱은 Drizzle ORM의 `postgres-js` adapter와 `postgres` driver를 사용한다.
 
@@ -73,7 +73,7 @@ Drizzle CLI는 `dotenv`로 `.env`를 읽고 이미 주입된 환경변수를 우
 
 ## 격리 PostgreSQL 18 검증
 
-지원 Node는 `.nvmrc`의 **22.23.3**과 `package.json`의 Node 22 범위다. 테스트는 같은 디렉터리에 있는 PostgreSQL **18** `initdb`·`pg_ctl`만 선택한다. `CD_TEST_PG_BIN`, Homebrew `postgresql@18/bin`, `PATH` 등을 찾으며 실행한 서버의 실제 major version도 검사한다.
+Node는 [프로젝트 실행 환경](rules/verification.md#실행-환경)을 따른다. 테스트는 같은 디렉터리에 있는 PostgreSQL **18** `initdb`·`pg_ctl`만 선택한다. `CD_TEST_PG_BIN`, Homebrew `postgresql@18/bin`, `PATH` 등을 찾으며 실행한 서버의 실제 major version도 검사한다.
 
 ```sh
 CD_TEST_PG_BIN=/opt/homebrew/opt/postgresql@18/bin bun run test:db

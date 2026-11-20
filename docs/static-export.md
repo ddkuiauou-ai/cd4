@@ -1,10 +1,6 @@
 # 전체 정적 빌드 사용법
 
-> 현재 작업은 [검증·실행 Rules](rules/verification.md)와 [데이터·Temporal Rules](rules/data-temporal.md)를 먼저 읽는다. 프로젝트 스크립트 호출은 `bun run <script>`를 사용한다. 이 문서의 2026-10-09 측정값은 당시 결과이며 현재 실행 성공을 뜻하지 않는다.
-
-DB 조회 모드의 `bun run dev`, `bun run build`, `bun run start`도 유지한다. 기존 Node **22.23.3** 실행 환경과 스크립트 내부의 `node` 명령은 Bun 호출 규약과 별개다.
-
-**남아 있는 실행 제약:** `package.json`의 `packageManager`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`과 배포 CI는 아직 pnpm 기준이다. `scripts/static-tools.cjs`의 `runtimeInfo({ enforce: true })`는 정적 빌드·벤치마크에서 Node 22.23.3과 pnpm 10.34.6을 검사한다. `bun run`으로 호출해도 이 검사는 유지된다. 준비된 의존성과 런타임을 먼저 확인하고, 조건이 맞지 않으면 미실행 원인을 보고한다. 이 지침 개편은 lockfile·CI·런타임을 이전하지 않았으며 Bun 전용 설치의 재현성을 검증하지 않았다. 새 설치나 이 제약의 변경은 별도 의존성 전환 작업이다.
+실행 전 [빌드 환경](rules/verification.md#실행-환경)에서 Node·pnpm 버전과 프로덕션 환경값을 확인한다. 입력의 날짜·값·공개 revision은 [데이터 규칙](rules/data-temporal.md)을 따른다.
 
 2026-10-09의 전체 빌드와 검증은 완료했다. 실제 페이지·파일 수, 종류별 용량, 단계 시간, 병렬 처리 비교와 브라우저 전송량은 [검증·성능 보고서](static-export-verification-2026-10-09.md)와 [상세 JSON](static-export-verification-2026-10-09.json)에 기록했다.
 
