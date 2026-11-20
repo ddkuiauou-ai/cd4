@@ -1,6 +1,6 @@
 import {filterListingRows,isolateListingValues,listingContains,selectListingPeriod} from '../security-lifecycle';
 import {readSecurityLifecycles} from '../data/security-lifecycle';
-import { companyMemberPeriods } from '../data/company-membership';
+import { listedSecurityPeriods } from '../data/listed-security-periods';
 import * as schema from '@/db/schema-postgres';
 import { and, asc, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
 import { currentSecurity } from '../data/security';
@@ -40,7 +40,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
     return grouped;
   };
   const lifecycle=await readSecurityLifecycles(tx,ids);
-  const membership = companyMemberPeriods(rows, lifecycle.periods, companyAsOf ?? null);
+  const membership = listedSecurityPeriods(rows, lifecycle.periods, companyAsOf ?? null);
   const byPrice = group(prices), byMarketcap = group(marketcaps), byMetric = group(metrics);
   const byCompanyMarketcap = companyMarketcaps ? group(companyMarketcaps) : byMarketcap;
   return { historyRows: prices.length + marketcaps.length + metrics.length + (companyMarketcaps?.length ?? 0),

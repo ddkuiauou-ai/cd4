@@ -17,7 +17,9 @@ const queryCounter = installQueryCounter(db.$client);
 const schema = require('../db/schema-postgres.ts');
 const { asc, sql } = require('drizzle-orm');
 const { toDataDTO, businessDate } = require('../lib/data/dto.ts');
-const { readSnapshot, isCurrentResult, publicationState } = require('../lib/data/publication.ts');
+const { readSnapshot, isCurrentResult, publicationState, SECURITY_PUBLICATION_KEY } = require('../lib/data/publication.ts');
+const { listedSecurityPeriods } = require('../lib/data/listed-security-periods.ts');
+const { STATIC_SEARCH_SECURITY_IDS_FILE } = require('../lib/static-build/server.ts');
 const { currentSecurity } = require('../lib/data/security.ts');
 const { currentCompany } = require('../lib/data/company.ts');
 const { readSecurityBatch } = require('../lib/static-build/read-security-batch.ts');
@@ -44,7 +46,9 @@ const listedOrder = (a, b) => Number(b.delistingDate == null) - Number(a.delisti
 const readSecurity = id => JSON.parse(fs.readFileSync(path.join(work, `data/security/${id}.json`), 'utf8'));
 
 async function prepare() {
-  if ((process.argv.includes('--reuse') || process.env.STATIC_BUILD_REUSE === '1') && fs.existsSync(path.join(work, 'manifest.json'))) {
+  if ((process.argv.includes('--reuse') || process.env.STATIC_BUILD_REUSE === '1')
+    && fs.existsSync(path.join(work, 'manifest.json'))
+    && fs.existsSync(path.join(work, STATIC_SEARCH_SECURITY_IDS_FILE))) {
     console.log('Reusing immutable static input'); return;
   }
   const started = Date.now(), generatedAt = new Date().toISOString();
@@ -57,10 +61,11 @@ async function prepare() {
     securities: await tx.query.security.findMany({ orderBy: [asc(schema.security.securityId)] }),
     companies: await tx.query.company.findMany({ orderBy: [asc(schema.company.companyId)] }),
     publications: await tx.query.resultPublication.findMany(),
+    listingPeriods: await tx.query.securityListingPeriod.findMany(),
     ranks: await tx.query.securityRank.findMany(),
   }));
   const publications = new Map(raw.publications.map(row => [row.publicationKey, row]));
-  const secPub = publications.get('security_latest/krx-all') ?? null, coPub = publications.get('company_marketcap/krx-all') ?? null;
+  const secPub = publications.get(SECURITY_PUBLICATION_KEY) ?? null, coPub = publications.get('company_marketcap/krx-all') ?? null;
   const secRoutes = securityRouteCodes(raw.securities), coRoutes = companyRouteCodes(raw.securities);
   const secById = new Map(raw.securities.map(row => [row.securityId, row]));
   const coById = new Map(raw.companies.map(row => [row.companyId, row]));
@@ -236,6 +241,8 @@ async function prepare() {
     ticker:row.ticker,exchange:row.exchange,type:row.type,delistingDate:row.delistingDate,routeCode:secRoutes.get(row.securityId)??null,
     companyRouteCode:row.companyId?coRoutes.get(row.companyId)??null:null}));
   writeJson('identities.json',identities);writeJson('companies.json',toDataDTO(raw.companies));
+  const listed = listedSecurityPeriods(raw.securities, raw.listingPeriods, businessDate(secPub?.asOf));
+  writeJson(STATIC_SEARCH_SECURITY_IDS_FILE, [...listed.keys()]);
   const { securityAliases, companyAliases } = createStaticAliases(raw.securities, raw.companies);
   const securityCodes=[...selected].map(id=>secRoutes.get(id)||id),companyCodes=[...selectedCompanies].map(id=>coRoutes.get(id)||id);
   const routes=[{path:'/',kind:'page'},{path:'/dashboard/',kind:'page'}];

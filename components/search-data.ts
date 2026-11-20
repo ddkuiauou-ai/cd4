@@ -16,10 +16,12 @@ export interface SearchMenuItem {
 type SearchDataState = {
   status: "idle" | "loading" | "success" | "error";
   data: SearchMenuItem[];
+  hasSnapshot: boolean;
 };
 
 const CACHE_TTL_MS = 300_000;
-const initialState: SearchDataState = { status: "idle", data: [] };
+const REQUEST_TIMEOUT_MS = 20_000;
+const initialState: SearchDataState = { status: "idle", data: [], hasSnapshot: false };
 let state = initialState;
 let fetchedAt = 0;
 let pending: Promise<SearchMenuItem[]> | null = null;
@@ -47,27 +49,36 @@ export function loadSearchData(): Promise<SearchMenuItem[]> {
     return Promise.resolve(state.data);
   }
 
-  publish({ status: "loading", data: state.data });
-  // Keep the shared request alive when one menu unmounts. Other subscribers
-  // and the next page can reuse it without one consumer aborting their fetch.
-  pending = fetch("/search-data.json", { cache: "no-cache" })
+  // The store owns the timeout so navigation and individual subscribers
+  // cannot abort a request the next page can reuse.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const finishRequest = () => {
+    clearTimeout(timeout);
+    pending = null;
+  };
+  pending = fetch("/search-data.json", {
+    cache: "no-cache", priority: "low", signal: controller.signal,
+  })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Search data request failed: ${response.status}`);
       const data: unknown = await response.json();
       if (!Array.isArray(data) || !data.every(isSearchItem)) {
         throw new Error("Invalid search data response");
       }
-      fetchedAt = Date.now();
-      publish({ status: "success", data });
       return data;
     })
-    .catch((error: unknown) => {
-      publish({ status: "error", data: state.data });
+    .then(data => {
+      finishRequest();
+      fetchedAt = Date.now();
+      publish({ status: "success", data, hasSnapshot: true });
+      return data;
+    }, (error: unknown) => {
+      finishRequest();
+      publish({ ...state, status: "error" });
       throw error;
-    })
-    .finally(() => {
-      pending = null;
     });
+  publish({ ...state, status: "loading" });
   return pending;
 }
 
@@ -80,10 +91,22 @@ const getSnapshot = () => state;
 const getServerSnapshot = () => initialState;
 const retry = () => { void loadSearchData().catch(() => {}); };
 
-export function useSearchData(enabled: boolean) {
+export function useSearchData() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const entryState = snapshot.hasSnapshot ? "ready" : snapshot.status === "error" ? "retry" : "loading";
+  return { ...snapshot, entryState, retry } as const;
+}
+
+export function useSearchPrefetch() {
   useEffect(() => {
-    if (enabled) retry();
-  }, [enabled]);
-  return { ...snapshot, retry };
+    const prepare = () => {
+      if (state.status === "idle" || state.hasSnapshot) retry();
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const idle = window.requestIdleCallback(prepare, { timeout: 1_000 });
+      return () => window.cancelIdleCallback(idle);
+    }
+    const timer = window.setTimeout(prepare, 150);
+    return () => window.clearTimeout(timer);
+  }, []);
 }

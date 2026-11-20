@@ -35,7 +35,8 @@ bun run preview:static
 - `start/end`, `scope`, `revision`, `period`는 브라우저에서 기존 규칙으로 해석한다. 초기 HTML의 기본 내용을 보존하는 작은 클라이언트 경계를 사용한다. 뒤로가기와 새로고침도 URL을 기준으로 복원한다.
 - 순위 CSV는 공개 범위별 정적 명세로 기준일·revision·행 수를 검증한다. 상세 CSV는 화면의 `start/end` 범위와 무관하게 선택 상장기의 전체 제공 이력을 내보내며 `?period=`의 상장기 경계는 유지한다. 일반 `/ranking-data/*.csv` 주소도 유지한다.
 - 해석 가능한 별칭은 정식 URL로 이동하는 작은 HTML을 생성한다. 이동 시 검색 파라미터와 해시를 보존하며, 모호하거나 존재하지 않는 대상은 404다.
-- 검색 데이터는 검색창을 열 때 받고, 차트 자료는 진행 중 요청과 완료 결과를 공유한다. 최근 종목은 검색 데이터의 선행 다운로드를 일으키지 않는다.
+- 정적 추출은 [상장 기간 기준](security-lifecycle-contract-2026-10-13.md#웹-조회)을 적용한 검색 대상 SID를 `.static-build/search-security-ids.json`에 저장한다. 렌더링은 그 SID로 공개 `/search-data.json`을 만든다. 전체 식별자 목록인 `.static-build/identities.json`은 기존 상세 주소·별칭·사이트맵에 사용한다.
+- 공통 헤더는 브라우저에서 활성화된 뒤 유휴 시간에 `/search-data.json`을 먼저 요청한다. 첫 목록은 준비가 끝나야 검색할 수 있다. 5분 캐시 만료 후 갱신할 때는 마지막으로 받은 목록을 사용한다. 최근 본은 공유 검색 데이터를 구독한다. 차트 자료의 진행 중 요청과 완료 결과도 공유한다. [현행 검색 동작](../DESIGN.md#search-recent-and-theme)
 
 일반 `/ranking-data/*.csv` 정적 주소는 이번 빌드의 기본 공개 범위를 제공한다. 화면에서 선택한 `scope`·`revision`의 다운로드 검증은 정적 명세와 해시 파일 주소를 사용한다. 정적 파일 서버는 URL 쿼리로 다른 CSV 본문을 계산하지 않는다.
 
@@ -53,7 +54,9 @@ bun run benchmark:static
 
 Tailwind는 `app/globals.css`의 명시한 앱 소스 경로만 스캔한다. 독립 작업 폴더에서 의존성·이전 출력·보고서를 훑지 않도록 [명시적 소스 등록](https://tailwindcss.com/docs/detecting-classes-in-source-files)을 사용한다. 다른 최상위 폴더에 화면 코드를 추가하면 해당 `@source`도 등록한다.
 
-이미 추출한 동일 입력으로 다시 빌드하려면 `bun run build:static --reuse`를 사용한다. 새로운 영업일에는 기본 `bun run build:static`으로 입력을 새로 추출한다. `--reuse`는 현재 DB에서 새 데이터를 읽는 명령이 아니다.
+이미 추출한 동일 입력으로 다시 빌드하려면 `bun run build:static --reuse`를 사용한다. `manifest.json`과 `search-security-ids.json`이 모두 있을 때 동결 입력을 재사용한다. 둘 중 하나라도 없는 이전 입력은 `--reuse`를 지정해도 DB에서 새로 추출한다. 새로운 영업일에는 기본 `bun run build:static`으로 입력을 새로 추출한다.
+
+검색 필터 반영 여부는 완성된 `out/_static-build.json`의 `snapshotId`를 해당 실행 보고서와 대조하고, `out/search-data.json`에서 상폐 종목이 제외됐는지 확인한다. 정적 페이지 생성은 독립 작업 폴더로 복사한 소스를 사용한다.
 
 브라우저 응답 바이트를 로컬에서 기록하려면 다음 명령을 사용한다.
 

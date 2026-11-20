@@ -53,19 +53,19 @@ test('batched static archives retain previous episodes while current DTO and com
 
 test('company membership uses the publication day, each listing episode and legacy master boundaries', () => {
   const {load} = fixture();
-  const {companyMemberPeriods} = load('lib/data/company-membership.ts');
+  const {listedSecurityPeriods} = load('lib/data/listed-security-periods.ts');
   const securities = [
     {securityId: 'security-1', listingDate: day('2024-03-13'), delistingDate: null},
     {securityId: 'legacy', listingDate: day('2016-05-08'), delistingDate: day('2016-05-09')},
   ];
   const periods = [period('old', '2008-07-06', '2016-05-09'), period('new', '2024-03-13')];
-  assert.equal(companyMemberPeriods(securities, periods, '2008-07-06').get('security-1').periodId, 'old');
-  assert.deepEqual([...companyMemberPeriods(securities, periods, '2016-05-08').keys()], ['security-1', 'legacy']);
-  assert.equal(companyMemberPeriods(securities, periods, '2016-05-09').size, 0);
-  assert.equal(companyMemberPeriods(securities, periods, '2024-03-12').size, 0);
-  assert.equal(companyMemberPeriods(securities, periods, '2024-03-13').get('security-1').periodId, 'new');
-  assert.deepEqual([...companyMemberPeriods(securities, periods, null).keys()], ['security-1']);
-  assert.equal(companyMemberPeriods(securities, periods.slice(0, 1), null).size, 0);
+  assert.equal(listedSecurityPeriods(securities, periods, '2008-07-06').get('security-1').periodId, 'old');
+  assert.deepEqual([...listedSecurityPeriods(securities, periods, '2016-05-08').keys()], ['security-1', 'legacy']);
+  assert.equal(listedSecurityPeriods(securities, periods, '2016-05-09').size, 0);
+  assert.equal(listedSecurityPeriods(securities, periods, '2024-03-12').size, 0);
+  assert.equal(listedSecurityPeriods(securities, periods, '2024-03-13').get('security-1').periodId, 'new');
+  assert.deepEqual([...listedSecurityPeriods(securities, periods, null).keys()], ['security-1']);
+  assert.equal(listedSecurityPeriods(securities, periods.slice(0, 1), null).size, 0);
 });
 
 test('live detail and static extraction use the same company members and chart episode before a relisting', async () => {

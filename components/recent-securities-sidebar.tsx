@@ -20,7 +20,7 @@ export function RecentSecuritiesSidebar({ currentSecCode, variant = 'full' }: { 
     const mounted = snapshot !== null;
     const pathname = usePathname();
     const headingId = useId();
-    const { data: searchData, status: searchStatus } = useSearchData(false);
+    const { data: searchData, status: searchStatus } = useSearchData();
     useEffect(() => { repairRecentlyViewedSecurities(); }, []);
     useEffect(() => {
         if (searchStatus === 'success') migrateRecentSecurityIdentities(searchData);

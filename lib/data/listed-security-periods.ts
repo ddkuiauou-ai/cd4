@@ -8,7 +8,7 @@ type ListingMaster = {
 };
 
 /** null values identify eligible legacy masters that have no listing periods. */
-export function companyMemberPeriods(
+export function listedSecurityPeriods(
   securities: readonly ListingMaster[], periods: readonly SecurityListingPeriod[], asOf: string | null,
 ) {
   const bySecurity = new Map<string, SecurityListingPeriod[]>();

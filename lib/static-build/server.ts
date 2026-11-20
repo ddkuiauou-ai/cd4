@@ -80,6 +80,19 @@ export function getStaticManifest() {
   return manifest;
 }
 export function getStaticIdentities() { return readStaticJson<StaticIdentity[]>('identities.json'); }
+
+export const STATIC_SEARCH_SECURITY_IDS_FILE = 'search-security-ids.json';
+
+export function getStaticSearchIdentities() {
+  const ids = readStaticJson<unknown>(STATIC_SEARCH_SECURITY_IDS_FILE);
+  if (!Array.isArray(ids) || !ids.every(id => typeof id === 'string')) {
+    throw new Error('Invalid static search security IDs');
+  }
+  const searchable = new Set(ids);
+  const rows = getStaticIdentities().filter(row => searchable.has(row.securityId));
+  if (rows.length !== ids.length) throw new Error('Inconsistent static search security IDs');
+  return rows;
+}
 export function resolveStaticSecurity(code: string) {
   let decoded: string; try { decoded = decodeURIComponent(code); } catch { return null; }
   const aliases = getStaticManifest().securityAliases;

@@ -58,7 +58,7 @@ export function RecentPanel() {
   return <details ref={ref} className="recent-panel">
     <summary aria-label="최근 본 종목" title="최근 본 종목" onClick={event => {
       openerRef.current = event.currentTarget;
-    }}><History size={20} aria-hidden="true" /><span>최근 본</span></summary>
+    }}><span className="header-icon-slot" aria-hidden="true"><History /></span></summary>
     <div ref={contentRef} className="recent-panel-content" role="region" tabIndex={-1} aria-label="최근 본 종목 목록" onClick={event => {
       if (event.target instanceof Element && event.target.closest("a") && ref.current) {
         ref.current.open = false;

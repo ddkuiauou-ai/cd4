@@ -41,6 +41,8 @@ async function withMenu(data, run, { status = "success" } = {}) {
   const navigations = [];
   const themes = [];
   let retries = 0;
+  let searchData = { data, status };
+  const retry = () => retries++;
   const loader = createBusinessPageLoader({
     "next/link": { default: ({ href, children, prefetch, onClick, ...props }) => {
       void prefetch;
@@ -52,18 +54,30 @@ async function withMenu(data, run, { status = "success" } = {}) {
         }
       } }, children);
     } },
-    "next/navigation": { useRouter: () => ({ push: url => navigations.push(url) }) },
+    "next/navigation": { useRouter: () => ({ push: url => navigations.push(url) }), usePathname: () => "/" },
     "next-themes": { useTheme: () => ({ setTheme: theme => themes.push(theme) }) },
-    "@/components/search-data": { useSearchData: () => ({ data, status, retry: () => retries++ }) },
+    "@/components/search-data": {
+      useSearchPrefetch: () => {},
+      useSearchData: () => ({
+        ...searchData,
+        entryState: searchData.status === "success" || searchData.data.length ? "ready"
+          : searchData.status === "error" ? "retry" : "loading",
+        retry,
+      }),
+    },
   });
   let mounted;
   try {
     const { createRoot } = require("react-dom/client");
     const { CommandMenu } = loader.load("components/command-menu.tsx");
+    const { BottomNavigation } = loader.load("components/bottom-navigation.tsx");
     mounted = createRoot(document.getElementById("root"));
-    await React.act(async () => mounted.render(React.createElement(CommandMenu)));
+    const render = () => React.act(async () => mounted.render(React.createElement(React.Fragment, null,
+      React.createElement(CommandMenu), React.createElement(BottomNavigation))));
+    await render();
     const input = () => document.querySelector('input[role="combobox"]');
     const trigger = () => document.querySelector("#root button");
+    const bottomTrigger = () => document.querySelector(".bottom-navigation button");
     const open = async () => React.act(async () => trigger().click());
     const rows = () => [...document.querySelectorAll("[data-security-id]")];
     const row = id => rows().find(item => item.dataset.securityId === id);
@@ -81,8 +95,11 @@ async function withMenu(data, run, { status = "success" } = {}) {
       React.act(() => { input().dispatchEvent(event); });
       return event;
     };
-    await open();
-    await run({ dom, input, trigger, open, rows, row, search, key, click, navigations, themes, retries: () => retries });
+    if (status === "success" || data.length) await open();
+    await run({
+      dom, input, trigger, bottomTrigger, open, rows, row, search, key, click, navigations, themes, retries: () => retries,
+      update: async (data, status) => { searchData = { data, status }; await render(); },
+    });
   } finally {
     if (mounted) await React.act(async () => mounted.unmount());
     // Radix restores focus in an unmount timeout. Drain it before swapping the
@@ -262,19 +279,46 @@ test("IME composition and keyCode 229 keep Enter available to the input instead 
   });
 });
 
-test("loading and retry states remain distinct from an empty search", async () => {
+test("cold search blocks all entry points and retries before opening the ready palette", async () => {
   await withMenu([], async menu => {
-    assert.match(document.querySelector('[role="status"]').textContent, /불러오는 중/);
-    assert.doesNotMatch(document.querySelector('[role="dialog"]').textContent, /검색 결과 없음/);
-    assert.equal(menu.rows().length, 0);
-  }, { status: "loading" });
-  await withMenu([], async menu => {
-    assert.match(document.querySelector('[role="status"], [role="alert"]').textContent, /불러오지 못/);
-    const retry = [...document.querySelectorAll("button")].find(button => button.textContent === "다시 시도");
-    assert.ok(retry);
-    await menu.click(retry);
+    assert.equal(menu.trigger().disabled, true);
+    assert.equal(menu.bottomTrigger().disabled, true);
+    await React.act(async () => {
+      menu.trigger().click();
+      menu.bottomTrigger().click();
+      window.dispatchEvent(new Event("app:open-search"));
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "/", bubbles: true }));
+    });
+    assert.equal(menu.input(), null);
+    assert.equal(menu.retries(), 0);
+    assert.match(document.querySelector('[role="status"]').textContent, /준비하고 있/);
+    await menu.update([], "error");
+    assert.equal(menu.trigger().disabled, false);
+    assert.match(menu.trigger().getAttribute("aria-label"), /다시 시도/);
+    await menu.click(menu.trigger());
     assert.equal(menu.retries(), 1);
-  }, { status: "error" });
+    assert.equal(menu.input(), null);
+    await menu.update([], "success");
+    await menu.click(menu.bottomTrigger());
+    assert.ok(menu.input());
+    assert.match(document.querySelector('[role="dialog"]').textContent, /검색 결과 없음/);
+  }, { status: "loading" });
+});
+
+test("refresh keeps the open query and its results until a new snapshot arrives", async () => {
+  await withMenu([securityFixture()], async menu => {
+    menu.search("005930");
+    await menu.update([securityFixture()], "loading");
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /갱신하는 동안/);
+    assert.equal(menu.rows().length, 1);
+    await menu.update([securityFixture()], "error");
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /이전 목록/);
+    assert.equal(menu.rows().length, 1);
+    await menu.update([securityFixture("보통주", { korName: "삼성전자 변경" })], "success");
+    assert.equal(menu.input().value, "005930");
+    assert.match(menu.rows()[0].textContent, /삼성전자 변경/);
+  });
 });
 
 test("Escape restores the actual opener, external search still opens, and theme controls remain available during a query", async () => {
@@ -311,23 +355,23 @@ test("typo suggestions appear only after direct results are exhausted and disapp
   await withMenu(data, async menu => {
     menu.search("삼성전쟈");
     assert.ok(menu.row("samsung"), "a name typo can suggest the intended security");
-    assert.match(document.querySelector('[role="status"]').textContent, /일치하는 종목 없음/);
-    assert.match(document.querySelector('[role="status"]').textContent, /비슷한 이름 \d+개/);
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /일치하는 종목 없음/);
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름 \d+개/);
 
     menu.search("삼성전기");
     assert.deepEqual(menu.rows().map(row => row.dataset.securityId), ["electromechanics"], "an exact name excludes other similar names");
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
     menu.search("005930");
     assert.deepEqual(menu.rows().map(row => row.dataset.securityId), ["samsung"]);
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
     for (const query of ["005931", "KOSPI.005931", "ㅅㅅㅈㅎ"]) {
       menu.search(query);
       assert.equal(menu.rows().length, 0, `a failed code or initials query must not produce guessed names: ${query}`);
-      assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+      assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
     }
     menu.search("삼성전자");
     assert.deepEqual(menu.rows().map(row => row.dataset.securityId), ["samsung", "preferred"]);
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
   });
 });
 
@@ -340,14 +384,14 @@ test("typo fallback renders at most five distinct securities and keeps the regul
     menu.search("삼성전쟈");
     assert.equal(menu.rows().length, 5);
     assert.equal(new Set(menu.rows().map(row => row.dataset.securityId)).size, 5);
-    assert.match(document.querySelector('[role="status"]').textContent, /비슷한 이름 5개/);
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름 5개/);
     assert.equal(menu.input().hasAttribute("aria-activedescendant"), false, "suggestions do not start with an implicit selection");
     menu.key("Enter");
     assert.deepEqual(menu.navigations, []);
     assert.ok(menu.input());
     menu.search("삼성전자");
     assert.equal(menu.rows().length, 8);
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
   });
 });
 
@@ -398,14 +442,14 @@ test("IME composition suppresses typo suggestions and compositionend restores th
     });
     menu.search("삼성전쟈");
     assert.equal(menu.rows().length, 0, "unfinished Korean input must not trigger approximate names");
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
     menu.key("Enter", { isComposing: true });
     assert.deepEqual(menu.navigations, []);
     React.act(() => {
       menu.input().dispatchEvent(new menu.dom.window.CompositionEvent("compositionend", { bubbles: true, data: "쟈" }));
     });
     assert.equal(menu.rows().length, 1, "the completed query is searched even without another input event");
-    assert.match(document.querySelector('[role="status"]').textContent, /비슷한 이름 1개/);
+    assert.match(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름 1개/);
     menu.key("Enter");
     assert.deepEqual(menu.navigations, [], "ending composition does not select a guessed result");
 
@@ -415,7 +459,7 @@ test("IME composition suppresses typo suggestions and compositionend restores th
     assert.equal(menu.rows().length, 0, "starting a new composition hides existing suggestions immediately");
     menu.search("삼성전자");
     assert.equal(menu.rows().length, 1, "direct matches remain available during composition");
-    assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+    assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
     React.act(() => {
       menu.input().dispatchEvent(new menu.dom.window.CompositionEvent("compositionend", { bubbles: true, data: "자" }));
     });
@@ -429,7 +473,7 @@ test("loading or failed data revalidation never labels stale data as typo sugges
     await withMenu([securityFixture()], async menu => {
       menu.search("삼성전쟈");
       assert.equal(menu.rows().length, 0);
-      assert.doesNotMatch(document.querySelector('[role="status"]').textContent, /비슷한 이름/);
+      assert.doesNotMatch(document.querySelector('[role="dialog"] [role="status"]').textContent, /비슷한 이름/);
       menu.key("Enter");
       assert.deepEqual(menu.navigations, []);
     }, { status });

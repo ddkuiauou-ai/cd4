@@ -24,16 +24,16 @@ export function SiteHeader() {
   return <header ref={ref} data-site-header className="app-header">
     <div className="app-container header-content">
       <Link prefetch={false} href="/dashboard" className="brand-wordmark" aria-label="천하제일 단타대회 · 메인">
-        <span className="brand-first brand-full" aria-hidden="true">천하제일</span>
-        <span className="brand-first brand-short" aria-hidden="true">천</span>
+        <span className="brand-first" aria-hidden="true">천하제일</span>
         <Image src="/icon.svg" alt="" width={32} height={32} />
-        <span className="brand-last brand-short" aria-hidden="true">단</span>
-        <span className="brand-last brand-full" aria-hidden="true">단타대회</span>
+        <span className="brand-last" aria-hidden="true">단타대회</span>
       </Link>
-      <div className="header-search"><CommandMenu /></div>
       <div className="header-main-nav"><MainNav /></div>
-      <div className="header-recent"><RecentPanel /></div>
-      <ModeToggle />
+      <div className="header-actions">
+        <CommandMenu />
+        <div className="header-recent"><RecentPanel /></div>
+        <ModeToggle />
+      </div>
     </div>
   </header>;
 }

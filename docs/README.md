@@ -47,7 +47,7 @@ tem은 별도 프로젝트에서 수집·정정·공식 계산·검증·공개�
 | [2026-11-02 랭킹 하단·푸터](ranking-footer-verification-2026-11-02.md) | 자료 안내·최근 미리보기·반응형 목차와 기존 헤더 패널 진입 |
 | [2026-11-02 반응형 랭킹](ranking-responsive-verification-2026-11-02.md) | 단일 표·본문 폭별 배치·정확한 차트·숫자 오버레이 |
 | [2026-10-23 패키지 업데이트](next-upgrade-2026-10-23.md) | 당시 패키지·설치·fixture export·기존 lint/DB 제한 |
-| [2026-10-23 반응형 헤더](responsive-header-2026-10-23.md) | 헤더 적용·검사 범위 |
+| [2026-10-23 반응형 헤더](responsive-header-2026-10-23.md) | 이전 헤더의 적용·검사 범위. 현재 기준은 [공통 헤더 규칙](../DESIGN.md#global-header) |
 | [2026-10-22 재무 지표 화면](records-room-financial-metrics-2026-10-22.md) | 지표별 표현·검증 |
 | [2026-10-22 모바일 화면](records-room-mobile-2026-10-22.md) | 모바일 변경·검증 |
 | [2026-10-21 기록실 구현](records-room-implementation-2026-10-21.md) | 실제 프런트엔드 적용·검사와 제한 |

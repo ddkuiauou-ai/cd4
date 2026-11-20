@@ -1,9 +1,11 @@
-import { isStaticBuild, getStaticIdentities } from './static-build/server';
+import { isStaticBuild, getStaticSearchIdentities } from './static-build/server';
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
 import { asc, eq, ilike, or } from "drizzle-orm";
 import { getSecurityByCode } from "./data/security";
-import { toDataDTO } from "./data/dto";
+import { businessDate, toDataDTO } from "./data/dto";
+import { listedSecurityPeriods } from "./data/listed-security-periods";
+import { readPublication, readSnapshot, SECURITY_PUBLICATION_KEY } from "./data/publication";
 import { companyRouteCodes, securityRouteCodes } from './entity-paths';
 
 export interface SearchNameResult {
@@ -13,14 +15,27 @@ export interface SearchNameResult {
 }
 
 export async function getSecuritySearchNames(): Promise<SearchNameResult[]> {
-  if (isStaticBuild()) return getStaticIdentities().toSorted((a,b) => a.korName.localeCompare(b.korName) || a.securityId.localeCompare(b.securityId));
-  const rows = await db.query.security.findMany({
-    columns: { securityId: true, ticker: true, companyId: true, name: true, korName: true, type: true, exchange: true, delistingDate: true },
-    orderBy: [asc(schema.security.korName), asc(schema.security.securityId)],
+  if (isStaticBuild()) {
+    return getStaticSearchIdentities().toSorted((a, b) => a.korName.localeCompare(b.korName) || a.securityId.localeCompare(b.securityId));
+  }
+  return readSnapshot(async tx => {
+    const [rows, periods, publication] = await Promise.all([
+      tx.query.security.findMany({
+        columns: { securityId: true, ticker: true, companyId: true, name: true, korName: true, type: true,
+          exchange: true, listingDate: true, delistingDate: true },
+        orderBy: [asc(schema.security.korName), asc(schema.security.securityId)],
+      }),
+      tx.query.securityListingPeriod.findMany(),
+      readPublication(tx, SECURITY_PUBLICATION_KEY),
+    ]);
+    const listed = listedSecurityPeriods(rows, periods, businessDate(publication?.asOf));
+    const securities = securityRouteCodes(rows), companies = companyRouteCodes(rows);
+    return rows.filter(row => listed.has(row.securityId)).map(row => ({
+      ...row,
+      routeCode: securities.get(row.securityId) ?? null,
+      companyRouteCode: row.companyId ? companies.get(row.companyId) ?? null : null,
+    }));
   });
-  const securities = securityRouteCodes(rows), companies = companyRouteCodes(rows);
-  return rows.map(row => ({ ...row, routeCode: securities.get(row.securityId) ?? null,
-    companyRouteCode: row.companyId ? companies.get(row.companyId) ?? null : null }));
 }
 export const findSecurityByName = getSecurityByCode;
 

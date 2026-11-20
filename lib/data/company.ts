@@ -5,7 +5,7 @@ import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { COMPANY_PUBLICATION_KEY, SECURITY_PUBLICATION_KEY, isCurrentResult, publicationState, readPublication, readSnapshot, type PublicationRow, type PublicationDTO, type ReadDatabase } from "./publication";
 import { readMarketcapHistory, readRecentPrices, readRouteCodes, type MarketcapDTO } from "./history";
-import { companyMemberPeriods } from "./company-membership";
+import { listedSecurityPeriods } from "./listed-security-periods";
 import { listingContains } from "../security-lifecycle";
 import { aggregateRegisteredCompanyHistory, exactPercentage, type RegisteredCompanyObservation } from "./registered-company-history";
 
@@ -112,7 +112,7 @@ export async function readCompanyAggregatedMarketcap(tx: ReadDatabase, companyId
     const periods = allMembers.length ? await tx.query.securityListingPeriod.findMany({
       where: inArray(schema.securityListingPeriod.securityId, allMembers.map(member => member.securityId)),
     }) : [];
-    const membership = companyMemberPeriods(allMembers, periods, membershipDate);
+    const membership = listedSecurityPeriods(allMembers, periods, membershipDate);
     const members = allMembers.filter(member => membership.has(member.securityId));
     const ids = members.map(member => member.securityId);
     const histories = await readMarketcapHistory(tx, ids, undefined, membershipDate ?? undefined, null);

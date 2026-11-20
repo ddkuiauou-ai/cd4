@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LaptopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
-import { Search } from "lucide-react";
-import { useSearchData } from "@/components/search-data";
+import { ArrowUpRight, LoaderCircle, RotateCw, Search, X } from "lucide-react";
+import { useSearchData, useSearchPrefetch } from "@/components/search-data";
 import { companyPath, securityPath, securityRouteCodes, companyRouteCodes } from "@/lib/entity-paths";
 import { createSecuritySearchIndex, searchSecurityIndex } from "@/lib/security-search";
 import { createSecurityTypoIndex, searchSecurityTypos } from "@/lib/security-typo-search";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type Selection = { securityId: string; column: 0 | 1 };
 
@@ -31,8 +31,12 @@ export function CommandMenu() {
   const countId = `${id}-count`;
   const helpId = `${id}-help`;
   const cellId = (row: number, column: number) => `${id}-cell-${row}-${column}`;
-  const { data, status, retry } = useSearchData(open);
+  const { data, status, entryState, retry } = useSearchData();
+  useSearchPrefetch();
   const { theme, setTheme } = useTheme();
+  const loading = entryState === "loading";
+  const needsRetry = entryState === "retry";
+  const TriggerIcon = loading ? LoaderCircle : needsRetry ? RotateCw : Search;
 
   // Prepare fields and identity-safe destinations once per data snapshot.
   // Only the bounded result set becomes React rows; input has no debounce.
@@ -61,6 +65,9 @@ export function CommandMenu() {
     && destinations.get(results.items[selectedRow].securityId)?.company ? 1 : 0;
 
   const openSearch = React.useCallback((source?: HTMLElement) => {
+    if (entryState === "loading") return false;
+    retry();
+    if (entryState === "retry") return true;
     const active = document.activeElement;
     opener.current = source ?? (active instanceof HTMLElement && active !== document.body ? active : trigger.current);
     setQuery("");
@@ -68,7 +75,8 @@ export function CommandMenu() {
     setIsComposing(false);
     setSelection(null);
     setOpen(true);
-  }, []);
+    return true;
+  }, [entryState, retry]);
 
   React.useEffect(() => {
     const down = (event: KeyboardEvent) => {
@@ -78,9 +86,10 @@ export function CommandMenu() {
           || event.target instanceof HTMLInputElement
           || event.target instanceof HTMLTextAreaElement
           || event.target instanceof HTMLSelectElement) return;
-        event.preventDefault();
-        if (open) setOpen(false);
-        else openSearch();
+        if (open) {
+          event.preventDefault();
+          setOpen(false);
+        } else if (openSearch()) event.preventDefault();
       }
     };
     const externalSearch = () => openSearch();
@@ -130,16 +139,22 @@ export function CommandMenu() {
 
   return (
     <>
-      <Button type="button" ref={trigger} variant="outline" className="header-search-trigger"
-        aria-label="기업·종목 검색 열기" aria-haspopup="dialog" aria-expanded={open}
+      <Button type="button" ref={trigger} variant="ghost" className="header-search-trigger" disabled={loading}
+        aria-label={loading ? "기업·종목 검색 준비 중" : needsRetry ? "기업·종목 검색 다시 시도" : "기업·종목 검색 열기"}
+        aria-haspopup={entryState === "ready" ? "dialog" : undefined} aria-expanded={open}
         onClick={event => openSearch(event.currentTarget)}>
-        <Search aria-hidden="true" />
-        <span className="header-search-short" aria-hidden="true">검색</span>
-        <span className="header-search-long" aria-hidden="true">기업 · 종목 검색</span>
-        <kbd className="header-search-key" aria-hidden="true"><span className="text-xs">⌘</span>K</kbd>
+        <span className="header-icon-slot" aria-hidden="true">
+          <TriggerIcon className={loading ? "search-loading-icon" : undefined} />
+        </span>
+        <span className="header-search-short" aria-hidden="true">{loading ? "준비 중" : needsRetry ? "재시도" : "검색"}</span>
+        <span className="header-search-long" aria-hidden="true">{loading ? "검색 준비 중" : needsRetry ? "검색 다시 시도" : "기업·종목 검색"}</span>
       </Button>
+      <span role="status" className="sr-only">
+        {loading ? "검색 목록을 준비하고 있습니다." : needsRetry ? "검색 목록을 불러오지 못했습니다. 다시 시도할 수 있습니다." : "기업·종목 검색이 준비되었습니다."}
+      </span>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="search-dialog flex translate-y-0 flex-col gap-0 overflow-hidden p-0 data-[state=open]:animate-none data-[state=closed]:animate-none sm:max-w-xl"
+        <DialogContent className="search-dialog flex translate-y-0 flex-col gap-0 overflow-hidden rounded-lg p-0 data-[state=open]:animate-none data-[state=closed]:animate-none"
+          showCloseButton={false} overlayClassName="bg-black/45"
           onOpenAutoFocus={event => { event.preventDefault(); input.current?.focus(); }}
           onEscapeKeyDown={event => { if (composing.current || event.isComposing || event.keyCode === 229) event.preventDefault(); }}
           onCloseAutoFocus={event => {
@@ -149,9 +164,16 @@ export function CommandMenu() {
               opener.current.focus({ preventScroll: true });
             }
           }}>
-          <DialogTitle className="sr-only">기업·종목 검색</DialogTitle>
+          <div className="flex shrink-0 items-center justify-between gap-2 pl-3.5 pr-2 pt-1">
+            <DialogTitle className="text-base">기업·종목 검색</DialogTitle>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost" size="icon" className="h-11 w-11" aria-label="검색 닫기">
+                <X className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </DialogClose>
+          </div>
           <DialogDescription className="sr-only">종목명, 종목 코드, 초성으로 검색하고 종목 상세나 기업 정보로 이동합니다.</DialogDescription>
-          <div className="search-input-row relative flex shrink-0 items-center gap-2 border-b px-3 pr-10">
+          <div className="search-input-row mx-3 flex shrink-0 items-center gap-2 rounded-md border px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input ref={input} type="text" role="combobox" aria-label="종목 검색"
               aria-autocomplete="list" aria-haspopup="grid" aria-expanded={open} aria-controls={gridId}
@@ -176,17 +198,17 @@ export function CommandMenu() {
               }}
               onKeyDown={handleInputKeyDown}
               onBlur={() => setSelection(null)}
-              className="search-input h-12 min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground sm:text-sm" />
+              className="search-input h-11 min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="search-results-body flex min-h-0 flex-col">
             <div id={countId} role="status" className="shrink-0 px-3 py-2 text-xs text-muted-foreground">
-              {status === "idle" || status === "loading" ? "검색 데이터를 불러오는 중입니다."
-                : status === "error" ? "검색 데이터를 불러오지 못했습니다."
-                : isComposing && directResults.total === 0 ? "입력 중…"
+              {isComposing && directResults.total === 0 ? "입력 중…"
                 : isSuggestion ? `일치하는 종목 없음 · 비슷한 이름 ${suggestions.length}개`
                 : results.total > results.items.length
                   ? `${results.total.toLocaleString()}개 중 상위 ${results.items.length}개 표시 · 더 입력하면 결과를 좁힐 수 있습니다.`
                   : `${results.total.toLocaleString()}개 종목`}
+              {status === "loading" && <span className="block">검색 목록을 갱신하는 동안 이전 목록을 표시합니다.</span>}
+              {status === "error" && <span className="block">최신 검색 목록을 불러오지 못했습니다. 이전 목록을 표시합니다.</span>}
             </div>
             {status === "error" ? (
               <div className="shrink-0 px-3 pb-2"><Button variant="outline" size="sm" onClick={retry}>다시 시도</Button></div>
@@ -194,13 +216,12 @@ export function CommandMenu() {
             {/* A grid supports two independent links per result. A listbox option
                 cannot contain an independently operable company action. */}
             <div ref={grid} id={gridId} role="grid" aria-label="종목 검색 결과" aria-colcount={2}
-              aria-busy={status === "idle" || status === "loading"}
               className="min-h-0 overflow-y-auto overscroll-contain px-2 pb-2">
               {results.items.map((item, row) => {
                 const destination = destinations.get(item.securityId)!;
                 return (
                   <div key={item.securityId} role="row" data-security-id={item.securityId}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] border-b border-border last:border-b-0">
+                    className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border">
                     <div id={cellId(row, 0)} role="gridcell" aria-selected={selectedRow === row && selectedColumn === 0}
                       className="min-w-0 rounded-sm aria-selected:bg-accent aria-selected:text-accent-foreground">
                       <Link href={destination.security} prefetch={false} tabIndex={-1}
@@ -217,14 +238,16 @@ export function CommandMenu() {
                       {destination.company ? (
                         <Link href={destination.company} prefetch={false} tabIndex={-1}
                           aria-label={`${item.korName} 기업 정보`} onClick={() => setOpen(false)}
-                          className="flex min-h-11 items-center rounded-sm px-3 text-xs text-muted-foreground underline underline-offset-4 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">기업 정보</Link>
+                          className="flex min-h-11 items-center gap-1 rounded-sm px-3 text-xs text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                          기업 정보 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
                       ) : <span className="sr-only">연결된 기업 정보 없음</span>}
                     </div>
                   </div>
                 );
               })}
             </div>
-            {status === "success" && !isComposing && results.total === 0 ? (
+            {!isComposing && results.total === 0 ? (
               <p className="shrink-0 px-4 pb-6 pt-3 text-center text-sm text-muted-foreground">검색 결과 없음.</p>
             ) : null}
           </div>

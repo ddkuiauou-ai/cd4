@@ -275,7 +275,7 @@ export function DetailSurface({ security, company, companySecs, ranking, neighbo
       </details>
       {!basic && <DetailPager rows={neighbors} rank={ranking?.currentRank ?? null} metric={metric} companyPage={companyPage} start={start} end={end} />}
     </div>
-    <aside className="context-rail hidden xl:block"><div className="detail-rail-content space-y-6"><RecentSecuritiesSidebar currentSecCode={secCode} /><DetailMetricFacts title={companyPage ? "조회 기준" : undefined} rows={facts} note={`지표 기준 ${currentDate || '—'} · 순위 기준 ${ranking?.rankDate || '—'}`} /><section className="border-t border-border pt-5"><h3 className="mb-3 text-base font-semibold">이 페이지에서</h3><PageNavigation sections={sections} collapsible={false} /></section></div></aside>
+    <aside className="context-rail hidden xl:block" data-full-recent-rail><div className="detail-rail-content space-y-6"><RecentSecuritiesSidebar currentSecCode={secCode} /><DetailMetricFacts title={companyPage ? "조회 기준" : undefined} rows={facts} note={`지표 기준 ${currentDate || '—'} · 순위 기준 ${ranking?.rankDate || '—'}`} /><section className="border-t border-border pt-5"><h3 className="mb-3 text-base font-semibold">이 페이지에서</h3><PageNavigation sections={sections} collapsible={false} /></section></div></aside>
   </div>;
 }
 
