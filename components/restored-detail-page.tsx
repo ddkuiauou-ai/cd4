@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getCompanyDetailSnapshot, getSecurityDetailSnapshot } from '@/lib/data/detail-snapshot';
 import { compareBusinessValues } from '@/lib/business-analysis';
 import { detailObservations, sourceValue, type DetailMetric } from '@/lib/detail-presentation';
+import { detailMetricOrder } from '@/lib/detail-metric-availability';
 import { DetailSurface, prepareDetailAnalysis, type DetailSurfaceProps, type DetailSearch } from './detail-surface';
 import { StaticDetailClient } from './static-detail-client';
 import { CompanyDetailClient } from './company-detail-client';
@@ -13,6 +14,10 @@ const corporationView = (row: DetailCorporation): DetailCorporation => ({name: r
   logo: row.logo, industry: row.industry, establishedDate: row.establishedDate, homepage: row.homepage});
 const publicationView = (row: DetailPublication | null): DetailPublication | null => row
   ? {asOf: row.asOf, revision: row.revision, scopeKey: row.scopeKey} : null;
+const detailValueFields = ['price', ...detailMetricOrder].flatMap(metric =>
+  [metric, `${metric}Date`, `${metric}State`, `${metric}LastProvided`, `${metric}LastProvidedDate`]);
+const compactValues = (row: object) => Object.fromEntries(detailValueFields.flatMap(field =>
+  Object.hasOwn(row, field) ? [[field, (row as Record<string, unknown>)[field]]] : []));
 
 /** Retain only current comparison values, identities and the matching official quote. */
 export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProps {
@@ -20,14 +25,14 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
   const price = security?.state === 'published' && security.priceState === 'provided' ? security.price : null;
   const quote = props.prices.find(row => row.date === security?.priceDate && compareBusinessValues(sourceValue(row.close), price ?? null) === 0);
   return {
-    ...props, history: [], sourceHistory: [], prices: quote ? [{date: quote.date, close: quote.close, rate: quote.rate, open: quote.open, volume: quote.volume}] : [],
+    ...props, history: [], sourceHistory: [], prices: quote ? [Object.fromEntries(
+      ['date', 'open', 'high', 'low', 'close', 'volume', 'rate'].flatMap(field => Object.hasOwn(quote, field) ? [[field, quote[field]]] : []))] : [],
     security: security ? {
       securityId: security.securityId, routeCode: security.routeCode, name: security.name, korName: security.korName,
       listingPeriods:security.listingPeriods,lifecycleEvents:security.lifecycleEvents,selectedPeriod:security.selectedPeriod,historicalPeriod:security.historicalPeriod,
       ticker: security.ticker, exchange: security.exchange, type: security.type, state: security.state,
       price: security.price, priceDate: security.priceDate, priceState: security.priceState, shares: security.shares, sharesDate: security.sharesDate,
-      [metric]: security[metric], [`${metric}Date`]: security[`${metric}Date`], [`${metric}State`]: security[`${metric}State`],
-      [`${metric}LastProvided`]: security[`${metric}LastProvided`], [`${metric}LastProvidedDate`]: security[`${metric}LastProvidedDate`],
+      ...compactValues(security), availableMetrics: security.availableMetrics,
       company: security.company ? corporationView(security.company) : null, publication: publicationView(security.publication),
     } : null,
     company: company ? {
@@ -46,11 +51,13 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
       rankingState: props.ranking.rankingState, exclusionReason: props.ranking.exclusionReason} : null,
     companySecs: props.companySecs.map(member => ({
       securityId: member.securityId, routeCode: member.routeCode, name: member.name, korName: member.korName,
-      ticker: member.ticker, type: member.type, exchange: member.exchange, [metric]: member[metric],
+      ticker: member.ticker, type: member.type, exchange: member.exchange, ...compactValues(member),
+      state: member.state, availableMetrics: member.availableMetrics, dividendHistory: member.dividendHistory,
       prices: member.prices?.slice(0, 1).map(row => ({close: row.close, rate: row.rate, date: row.date})),
     })),
     neighbors: props.neighbors.map(row => ({securityId: row.securityId, companyId: row.companyId, routeCode: row.routeCode,
-      exchange: row.exchange, ticker: row.ticker, name: row.name, korName: row.korName, currentRank: row.currentRank, marketcapRank: row.marketcapRank})),
+      exchange: row.exchange, ticker: row.ticker, name: row.name, korName: row.korName, currentRank: row.currentRank,
+      marketcapRank: row.marketcapRank, value: row.value ?? row[metric] ?? row.totalMarketcap})),
   };
 }
 

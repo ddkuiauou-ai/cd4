@@ -43,16 +43,21 @@ async function renderPbr(history, search = {}, identity = security) {
   return { ...rendered, calls, downloads, csv, snapshot, state, dom, document: dom.window.document };
 }
 
-function metricCard(document, label) {
-  return [...document.querySelectorAll("#indicators div")]
-    .find(row => row.children[0]?.tagName === "P" && row.children[0].textContent === label)?.children[1].textContent;
+function currentPbr(document) {
+  const overview = document.querySelector("#current-overview");
+  return overview.querySelector(".investor-primary-value").textContent;
+}
+
+function periodMean(document, label) {
+  return [...document.querySelectorAll("#indicators dl > div")]
+    .find(row => row.querySelector("dt").textContent === label)?.querySelector("dd").textContent;
 }
 
 test("actual PBR detail keeps a supplied PBR independent from missing BPS and its last value, including the full source CSV", async () => {
   const history = [{ date: "2026-10-02", pbr: "2", pbrState: "provided", bps: null, bpsState: "source_missing" }];
   const original = structuredClone(history);
   const { document, calls, csv, snapshot, state, dom } = await renderPbr(history);
-  assert.equal(metricCard(document, "현재 PBR"), "2배");
+  assert.equal(currentPbr(document), "2배");
   assert.equal(snapshot.security.pbr, "2");
   assert.equal(snapshot.security.bps, null);
   assert.equal(snapshot.security.bpsState, "source_missing");
@@ -60,12 +65,13 @@ test("actual PBR detail keeps a supplied PBR independent from missing BPS and it
   assert.equal(snapshot.security.bpsLastProvidedDate, "2026-09-30");
   assert.equal(snapshot.security.securityId, "historical-security");
   assert.equal(snapshot.security.routeCode, "KOSPI.005930");
-  assert.ok(document.querySelector('form[action="/security/KOSPI.005930/pbr"]'));
-  assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'));
+  assert.ok(document.querySelector('a[href="/security/KOSPI.005930/pbr"][aria-current="page"]'));
+  assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'), "the fixture supplies a current PER of zero");
+  assert.match(document.querySelector("#current-overview tbody tr").cells[2].textContent, /^—$/);
   assert.deepEqual(calls, [["historical-security", "pbr"]]);
   assert.deepEqual(state.transactions, [{ isolationLevel: "repeatable read", accessMode: "read only" }]);
   assert.match(csv, /^date,pbr,bps,state\r?\n2026-10-02,2,,provided/);
-  assert.match(document.body.textContent, /선택 기간과 관계없이 전체 제공 이력/);
+  assert.match(document.querySelector("#history-download").textContent, /주가순자산비율.*전체 이력 CSV|PBR.*전체 이력 CSV/);
   assert.deepEqual(history, original);
   dom.window.close();
 });
@@ -80,12 +86,10 @@ test("selected PBR history preserves zero and negative observations, skips missi
   ];
   const { document, text, calls, csv, downloads, snapshot, dom } = await renderPbr(history, { start: "2026-09-30", end: "2026-10-02" });
   assert.deepEqual(calls, [["historical-security", "pbr"]]);
-  assert.equal(document.querySelector('input[name="start"]').value, "2026-09-30");
-  assert.equal(document.querySelector('input[name="end"]').value, "2026-10-02");
-  assert.equal(metricCard(document, "12개월 평균"), "-1배");
-  assert.equal(metricCard(document, "최저값"), "-2배");
-  assert.equal(metricCard(document, "최고값"), "0배");
-  assert.match(text, /분석 범위 2026-09-30 ~ 2026-10-01 · 실제 제공 2개/);
+  assert.match(document.querySelector("#chart-analysis").textContent, /직접 지정 기간 2026-09-30 ~ 2026-10-02/);
+  assert.equal(periodMean(document, "12개월 평균"), "-1배");
+  assert.match(document.querySelector("#indicators").textContent, /최저\s*-2배.*최고\s*0배/);
+  assert.match(text, /분석 범위 2026-09-30 ~ 2026-10-01 · 실제 관측 2개/);
   assert.deepEqual(snapshot.history.map(row => row.pbr), ["999", "-2", "0", null]);
   assert.deepEqual(downloads[0].data.map(row => [row.date, row.pbr, row.state]), [
     ["2026-09-29", "999", "provided"], ["2026-09-30", "-2", "provided"],
@@ -98,17 +102,29 @@ test("selected PBR history preserves zero and negative observations, skips missi
   dom.window.close();
 });
 
+test("the PBR detail preserves a missing December closing BPS instead of reusing an earlier December value", async () => {
+  const { document, csv, dom } = await renderPbr([
+    { date: "2025-12-01", pbr: "1", pbrState: "provided", bps: "70000", bpsState: "provided" },
+    { date: "2025-12-30", pbr: "2", pbrState: "provided", bps: null, bpsState: "source_missing" },
+    { date: "2026-10-02", pbr: "2", pbrState: "provided", bps: null, bpsState: "source_missing" },
+  ]);
+  assert.match(document.querySelector("#book-value").textContent, /이 기간에 표시할 연말 BPS 제공값이 없습니다/);
+  assert.match(csv, /2025-12-01,1,70000,provided/);
+  assert.match(csv, /2025-12-30,2,,provided/);
+  dom.window.close();
+});
+
 test("an invalid period never reaches a SQL bound or produces analysis and remains distinct from an empty valid period", async () => {
   const invalid = await renderPbr([{ date: "2026-10-02", pbr: "2", pbrState: "provided" }], { start: "2026-02-30", end: "2026-10-02" });
   assert.deepEqual(invalid.calls, [["historical-security", "pbr"]]);
   assert.ok(invalid.document.querySelector('[role="alert"]'));
-  assert.equal(metricCard(invalid.document, "12개월 평균"), "—");
+  assert.equal(periodMean(invalid.document, "12개월 평균"), "—");
   assert.ok(invalid.state.queries.every(query => !query.params.includes("2026-02-30")));
   invalid.dom.window.close();
   const empty = await renderPbr([], { start: "2026-09-30", end: "2026-10-02" });
   assert.deepEqual(empty.calls, [["historical-security", "pbr"]]);
   assert.equal(empty.document.querySelector('[role="alert"]'), null);
-  assert.match(empty.text, /선택 기간에 제공된 관측값이 없습니다/);
+  assert.match(empty.text, /이 범위에 제공된 관측이 없습니다|제공 이력이 없습니다/);
   assert.equal(empty.downloads.length, 0);
   empty.dom.window.close();
 });
@@ -119,12 +135,12 @@ test("unpublished PBR values are hidden while available raw history and zero-val
     { start: "2026-10-01", end: "2026-10-02" },
     { ...security, state: "unpublished", publication: null, pbr: "987654" },
   );
-  assert.equal(metricCard(document, "현재 PBR"), "—");
+  assert.equal(currentPbr(document), "—");
   assert.equal(snapshot.security.state, "unpublished");
   assert.equal(snapshot.security.pbr, null);
   assert.equal(snapshot.security.pbrLastProvided, null);
   assert.doesNotMatch(text, /987654/);
-  assert.match(text, /실제 제공 1개/);
+  assert.match(text, /실제 관측 1개/);
   assert.match(csv, /2026-10-02,0,,provided/);
   dom.window.close();
 });

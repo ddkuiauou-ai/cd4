@@ -98,16 +98,18 @@ test('restored details distinguish latest missing from last provided and preserv
   const missing = await renderDetail(detailFixture({ per: null, perState: 'source_missing', perLastProvided: '12.3', perLastProvidedDate: '2026-10-01' }), 'per');
   assert.match(missing.text, /원천 미제공.*마지막 제공값 12\.3배/);
   const zero = await renderDetail(detailFixture({ dps: '0', dpsState: 'provided' }), 'dps');
-  assert.match(zero.text, /현재 DPS 0원/);
+  assert.match(zero.text, /구성 종목 배당 비교/);
+  assert.match(zero.html, /title="0원">0원</);
   const negative = await renderDetail(detailFixture({ eps: '-5', epsState: 'provided' }), 'eps');
-  assert.match(negative.text, /현재 EPS -5원/);
+  assert.match(negative.html, /title="-5원">-5원</);
 });
 
 test('unpublished restored details hide unaccepted master values and retain navigation', async () => {
   const result = await renderDetail(detailFixture({ state: 'unpublished', publication: null, per: '999', perState: 'provided', perLastProvided: '999' }), 'per');
   assert.doesNotMatch(result.text, /999/);
   assert.match(result.text, /PER/);
-  assert.match(result.html, /KOSPI.005930\/pbr/);
+  assert.match(result.html, /href="\/security\/KOSPI\.005930"/);
+  assert.doesNotMatch(result.html, /href="\/security\/KOSPI\.005930\/pbr/);
 });
 
 test('restored ranking distinguishes completed zero, unpublished and replaced results', async () => {

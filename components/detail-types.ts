@@ -1,11 +1,18 @@
 import type { getSecurityByCode } from '@/lib/data/security';
 import type { CompanyMarketcapAggregated } from '@/lib/data/company';
+import type { ResultFieldState } from '@/db/schema-postgres';
+import type { DividendObservation } from '@/lib/detail-metric-availability';
+import type { DetailMetric } from '@/lib/detail-presentation';
 
 type SecurityDTO = NonNullable<Awaited<ReturnType<typeof getSecurityByCode>>>;
 export type DetailSecurity = Omit<SecurityDTO, 'company'> & {
     company: (NonNullable<SecurityDTO['company']> & { sector?: string | null }) | null;
 };
-export interface DetailSecurityRow {
+type RowMetric = DetailMetric | 'price';
+type DetailSecurityFields = Partial<Record<RowMetric | `${RowMetric}LastProvided`, number | string | null>
+    & Record<`${RowMetric}Date` | `${RowMetric}LastProvidedDate`, Date | string | null>
+    & Record<`${RowMetric}State`, ResultFieldState | null>>;
+export interface DetailSecurityRow extends DetailSecurityFields {
     securityId: string;
     routeCode?: string | null;
     name: string | null;
@@ -13,14 +20,9 @@ export interface DetailSecurityRow {
     ticker: string | null;
     type: string | null;
     exchange?: string | null;
-    marketcap?: number | string | null;
-    marketcapDate?: Date | string | null;
-    per?: number | string | null;
-    pbr?: number | string | null;
-    eps?: number | string | null;
-    bps?: number | string | null;
-    div?: number | string | null;
-    dps?: number | string | null;
+    state?: 'published' | 'unpublished';
+    availableMetrics?: DetailMetric[];
+    dividendHistory?: DividendObservation[];
     prices?: Array<{ close: number | string | null; rate?: number | null; date?: Date | string | null }>;
 }
 export type DetailCorporation = Pick<CompanyMarketcapAggregated['company'], 'name' | 'korName' | 'logo' | 'industry' | 'establishedDate' | 'homepage'>;

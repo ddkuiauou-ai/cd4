@@ -65,7 +65,7 @@ function companyHistory() {
     aggregatedHistory: [observation] };
 }
 
-test('one real history date renders exact observation values and a single point', () => {
+test('one real history date renders exact observation values in SSR and defers the single-point chart', () => {
   const { Chart, renderedCharts } = loadPresentation();
   const data = companyHistory();
   const original = JSON.stringify(data);
@@ -78,7 +78,7 @@ test('one real history date renders exact observation values and a single point'
   const rows = [...new JSDOM(html).window.document.querySelectorAll('dl > div')];
   assert.match(rows.find(row => row.textContent.includes('미등록종목')).textContent, /미등록$/);
   assert.match(rows.find(row => row.textContent.includes('영값종목')).textContent, /0원/);
-  assert.ok(renderedCharts.length > 0);
+  assert.equal(renderedCharts.length,0);
   assert.equal(JSON.stringify(data), original);
 });
 
@@ -89,7 +89,7 @@ test('the three-month filter can leave one date and still renders the compact ob
   const html = renderToStaticMarkup(React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary' }));
   assert.match(html, /기록 1개/);
   assert.doesNotMatch(html, /2025-09-22/);
-  assert.ok(renderedCharts.length > 0);
+  assert.equal(renderedCharts.length,0);
 });
 
 test('sparse history keeps exact security selection, including same-name preferred stock, recorded zero and missing values', () => {
@@ -119,22 +119,36 @@ test('sparse history keeps exact security selection, including same-name preferr
   }));
   assert.match(absentHtml, /선택한 종목의 이력이 이 날짜에 등록되어 있지 않습니다/);
   assert.equal(new JSDOM(absentHtml).window.document.querySelectorAll('[data-selected="true"]').length, 0);
-  assert.ok(renderedCharts.every(chart => chart.data.length === 1), 'a single point must not fabricate extra dates');
+  assert.equal(renderedCharts.length,0,'the exact observation is available during SSR before chart mount');
 });
 
-test('multiple recorded dates retain exact sources alongside normalized chart coordinates', () => {
+test('multiple recorded dates report the range in SSR and keep exact sources when the chart approaches the viewport', async () => {
   const { Chart, renderedCharts } = loadPresentation();
   const data = companyHistory();
   data.aggregatedHistory.unshift({ date: '2026-09-30', totalMarketcap: 1_700_000_000_000_000,
     securitiesBreakdown: { common: 1_670_000_000_000_000, preferred: 30_000_000_000_000 } });
-  const html = renderToStaticMarkup(React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary' }));
+  const element = React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary' });
+  const html = renderToStaticMarkup(element);
   assert.match(html, /이력 범위 2026-09-30 ~ 2026-10-02 · 기록 2개/);
-  assert.match(html, /마지막 이력일 기준 3개월 범위/);
   assert.match(html, /미등록 종목 값은 포함되지 않습니다/);
-  assert.equal(renderedCharts.length, 1);
-  assert.deepEqual(renderedCharts[0].data.map(point => renderedCharts[0].sourceValues[point.date].value), data.aggregatedHistory.map(point => point.totalMarketcap));
-  assert.ok(renderedCharts[0].data.every(point => point.value >= 0 && point.value <= 1));
-  assert.ok(renderedCharts[0].data[0].value < renderedCharts[0].data[1].value);
+  assert.match(html, /차트 준비 중/);
+  assert.equal(renderedCharts.length, 0);
+  await withMountedChart(async ({ dom, chartRoot }) => {
+    let intersect;
+    dom.window.IntersectionObserver = class {
+      constructor(callback) { intersect = callback; }
+      observe() {}
+      disconnect() {}
+    };
+    await React.act(async()=>chartRoot.render(element));
+    assert.equal(renderedCharts.length, 0);
+    await React.act(async()=>intersect([{isIntersecting:true}]));
+    assert.equal(renderedCharts.length, 1);
+    const [rendered] = renderedCharts;
+    assert.deepEqual(rendered.data.map(point => rendered.sourceValues[point.date].value), data.aggregatedHistory.map(point => point.totalMarketcap));
+    assert.ok(rendered.data.every(point => point.value >= 0 && point.value <= 1));
+    assert.ok(rendered.data[0].value < rendered.data[1].value);
+  });
 });
 
 test('company snapshot and representative price keep their independent dates beside their values in SSR', () => {
@@ -151,10 +165,15 @@ test('company snapshot and representative price keep their independent dates bes
   assert.doesNotMatch(price.textContent, /2025-09-22/);
 });
 
-test('summary range buttons actually switch recent and complete exact company history and preserve coverage',async()=>{
+async function withMountedChart(run) {
   const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost',pretendToBeVisual:true});
   const saved=new Map();for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});}
   const {createRoot}=require('react-dom/client');const chartRoot=createRoot(dom.window.document.getElementById('root'));
+  try { await run({ dom, chartRoot }); } finally { await React.act(async()=>chartRoot.unmount());dom.window.close();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];} }
+}
+
+test('summary range buttons actually switch recent and complete exact company history and preserve coverage',async()=>{
+  await withMountedChart(async({ dom, chartRoot })=>{
   const {Chart,renderedCharts}=loadPresentation();const data=companyHistory();
   data.aggregatedHistory=[
     {date:'2024-03-01',totalMarketcap:'9007199254740993',securitiesBreakdown:{common:'9007199254740993',preferred:null},observedCount:1,targetCount:2,observedSecurityIds:['common'],partial:true},
@@ -162,11 +181,10 @@ test('summary range buttons actually switch recent and complete exact company hi
   ];
   data.securities=data.securities.slice(0,2);data.securities[0].marketcapHistory=data.aggregatedHistory.map(row=>({date:row.date,marketcap:row.totalMarketcap}));data.securities[1].marketcapHistory=[];
   const original=JSON.stringify(data);const container=dom.window.document.getElementById('root');
-  try{
     await React.act(async()=>chartRoot.render(React.createElement(Chart,{companyMarketcapData:data,companySecs:[],type:'summary'})));
     const button=label=>[...container.querySelectorAll('button')].find(node=>node.textContent===label);
     assert.ok(button('최근 3개월'));assert.ok(button('전체'));assert.equal(button('최근 3개월').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/기록 1개/);
-    assert.match(container.textContent,/차트 표시 범위/);assert.match(container.textContent,/최근 3개월\/전체는 이 차트의 표시 범위/);assert.match(container.textContent,/핵심 지표는 이름에 표시된 기간/);
+    assert.match(container.textContent,/차트 표시 범위/);
     assert.equal(renderedCharts.at(-1).data.length,1);
     await React.act(async()=>button('전체').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
     assert.equal(button('전체').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/전체 이력 범위 2024-03-01 ~ 2026-10-02 · 기록 2개/);
@@ -175,8 +193,7 @@ test('summary range buttons actually switch recent and complete exact company hi
     await React.act(async()=>button('최근 3개월').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
     assert.equal(renderedCharts.at(-1).data.length,1);assert.match(container.textContent,/기록 1개/);
     await React.act(async()=>chartRoot.render(React.createElement(Chart,{companyMarketcapData:data,companySecs:[],type:'summary',start:'2024-03-01',end:'2024-03-31'})));
-    assert.equal(container.querySelector('[aria-label="시가총액 차트 범위"]'),null);assert.match(container.textContent,/직접 지정한 기간/);assert.equal(renderedCharts.at(-1).data.length,1);assert.equal(renderedCharts.at(-1).data[0].date,'2024-03-01');
-    assert.match(container.textContent,/직접 지정한 범위는 차트와 핵심 지표에 공통 적용/);
+    assert.equal(container.querySelector('[aria-label="시가총액 차트 범위"]'),null);assert.match(container.textContent,/이력 기준 2024-03-01/);assert.equal(renderedCharts.at(-1).data.length,1);assert.equal(renderedCharts.at(-1).data[0].date,'2024-03-01');
     assert.equal(JSON.stringify(data),original);
-  }finally{await React.act(async()=>chartRoot.unmount());dom.window.close();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+  });
 });

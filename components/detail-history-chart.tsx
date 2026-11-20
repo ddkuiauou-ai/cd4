@@ -1,106 +1,162 @@
-"use client";
+'use client';
 
-import { useMemo, useState, useSyncExternalStore } from 'react';
-import { Area, Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { businessChangePercent, businessChartAxisValue, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, formatCompactBusinessValue, subtractBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
+import { lazy, useMemo, useState } from 'react';
+import { businessChangePercent, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, subtractBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
 import { aggregateDetailRows, detailAnnualRows, earlierDate, selectDetailRange, type DetailMetric, type DetailObservation } from '@/lib/detail-presentation';
+import { chartMonths, lastMonthlyObservations } from './detail-chart-observations';
+import { ChartWhenVisible } from './detail-chart-visibility';
 
-const subscribe = () => () => {};
-const annualPeriods = [['1Y', '최근 연말'], ['5Y', '5년'], ['10Y', '10년'], ['20Y', '20년']];
+const DetailTrendPlot = lazy(() => import('./detail-trend-plot').then(module => ({ default: module.DetailTrendPlot })));
+const annualPeriods = [['1Y', '최근 연말'], ['5Y', '최근 5개 연말'], ['10Y', '10년'], ['20Y', '20년']];
 const dividendPeriods = [['12M', '12개월'], ['3Y', '3년'], ['5Y', '5년'], ['10Y', '10년'], ['20Y', '20년']];
 const aggregatePeriods = [['month', '월간'], ['year', '연간']];
+const trendPeriods = [['5Y', '최근 5년'], ['all', '전체']];
 
-export function DetailHistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, annual = false, movingAverages, customRange = Boolean(selectedStart), withStatistics = false }: {
-  rows: DetailObservation[]; label: string; unit: string; metric?: DetailMetric; selectedStart?: string; selectedEnd?: string; annual?: boolean; customRange?: boolean; withStatistics?: boolean; movingAverages?: Array<{date:string;average5: string|null;average10:string|null}>;
+type HistoryChartProps = {
+  rows: DetailObservation[];
+  label: string;
+  unit: string;
+  metric?: DetailMetric;
+  selectedStart?: string;
+  selectedEnd?: string;
+  annual?: boolean;
+  customRange?: boolean;
+  withStatistics?: boolean;
+  movingAverages?: Array<{ date: string; average5: string | null; average10: string | null }>;
+};
+
+export function DetailHistoryChart(props: HistoryChartProps) {
+  return <HistoryChart key={`${props.metric ?? props.label}/${props.annual}`} {...props} />;
+}
+
+function ChartChoices({ items, title, active, select }: {
+  items: string[][]; title: string; active: string; select: (choice: string) => void;
 }) {
-  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
-  const defaultPeriod = annual && metric === 'bps' ? '1Y' : metric === 'dps' ? '12M' : metric === 'marketcap' ? 'all' : 'month';
-  const periods = metric === 'bps' && annual ? annualPeriods : metric === 'dps' ? dividendPeriods : metric === 'marketcap' ? [] : aggregatePeriods;
-  const [requestedPeriod, setPeriod] = useState(defaultPeriod);
-  // A mounted chart can survive metric navigation. Never reuse a foreign control value.
-  const period = periods.some(([key]) => key === requestedPeriod) ? requestedPeriod : defaultPeriod;
-  const fixedRange = customRange && (metric === 'dps' || metric === 'bps' && annual);
+  return <div className="detail-trend-controls flex flex-wrap items-center gap-2" role="group" aria-label={title}>
+    {items.map(([key, name]) => <button
+      type="button"
+      key={key}
+      aria-pressed={active === key}
+      onClick={() => select(key)}
+      className={`min-h-11 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${active === key ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground hover:bg-accent'}`}
+    >{name}</button>)}
+  </div>;
+}
+
+function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, annual = false, movingAverages, customRange = Boolean(selectedStart), withStatistics = false }: HistoryChartProps) {
+  const bpsAnnual = metric === 'bps' && annual;
+  const aggregate = !bpsAnnual && metric !== 'dps' && metric !== 'marketcap';
+  const [period, setPeriod] = useState(metric === 'dps' ? '12M' : '5Y');
+  const [aggregateUnit, setAggregateUnit] = useState<'month' | 'year'>('month');
+  const periods = bpsAnnual ? annualPeriods : metric === 'dps' ? dividendPeriods : aggregate ? trendPeriods : [];
+  const fixedRange = customRange && periods.length > 0;
   const end = selectedEnd || rows.at(-1)?.date || '';
   const source = useMemo(() => {
     const selected = selectDetailRange(rows, selectedStart, selectedEnd);
     if (fixedRange) return selected;
-    if (metric === 'bps' && annual) {
-      const years = detailAnnualRows(selected,'bps').reverse();
-      const last = Number(years.at(-1)?.date.slice(0, 4));
-      const count = Number.parseInt(period) || 1;
-      return selected.filter(row => Number(row.date.slice(0, 4)) >= last - count + 1 && Number(row.date.slice(0,4)) <= last);
+    if (bpsAnnual) {
+      const latestYearEnd = detailAnnualRows(selected, 'bps')[0];
+      if (!latestYearEnd) return selected;
+      const firstYear = Number(latestYearEnd.date.slice(0, 4)) - Number.parseInt(period) + 1;
+      return selected.filter(row => row.date >= `${firstYear}-01-01`);
     }
-    if (metric === 'dps') {
-      const months = period === '12M' ? 12 : (Number.parseInt(period) || 1) * 12;
+    if (metric === 'dps' || aggregate && period === '5Y') {
+      const months = metric !== 'dps' ? 60 : period === '12M' ? 12 : Number.parseInt(period) * 12;
       return selectDetailRange(selected, earlierDate(end, months), end);
     }
     return selected;
-  }, [rows, metric, annual, period, end, selectedStart, selectedEnd, fixedRange]);
+  }, [rows, metric, aggregate, bpsAnnual, period, end, selectedStart, selectedEnd, fixedRange]);
   const summary = summarizeBusinessWindow(source);
-  const chartRows = metric === 'bps' && annual ? detailAnnualRows(source,'bps').reverse() : period === 'month' || period === 'year' ? aggregateDetailRows(source, period) : source;
-  const barMetric = metric === 'bps' || metric === 'dps';
+  let chartRows = source;
+  if (bpsAnnual) {
+    chartRows = detailAnnualRows(source, 'bps').reverse();
+  } else if (aggregate && aggregateUnit === 'month') {
+    const byMonth = lastMonthlyObservations(source);
+    const months = [...byMonth.keys()].sort();
+    chartRows = chartMonths(months[0], months.at(-1)).map(month => byMonth.get(month) ?? { date: `${month}-01`, value: null });
+  } else if (aggregate) {
+    chartRows = aggregateDetailRows(source, 'year');
+  }
+
   const chartSummary = summarizeBusinessWindow(chartRows);
-  const domainRows = [...chartRows, ...(barMetric ? [{date:chartRows[0]?.date || '2000-01-01',value:0}] : []), ...(movingAverages ?? []).flatMap(row => [{date:row.date,value:row.average5},{date:row.date,value:row.average10}])];
-  const projection = projectBusinessChartRows(chartRows,domainRows);
-  const zeroPlot = projectBusinessChartRows([{date:chartRows[0]?.date || '2000-01-01',value:0}],domainRows).rows[0].plot ?? 0;
-  const average5 = projectBusinessChartRows((movingAverages ?? []).map(row => ({date:row.date,value:row.average5})),domainRows);
-  const average10 = projectBusinessChartRows((movingAverages ?? []).map(row => ({date:row.date,value:row.average10})),domainRows);
-  const changes = new Map<string,{change:string|null;difference:string|null;reason:string|null}>();
+  const barMetric = metric === 'bps' || metric === 'dps';
+  const zero = { date: chartRows[0]?.date || '2000-01-01', value: 0 };
+  const domainRows = [
+    ...chartRows,
+    ...(barMetric ? [zero] : []),
+    ...(movingAverages ?? []).flatMap(row => [{ date: row.date, value: row.average5 }, { date: row.date, value: row.average10 }]),
+  ];
+  const projection = projectBusinessChartRows(chartRows, domainRows);
+  const zeroPlot = barMetric ? projectBusinessChartRows([zero], domainRows).rows[0].plot ?? 0 : 0;
+  const averages = new Map((movingAverages ?? []).map(row => [row.date, row]));
+  const projectAverage = (key: 'average5' | 'average10') => new Map(projectBusinessChartRows(
+    (movingAverages ?? []).map(row => ({ date: row.date, value: row[key] })), domainRows,
+  ).rows.map(row => [row.date, row.plot]));
+  const average5 = movingAverages && projectAverage('average5');
+  const average10 = movingAverages && projectAverage('average10');
+
+  const changes = new Map<string, { change: string | null; difference: string | null; reason: string | null }>();
   let prior: DetailObservation | undefined;
-  for (const row of rows) if (row.value != null) {
+  for (const row of metric === 'dps' ? rows : []) {
+    if (row.state && row.state !== 'provided' || compareBusinessValues(row.value, 0) == null) continue;
     const sameCoverage = !row.observedSecurityIds && !prior?.observedSecurityIds
       || Boolean(prior && JSON.stringify([...(row.observedSecurityIds ?? [])].sort()) === JSON.stringify([...(prior.observedSecurityIds ?? [])].sort()));
-    const priorValueSign = prior ? compareBusinessValues(prior.value,'0') : null;
-    const change = prior && sameCoverage ? businessChangePercent(prior.value,row.value) : null;
-    const difference = prior && sameCoverage && priorValueSign != null && priorValueSign <= 0 ? subtractBusinessValues(row.value,prior.value) : null;
+    const priorValueSign = prior ? compareBusinessValues(prior.value, 0) : null;
+    const change = prior && sameCoverage ? businessChangePercent(prior.value, row.value) : null;
+    const difference = prior && sameCoverage && priorValueSign != null && priorValueSign <= 0 ? subtractBusinessValues(row.value, prior.value) : null;
     const reason = !prior ? '직전 제공 기록이 없습니다.' : !sameCoverage ? '관측 종목 구성이 달라 직전 이력과의 비교를 표시하지 않습니다.'
       : priorValueSign != null && priorValueSign <= 0 ? `이전 값이 ${priorValueSign === 0 ? '0' : '음수'}라 증감률 계산 불가` : null;
-    changes.set(row.date,{change,difference,reason});prior=row;
+    changes.set(row.date, { change, difference, reason });
+    prior = row;
   }
-  const data = projection.rows.map(row => ({...row,
-    barRange: row.plot == null ? null : [zeroPlot,row.plot],
-    average5: average5.rows.find(average => average.date === row.date)?.plot ?? null,
-    average10: average10.rows.find(average => average.date === row.date)?.plot ?? null,
-    average5Source: movingAverages?.find(average => average.date === row.date)?.average5 ?? null,
-    average10Source: movingAverages?.find(average => average.date === row.date)?.average10 ?? null,
-    changeSource: changes.get(row.date)?.change ?? null,
-    differenceSource: changes.get(row.date)?.difference ?? null,
-    comparisonReason: changes.get(row.date)?.reason ?? null,
-    change: changes.get(row.date)?.change == null ? null : Number(changes.get(row.date)!.change),
-  }));
-  const lastPlotted = chartRows.findLast(row => row.date === chartSummary.end && compareBusinessValues(row.value, 0) != null);
-  const statisticsBasis = metric === 'bps' && annual ? '각 연도의 마지막 12월 제공값'
-    : period === 'month' ? '월별 제공 관측의 산술평균' : period === 'year' ? '연도별 제공 관측의 산술평균' : '선택 기간의 실제 제공 관측';
+  const data = projection.rows.map(row => {
+    const delta = changes.get(row.date);
+    return {
+      ...row,
+      barRange: row.plot == null ? null : [zeroPlot, row.plot],
+      average5: average5?.get(row.date) ?? null,
+      average10: average10?.get(row.date) ?? null,
+      average5Source: averages.get(row.date)?.average5 ?? null,
+      average10Source: averages.get(row.date)?.average10 ?? null,
+      changeSource: delta?.change ?? null,
+      differenceSource: delta?.difference ?? null,
+      comparisonReason: delta?.reason ?? null,
+      change: delta?.change == null ? null : Number(delta.change),
+    };
+  });
+  const lastPlotted = data.findLast(row => row.plot != null);
+  const statisticsBasis = bpsAnnual ? '각 연도의 마지막 12월 관측값'
+    : aggregate ? aggregateUnit === 'month' ? '각 월의 마지막 제공값' : '각 연도 제공 관측의 산술평균'
+    : '선택 기간의 실제 제공 관측';
+  const units = <span className="text-xs text-muted-foreground">단위 {unit}{metric === 'dps' && ' · 직전 제공 기록 대비 변화율(%)'}</span>;
+
   const main = <>
-    {movingAverages && <p className="text-xs text-muted-foreground">종가 · 5관측 이동평균 · 10관측 이동평균</p>}
-    {metric === 'dps' && <p className="text-xs text-muted-foreground">주당배당금(DPS) · 직전 제공 기록 대비 변화율</p>}
-    {fixedRange ? <p className="detail-trend-range text-sm text-muted-foreground tabular-nums">직접 지정 기간 {selectedStart || '처음'} ~ {selectedEnd || rows.at(-1)?.date || '마지막'}</p>
-      : periods.length > 0 && <div className="detail-trend-controls flex flex-wrap items-center gap-2" role="group" aria-label={metric === 'bps' || metric === 'dps' ? `${label} 표시 기간` : `${label} 집계 단위`}>
-      <span className="mr-1 text-sm text-muted-foreground">{metric === 'bps' || metric === 'dps' ? '표시 기간' : '집계 단위'}</span>
-      {periods.map(([key, title]) => <button type="button" key={key} aria-pressed={period === key} onClick={() => setPeriod(key)}
-        className={`min-h-11 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${period === key ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground hover:bg-accent'}`}>{title}</button>)}
+    {movingAverages && <p className="text-xs text-muted-foreground">종가 · 5거래일 이동평균 · 10거래일 이동평균</p>}
+    <div className="space-y-2">
+      {fixedRange
+        ? <p className="detail-trend-range text-sm text-muted-foreground tabular-nums">직접 지정 기간 {selectedStart || '처음'} ~ {selectedEnd || rows.at(-1)?.date || '마지막'}</p>
+        : periods.length > 0 && <ChartChoices items={periods} title={`${label} 표시 기간`} active={period} select={setPeriod} />}
+      {aggregate && <ChartChoices
+        items={aggregatePeriods}
+        title={`${label} 집계 단위`}
+        active={aggregateUnit}
+        select={value => setAggregateUnit(value === 'year' ? 'year' : 'month')}
+      />}
+      {units}
+    </div>
+    {summary.count > 0 && <p className="text-xs text-muted-foreground tabular-nums">
+      선택 원천 관측 {summary.start} ~ {summary.end} · {summary.count.toLocaleString('ko-KR')}개 기록{!withStatistics && (bpsAnnual || aggregate) && ` · ${statisticsBasis}`}
+    </p>}
+    {chartSummary.count === 1 && lastPlotted && <div className="border-y border-border py-4 text-sm">
+      <p>추이를 그릴 이력이 부족합니다. 등록된 날짜의 값을 점으로 표시합니다.</p>
+      <p className="mt-2 font-semibold tabular-nums">{lastPlotted.date} · {formatBusinessValue(lastPlotted.value)}{unit}</p>
     </div>}
-    <p className="text-xs text-muted-foreground tabular-nums">{summary.count ? `선택 원천 관측 ${summary.start} ~ ${summary.end} · ${summary.count}개 기록` : '선택 기간에 제공된 관측값이 없습니다.'}{metric === 'bps' && annual ? ` · 표시 연말 관측 ${chartSummary.count}개 (각 연도의 마지막 12월 값)` : period === 'month' || period === 'year' ? ' · 제공 관측의 산술평균' : ''}</p>
-    {chartSummary.count === 1 && <div className="border-y border-border py-4 text-sm"><p>추이를 그릴 이력이 부족합니다. 등록된 날짜의 값을 점으로 표시합니다.</p><p className="mt-2 font-semibold tabular-nums">{data.find(row => row.value != null)?.date} · {formatBusinessValue(data.find(row => row.value != null)?.value ?? null)}{unit}</p></div>}
-    {!mounted ? <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">차트 로딩 중…</div>
-      : !chartSummary.count ? <p className="border-y border-border py-8 text-sm" role="status">{metric === 'bps' && annual ? '이 기간에 표시할 연말 BPS 제공값이 없습니다.' : `이 기간의 ${label} 이력이 없습니다.`}</p>
-      : <div className="h-[280px] min-w-0 w-full sm:h-[320px]" role="img" aria-label={`${label} 차트 ${chartSummary.start}부터 ${chartSummary.end}, 표시 관측 ${chartSummary.count}개. 최소 ${formatBusinessValue(chartSummary.min)}, 최대 ${formatBusinessValue(chartSummary.max)}${unit}`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 12, right: 16, left: 4, bottom: 12 }} accessibilityLayer>
-            <CartesianGrid stroke="var(--border)" vertical={false} /><XAxis dataKey="date" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} tickFormatter={date => String(date).slice(0, 7)} minTickGap={30} />
-            <YAxis width={60} tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} tickFormatter={value => formatCompactBusinessValue(businessChartAxisValue(projection.min, projection.max, Number(value)))} domain={[0, 1]} ticks={[0, .25, .5, .75, 1]} />
-            <Tooltip content={({ active, payload }) => {
-              const row = payload?.[0]?.payload as (DetailObservation & {average5Source?: string|null;average10Source?:string|null;changeSource?:string|null;differenceSource?:string|null;comparisonReason?:string|null}) | undefined;
-              return active && row ? <div className="rounded-lg border border-border bg-popover p-3 text-sm shadow-lg"><p className="mb-2 text-xs text-muted-foreground">{row.date}</p><p>{label} <strong className="tabular-nums">{formatBusinessValue(row.value)}{unit}</strong></p>{movingAverages && <><p>5관측 이동평균 {formatBusinessValue(row.average5Source ?? null)}{unit}</p><p>10관측 이동평균 {formatBusinessValue(row.average10Source ?? null)}{unit}</p></>}{metric === 'dps' && <>{row.changeSource != null ? <p>직전 제공 기록 대비 {formatBusinessValue(row.changeSource)}%</p> : row.differenceSource != null ? <p>직전 제공 기록 대비 차이 {formatBusinessValue(row.differenceSource)}{unit}</p> : null}{row.comparisonReason && <p className="mt-1 text-xs text-muted-foreground">{row.comparisonReason}</p>}</>}{row.providedCount != null && <p className="mt-1 text-xs text-muted-foreground">평균에 포함된 제공 관측 {row.providedCount}개</p>}{row.targetCount != null && <p className="mt-1 text-xs text-muted-foreground">{row.observedCount ?? 0}/{row.targetCount}개 관측{row.partial ? ' · 부분 관측' : ''}</p>}</div> : null;
-            }} />
-            {metric === 'dps' && <YAxis yAxisId="growth" orientation="right" tick={{fill:'var(--muted-foreground)',fontSize:11}} tickFormatter={value => `${value}%`} />}
-            {chartSummary.count === 1 ? <Line type="linear" dataKey="plot" stroke="var(--chart-2)" dot={{r:4}} isAnimationActive={false}/> : metric === 'bps' || metric === 'dps' ? <Bar dataKey="barRange" fill="var(--chart-2)" name={label} isAnimationActive={false} />
-              : metric === 'per' ? <Area type="linear" dataKey="plot" stroke="var(--chart-2)" fill="var(--chart-2)" fillOpacity={0.12} connectNulls={false} isAnimationActive={false} />
-                : <Line type="linear" dataKey="plot" stroke="var(--chart-2)" strokeWidth={2} dot={data.length < 25} connectNulls={false} isAnimationActive={false} />}
-            {movingAverages && <><Line type="linear" dataKey="average5" name="5관측 이동평균" stroke="var(--brand-ink)" strokeWidth={1.5} dot={false} connectNulls={false} isAnimationActive={false}/><Line type="linear" dataKey="average10" name="10관측 이동평균" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} connectNulls={false} isAnimationActive={false}/></>}
-            {metric === 'dps' && <Line yAxisId="growth" type="linear" dataKey="change" stroke="var(--chart-3)" name="직전 제공 기록 대비 (%)" dot={false} connectNulls={false} isAnimationActive={false}/>}
-          </ComposedChart>
-        </ResponsiveContainer>
+    {chartSummary.count === 0
+      ? <p className="border-y border-border py-8 text-sm" role="status">{bpsAnnual ? '이 기간에 표시할 연말 BPS 제공값이 없습니다.' : '선택 기간에 제공된 관측값이 없습니다.'}</p>
+      : <div role="img" aria-label={`${label} 차트 ${chartSummary.start}부터 ${chartSummary.end}, 표시 관측 ${chartSummary.count}개. 최소 ${formatBusinessValue(chartSummary.min)}${unit}, 최대 ${formatBusinessValue(chartSummary.max)}${unit}`}>
+        <ChartWhenVisible>
+          <DetailTrendPlot data={data} label={label} unit={unit} metric={metric} minimum={projection.min} maximum={projection.max} singlePoint={chartSummary.count === 1} showMovingAverages={Boolean(movingAverages)} />
+        </ChartWhenVisible>
       </div>}
   </>;
   return withStatistics ? <div className="detail-trend-grid">
@@ -115,7 +171,7 @@ export function DetailHistoryChart({ rows, label, unit, metric, selectedStart, s
         ['최고', chartSummary.max == null ? '—' : `${formatBusinessValue(chartSummary.max)}${unit}`],
         ['관측 수', `${chartSummary.count.toLocaleString('ko-KR')}개`],
       ].map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}</dl>
-      <p className="detail-trend-statistics-basis">{statisticsBasis}. 차트와 같은 관측을 사용하며 상단 현재 공개값과 구분합니다.</p>
+      <p className="detail-trend-statistics-basis">{statisticsBasis}</p>
     </aside>
   </div> : <div className="space-y-4">{main}</div>;
 }

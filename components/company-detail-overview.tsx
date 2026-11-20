@@ -48,7 +48,7 @@ function websiteOf(value: string | null | undefined) {
   } catch { return null; }
 }
 
-export function CompanyProfile({ company, members }: CompanyOverviewProps) {
+export function CompanyProfile({ company, members, title = '기업 정보' }: CompanyOverviewProps & { title?: string }) {
   const corporation = company?.company;
   const name = company?.companyKorName || corporation?.korName || company?.companyName || corporation?.name || '—';
   const english = corporation?.name?.trim();
@@ -59,7 +59,7 @@ export function CompanyProfile({ company, members }: CompanyOverviewProps) {
   for (const row of rows) types.set(row.type || '구분 미등록', (types.get(row.type || '구분 미등록') ?? 0) + 1);
   const exchanges = [...new Set(rows.map(row => row.exchange).filter(Boolean))];
   return <section id="company-information" className="detail-company-profile">
-    <header className="detail-company-section-heading"><h2>기업 정보</h2>{exchanges.length > 0 && <small>{exchanges.join(' · ')}</small>}</header>
+    <header className="detail-company-section-heading"><h2>{title}</h2>{exchanges.length > 0 && <small>{exchanges.join(' · ')}</small>}</header>
     <table className="detail-company-profile-table"><caption className="sr-only">{name} 기업 정보</caption><tbody>
       <tr><th scope="row">기업명</th><td>{name}</td></tr>
       <tr><th scope="row">영문명</th><td>{englishName}</td></tr>
@@ -72,7 +72,7 @@ export function CompanyProfile({ company, members }: CompanyOverviewProps) {
   </section>;
 }
 
-export function CompanyMarketcapOverview({ company, members, ranking }: CompanyOverviewProps & { ranking: CompanyRanking }) {
+export function CompanyMarketcapOverview({ company, members, ranking, basis }: CompanyOverviewProps & { ranking: CompanyRanking; basis?: string | null }) {
   const officialIds = new Set(company?.securities.map(member => member.securityId));
   const rows = companyMembers(company, members).filter(member => officialIds.has(member.securityId));
   const { composition } = prepareDetailComparison(company, rows);
@@ -80,6 +80,9 @@ export function CompanyMarketcapOverview({ company, members, ranking }: CompanyO
   const rank = company?.state === 'published' && ranking?.currentRank != null && Number.isInteger(ranking.currentRank) && ranking.currentRank > 0 ? ranking.currentRank : null;
   const currentDate = dayOf(company?.totalMarketcapDate);
   const rankDate = dayOf(ranking?.rankDate);
+  const dates = currentDate && rankDate === currentDate
+    ? currentDate === basis ? [] : [`시가총액 · 순위 기준 ${currentDate}`]
+    : [currentDate !== basis ? `시가총액 기준 ${currentDate || '—'}` : null, rankDate !== basis ? `순위 기준 ${rankDate || '—'}` : null].filter(Boolean);
   const compact = amount(current, true).match(/^([\d,.-]+)(.*)$/);
   const stateLabels: Record<string, string> = { provided: '제공됨', source_missing: '원천 미제공', unsupported: '미지원', row_missing: '원천 행 미제공', unexplained_missing: '자료 확인 필요', no_observation: '관측 없음', missing_input: '합산 자료가 부족합니다.' };
   const exclusion = ranking?.exclusionReason;
@@ -92,8 +95,7 @@ export function CompanyMarketcapOverview({ company, members, ranking }: CompanyO
       <div className="detail-company-cap-value" title={amount(current)}>{compact ? <>{compact[1]}<span>{compact[2]}</span></> : '—'}</div>
       <div className="detail-company-cap-rank"><strong>{rank == null ? '—' : `${rank}위`}</strong><small>기업 시가총액 순위</small></div>
     </div>
-    <p className="detail-company-note detail-company-cap-basis">{currentDate && rankDate === currentDate
-      ? `시가총액 · 순위 기준 ${currentDate}` : `시가총액 기준 ${currentDate || '—'} · 순위 기준 ${rankDate || '—'}`}</p>
+    {dates.length > 0 && <p className="detail-company-note detail-company-cap-basis">{dates.join(' · ')}</p>}
     {currentStatus && <p role="status" className="detail-company-note">{currentStatus}</p>}
     {exclusionLabel && exclusionLabel !== currentStatus && <p className="detail-company-note">{exclusionLabel}</p>}
     <div className="detail-company-composition">

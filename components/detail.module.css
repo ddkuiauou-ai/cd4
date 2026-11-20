@@ -285,3 +285,258 @@
 @media (prefers-reduced-motion: reduce) {
   .detail :global(.detail-company-nav)::before { transition: none; }
 }
+
+/* Investor detail shares the app header and keeps record blocks in one reading order. */
+.detail :global(.investor-detail) {
+  --investor-outline-height: 52px;
+  gap: 0;
+}
+
+.detail :global(.investor-detail .investor-content) {
+  min-width: 0;
+  padding-inline: 0;
+  padding-block: 12px 36px;
+}
+
+.detail :global(.investor-navigation) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+  align-content: start;
+  min-width: 0;
+  padding-block: 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail :global(.investor-nav-group) { display: flex; flex-wrap: wrap; }
+.detail :global(.investor-nav-group a) {
+  display: flex;
+  min-height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 6px 8px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.detail :global(.investor-nav-group a:hover),
+.detail :global(.investor-stock-selection a:hover) { background: var(--muted); color: var(--foreground); }
+.detail :global(.investor-nav-group a[aria-current="page"]) {
+  color: var(--foreground);
+  border-color: var(--record-rule);
+  font-weight: 700;
+}
+
+.detail :global(.investor-nav-scope) {
+  flex: 1 0 100%;
+  padding: 4px 8px 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.detail :global(.investor-stock-selection small),
+.detail :global(.investor-investment-links small) { color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+
+.detail :global(.investor-breadcrumb) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted-foreground);
+}
+
+.detail :global(.investor-amounts),
+.detail :global(.investor-overview),
+.detail :global(.investor-stock-scope) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; min-width: 0; }
+.detail :global(.investor-overview) { padding-block: 6px 16px; gap: 10px; }
+.detail :global(.investor-overview > #current-overview) { flex: 1 1 100%; min-width: 0; }
+.detail :global(.investor-history-action) { margin-inline-start: auto; }
+.detail :global(.investor-history-action button) {
+  border-color: var(--selected-border);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  white-space: normal;
+  height: auto;
+  min-height: 40px;
+  text-align: left;
+}
+.detail :global(.investor-history-action button:not(:disabled):hover) { background: color-mix(in srgb, var(--primary) 85%, var(--background)); }
+.detail :global(.investor-nav-group a:focus-visible),
+.detail :global(.investor-outline a:focus-visible),
+.detail :global(.investor-content a:focus-visible),
+.detail :global(.investor-content summary:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 2px; }
+
+.detail :global(.investor-primary) { flex: 1 1 150px; min-width: 0; }
+.detail :global(.investor-amounts dt),
+.detail :global(.investor-muted),
+.detail :global(.investor-publication dt) { color: var(--muted-foreground); font-size: 12px; line-height: 1.55; }
+.detail :global(.investor-amounts dd) { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.detail :global(.investor-amounts dd.investor-muted) { font-size: 12px; font-weight: 400; }
+
+.detail :global(.investor-amounts dd.investor-primary-value),
+.detail :global(.investor-primary-value) {
+  display: block;
+  color: var(--foreground);
+  font-family: var(--font-display, serif);
+  font-synthesis: none;
+  font-size: clamp(25px, 4vw, 40px);
+  font-weight: 400;
+  letter-spacing: -.02em;
+  line-height: 1.3;
+}
+
+.detail :global(.investor-overview .detail-company-cap) { border: 0; padding-block: 0; }
+.detail :global(.investor-overview .detail-company-section-heading) { margin-bottom: 6px; }
+.detail :global(.investor-overview .detail-company-cap-value) { font-size: clamp(27px, 4.2vw, 44px); }
+.detail :global(.investor-overview .detail-company-composition) { margin-top: 16px; }
+.detail :global(.investor-overview .detail-company-composition-track) { height: 8px; }
+
+.detail :global(.investor-stock-selection) { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; color: var(--muted-foreground); font-size: 12px; }
+.detail :global(.investor-stock-selection a) {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 4px 8px;
+  flex-wrap: wrap;
+  padding-inline: 8px;
+  color: var(--foreground);
+  border-bottom: 2px solid transparent;
+}
+.detail :global(.investor-stock-selection a[aria-current="page"]) { background: var(--selected); border-color: var(--selected-border); font-weight: 650; }
+.detail :global(.investor-stock-scope) { margin-top: 12px; justify-content: space-between; gap: 6px 14px; }
+.detail :global(.investor-stock-selection + .investor-amounts) { margin-top: 9px; }
+.detail :global(.investor-dividend-overview) { min-width: 0; }
+
+.detail :global(.investor-record) { min-width: 0; border-top: 1px solid var(--record-rule); margin-top: 23px; padding-block: 12px 12px; }
+.detail :global(.investor-record-heading) { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-bottom: 10px; }
+.detail :global(.investor-record-heading h2) { margin: 0; font-size: clamp(18px, 2.1vw, 23px); line-height: 1.35; }
+.detail :global(.investor-record-actions) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+  margin-bottom: 8px;
+}
+.detail :global(.investor-record-heading a),
+.detail :global(.investor-record-actions a),
+.detail :global(.investor-table a),
+.detail :global(.investor-amounts a),
+.detail :global(.investor-unavailable a) { color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }
+.detail :global(.investor-record-heading a),
+.detail :global(.investor-record-actions a) { display: inline-flex; align-items: center; min-height: 40px; font-size: 13px; }
+
+.detail :global(.investor-table) {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.detail :global(.investor-table :is(th, td)) { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.detail :global(.investor-table :is(th, td):first-child) { text-align: left; }
+.detail :global(.investor-table tbody th) { font-weight: 650; }
+.detail :global(.investor-table tbody td) { white-space: nowrap; }
+.detail :global(.investor-table tbody td a[href^="http"]) { white-space: normal; overflow-wrap: anywhere; }
+.detail :global(.investor-table thead th) { color: var(--muted-foreground); font-size: 12px; font-weight: 550; }
+.detail :global(.investor-table [data-emphasis="true"]) { background: var(--muted); }
+.detail :global(.investor-table [data-selected="true"] th) { color: var(--brand-ink); }
+.detail :global(.investor-table [data-difference="true"]) { background: var(--muted); }
+.detail :global(.investor-table small) { display: block; margin-top: 2px; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.detail :global(.investor-table + .investor-muted),
+.detail :global(.detail-table-scroll + .investor-muted) { margin-top: 8px; }
+
+.detail :global(.investor-investment-links) { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.detail :global(.investor-investment-links a) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  flex: 1 1 190px;
+  padding-block: 10px;
+  gap: 4px 14px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.detail :global(.investor-investment-links a strong) { color: var(--brand-ink); }
+.detail :global(.investor-investment-links a:hover strong) { text-decoration: underline; text-underline-offset: 3px; }
+
+.detail :global(.investor-period-stats) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(134px, 100%), 1fr)); gap: 10px; }
+.detail :global(.investor-period-stats > div) { min-width: 0; border-bottom: 1px solid var(--border); padding: 8px 4px; }
+.detail :global(.investor-period-stats dt) { font-size: 13px; color: var(--muted-foreground); }
+.detail :global(.investor-period-stats dd:first-of-type) { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.detail :global(.investor-period-stats + p) { margin-top: 10px; }
+
+.detail :global(.investor-disclosure) { margin-top: 12px; border-block-start: 1px solid var(--border); font-size: 13px; }
+.detail :global(.investor-disclosure summary) { min-height: 44px; cursor: pointer; align-content: center; }
+.detail :global(.investor-disclosure > p) { padding-block: 3px 12px; color: var(--muted-foreground); }
+.detail :global(.investor-legacy-range) { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; font-size: 12px; color: var(--muted-foreground); }
+.detail :global(.investor-legacy-range a) { display: inline-flex; align-items: center; min-height: 44px; color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }
+.detail :global(.investor-publication) { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-block: 5px 8px; }
+.detail :global(.investor-publication dd) { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.detail :global(.investor-error) { color: var(--destructive); font-size: 14px; }
+.detail :global(.investor-error button) { min-height: 44px; padding-inline: 6px; text-decoration: underline; text-underline-offset: 3px; }
+.detail :global(.investor-unavailable) { flex-basis: 100%; padding-block: 8px; font-size: 14px; }
+.detail :global(.investor-unavailable a) { display: inline-flex; align-items: center; min-height: 44px; margin-inline-end: 10px; }
+.detail :global(.investor-pending) { display: flex; min-height: 200px; align-items: center; justify-content: center; color: var(--muted-foreground); font-size: 13px; }
+
+.detail :global(.investor-outline-inline) {
+  display: flex;
+  position: sticky;
+  z-index: 20;
+  top: calc(var(--app-header-height) + var(--detail-header-height, 47px));
+  min-width: 0;
+  align-items: center;
+  border-block: 1px solid var(--border);
+  background: var(--background);
+}
+.detail :global(.investor-outline-top) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  flex: none;
+  padding-inline: 4px 8px;
+  border-inline-end: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 13px;
+}
+.detail :global(.investor-outline-inline .investor-outline-links) { display: flex; overflow-x: auto; scrollbar-width: thin; padding: 1px 4px; }
+.detail :global(.investor-outline-inline .investor-outline-links a) { flex: none; min-height: 44px; border-inline-start: 0; border-bottom: 2px solid transparent; padding-inline: 9px; white-space: nowrap; }
+.detail :global(.investor-outline-inline .investor-outline-links [aria-current="location"]) { border-color: var(--record-rule); }
+.detail :global(.investor-content :is(.investor-record, #company-information, #listing-history)) {
+  scroll-margin-top: calc(var(--detail-header-height, 47px) + var(--investor-outline-height) + 8px);
+}
+.detail :global(.investor-content #company-information.detail-company-profile) { border-top: 1px solid var(--record-rule); margin-top: 23px; padding-top: 12px; }
+
+@media (min-width: 768px) {
+  .detail :global(.investor-detail) { grid-template-columns: minmax(108px, 145px) minmax(0, 1fr); align-items: start; column-gap: clamp(16px, 2.5vw, 28px); }
+  .detail :global(.investor-navigation) {
+    position: sticky;
+    top: var(--app-header-height);
+    max-height: calc(100dvh - var(--app-header-height));
+    display: grid;
+    padding-block: 22px 10px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    border-bottom: 0;
+  }
+  .detail :global(.investor-nav-group) { display: grid; min-width: 0; padding-block: 5px; }
+  .detail :global(.investor-nav-group + .investor-nav-group) { border-top: 1px solid var(--border); }
+  .detail :global(.investor-nav-group a) { border-inline-start: 2px solid transparent; border-bottom: 0; }
+  .detail :global(.investor-nav-group a[aria-current="page"]) { border-color: var(--record-rule); background: var(--muted); }
+  .detail :global(.investor-detail .investor-content) { padding-block: 18px 44px; }
+}
+
+@media (min-width: 1280px) {
+  .detail :global(.investor-detail) { grid-template-columns: minmax(128px, 154px) minmax(0, 1fr) minmax(200px, 248px); }
+  .detail :global(.investor-context) { background: var(--background); }
+  .detail :global(.investor-outline-inline) { display: none; }
+  .detail :global(.investor-content :is(.investor-record, #company-information, #listing-history)) { scroll-margin-top: calc(var(--detail-header-height, 47px) + 8px); }
+  .detail :global(.investor-outline-links a) { min-height: 38px; }
+}

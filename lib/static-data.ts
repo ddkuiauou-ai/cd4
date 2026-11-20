@@ -62,7 +62,11 @@ export function loadStaticRows(url: string): Promise<StaticDataRow[]> {
 /** Preserve primary row membership and states while attaching PER/PBR dependencies. */
 export function combineStaticMetricRows(primary: StaticDataRow[], dependency: StaticDataRow[], field: 'eps' | 'bps') {
   const byDate = new Map(dependency.map(row => [row.date, row]));
-  return primary.map(row => ({ ...row, [field]: byDate.get(row.date)?.[field] ?? null }));
+  const stateField = `${field}State`;
+  return primary.map(row => {
+    const source = byDate.get(row.date);
+    return { ...row, [field]: source?.[field] ?? null, ...(source && Object.hasOwn(source, stateField) ? { [stateField]: source[stateField] } : {}) };
+  });
 }
 
 export async function loadStaticDetailData(assets: StaticDetailAssets, metric: DetailMetric, companyPage = false) {

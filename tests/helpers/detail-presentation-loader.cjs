@@ -15,7 +15,7 @@ function loader(stubs = {}) {
       const resolvedName = name.startsWith('.') ? '@/' + path.relative(root,path.resolve(path.dirname(file),name)) : name;
       if (resolvedName in stubs) return stubs[resolvedName];
       if (name.endsWith('.module.css')) return {__esModule:true,default:new Proxy({},{get:(_,key)=>String(key)})};
-      if (name === 'next/link') return ({children,prefetch,...props}) => { void prefetch; return React.createElement('a',props,children); };
+      if (name === 'next/link') return ({children,prefetch,onNavigate,...props}) => { void prefetch; void onNavigate; return React.createElement('a',props,children); };
       if (name === 'next/navigation') return {notFound:()=>{throw Error('not-found')},usePathname:()=>'/security/security-id/per'};
       const local = resolvedName.startsWith('@/') ? path.join(root,resolvedName.slice(2)) : null;
       if (!local) return require(name);
@@ -28,27 +28,21 @@ function loader(stubs = {}) {
   return file=>load(path.join(root,file));
 }
 function pageLoader(snapshot){
-  let calls=0;let downloaded;let facts;const charts=[];const historyCharts=[];
+  let calls=0;let downloaded;const charts=[];const historyCharts=[];
   const empty=()=>null;
   const named=keys=>Object.fromEntries(keys.map(key=>[key,empty]));
   const stubs={
     '@/lib/data/detail-snapshot':{getSecurityDetailSnapshot:async()=>{calls++;return snapshot},getCompanyDetailSnapshot:async()=>{calls++;return snapshot}},
     '@/components/sticky-company-header':{StickyCompanyHeader:props=>React.createElement('h1',null,props.displayName,props.titleSuffix,props.detail?.value)},
-    '@/components/company-financial-tabs':named(['CompanyFinancialTabs']),
-    '@/components/detail-mobile-navigation':named(['DetailMobileNavigation']),
     '@/components/recent-security-tracker':named(['RecentSecurityTracker']),
     '@/components/recent-securities-sidebar':named(['RecentSecuritiesSidebar']),
     '@/components/page-navigation':named(['PageNavigation']),
-    '@/components/detail-metric-facts':{DetailMetricFacts:props=>{facts=props;return React.createElement('dl',null,props.rows.map(([label,value])=>React.createElement('div',{key:label},React.createElement('dt',null,label),React.createElement('dd',null,value))))}},
-    '@/components/simple-interactive-securities':named(['InteractiveSecuritiesSection']),
     '@/components/interactive-chart-section':{InteractiveChartSection:props=>{charts.push(props);return null}},
     '@/components/detail-history-chart':{DetailHistoryChart:props=>{historyCharts.push(props);return null}},
-    '@/components/restored-detail-charts':named(['DetailFinancialAnalysis','DetailPriceHistory','DetailAnnualHistory']),
-    '@/components/card-company-marketcap':{__esModule:true,default:empty},
+    '@/components/restored-detail-charts':{...named(['DetailFinancialAnalysis','DetailPriceHistory','DetailAnnualHistory','DividendComparisonChart']),ChartWhenVisible:({children})=>children},
     '@/components/CsvDownloadButton':{CsvDownloadButton:props=>{downloaded=props;return React.createElement('button',null,props.label)}},
     '@/components/share-button':{__esModule:true,default:empty},
-    '@/components/header-rank':{__esModule:true,default:props=>React.createElement('p',null,'current ',props.marketcap)},
   };
-  return {pages:loader(stubs)('components/restored-detail-page.tsx'),calls:()=>calls,csv:()=>downloaded,facts:()=>facts,charts,historyCharts};
+  return {pages:loader(stubs)('components/restored-detail-page.tsx'),calls:()=>calls,csv:()=>downloaded,charts,historyCharts};
 }
 module.exports={loader,pageLoader,renderToStaticMarkup};

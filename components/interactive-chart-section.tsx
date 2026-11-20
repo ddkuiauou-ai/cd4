@@ -1,12 +1,14 @@
 "use client";
-import { useMemo, useState } from 'react';
+import { lazy, useMemo, useState } from 'react';
 import type { DetailCompanyData, DetailSecurityRow } from './detail-types';
-import ChartCompanyMarketcap from './chart-company-marketcap';
-import ChartMarketcap from './chart-marketcap';
+import { ChartWhenVisible } from './detail-chart-visibility';
 import { DetailCompanyHistoryObservation } from './detail-company-history-observation';
 import { createMarketcapSeries } from '@/lib/chart-selection';
 import { earlierDate } from '@/lib/detail-presentation';
 import { projectBusinessChartRows, businessChartAxisValue, formatCompactBusinessValue, type BusinessValue } from '@/lib/business-analysis';
+
+const ChartCompanyMarketcap = lazy(() => import('./chart-company-marketcap'));
+const ChartMarketcap = lazy(() => import('./chart-marketcap'));
 
 export function InteractiveChartSection({ companyMarketcapData, type, selectedSecurityId, selectedType = '시가총액 구성', start, end }: {
   companyMarketcapData: DetailCompanyData; companySecs: DetailSecurityRow[]; type: 'summary' | 'detailed';
@@ -36,19 +38,24 @@ export function InteractiveChartSection({ companyMarketcapData, type, selectedSe
   });
   if (!history.length) return <p className="border-y border-border py-8 text-sm text-muted-foreground">등록된 시가총액 데이터가 없습니다.</p>;
   const range = `${String(history[0].date).slice(0,10)} ~ ${String(history.at(-1)!.date).slice(0,10)}`;
-  const Chart = type === 'summary' ? ChartCompanyMarketcap : ChartMarketcap;
+  const summary = type === 'summary';
+  const Chart = summary ? ChartCompanyMarketcap : ChartMarketcap;
+  const chartHeight = summary ? 'h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px]'
+    : 'h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px]';
   return <div className="min-w-0 space-y-3">
-    {type === 'summary' && !customRange && <div className="flex flex-wrap items-center gap-2" role="group" aria-label="시가총액 차트 범위">
+    {summary && !customRange && <div className="flex flex-wrap items-center gap-2" role="group" aria-label="시가총액 차트 범위">
       <span className="text-xs text-muted-foreground">차트 표시 범위</span>
       {([['recent','최근 3개월'],['all','전체']] as const).map(([key,label]) => <button key={key} type="button" aria-pressed={period === key} onClick={()=>setPeriod(key)}
         className={`min-h-10 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${period === key ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground hover:bg-accent'}`}>{label}</button>)}
     </div>}
-    {type === 'summary' && <p className="text-xs leading-relaxed text-muted-foreground">최근 3개월/전체는 이 차트의 표시 범위입니다. 핵심 지표는 이름에 표시된 기간을 분석하며, 직접 지정한 범위는 차트와 핵심 지표에 공통 적용됩니다.</p>}
-    {customRange && <p className="text-xs text-muted-foreground">직접 지정한 기간을 표시합니다.</p>}
-    {history.length === 1 && companyMarketcapData && <DetailCompanyHistoryObservation data={companyMarketcapData} observation={history[0]} count={1} selectedSecurityId={selectedSecurityId} />}
-    <p className="text-xs text-muted-foreground tabular-nums">{recent || customRange ? '이력 범위' : '전체 이력 범위'} {range} · 기록 {history.length}개{recent ? ' · 마지막 이력일 기준 3개월 범위' : ''}</p>
+    {history.length === 1 && companyMarketcapData
+      ? <DetailCompanyHistoryObservation data={companyMarketcapData} observation={history[0]} count={1} selectedSecurityId={selectedSecurityId} />
+      : <p className="text-xs text-muted-foreground tabular-nums">{recent || customRange ? '이력 범위' : '전체 이력 범위'} {range} · 기록 {history.length.toLocaleString('ko-KR')}개</p>}
     <p className="text-xs text-muted-foreground">현재 분석 대상 {series.length}개 종목의 날짜별 제공값 합계입니다. 미등록 종목 값은 포함되지 않습니다.</p>
-    <p className="sr-only">날짜별로 등록된 종목 값의 합계이며, 미등록 종목 값은 포함되지 않습니다.</p>
-    {domain.min != null && <Chart data={points} format="formatNumber" formatTooltip="formatNumberTooltip" series={series} selectedSecurityId={selectedSecurityId} selectedType={selectedType} sourceValues={sourceValues} coverage={coverage} totalLabel="등록 종목 합계" axisFormat={value => formatCompactBusinessValue(businessChartAxisValue(domain.min, domain.max, value))} />}
+    {domain.min != null && <ChartWhenVisible fallback={<div className={`${chartHeight} flex items-center justify-center border-y border-border text-sm text-muted-foreground`}>차트 준비 중…</div>}>
+      <Chart data={points} format="formatNumber" formatTooltip="formatNumberTooltip" series={series} selectedSecurityId={selectedSecurityId}
+        selectedType={selectedType} sourceValues={sourceValues} coverage={coverage} totalLabel="등록 종목 합계"
+        axisFormat={value => formatCompactBusinessValue(businessChartAxisValue(domain.min, domain.max, value))} />
+    </ChartWhenVisible>}
   </div>;
 }

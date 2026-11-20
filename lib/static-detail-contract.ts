@@ -5,6 +5,8 @@ export interface StaticDetailAssets {
   prices?: string;
   marketcap?: string;
   metrics?: Partial<Record<DetailMetric, string>>;
+  historyCutoff?: string;
+  listingMetricAvailability?: Array<{ periodId: string; metrics: DetailMetric[] }>;
   companyHistory?: string;
   memberMarketcaps?: Record<string, string>;
   memberPrices?: Record<string, string>;

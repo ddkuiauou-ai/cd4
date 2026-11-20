@@ -6,9 +6,9 @@ const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-
 
 const table = (columns, rows) => ({schemaVersion: 1, columns, rows});
 const publication = {asOf:'2026-10-08', revision:'3', scopeKey:'krx-all'};
-const security = {securityId:'security-one', routeCode:'KOSPI.000001', name:'Example', korName:'예시', ticker:'000001', exchange:'KOSPI', type:'보통주', state:'published', publication, pbr:'2', pbrState:'provided', pbrDate:'2026-10-08', price:'100', priceState:'provided', priceDate:'2026-10-08', prices:[], marketcaps:[], company:null};
+const security = {securityId:'security-one', routeCode:'KOSPI.000001', name:'Example', korName:'예시', ticker:'000001', exchange:'KOSPI', type:'보통주', state:'published', publication, pbr:'2', pbrState:'provided', pbrDate:'2026-10-08', bps:'-1', bpsState:'provided', bpsDate:'2026-10-08', price:'100', priceState:'provided', priceDate:'2026-10-08', prices:[], marketcaps:[], company:null};
 const rows = [{date:'2026-09-29', pbr:'999', pbrState:'provided', bps:'9007199254740993'}, {date:'2026-10-01', pbr:'0', pbrState:'provided', bps:null}, {date:'2026-10-08', pbr:'2', pbrState:'provided', bps:'-1'}];
-const props = {security, company:null, companySecs:[], ranking:{currentRank:1, rankDate:'2026-10-08'}, neighbors:[], history:rows.map(row=>({date:row.date,value:row.pbr,state:row.pbrState})), sourceHistory:rows, prices:[{date:'2026-10-08',close:'100',open:'90',rate:0,volume:'9007199254740993'}], metric:'pbr', basic:false, search:{}};
+const props = {security, company:null, companySecs:[], ranking:{currentRank:1, rankDate:'2026-10-08'}, neighbors:[], history:rows.map(row=>({date:row.date,value:row.pbr,state:row.pbrState})), sourceHistory:rows, prices:[{date:'2026-10-08',close:'100',open:'90',high:'105',low:'87',rate:0,volume:'9007199254740993'}], metric:'pbr', basic:false, search:{}};
 
 function presentationLoader(extra = {}) {
   const empty = () => null;
@@ -26,7 +26,8 @@ function presentationLoader(extra = {}) {
     '@/components/interactive-chart-section':named('InteractiveChartSection'),
     '@/components/detail-history-chart':named('DetailHistoryChart'),
     '@/components/restored-detail-charts':{
-      ...named('DetailFinancialAnalysis','DetailPriceHistory'),
+      ...named('DetailFinancialAnalysis','DetailPriceHistory','DividendComparisonChart'),
+      ChartWhenVisible:({children})=>children,
       DetailAnnualHistory:({rows})=>React.createElement('div',{'data-testid':'annual'},JSON.stringify(rows)),
     },
     '@/components/card-company-marketcap':{__esModule:true,default:empty},
@@ -113,7 +114,7 @@ test('an oversized history remains usable without retaining it or flushing small
 test('PBR source membership and states survive missing BPS dependencies and parallel asset loading',async()=>{
   const sources={
     '/pbr':table(['date','pbr','pbrState'],rows.map(row=>[row.date,row.pbr,row.pbrState])),
-    '/bps':table(['date','bps'],[['2026-09-29','9007199254740993'],['2026-10-08','-1']]),
+    '/bps':table(['date','bps','bpsState'],[['2026-09-29','9007199254740993','provided'],['2026-10-08','-1','provided']]),
     '/prices':table(['date','close'],[['2026-10-08','100']]),
   };
   const calls=[];
@@ -121,7 +122,8 @@ test('PBR source membership and states survive missing BPS dependencies and para
   try{
     const {loadStaticDetailData}=loader()('lib/static-data.ts');
     const data=await loadStaticDetailData({metrics:{pbr:'/pbr',bps:'/bps'},prices:'/prices'},'pbr');
-    assert.deepEqual(data.sourceHistory,rows);assert.deepEqual(new Set(calls),new Set(['/pbr','/bps','/prices']));
+    assert.deepEqual(data.sourceHistory,[{...rows[0],bpsState:'provided'},rows[1],{...rows[2],bpsState:'provided'}]);
+    assert.deepEqual(new Set(calls),new Set(['/pbr','/bps','/prices']));
   }finally{restore();}
 });
 
@@ -129,12 +131,13 @@ test('optimized static props omit full histories while preserving official quote
   const context=presentationLoader({'@/lib/data/detail-snapshot':{getSecurityDetailSnapshot:async()=>({...props,priceHistory:props.prices,history:rows})},'@/lib/static-build/server':{getStaticDetailAssets:()=>({metrics:{pbr:'/pbr',bps:'/bps'},prices:'/prices'})}});
   const surface=context.load('components/detail-surface.tsx');
   const {compactDetailProps}=context.load('components/restored-detail-page.tsx');
-  const initial={...compactDetailProps({...props,security:{...security,prices:props.prices,marketcaps:[{date:'2026-01-01',marketcap:'9876543210123456789'}]}}),initialAnalysis:surface.prepareDetailAnalysis(props)};
+  const initial={...compactDetailProps({...props,neighbors:[{securityId:'other',currentRank:2,value:'9007199254740993.25'}],security:{...security,prices:props.prices,marketcaps:[{date:'2026-01-01',marketcap:'9876543210123456789'}]}}),initialAnalysis:surface.prepareDetailAnalysis(props)};
   assert.deepEqual(initial.history,[]);assert.deepEqual(initial.sourceHistory,[]);assert.equal('prices' in initial.security,false);assert.equal('marketcaps' in initial.security,false);
-  assert.equal(initial.prices[0].volume,'9007199254740993');assert.equal(initial.initialAnalysis.summary.count,3);assert.equal(initial.initialAnalysis.annualRows[0].value,'2');
+  assert.deepEqual(initial.prices,props.prices);assert.equal(initial.initialAnalysis.summary.count,3);assert.equal(initial.initialAnalysis.annualRows[0].value,'2');
+  assert.equal(initial.security.bps,'-1');assert.equal(initial.neighbors[0].value,'9007199254740993.25');
   assert.doesNotMatch(JSON.stringify(initial),/9876543210123456789/);
   const html=renderToStaticMarkup(React.createElement(surface.DetailSurface,{...initial,historyPending:true}));
-  assert.match(html,/12개월 평균/);assert.match(html,/실제 제공 3개/);assert.match(html,/data-testid="annual"/);assert.match(html,/2026-10-08/);assert.match(html,/전체 이력 CSV/);
+  assert.match(html,/12개월 평균/);assert.match(html,/실제 관측 3개/);assert.match(html,/data-testid="annual"/);assert.match(html,/2026-10-08/);assert.match(html,/전체 이력 CSV/);
 });
 
 test('static wrapper offers an inline benchmark and compact assets while standalone retains server rendering',async()=>{
@@ -168,10 +171,10 @@ test('static wrapper offers an inline benchmark and compact assets while standal
 
 test('static basic information restores real multi-day price history without embedding it in the initial quote',async()=>{
   const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/security/KOSPI.000001/'});
-  const priceRows=[{date:'2026-10-01',close:'90',open:'85',rate:0,volume:'9007199254740993'},...props.prices];
+  const priceRows=[{date:'2026-10-01',close:'90',open:'85',high:'91',low:'84',rate:0,volume:'9007199254740993'},...props.prices];
   const sources={
     '/basic-cap':table(['date','marketcap'],[['2026-10-01','900'],['2026-10-08','1000']]),
-    '/basic-prices':table(['date','close','open','rate','volume'],priceRows.map(row=>[row.date,row.close,row.open,row.rate,row.volume])),
+    '/basic-prices':table(['date','close','open','high','low','rate','volume'],priceRows.map(row=>[row.date,row.close,row.open,row.high,row.low,row.rate,row.volume])),
   };
   const calls=[];
   const restore=replaceGlobals({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true,
@@ -197,13 +200,19 @@ test('static basic information restores real multi-day price history without emb
 
 test('static browser queries update filters and navigation without changing full-history CSV',async()=>{
   const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/security/KOSPI.000001/pbr?start=2026-10-01&end=2026-10-08'});
+  const comparisonRows=[{date:'2025-10-08',pbr:'3',pbrState:'provided',bps:'4'},...rows];
+  const comparisonPrices=[{date:'2025-10-08',close:'90'},...props.prices];
   const sources={
-    '/pbr':table(['date','pbr','pbrState'],rows.map(row=>[row.date,row.pbr,row.pbrState])),
-    '/bps':table(['date','bps'],rows.map(row=>[row.date,row.bps])),
-    '/prices':table(['date','close','open','rate','volume'],[['2026-10-08','100','90',0,'9007199254740993']]),
+    '/pbr':table(['date','pbr','pbrState'],comparisonRows.map(row=>[row.date,row.pbr,row.pbrState])),
+    '/bps':table(['date','bps'],comparisonRows.map(row=>[row.date,row.bps])),
+    '/prices':table(['date','close'],comparisonPrices.map(row=>[row.date,row.close])),
   };
   const calls=[];
-  const restore=replaceGlobals({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true,fetch:async url=>{calls.push(url);return {ok:true,json:async()=>sources[url]};}});
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const restore=replaceGlobals({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true,fetch:async url=>{
+    calls.push(url);await gate;return {ok:true,json:async()=>sources[url]};
+  }});
   let mounted;
   try{
     const context=presentationLoader({'next/navigation':{
@@ -211,26 +220,52 @@ test('static browser queries update filters and navigation without changing full
     }});
     const surface=context.load('components/detail-surface.tsx');
     const {StaticDetailClient}=context.load('components/static-detail-client.tsx');
-    const initial={...props,history:[],sourceHistory:[],initialAnalysis:surface.prepareDetailAnalysis(props)};
+    const periods=[{periodId:'old',listingDate:'2020-01-01',delistingDate:'2024-09-30'},
+      {periodId:'current',listingDate:'2024-10-01',delistingDate:null}];
+    const input={...props,security:{...security,listingPeriods:periods,selectedPeriod:periods[1]}, sourceHistory:comparisonRows,
+      history:comparisonRows.map(row=>({date:row.date,value:row.pbr,state:row.pbrState})),prices:comparisonPrices};
+    const initial={...input,prices:props.prices,history:[],sourceHistory:[],initialAnalysis:surface.prepareDetailAnalysis(input)};
     const {createRoot}=require('react-dom/client');
     mounted=createRoot(document.getElementById('root'));
-    await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{initial,assets:{metrics:{pbr:'/pbr',bps:'/bps'},prices:'/prices'}})));
-    assert.equal(document.querySelector('input[name="start"]').value,'2026-10-01');
-    assert.match(document.querySelector('#indicators').textContent,/실제 제공 2개/);
+    const assets={metrics:{pbr:'/pbr',bps:'/bps'},prices:'/prices',listingMetricAvailability:[{periodId:'old',metrics:['pbr']},{periodId:'current',metrics:['pbr','bps']}]};
+    await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{initial,assets})));
+    const visibleRange=()=>document.querySelector('.investor-legacy-range')?.textContent;
+    const average=()=>document.querySelector('#indicators').textContent;
+    assert.match(visibleRange(),/2026-10-01 ~ 2026-10-08/);
+    const bpsLink=document.querySelector('#detail-metric-navigation a[href*="/bps?"]');
+    assert.match(bpsLink.getAttribute('href'),/start=2026-10-01&end=2026-10-08/);
+    assert.match(document.querySelector('#current-overview').textContent,/2025-10-08/);
+    assert.match(document.querySelector('.investor-overview').textContent,/2026-10-01 이력 대비 차이/);
+    assert.match(average(),/이력 자료를 불러오는 중/);
+    assert.match(document.querySelector('#annual-data').textContent,/이력 자료를 불러오는 중/);
+    assert.equal(document.querySelector('#history-download button').disabled,true);
+    assert.equal(context.csv().data,undefined);
+
+    const initialSearch=window.location.search;
+    const replaceSearch=async search=>React.act(async()=>{window.history.replaceState({},'',search);window.dispatchEvent(new window.PopStateEvent('popstate'));});
+    await replaceSearch('?period=old&start=2020-01-01');
+    assert.doesNotMatch(document.querySelector('.investor-overview').textContent,/2025-10-08|2026-10-01 이력 대비/);
+    assert.equal(document.querySelector('#history-download'),null);
+    await replaceSearch(initialSearch);
+    assert.match(document.querySelector('#current-overview').textContent,/2025-10-08/);
+    assert.equal(document.querySelector('#history-download button').disabled,true);
+    await React.act(async()=>{release();});
+
+    assert.match(average(),/실제 관측 2개/);
     assert.doesNotMatch(document.querySelector('#indicators').textContent,/999/);
-    assert.deepEqual(context.csv().data.map(row=>[row.date,row.pbr,row.bps]),rows.map(row=>[row.date,row.pbr,row.bps]));
+    assert.deepEqual(context.csv().data.map(row=>[row.date,row.pbr,row.bps]),comparisonRows.map(row=>[row.date,row.pbr,row.bps]));
     const serialized=context.load('lib/csv/ranking.ts').serializeCsvRows(context.csv().data);
     assert.match(serialized,/9007199254740993/);assert.match(serialized,/2026-10-01,0,,provided/);
     await React.act(async()=>{window.history.pushState({},'', '?start=2026-02-30&end=2026-10-08');window.dispatchEvent(new window.PopStateEvent('popstate'));});
     assert.match(document.querySelector('[role="alert"]').textContent,/시작일과 종료일/);
-    assert.equal(context.csv().data.length,3);
+    assert.equal(context.csv().data.length,4);
     await React.act(async()=>{window.history.pushState({},'',window.location.pathname);window.dispatchEvent(new window.PopStateEvent('popstate'));});
-    assert.equal(document.querySelector('input[name="start"]').value,'');
-    assert.equal(document.querySelector('[role="alert"]'),null);assert.match(document.querySelector('#indicators').textContent,/실제 제공 3개/);
+    assert.equal(visibleRange(),undefined);
+    assert.equal(document.querySelector('[role="alert"]'),null);assert.match(average(),/실제 관측 4개/);
     await React.act(async()=>new Promise(resolve=>{window.addEventListener('popstate',resolve,{once:true});window.history.back();}));
     assert.match(document.querySelector('[role="alert"]').textContent,/시작일과 종료일/);
     await React.act(async()=>new Promise(resolve=>{window.addEventListener('popstate',resolve,{once:true});window.history.back();}));
-    assert.equal(document.querySelector('input[name="start"]').value,'2026-10-01');assert.match(document.querySelector('#indicators').textContent,/실제 제공 2개/);
+    assert.match(visibleRange(),/2026-10-01 ~ 2026-10-08/);assert.match(average(),/실제 관측 2개/);
     await React.act(async()=>new Promise(resolve=>{window.addEventListener('popstate',resolve,{once:true});window.history.forward();}));
     assert.match(document.querySelector('[role="alert"]').textContent,/시작일과 종료일/);
     assert.equal(calls.length,3,'date navigation reuses the same immutable assets');
@@ -249,27 +284,33 @@ test('one-observation company comparisons restore exact member values and missin
   assert.match(html,/9,007,199,254,740,993원/);assert.match(html,/선택한 종목의 이력이 이 날짜에 등록되어 있지 않습니다/);assert.match(html,/1\/2개 종목 관측/);
 });
 
-test('current comparison cards and both basic pages preserve exact rendered output after master projection for all seven metrics',()=>{
+test('compact static props retain current metric fields, comparison summaries and navigation across detailed views',()=>{
   const context=presentationLoader({'@/lib/data/detail-snapshot':{}});
   const {compactDetailProps}=context.load('components/restored-detail-page.tsx');
   const {DetailSurface}=context.load('components/detail-surface.tsx');
-  const {InteractiveSecuritiesSection}=loader()('components/simple-interactive-securities.tsx');
   const corporation={companyId:'company-one',name:'Example Corporation',korName:'예시기업',logo:null,industry:'제조업',establishedDate:'2000-01-01',homepage:'https://example.com',resultSourceRef:'unused-source-reference'};
   const values={marketcap:'9007199254740993',per:'10',pbr:'2',bps:'0',eps:'-5',div:'1',dps:'100'};
-  const member={...security,...values,company:corporation,prices:props.prices,marketcaps:[{date:'2026-10-08',marketcap:values.marketcap}]};
+  const fields=Object.fromEntries(Object.entries(values).flatMap(([metric,value])=>[[metric,value],[`${metric}State`,'provided'],[`${metric}Date`,'2026-10-08']]));
+  const member={...security,...fields,company:corporation,availableMetrics:Object.keys(values),prices:props.prices,marketcaps:[{date:'2026-10-08',marketcap:values.marketcap}]};
   const company={company:corporation,companyId:'company-one',routeCode:'KOSPI.000001',companyName:corporation.name,companyKorName:corporation.korName,state:'published',publication,totalMarketcap:values.marketcap,totalMarketcapDate:'2026-10-08',marketcapCompleteness:'complete',compositionComplete:true,compositionReason:null,compositionObservedCount:1,compositionTargetCount:1,securities:[{...member,marketcapDate:'2026-10-08',percentage:100,marketcapHistory:member.marketcaps}],aggregatedHistory:[],registeredHistory:[],resultSourceRef:'unused-company-source'};
   for(const metric of Object.keys(values)){
     const input={...props,metric,security:member,company,companySecs:[member]};
     const compact=compactDetailProps(input);
-    const sectionProps={currentTicker:member.ticker,currentSecurityId:member.securityId,market:member.exchange,currentMetric:metric};
-    const fullMarkup=renderToStaticMarkup(React.createElement(InteractiveSecuritiesSection,{...sectionProps,companyMarketcapData:company,companySecs:[member]}));
-    const compactMarkup=renderToStaticMarkup(React.createElement(InteractiveSecuritiesSection,{...sectionProps,companyMarketcapData:compact.company,companySecs:compact.companySecs}));
-    assert.equal(compactMarkup,fullMarkup,metric);
+    assert.equal(compact.security[metric],values[metric]);
+    assert.equal(compact.security[`${metric}State`],'provided');
+    assert.equal(compact.security[`${metric}Date`],'2026-10-08');
+    assert.equal(compact.companySecs[0][metric],values[metric]);
+    assert.deepEqual(compact.companySecs[0].availableMetrics,Object.keys(values));
     assert.doesNotMatch(JSON.stringify(compact),/unused-source-reference|unused-company-source/);
   }
   for(const companyPage of [false,true]){
     const input={...props,basic:true,metric:'marketcap',companyPage,security:member,company,companySecs:[member]};
-    assert.equal(renderToStaticMarkup(React.createElement(DetailSurface,compactDetailProps(input))),renderToStaticMarkup(React.createElement(DetailSurface,input)),companyPage?'company basic':'security basic');
+    const markup=variant=>new JSDOM(renderToStaticMarkup(React.createElement(DetailSurface,variant)));
+    const full=markup(input), compact=markup(compactDetailProps(input));
+    for (const selector of ['#detail-metric-navigation','#current-overview']) {
+      assert.equal(compact.window.document.querySelector(selector).outerHTML,full.window.document.querySelector(selector).outerHTML);
+    }
+    full.window.close();compact.window.close();
   }
 });
 
@@ -297,7 +338,7 @@ test('metric navigation remounts page state and reuses shared prices and previou
     const perInitial={...initial,metric:'per',security:{...security,per:'20',perDate:'2026-10-08',perState:'provided'},initialAnalysis:undefined};
     await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{key:'per',initial:perInitial,assets})));
     assert.deepEqual(context.csv().data.map(row=>[row.per,row.eps]),[['10','0'],['20','-9007199254740993']]);
-    assert.match(document.querySelector('#indicators').textContent,/실제 제공 2개/);
+    assert.match(document.querySelector('#indicators').textContent,/실제 관측 2개/);
     await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{key:'pbr',initial,assets})));
     assert.deepEqual(context.csv().data.map(row=>row.pbr),['999','0','2']);
     assert.deepEqual(calls,['/pbr','/prices','/bps','/per','/eps']);

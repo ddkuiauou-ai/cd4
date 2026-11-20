@@ -1,17 +1,53 @@
 import { isStaticBuild, getStaticSecurityDetail, getStaticCompanyDetail } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
-import {filterListingRows,listingContains} from "../security-lifecycle";
-import { toDataDTO } from "./dto";
+import { and, asc, desc, eq, gt, inArray, lt } from "drizzle-orm";
+import { filterListingRows, isolateListingValues, listingContains, selectListingPeriod } from "../security-lifecycle";
+import { availableDetailMetrics, financialDetailMetrics } from '../detail-metric-availability';
+import { businessDate, toDataDTO } from "./dto";
 import { readCompanyAggregatedMarketcap, getCompanyMarketcapRankingFilter, representativeSecurityOrder } from "./company";
 import { readCompanySecurities, readSecurityByCode } from "./security";
-import { historyRange, readMetricsHistory, readRouteCodes } from "./history";
+import { historyRange, readDetailDividendHistory, readDetailFinancialAvailability, readMetricsHistory, readRouteCodes } from "./history";
 import { readSecurityMetricDetailRanking, readSecurityMetricNeighbors } from "./security-ranking-detail";
-import { COMPANY_PUBLICATION_KEY, readPublication, readSnapshot, type ReadDatabase } from "./publication";
+import { COMPANY_PUBLICATION_KEY, isCurrentResult, readPublication, readSnapshot, SECURITY_PUBLICATION_KEY, type ReadDatabase } from "./publication";
 
 export type DetailMetric = schema.MetricType | "price" | "shares";
 const inWindow = <Row extends { date: string }>(rows: Row[], start?: string, end?: string) =>
   rows.filter(row => (!start || row.date >= start) && (!end || row.date <= end));
+
+async function readDetailAvailability(tx: ReadDatabase, security: Awaited<ReturnType<typeof readSecurityByCode>>,
+  company: Awaited<ReturnType<typeof readCompanyAggregatedMarketcap>>, metric: DetailMetric) {
+  const publication = await readPublication(tx, SECURITY_PUBLICATION_KEY);
+  const cutoff = businessDate(publication?.asOf) ?? undefined;
+  const members = company ? await readCompanySecurities(tx, company.companyId, company.securities.map(row => row.securityId)) : [];
+  const periods = members.length ? await tx.query.securityListingPeriod.findMany({
+    where: inArray(schema.securityListingPeriod.securityId, members.map(row => row.securityId)),
+  }) : [];
+  const selections = members.map(member => ({ securityId: member.securityId,
+    period: selectListingPeriod(periods.filter(period => period.securityId === member.securityId)), cutoff }));
+  const all = new Map(selections.map(selection => [selection.securityId, selection]));
+  if (security) all.set(security.securityId, { securityId: security.securityId, period: security.selectedPeriod,
+    cutoff: security.historicalPeriod ? undefined : cutoff });
+  const [financial, dividends] = await Promise.all([
+    readDetailFinancialAvailability(tx, [...all.values()]),
+    metric === 'div' || metric === 'dps' ? readDetailDividendHistory(tx, selections) : undefined,
+  ]);
+  const available = (row: NonNullable<typeof security> | typeof members[number]) => {
+    const selection = all.get(row.securityId);
+    const observed: Array<typeof financialDetailMetrics[number] | 'marketcap'> = [...(financial.get(row.securityId) ?? [])];
+    if (row.marketcaps.some(entry => entry.marketcap != null && listingContains(selection?.period, entry.date)
+      && (!selection?.cutoff || entry.date <= selection.cutoff))) observed.push('marketcap');
+    return availableDetailMetrics(row, observed, selection?.period, selection?.cutoff);
+  };
+  const companySecs = members.map(member => {
+    const period = all.get(member.securityId)?.period;
+    const safe = isolateListingValues(member, period ?? null, false);
+    return { ...safe, availableMetrics: available(safe),
+      state: isCurrentResult(safe, publication) && listingContains(period, cutoff) ? 'published' as const : 'unpublished' as const,
+      ...(dividends ? { dividendHistory: dividends.get(member.securityId) ?? [] } : {}) };
+  });
+  return { companySecs, security: security ? { ...security, availableMetrics: available(security),
+    historyCutoff: security.historicalPeriod ? undefined : cutoff } : null };
+}
 
 /** Official snapshots, source histories, membership and neighbors share one DB snapshot. */
 function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "marketcap", start?: string, end?: string, periodId?: string) {
@@ -20,17 +56,21 @@ function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "mar
     const security = await readSecurityByCode(tx, code, periodId);
     if (!security) return null;
     const company = !security.historicalPeriod && security.companyId ? await readCompanyAggregatedMarketcap(tx, security.companyId) : null;
-    const companySecs = company ? await readCompanySecurities(tx, company.companyId, company.securities.map(row => row.securityId)) : [];
+    const detail = await readDetailAvailability(tx, security, company, metric);
     const candidateRanking = security.historicalPeriod || metric === "price" || metric === "shares" ? null
       : await readSecurityMetricDetailRanking(tx, security.securityId, metric);
     const ranking=candidateRanking && listingContains(security.selectedPeriod,candidateRanking.rankDate) && (candidateRanking.valueObservedAt == null || listingContains(security.selectedPeriod,candidateRanking.valueObservedAt)) ? candidateRanking : null;
     const neighbors = ranking?.currentRank != null && metric !== "price" && metric !== "shares"
       ? await readSecurityMetricNeighbors(tx, ranking.currentRank, metric, ranking.rankDate, ranking.publication?.revision) : [];
     const priceHistory = security.prices.toReversed();
+    const cutoff = detail.security?.historyCutoff;
+    const historyEnd = cutoff && (!end || end > cutoff) ? cutoff : end;
     const history = metric === "price" ? inWindow(priceHistory, start, end)
       : metric === "marketcap" || metric === "shares" ? inWindow(security.marketcaps, start, end)
-      : await readMetricsHistory(tx, security.securityId, start, end ?? security.publication?.asOf, security.selectedPeriod ?? undefined);
-    return { security, company, companySecs, ranking, neighbors, history:filterListingRows<{date:string}>(history,security.selectedPeriod), priceHistory };
+      : start && historyEnd && start > historyEnd ? []
+      : await readMetricsHistory(tx, security.securityId, start, historyEnd, security.selectedPeriod ?? undefined);
+    return { security: detail.security!, company, companySecs: detail.companySecs, ranking, neighbors,
+      history:filterListingRows<{date:string}>(history,security.selectedPeriod), priceHistory };
   });
 }
 
@@ -61,15 +101,15 @@ function getLiveCompanyDetailSnapshot(code: string, start?: string, end?: string
     if (!companyId) return null;
     const company = await readCompanyAggregatedMarketcap(tx, companyId);
     if (!company) return null;
-    const companySecs = await readCompanySecurities(tx, companyId, company.securities.map(row => row.securityId));
-    const representative = companySecs.find(member => member.type === "보통주") ?? null;
+    const representative = company.securities.find(member => member.type === "보통주") ?? null;
     const security = representative ? await readSecurityByCode(tx, representative.securityId) : null;
+    const detail = await readDetailAvailability(tx, security, company, 'marketcap');
     const priceHistory = security?.prices.toReversed() ?? [];
     const history = inWindow(company.registeredHistory, start, end);
     const ranking = { currentRank: company.marketcapRank, priorRank: company.marketcapPriorRank,
       rankingState: company.rankingState, exclusionReason: company.exclusionReason, publication: company.publication,
       state: company.state, value: company.totalMarketcap, rankDate: company.publication?.asOf ?? null };
-    return { company, security, companySecs, history, priceHistory, ranking,
+    return { company, ...detail, history, priceHistory, ranking,
       neighbors: await companyNeighbors(tx, company.marketcapRank) };
   });
 }

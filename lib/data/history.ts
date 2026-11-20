@@ -3,6 +3,7 @@ import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, lte, sql 
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import type { SecurityListingPeriod } from "../security-lifecycle";
 import type { ReadDatabase } from "./publication";
+import { financialDetailMetrics, monthlyDividendHistory, type DividendObservation } from '../detail-metric-availability';
 
 export type PriceDTO = DataDTO<typeof schema.price.$inferSelect>;
 export type MarketcapDTO = DataDTO<typeof schema.marketcap.$inferSelect>;
@@ -95,6 +96,66 @@ export async function readMetricsHistory(tx: ReadDatabase, securityId: string, s
     div: sql<string | null>`${schema.bppedd.div}::text`, dps: sql<string | null>`${schema.bppedd.dps}::text`,
   }).from(schema.bppedd).where(and(eq(schema.bppedd.securityId, securityId),
     listingHistoryFilter(schema.bppedd.securityId,schema.bppedd.date,period), from ? gte(schema.bppedd.date, from) : undefined, to ? lte(schema.bppedd.date, to) : undefined)).orderBy(asc(schema.bppedd.date)));
+}
+
+interface DetailHistorySelection {
+  securityId: string;
+  period?: SecurityListingPeriod | null;
+  cutoff?: string;
+}
+
+function detailHistorySelections(selections: readonly DetailHistorySelection[]) {
+  return sql.join(selections.map(({ securityId, period, cutoff }) => sql`(${securityId}::text,
+    ${period?.listingDate ?? null}::date, ${period?.delistingDate ?? null}::date, ${cutoff ?? null}::date)`), sql`, `);
+}
+
+export async function readDetailFinancialAvailability(tx: ReadDatabase, selections: readonly DetailHistorySelection[]) {
+  const bySecurity = new Map<string, (typeof financialDetailMetrics)[number][]>();
+  if (!selections.length) return bySecurity;
+  const columns = financialDetailMetrics.map(metric => sql`bool_or(b.${sql.identifier(`${metric}_state`)} = 'provided'
+      AND b.${sql.identifier(metric)} IS NOT NULL) AS ${sql.identifier(metric)}`);
+  const rows = await tx.execute<{ securityId: string } & Partial<Record<(typeof financialDetailMetrics)[number], boolean>>>(sql`
+    WITH wanted(security_id, listing_date, delisting_date, cutoff) AS (VALUES ${detailHistorySelections(selections)})
+    SELECT w.security_id AS "securityId", ${sql.join(columns, sql`, `)}
+    FROM wanted w JOIN bppedd b ON b.security_id = w.security_id
+      AND (w.listing_date IS NULL OR b.date >= (w.listing_date::timestamp AT TIME ZONE 'Asia/Seoul'))
+      AND (w.delisting_date IS NULL OR b.date < (w.delisting_date::timestamp AT TIME ZONE 'Asia/Seoul'))
+      AND (w.cutoff IS NULL OR b.date <= (w.cutoff::timestamp AT TIME ZONE 'Asia/Seoul'))
+    GROUP BY w.security_id`);
+  for (const row of rows) bySecurity.set(row.securityId, financialDetailMetrics.filter(metric => row[metric]));
+  return bySecurity;
+}
+
+/** Limit each member/metric to the actual final supplied row of each recent month. */
+export async function readDetailDividendHistory(tx: ReadDatabase, selections: readonly DetailHistorySelection[]) {
+  const bySecurity = new Map<string, DividendObservation[]>();
+  if (!selections.length) return bySecurity;
+  const rows = await tx.execute<{ securityId: string; date: Date | string; metric: 'div' | 'dps'; value: string }>(sql`
+    WITH wanted(security_id, listing_date, delisting_date, cutoff) AS (VALUES ${detailHistorySelections(selections)}),
+    observed AS (
+      SELECT w.security_id, (b.date AT TIME ZONE 'Asia/Seoul')::date AS date, w.cutoff,
+        metric.name, metric.value
+      FROM wanted w JOIN bppedd b ON b.security_id = w.security_id
+        AND b.date >= coalesce(greatest(w.listing_date::timestamp, w.cutoff - interval '5 years') AT TIME ZONE 'Asia/Seoul', '-infinity'::timestamptz)
+        AND b.date < coalesce(w.delisting_date::timestamp AT TIME ZONE 'Asia/Seoul', 'infinity'::timestamptz)
+        AND b.date <= coalesce(w.cutoff::timestamp AT TIME ZONE 'Asia/Seoul', 'infinity'::timestamptz)
+      CROSS JOIN LATERAL (VALUES ('div', b.div, b.div_state), ('dps', b.dps, b.dps_state)) AS metric(name, value, state)
+      WHERE metric.state = 'provided' AND metric.value IS NOT NULL
+    ), bounded AS (
+      SELECT *, coalesce(cutoff, max(date) OVER (PARTITION BY security_id)) AS anchor FROM observed
+    )
+    SELECT DISTINCT ON (security_id, date_trunc('month', date::timestamp), name)
+      security_id AS "securityId", to_char(date, 'YYYY-MM-DD') AS date, name AS metric, value::text AS value
+    FROM bounded WHERE date >= anchor - interval '5 years'
+    ORDER BY security_id, date_trunc('month', date::timestamp), name, bounded.date DESC`);
+  const samples = new Map<string, Record<string, unknown>[]>();
+  for (const row of rows) {
+    const values = samples.get(row.securityId) ?? [];
+    values.push({ date: businessDate(row.date), [row.metric]: row.value });
+    samples.set(row.securityId, values);
+  }
+  for (const {securityId, cutoff} of selections) bySecurity.set(securityId, monthlyDividendHistory(samples.get(securityId) ?? [], cutoff));
+  return bySecurity;
 }
 
 /** Limit at the database per security, rather than reading all history and slicing in JS. */

@@ -36,6 +36,43 @@ test('historical detail omits current company/ranking/neighbors and restricts al
  assert.deepEqual(snapshot.history.map(r=>r.date),['2016-05-08']);
  assert.equal(await load('lib/data/detail-snapshot.ts').getSecurityDetailSnapshot('security-1','per',undefined,undefined,'wrong'),null);
 });
+
+test('detail navigation reflects each security and episode, including history-only, last-provided, zero and negative values', async () => {
+ const {state,load} = lifecycleFixture();
+ const common = state.securities[0];
+ for (const metric of ['marketcap','per','pbr','eps','bps','div','dps']) Object.assign(common, {
+   [metric]: null, [`${metric}State`]: 'unsupported', [`${metric}LastProvided`]: null, [`${metric}LastProvidedDate`]: null,
+ });
+ Object.assign(common, { perLastProvided: -5, perLastProvidedDate: day('2026-10-01'),
+   marketcap: 0n, marketcapState: 'provided' });
+ state.securities.push({...common, securityId: 'preferred', ticker: '000002', type: '우선주', perLastProvided: null, perLastProvidedDate: null });
+ state.metrics = [
+   {securityId:'security-1', date:day('2016-05-08'), pbr:'0', pbrState:'provided'},
+   {securityId:'security-1', date:day('2016-05-09'), dps:'2', dpsState:'provided'},
+   {securityId:'security-1', date:day('2026-10-01'), eps:'-1', epsState:'provided'},
+   {securityId:'security-1', date:day('2026-10-03'), bps:'4', bpsState:'provided'},
+   {securityId:'preferred', date:day('2026-09-29'), div:'-0.4', divState:'provided'},
+   {securityId:'preferred', date:day('2026-09-30'), dps:'0', dpsState:'provided'},
+   {securityId:'preferred', date:day('2026-10-03'), dps:'20', dpsState:'provided'},
+ ];
+ const {getSecurityDetailSnapshot} = load('lib/data/detail-snapshot.ts');
+ const latest = await getSecurityDetailSnapshot('security-1','div');
+ assert.deepEqual(latest.security.availableMetrics, ['marketcap','per','eps']);
+ assert.equal(latest.security.per, null);
+ assert.equal(latest.security.perLastProvided, '-5');
+ assert.equal(latest.security.marketcap, '0');
+ const preferred = latest.companySecs.find(row => row.securityId === 'preferred');
+ assert.deepEqual(preferred.availableMetrics, ['marketcap','dps','div']);
+ assert.deepEqual(preferred.dividendHistory, [
+   {date:'2026-09-29',div:'-0.4',dps:null}, {date:'2026-09-30',div:null,dps:'0'},
+ ]);
+ const old = await getSecurityDetailSnapshot('security-1','pbr',undefined,undefined,'old');
+ assert.deepEqual(old.security.availableMetrics, ['pbr']);
+ assert.equal(old.security.perLastProvided, null);
+ assert.equal(old.security.marketcap, null);
+ assert.deepEqual(old.companySecs, []);
+ assert.equal(state.queries.filter(query => query.table === 'detail-metrics-batch' && query.sql.includes('bool_or')).length, 2);
+});
 test('history SQL applies newest-episode bounds to raw/recent prices with Asia/Seoul business days',async()=>{
  const {state,load}=fixture();await load('lib/data/history.ts').readRecentPrices({execute:async q=>{const {PgDialect}=require('drizzle-orm/pg-core');state.queries.push(new PgDialect().sqlToQuery(q));return[];}},['security-1'],30,'2026-10-02');
  const sql=state.queries.at(-1).sql;assert.match(sql,/security_listing_period/);assert.match(sql,/max\(latest.listing_date\)/);assert.match(sql,/date < \(lp.delisting_date/);assert.match(sql,/Asia\/Seoul/);
@@ -111,12 +148,15 @@ test('static file detail picks prior episodes from archive and rejects invalid p
  const write=(name,value)=>{const file=path.join(directory,name);mkdirSync(path.dirname(file),{recursive:true});writeFileSync(file,JSON.stringify(value));};
  write('manifest.json',{version:1,securityAliases:{'000001':'security-1'}});write('identities.json',[{securityId:'security-1',companyId:null}]);
  const security={securityId:'security-1',korName:'오상헬스케어',name:'OSANG',companyId:null,price:'2',priceDate:'2024-03-13',state:'published',publication:{asOf:'2026-10-02'},prices:[{date:'2024-03-13',close:'2'}],marketcaps:[],exchange:'KOSDAQ',listingPeriods:[{...period('old','2008-07-06','2016-05-09'),displayExchange:'KONEX'},period('new','2024-03-13')],lifecycleEvents:[nameEvent]};
- write('data/security/security-1.json',{security,metrics:[],rankings:{per:{ranking:{currentRank:1,rankDate:'2016-05-08',valueObservedAt:'2016-05-08'},neighbors:[{}]}},archive:{prices:[{date:'2016-05-08',close:'1'},{date:'2024-03-13',close:'2'}],marketcaps:[],metrics:[{date:'2016-05-08',per:'3'},{date:'2024-03-13',per:'6'}]}});
+ write('data/security/security-1.json',{security,metrics:[],assets:{metrics:{per:'/per.json'}},rankings:{per:{ranking:{currentRank:1,rankDate:'2016-05-08',valueObservedAt:'2016-05-08'},neighbors:[{}]}},archive:{prices:[{date:'2016-05-08',close:'1'},{date:'2024-03-13',close:'2'}],marketcaps:[],metrics:[{date:'2016-05-08',per:'3'},{date:'2024-03-13',pbr:'0'}]}});
  const old=server.getStaticSecurityDetail('000001','per',undefined,undefined,'old');
  assert.equal(old.security.securityId,'security-1');assert.equal(old.security.korName,'인포피아');assert.equal(old.security.price,null);assert.equal(old.security.publication,null);assert.equal(old.security.exchange,'KONEX');
  assert.deepEqual(old.security.prices,[{date:'2016-05-08',close:'1'}]);assert.deepEqual(old.history,[{date:'2016-05-08',per:'3'}]);assert.deepEqual(old.priceHistory,[{date:'2016-05-08',close:'1'}]);assert.equal(old.ranking,null);assert.deepEqual(old.neighbors,[]);
  assert.equal(server.getStaticSecurityDetail('000001','per',undefined,undefined,'invalid'),null);
- assert.deepEqual(server.getStaticSecurityDetail('000001','per').history,[{date:'2024-03-13',per:'6'}]);
+ assert.deepEqual(old.security.availableMetrics,['per']);
+ assert.deepEqual(server.getStaticSecurityDetail('000001','per').history,[{date:'2024-03-13',pbr:'0'}]);
+ assert.deepEqual(server.getStaticSecurityDetail('000001','per').security.availableMetrics,['pbr']);
+ assert.deepEqual(server.getStaticDetailAssets('security','security-1').listingMetricAvailability,[{periodId:'old',metrics:['per']},{periodId:'new',metrics:['pbr']}]);
  assert.equal(server.getStaticSecurityDetail('000001','per').ranking,null);assert.deepEqual(server.getStaticSecurityDetail('000001','per').neighbors,[]);
 });
 
@@ -155,10 +195,13 @@ test('static client applies historical roster market and name and preserves epis
   {...period('new','2024-03-13'),displayExchange:'KOSDAQ',displayName:'한주라이트메탈'}];
  const load=loader({'@/components/detail-surface':{DetailSurface:props=>{surface=props;return null;}},
   'next/navigation':{useSearchParams:()=>new URLSearchParams('period=old')}});
- renderToStaticMarkup(React.createElement(load('components/static-detail-client.tsx').StaticDetailClient,{initial:{search:{period:'old'},metric:'per',companyPage:false,
-  security:{securityId:'security-1',ticker:'198940',korName:'한주라이트메탈',exchange:'KOSDAQ',listingPeriods:periods,lifecycleEvents:[]},
-  company:null,history:[],prices:[],sourceHistory:[],companySecs:[],neighbors:[],ranking:null}}));
+ renderToStaticMarkup(React.createElement(load('components/static-detail-client.tsx').StaticDetailClient,{
+  assets:{listingMetricAvailability:[{periodId:'old',metrics:['per']},{periodId:'new',metrics:['bps']}]},
+  initial:{search:{period:'old'},metric:'per',companyPage:false,
+   security:{securityId:'security-1',ticker:'198940',korName:'한주라이트메탈',exchange:'KOSDAQ',listingPeriods:periods,lifecycleEvents:[],availableMetrics:['bps']},
+   company:null,history:[],prices:[],sourceHistory:[],companySecs:[],neighbors:[],ranking:null}}));
  assert.equal(surface.security.exchange,'KONEX');assert.equal(surface.security.korName,'한주금속');assert.equal(surface.security.selectedPeriod.periodId,'old');
+ assert.deepEqual(surface.security.availableMetrics,['per']);
 });
 
 
@@ -168,8 +211,9 @@ test('date range form, reset and metric navigation retain the selected episode',
  const React=require('react'),{pageLoader,loader,renderToStaticMarkup}=require('./helpers/detail-presentation-loader.cjs');
  const page=await pageLoader(snapshot).pages.RestoredSecurityDetail({code:'security-1',metric:'per',search:{period:'old',start:'2016-01-01'}});
  const html=renderToStaticMarkup(page);
- assert.match(html,/type="hidden" name="period" value="old"/);assert.match(html,/href="[^"?]+\?period=old"/);
- assert.match(html,/선택한 상장 기간의 전체 제공 이력/);
+ assert.match(html,/href="[^"?]+\?start=2016-01-01&amp;period=old"/);assert.match(html,/href="[^"?]+\?period=old">기간 초기화/);
+ assert.match(html,/PER 전체 이력 CSV/);
+ assert.match(html,/선택한 상장기의 공개 현재값이 없습니다/);
  const {CompanyFinancialTabs}=loader()('components/company-financial-tabs.tsx');
  const tabs=renderToStaticMarkup(React.createElement(CompanyFinancialTabs,{periodId:'old',security:{securityId:'security-1',ticker:'000001',exchange:'KOSPI'}}));
  assert.match(tabs,/per\?period=old/);assert.match(tabs,/bps\?period=old/);

@@ -5,51 +5,46 @@ const { JSDOM } = require('jsdom');
 const { loader, pageLoader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 
 const metrics = [['per', '배'], ['pbr', '배'], ['eps', '원'], ['bps', '원'], ['div', '%'], ['dps', '원']];
-const tabNames = ['기본 정보', '시가총액', 'PER', 'PBR', 'EPS', 'BPS', '배당수익률', '주당배당금'];
-const common = { securityId: 'common', routeCode: 'KOSPI.005930', name: 'Common', korName: '삼성전자', ticker: '005930', exchange: 'KOSPI', type: '보통주', marketcap: '100' };
-const preferred = { ...common, securityId: 'preferred', routeCode: 'KOSPI.005935', name: 'Preferred', korName: '삼성전자우', ticker: '005935', type: '우선주', marketcap: null };
+const common = { securityId: 'common', routeCode: 'KOSPI.005930', name: 'Common', korName: '삼성전자', ticker: '005930', exchange: 'KOSPI', type: '보통주', marketcap: '100', availableMetrics: ['marketcap', 'per', 'pbr', 'eps', 'bps', 'dps', 'div'] };
+const preferred = { ...common, securityId: 'preferred', routeCode: 'KOSPI.005935', name: 'Preferred', korName: '삼성전자우', ticker: '005935', type: '우선주', marketcap: null, availableMetrics: ['marketcap', 'dps', 'div'] };
 const company = { companyId: 'company', routeCode: 'KOSPI.005930', state: 'published', totalMarketcap: '100', securities: [common, preferred] };
 const range = { start: '2026-09-01', end: '2026-10-01', periodId: 'common-listing-period' };
 const documentFor = (Component, props) => new JSDOM(renderToStaticMarkup(React.createElement(Component, props)));
 
 for (const [metric, unit] of metrics) {
-  test(`${metric}: sibling selection retains metric and range, isolates its listing period, and exposes every target`, () => {
-    const { DetailEntitySelector } = loader()('components/detail-entity-selector.tsx');
-    const dom = documentFor(DetailEntitySelector, { company, companySecs: [common, preferred], security: common, companyPage: false, basic: false, metric, ...range });
+  test(`${metric}: stock selection retains the date window and offers only members that supply this metric`, () => {
+    const { StockSelection } = loader()('components/detail-investor-records.tsx');
+    const dom = documentFor(StockSelection, { members: [common, preferred], current: common, label: '분석 종목', metric, scope: range });
     try {
-      const doc = dom.window.document;
-      const links = [...doc.querySelectorAll('.detail-entity-grid a')];
-      assert.equal(links.length, 3);
-      assert.deepEqual(links.slice(1).map(link => link.dataset.securityId), ['common', 'preferred']);
-      for (const [member, selected] of [[common, true], [preferred, false]]) {
-        const link = doc.querySelector(`[data-security-id="${member.securityId}"]`);
-        const destination = new URL(link.getAttribute('href'), 'https://example.test');
+      const links = [...dom.window.document.querySelectorAll('a')];
+      const expected = preferred.availableMetrics.includes(metric) ? [common, preferred] : [common];
+      assert.equal(links.length, expected.length);
+      for (const [i, member] of expected.entries()) {
+        const destination = new URL(links[i].href, 'https://example.test');
         assert.equal(destination.pathname, `/security/${member.routeCode}/${metric}`);
         assert.equal(destination.searchParams.get('start'), range.start);
         assert.equal(destination.searchParams.get('end'), range.end);
-        assert.equal(destination.searchParams.get('period'), selected ? range.periodId : null);
-        assert.equal(link.getAttribute('aria-current'), selected ? 'page' : null);
+        assert.equal(destination.searchParams.get('period'), i === 0 ? range.periodId : null);
+        assert.equal(links[i].getAttribute('aria-current'), i === 0 ? 'page' : null);
       }
-      assert.match(doc.querySelector('[data-security-id="preferred"]').textContent, /—/);
-      const aggregate = new URL(doc.querySelector('.detail-entity-aggregate').getAttribute('href'), 'https://example.test');
-      assert.equal(aggregate.pathname, '/company/KOSPI.005930/marketcap');
-      assert.equal(aggregate.searchParams.get('start'), range.start);
-      assert.equal(aggregate.searchParams.get('period'), null);
-      assert.equal(doc.querySelectorAll('select, details, [hidden]').length, 0);
     } finally { dom.window.close(); }
   });
 
-  test(`${metric}: fixed eight tabs retain own episode and date window while only the active metric changes`, () => {
-    const { CompanyFinancialTabs } = loader({ 'next/navigation': { usePathname: () => `/security/KOSPI.005930/${metric}/` } })('components/company-financial-tabs.tsx');
-    const dom = documentFor(CompanyFinancialTabs, { security: common, company, ...range });
+  test(`${metric}: the metric rail marks the destination and scopes the listing period to the same security`, () => {
+    const load = loader();
+    const { detailNavGroups } = load('components/detail-investor-records.tsx');
+    const { DetailInvestorNavigation } = load('components/detail-investor-navigation.tsx');
+    const groups = detailNavGroups({ company, security: common, metric, basic: false, companyPage: false, scope: range });
+    const dom = documentFor(DetailInvestorNavigation, { groups });
     try {
       const links = [...dom.window.document.querySelectorAll('a')];
-      assert.deepEqual(links.map(link => link.textContent), tabNames);
-      assert.equal(links.filter(link => link.getAttribute('aria-current') === 'page').length, 1);
-      assert.equal(new URL(links.find(link => link.getAttribute('aria-current') === 'page').href, 'https://example.test').pathname, `/security/KOSPI.005930/${metric}`);
+      assert.equal(links.length, 10);
+      const selected = links.filter(link => link.getAttribute('aria-current') === 'page');
+      assert.equal(selected.length, 1);
+      assert.equal(new URL(selected[0].href, 'https://example.test').pathname, `/security/${common.routeCode}/${metric}`);
       for (const link of links) {
-        const destination = new URL(link.getAttribute('href'), 'https://example.test');
-        assert.equal(destination.searchParams.get('period'), range.periodId);
+        const destination = new URL(link.href, 'https://example.test');
+        assert.equal(destination.searchParams.get('period'), destination.pathname.startsWith('/company/') ? null : range.periodId);
         assert.equal(destination.searchParams.get('start'), range.start);
         assert.equal(destination.searchParams.get('end'), range.end);
       }
@@ -87,7 +82,7 @@ test('nearby financial ranks keep the selected metric and date window without ca
     const element = await fixture.pages.RestoredSecurityDetail({ code: common.routeCode, metric, search: { start: range.start, end: range.end, period: range.periodId } });
     const dom = new JSDOM(renderToStaticMarkup(element));
     try {
-      const links = [...dom.window.document.querySelectorAll('#nearby-ranks a')];
+      const links = [...dom.window.document.querySelectorAll('#nearby-ranks tbody a')];
       assert.equal(links.length, 2, metric);
       for (const link of links) {
         const destination = new URL(link.getAttribute('href'), 'https://example.test');

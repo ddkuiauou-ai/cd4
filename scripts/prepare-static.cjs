@@ -108,7 +108,7 @@ async function prepare() {
     const security = secById.get(row.securityId);
     return { securityId: security.securityId, name: security.name, korName: security.korName,
       exchange: security.exchange, ticker: security.ticker, type: security.type, companyId: security.companyId,
-      currentRank: row.currentRank, routeCode: secRoutes.get(row.securityId) ?? null };
+      currentRank: row.currentRank, value: row.value == null ? null : String(row.value), routeCode: secRoutes.get(row.securityId) ?? null };
   };
   queryCounter.phase('security-histories');
   const batchMemory = { batchSize: 50, batches: 0, maxHistoryRows: 0, peakRssBytes: 0, peakHeapUsedBytes: 0, seconds: 0,

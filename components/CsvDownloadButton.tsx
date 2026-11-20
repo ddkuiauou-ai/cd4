@@ -105,7 +105,7 @@ export function CsvDownloadButton({
     setHasError(false);
     try {
       downloadCSV(serializeCsvRows(data), filename);
-      setMessage("다운로드 시작");
+      setMessage(`다운로드 시작 · 전체 ${data.length.toLocaleString("ko-KR")}행`);
     } catch {
       setHasError(true);
       setMessage("CSV를 내려받지 못했어요. 다시 눌러 시도해 주세요.");

@@ -9,6 +9,8 @@ import type { StaticDetailAssets } from '@/lib/static-detail-contract';
 import { DetailSurface, type DetailSearch, type DetailSurfaceProps } from './detail-surface';
 import { CompanyDetailClient } from './company-detail-client';
 
+const first = (value: DetailSearch[string]) => Array.isArray(value) ? value[0] : value;
+
 function DetailSearchObserver({ onChange }: {onChange: (search: DetailSearch) => void}) {
   const search = useSearchParams();
   const start = search.get('start') ?? undefined;
@@ -52,17 +54,22 @@ export function StaticDetailClient({initial, assets}: {initial: DetailSurfacePro
     ? loaded.sourceHistory.map(row => ({...row, date: String(row.date), value: sourceValue(row.totalMarketcap)}))
     : detailObservations(loaded.sourceHistory, initial.metric) : initial.history,
   [loaded, initial.companyPage, initial.metric, initial.history]);
-  const periodId=Array.isArray(search.period)?search.period[0]:search.period;
+  const periodId=initial.companyPage ? undefined : first(search.period);
   const selectedPeriod=selectListingPeriod(initial.security?.listingPeriods ?? [],periodId);
   const invalidPeriod=Boolean(periodId&&!selectedPeriod);
   const latestPeriod=selectListingPeriod(initial.security?.listingPeriods ?? []);
   const historicalPeriod=Boolean(selectedPeriod&&latestPeriod&&selectedPeriod.periodId!==latestPeriod.periodId);
+  const periodMetrics = assets?.listingMetricAvailability?.find(entry => entry.periodId === selectedPeriod?.periodId)?.metrics;
   const security=initial.security?{...isolateListingValues(initial.security,selectedPeriod,historicalPeriod),selectedPeriod,historicalPeriod,
+    availableMetrics: periodMetrics ?? (historicalPeriod && selectedPeriod?.periodId !== initial.security.selectedPeriod?.periodId ? [] : initial.security.availableMetrics),
     korName:historicalPeriod?nameForListingPeriod(initial.security.korName,initial.security.lifecycleEvents ?? [],selectedPeriod):initial.security.korName,
     exchange:historicalPeriod?selectedPeriod?.displayExchange ?? initial.security.exchange:initial.security.exchange}:null;
+  const cutoff = historicalPeriod ? undefined : assets?.historyCutoff ?? security?.publication?.asOf;
   const withinSelected=<Row extends {date?:unknown}>(rows:readonly Row[])=>filterListingRows(rows,selectedPeriod)
-    .filter(row=>!security?.publication?.asOf || typeof row.date==='string'&&row.date<=security.publication.asOf);
-  const filtered = Boolean(search.start || search.end || periodId);
+    .filter(row=>!cutoff || typeof row.date==='string'&&row.date<=cutoff);
+  const initialPeriod = initial.security?.selectedPeriod ?? latestPeriod;
+  const samePeriod = initial.companyPage || selectedPeriod?.periodId === initialPeriod?.periodId;
+  const sameRange = first(search.start) === first(initial.search.start) && first(search.end) === first(initial.search.end);
   const Surface = initial.companyPage ? CompanyDetailClient : DetailSurface;
   if(invalidPeriod) return <p role="alert" className="app-container py-8">선택한 상장 기간을 찾을 수 없습니다.</p>;
   return <>
@@ -72,7 +79,8 @@ export function StaticDetailClient({initial, assets}: {initial: DetailSurfacePro
       history={initial.companyPage?history:withinSelected(history)}
       prices={initial.companyPage?loaded?.prices ?? initial.prices:withinSelected(loaded?.prices ?? initial.prices)}
       sourceHistory={initial.companyPage?loaded?.sourceHistory ?? initial.sourceHistory:withinSelected(loaded?.sourceHistory ?? initial.sourceHistory)} search={search}
-      initialAnalysis={!filtered ? initial.initialAnalysis : undefined}
+      initialAnalysis={samePeriod && sameRange ? initial.initialAnalysis : undefined}
+      initialSnapshotAnalysis={samePeriod ? initial.initialAnalysis : undefined}
       historyPending={Boolean(assets && !loaded)} historyError={error}
       onRetry={() => {setError(''); setAttempt(value => value + 1);}} />
   </>;

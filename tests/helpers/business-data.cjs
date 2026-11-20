@@ -147,8 +147,28 @@ function fixture() {
     });
     return {
       async execute(statement) {
+        const query = dialect.sqlToQuery(statement);
+        if (query.sql.includes('WITH wanted(security_id, listing_date, delisting_date, cutoff)')) {
+          fault('metrics');
+          state.queries.push({ table: 'detail-metrics-batch', ...query });
+          const metrics = ['per', 'pbr', 'eps', 'bps', 'div', 'dps'];
+          const provided = (row, metric) => row[metric] != null && (row[`${metric}State`] ?? 'provided') === 'provided';
+          const results = [];
+          for (let index = 0; index < query.params.length; index += 4) {
+            const [securityId, from, until, cutoff] = query.params.slice(index, index + 4);
+            const rows = snapshot.metrics.filter(row => row.securityId === securityId
+              && (!from || row.date >= day(from)) && (!until || row.date < day(until)) && (!cutoff || row.date <= day(cutoff)));
+            if (query.sql.includes('bool_or')) {
+              results.push({ securityId, ...Object.fromEntries(metrics.map(metric => [metric, rows.some(row => provided(row, metric))])) });
+            } else {
+              results.push(...rows.flatMap(row => ['div', 'dps'].filter(metric => provided(row, metric))
+                .map(metric => ({ securityId, date: row.date, metric, value: String(row[metric]) }))));
+            }
+          }
+          return results;
+        }
         fault('price');
-        const query = dialect.sqlToQuery(statement); state.queries.push({ table: 'price-batch', ...query });
+        state.queries.push({ table: 'price-batch', ...query });
         assert.match(query.sql, /CROSS JOIN LATERAL/);
         const ids = query.params.filter(value => typeof value === 'string' && !/^\d{4}-\d{2}-\d{2}T/.test(value));
         const asOfValue = query.params.find(value => value instanceof Date || typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value));

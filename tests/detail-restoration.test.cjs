@@ -1,32 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const Module = require('node:module');
-const ts = require('typescript');
 const React = require('react');
-const { renderToStaticMarkup } = require('react-dom/server');
-const root = path.resolve(__dirname, '..');
-function loader(stubs = {}) {
-  const cache = new Map();
-  function load(file) {
-    if (cache.has(file)) return cache.get(file).exports;
-    const mod = new Module(file); cache.set(file, mod); mod.paths = Module._nodeModulePaths(path.dirname(file));
-    mod.require = name => {
-      const resolvedName = name.startsWith('.') ? '@/' + path.relative(root,path.resolve(path.dirname(file),name)) : name;
-      if (resolvedName in stubs) return stubs[resolvedName];
-      if (name === 'next/link') return ({children,prefetch,...props}) => { void prefetch; return React.createElement('a',props,children); };
-      if (name === 'next/navigation') return {notFound:()=>{throw Error('not-found')},usePathname:()=>'/security/security-id/per'};
-      const local = resolvedName.startsWith('@/') ? path.join(root,resolvedName.slice(2)) : null;
-      if (!local) return require(name);
-      const found = [local,local+'.ts',local+'.tsx'].find(file=>fs.existsSync(file)&&fs.statSync(file).isFile());
-      assert.ok(found,resolvedName);return load(found);
-    };
-    mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{fileName:file,compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,file);
-    return mod.exports;
-  }
-  return file=>load(path.join(root,file));
-}
+const { loader, pageLoader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 const load = loader();
 const helpers = load('lib/detail-presentation.ts');
 const analysis = load('lib/business-analysis.ts');
@@ -157,30 +132,6 @@ test('composition requires backend completeness, positive total and same-date su
   assert.equal(helpers.validComposition({...company,securities:[{marketcap:'100',marketcapDate:'2026-10-07'}]}),false);
 });
 
-function pageLoader(snapshot){
-  let calls=0;let downloaded;const charts=[];
-  const empty=()=>null;
-  const named=keys=>Object.fromEntries(keys.map(key=>[key,empty]));
-  const stubs={
-    '@/lib/data/detail-snapshot':{getSecurityDetailSnapshot:async()=>{calls++;return snapshot},getCompanyDetailSnapshot:async()=>{calls++;return snapshot}},
-    '@/components/sticky-company-header':{StickyCompanyHeader:props=>React.createElement('h1',null,props.displayName,props.titleSuffix,props.detail?.value)},
-    '@/components/company-financial-tabs':named(['CompanyFinancialTabs']),
-    '@/components/detail-mobile-navigation':named(['DetailMobileNavigation']),
-    '@/components/recent-security-tracker':named(['RecentSecurityTracker']),
-    '@/components/recent-securities-sidebar':named(['RecentSecuritiesSidebar']),
-    '@/components/page-navigation':named(['PageNavigation']),
-    '@/components/detail-metric-facts':named(['DetailMetricFacts']),
-    '@/components/simple-interactive-securities':named(['InteractiveSecuritiesSection']),
-    '@/components/interactive-chart-section':{InteractiveChartSection:props=>{charts.push(props);return null}},
-    '@/components/detail-history-chart':named(['DetailHistoryChart']),
-    '@/components/restored-detail-charts':named(['DetailFinancialAnalysis','DetailPriceHistory','DetailAnnualHistory']),
-    '@/components/card-company-marketcap':{__esModule:true,default:empty},
-    '@/components/CsvDownloadButton':{CsvDownloadButton:props=>{downloaded=props;return React.createElement('button',null,props.label)}},
-    '@/components/share-button':{__esModule:true,default:empty},
-    '@/components/header-rank':{__esModule:true,default:props=>React.createElement('p',null,'current ',props.marketcap)},
-  };
-  return {pages:loader(stubs)('components/restored-detail-page.tsx'),calls:()=>calls,csv:()=>downloaded,charts};
-}
 const publication={asOf:'2026-10-08'};
 const security={securityId:'security-id',routeCode:null,name:'Test',korName:'테스트',ticker:'000001',exchange:'KOSPI',type:'보통주',state:'published',per:'10',perState:'provided',perDate:'2026-10-08',price:'100',priceState:'provided',priceDate:'2026-10-08',marketcap:'9007199254740993',publication,company:null};
 const common={security,company:null,companySecs:[],ranking:{currentRank:1,rankDate:'2026-10-08'},neighbors:[],priceHistory:[],history:[{date:'2026-10-01',per:'0'},{date:'2026-10-08',per:'10'}]};
@@ -188,7 +139,8 @@ test('detail uses one snapshot, preserves rich sections and exports the full exa
   const page=pageLoader(common);
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'per',search:{start:'2026-10-08',end:'2026-10-08'}}));
   assert.equal(page.calls(),1);
-  for(const text of ['PER 추이','조회 기간 상세 통계','연도별 데이터','기간 직접 지정','전체 이력 CSV','전체 제공 이력'])assert.ok(html.includes(text),text);
+  for(const text of ['PER 추이','과거 분포','기간별 평균','월별 기록','연도별 기록','전체 이력 CSV'])assert.ok(html.includes(text),text);
+  assert.doesNotMatch(html, /input type="date"|순위 CSV/);
   assert.equal(page.csv().data.length,2);assert.equal(page.csv().data[0].per,'0');assert.equal(page.csv().data[1].per,'10');
 });
 
@@ -196,7 +148,7 @@ test('unpublished detail never exposes a stale current metric or last provided r
   const page=pageLoader({...common,security:{...security,state:'unpublished',perLastProvided:'123'}});
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'per'}));
   assert.doesNotMatch(html,/현재 PER<[^>]*>10|마지막 제공값 123/);
-  assert.ok(html.includes('current </p>'));
+  assert.match(html,/아직 공개된 종목 지표가 없습니다/);
 });
 
 test('company without a common stock retains master metadata and exact registered CSV with coverage',async()=>{
@@ -231,12 +183,12 @@ test('invalid ranges suppress all analysis charts while official snapshots stay 
   const company={companyId:'company-id',companyName:'Test',companyKorName:'테스트',state:'published',publication,totalMarketcap:'100',totalMarketcapDate:'2026-10-08',securities:[]};
   const page=pageLoader({...common,company});
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'marketcap',search:{start:'2026-02-30',end:'2026-10-08'}}));
-  assert.equal(page.charts.length,0);assert.match(html,/role="alert"/);assert.match(html,/current 9007199254740993/);
+  assert.equal(page.charts.length,0);assert.match(html,/role="alert"/);assert.match(html,/9,007,199,254,740,993원/);
 });
 
 
 test('detail exposes its public asOf, revision and scope in a compact source explanation',async()=>{
   const page=pageLoader({...common,security:{...security,publication:{asOf:'2026-10-08',revision:'9007199254740993',scopeKey:'krx-all'}}});
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'per'}));
-  assert.match(html,/조회 기준 · 자료 공개 정보/);assert.match(html,/공개 기준일/);assert.match(html,/2026-10-08/);assert.match(html,/자료 갱신번호/);assert.match(html,/9007199254740993/);assert.match(html,/한국거래소 전체 \(krx-all\)/);assert.match(html,/원천의 실제 관측 이력/);
+  assert.match(html,/조회 기준 · 자료 공개 정보/);assert.equal((html.match(/공개 기준일/g) ?? []).length,1);assert.match(html,/2026-10-08/);assert.match(html,/자료 갱신번호/);assert.match(html,/9007199254740993/);assert.match(html,/한국거래소 전체 \(krx-all\)/);assert.match(html,/실제 관측일/);
 });

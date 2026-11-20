@@ -34,7 +34,7 @@ export async function readSecurityMetricNeighbors(
       || (expectedRevision && String(publication.revision) !== expectedRevision)) return [];
     const columns = { securityId: schema.security.securityId, name: schema.security.name, korName: schema.security.korName,
       exchange: schema.security.exchange, ticker: schema.security.ticker, type: schema.security.type,
-      companyId: schema.security.companyId, currentRank: schema.securityRank.currentRank };
+      companyId: schema.security.companyId, currentRank: schema.securityRank.currentRank, value: schema.securityRank.value };
     const previous = await tx.select(columns).from(schema.securityRank)
       .innerJoin(schema.security, eq(schema.securityRank.securityId, schema.security.securityId))
       .where(and(currentRankFilter(publication), lt(schema.securityRank.currentRank, rank)))

@@ -237,7 +237,7 @@ test('restored single financial observations keep a real dot for positive, zero 
   });
 });
 
-test('monthly chart states raw count separately from its one displayed average point',async()=>{
+test('monthly chart shows the raw count separately from its final provided point',async()=>{
   await withChartEnvironment(async({container,render,load})=>{
     const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
     const Chart=({data})=>React.createElement(History,{rows:data,metric:'per',label:'PER',unit:'배'});
@@ -296,4 +296,36 @@ test('actual price history applies end-only bounds to candles and close fallback
     const closeOnly=data.map(row=>({date:row.date,close:row.close}));
     await render(EndOnly,closeOnly);assert.match(container.textContent,/선택 원천 관측 2024-01-01 ~ 2026-10-11 · 12개 기록/);assert.equal(container.querySelectorAll('.recharts-line-dot').length,12);
   },{'next/dynamic':()=>props=>{candleProps.push(props);return React.createElement('div',{'data-candlestick':true});}});
+});
+
+
+test('dividend comparison keeps same-name securities distinct and exposes actual zero and missing observations', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DividendComparisonChart} = load(path.join(root,'components/restored-detail-charts.tsx'));
+    const chart = ({data}) => React.createElement(DividendComparisonChart,{members:data,metric:'div'});
+    const member = (securityId,ticker,dividendHistory) => ({securityId,ticker,korName:'같은이름',type:'우선주',dividendHistory});
+    await render(chart, [
+      member('first','000001',[{date:'2026-01-11',div:'7',dps:null},{date:'2026-01-30',div:'0',dps:null},{date:'2026-03-12',div:'1',dps:null}]),
+      member('second','000002',[{date:'2026-02-26',div:'0.5',dps:null},{date:'2026-03-13',div:'2',dps:null}]),
+    ]);
+    const legend = container.querySelector('ul[aria-label="비교 종목별 관측 수"]');
+    assert.match(legend.textContent,/같은이름 \(000001\) 2개월/);
+    assert.match(legend.textContent,/같은이름 \(000002\) 2개월/);
+    assert.equal(container.querySelectorAll('.recharts-line').length, 2);
+    assert.equal(container.querySelectorAll('.recharts-line-dot').length, 4);
+    const move = async key => {
+      await React.act(async()=>container.querySelector('.recharts-wrapper').dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+      return container.querySelector('.recharts-tooltip-wrapper')?.textContent;
+    };
+    await move('ArrowLeft');
+    await move('ArrowLeft');
+    const january = await move('ArrowLeft');
+    assert.match(january,/같은이름 \(000001\)0% \(2026-01-30\)/);
+    assert.match(january,/같은이름 \(000002\)미제공/);
+    assert.doesNotMatch(january,/2026-01-11/);
+    const february = await move('ArrowRight');
+    assert.match(february,/같은이름 \(000001\)미제공/);
+    assert.match(february,/같은이름 \(000002\)0.5% \(2026-02-26\)/);
+  });
 });
