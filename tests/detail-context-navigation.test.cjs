@@ -80,6 +80,24 @@ test('all actual constituents remain visible and independently linked even when 
   } finally {view.close();}
 });
 
+test('comparison rows only enrich listed constituents and cannot reinsert a selected delisted security', () => {
+  const {DetailEntitySelector, detailEntityMembers} = loadFor('/security/closed/marketcap')('components/detail-entity-selector.tsx');
+  const closed = {...common, securityId: 'closed', ticker: '005931', korName: '삼성전자(1신)'};
+  const listed = {...company, securities: [common, {...preferred, marketcap: null}]};
+  const comparison = [common, {...preferred, per: '8', marketcap: '999'}, closed];
+  const members = detailEntityMembers(listed, comparison, closed);
+  assert.deepEqual(members.map(row => [row.securityId, row.marketcap]), [['common', common.marketcap], ['preferred', null]]);
+  assert.equal(members[1].per, '8');
+  assert.deepEqual(detailEntityMembers({...listed, securities: []}, comparison, closed), []);
+  const view = documentFor(DetailEntitySelector, {...selectorProps, company: listed, companySecs: comparison,
+    security: closed, metric: 'marketcap'});
+  try {
+    assert.match(view.document.querySelector('.detail-entity-aggregate').textContent, /2개 구성 종목/);
+    assert.match(view.document.querySelector('[data-security-id="preferred"]').textContent, /—/);
+    assert.equal(view.document.querySelector('[data-security-id="closed"]'), null);
+  } finally {view.close();}
+});
+
 test('financial static projection retains cap labels through company membership and never invents a missing aggregate',()=>{
   const {DetailEntitySelector} = loadFor('/security/KOSPI.005930/per')('components/detail-entity-selector.tsx');
   const projected = [common,preferred].map(({securityId,routeCode,name,korName,ticker,type,exchange,per})=>({securityId,routeCode,name,korName,ticker,type,exchange,per}));

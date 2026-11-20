@@ -1,5 +1,6 @@
 import {filterListingRows,isolateListingValues,listingContains,selectListingPeriod} from '../security-lifecycle';
 import {readSecurityLifecycles} from '../data/security-lifecycle';
+import { companyMemberPeriods } from '../data/company-membership';
 import * as schema from '@/db/schema-postgres';
 import { and, asc, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
 import { currentSecurity } from '../data/security';
@@ -17,7 +18,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
   const ids = rows.map(row => row.securityId);
   if (!ids.length) return { items: [], historyRows: 0 };
   const asOf = publication ? businessDate(publication.asOf)! : undefined;
-  const companyAsOf = companyPublication ? businessDate(companyPublication.asOf)! : undefined;
+  const companyAsOf = businessDate((companyPublication ?? publication)?.asOf) ?? undefined;
   const reuseMarketcaps = companyAsOf === asOf || (companyAsOf !== undefined && asOf !== undefined && companyAsOf <= asOf);
   const metricEnd = rows.every(row => isCurrentResult(row, publication)) ? asOf : undefined;
   const { to } = historyRange(undefined, metricEnd);
@@ -29,7 +30,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
       div: sql<string | null>`${schema.bppedd.div}::text`, dps: sql<string | null>`${schema.bppedd.dps}::text`,
     }).from(schema.bppedd).where(and(inArray(schema.bppedd.securityId, ids), to ? lte(schema.bppedd.date, to) : undefined))
       .orderBy(asc(schema.bppedd.date)).then(toDataDTO),
-    reuseMarketcaps ? Promise.resolve(null) : readMarketcapHistory(tx, ids, undefined, companyAsOf),
+    reuseMarketcaps ? Promise.resolve(null) : readMarketcapHistory(tx, ids, undefined, companyAsOf, null),
   ]);
   const group = <Row extends { securityId: string | null }>(source: Row[]) => {
     const grouped = new Map<string, Row[]>();
@@ -39,6 +40,7 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
     return grouped;
   };
   const lifecycle=await readSecurityLifecycles(tx,ids);
+  const membership = companyMemberPeriods(rows, lifecycle.periods, companyAsOf ?? null);
   const byPrice = group(prices), byMarketcap = group(marketcaps), byMetric = group(metrics);
   const byCompanyMarketcap = companyMarketcaps ? group(companyMarketcaps) : byMarketcap;
   return { historyRows: prices.length + marketcaps.length + metrics.length + (companyMarketcaps?.length ?? 0),
@@ -50,6 +52,8 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
       const lifecycleEvents=lifecycle.events.filter(event=>event.securityId===row.securityId);
       const selectedPeriod=selectListingPeriod(listingPeriods);
       const archive={prices:byPrice.get(row.securityId) ?? [],marketcaps:byMarketcap.get(row.securityId) ?? [],metrics:sourceMetrics};
+      const companyMarketcaps = (byCompanyMarketcap.get(row.securityId) ?? [])
+        .filter(observation => !companyAsOf || observation.date <= companyAsOf);
       return { securityId: row.securityId,
         security: { ...isolateListingValues(toDataDTO(currentSecurity(row, publication)),selectedPeriod,false), company: company ? toDataDTO(currentCompany(company, companyPublication)) : null,
           prices:filterListingRows(archive.prices,selectedPeriod).toReversed(),marketcaps:filterListingRows(archive.marketcaps,selectedPeriod),
@@ -57,7 +61,8 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
           routeCode: routeCodes.get(row.securityId) ?? null, publication: current && publication && listingContains(selectedPeriod,asOf) ? toDataDTO(publication) : null,
           state: current && listingContains(selectedPeriod,asOf) ? 'published' as const : 'unpublished' as const },
         archive, metrics: current && asOf ? sourceMetrics.filter(observation => observation.date <= asOf) : sourceMetrics,
-        allMarketcaps:filterListingRows(byCompanyMarketcap.get(row.securityId) ?? [],selectedPeriod),
+        companyMember: membership.has(row.securityId),
+        allMarketcaps:filterListingRows(companyMarketcaps, membership.get(row.securityId) ?? selectedPeriod),
       };
     }) };
 }

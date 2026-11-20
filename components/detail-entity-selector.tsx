@@ -17,13 +17,14 @@ interface DetailEntitySelectorProps {
   periodId?: string;
 }
 
-/** Keep the complete, concrete membership visible; names and tickers are not identities. */
+/** Enrich the published-date membership with the matching comparison fields. */
 export function detailEntityMembers(company: DetailCompanyData, companySecs: DetailSecurityRow[], security: DetailSecurityRow | null) {
-  const members = new Map<string, DetailSecurityRow>();
-  for (const row of company?.securities ?? []) members.set(row.securityId, row);
-  for (const row of companySecs) members.set(row.securityId, { ...members.get(row.securityId), ...row });
-  if (security && !members.has(security.securityId)) members.set(security.securityId, security);
-  return [...members.values()].sort((a, b) => Number(b.type === '보통주') - Number(a.type === '보통주'));
+  if (!company) return security ? [security] : [];
+
+  const comparison = new Map(companySecs.map(row => [row.securityId, row]));
+  return company.securities.map(member => ({ ...member, ...comparison.get(member.securityId),
+    marketcap: member.marketcap, marketcapDate: member.marketcapDate }))
+    .sort((a, b) => Number(b.type === '보통주') - Number(a.type === '보통주'));
 }
 
 function rangeHref(path: string, start?: string, end?: string, periodId?: string) {

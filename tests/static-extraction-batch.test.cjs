@@ -50,8 +50,9 @@ test('batched histories equal live providers for current/stale masters and older
       assert.deepEqual(actual.security, expected, `security DTO with cutoffs ${securityDate}/${companyDate}`);
       const expectedMetrics = await history.readMetricsHistory(db, actual.securityId, undefined, expected.publication?.asOf);
       assert.deepEqual(actual.metrics, expectedMetrics, 'stale masters retain the provider default unrestricted metric range');
-      const expectedCompanyHistory = await history.readMarketcapHistory(db, [actual.securityId], undefined, companyDate ?? undefined);
-      assert.deepEqual(actual.allMarketcaps.filter(row => !companyDate || row.date <= companyDate), expectedCompanyHistory);
+      const companyCutoff = companyDate ?? securityDate;
+      const expectedCompanyHistory = await history.readMarketcapHistory(db, [actual.securityId], undefined, companyCutoff ?? undefined);
+      assert.deepEqual(actual.allMarketcaps, expectedCompanyHistory);
     }
     assert.ok(result.items.every(row => row.security.prices.every(price => price.close === '9007199254740993.125')));
   }

@@ -122,7 +122,7 @@ async function prepare() {
         coById, secPub, coPub, secRoutes);
       batchMemory.batches++; batchMemory.maxHistoryRows = Math.max(batchMemory.maxHistoryRows, batch.historyRows);
       recordBatchMemory();
-      for (const { securityId: id, security, metrics: history, allMarketcaps, archive } of batch.items) {
+      for (const { securityId: id, security, metrics: history, companyMember, allMarketcaps, archive } of batch.items) {
       const refs = {
         prices: asset(`security/${id}/prices`, table(archive.prices, ['date','open','high','low','close','volume','fvolume','transaction','rate'])),
         marketcap: asset(`security/${id}/marketcap`, table(archive.marketcaps, ['date','marketcap','shares'])), metrics: {},
@@ -143,7 +143,7 @@ async function prepare() {
           value: row?.value == null ? null : String(row.value), valueObservedAt: row?.valueObservedAt ? businessDate(row.valueObservedAt) : null,
           rankDate: publication ? businessDate(publication.asOf) : null }, neighbors: [previousRow,next].filter(Boolean).map(neighbor) };
       }
-      writeJson(`data/security/${id}.json`, { security, metrics: history, allMarketcaps, archive, assets: refs, rankings });
+      writeJson(`data/security/${id}.json`, { security, metrics: history, companyMember, allMarketcaps, archive, assets: refs, rankings });
       completed++; if (completed % 50 === 0) console.log(`Prepared securities ${completed}/${neededSecurities.size}`);
       }
       recordBatchMemory();
@@ -154,10 +154,10 @@ async function prepare() {
   const rankedCompanies = raw.companies.filter(row => isCurrentResult(row, coPub) && row.rankingState === 'included')
     .sort((a,b) => a.marketcapRank-b.marketcapRank || a.companyId.localeCompare(b.companyId));
   for (const id of neededCompanies) {
-    const row = coById.get(id), allMembers = members.get(id) || [], active = allMembers.filter(member => member.delistingDate == null);
+    const row = coById.get(id), allMembers = members.get(id) || [];
     const sources = new Map(allMembers.map(member => [member.securityId, readSecurity(member.securityId)]));
-    const histories = active.flatMap(member => sources.get(member.securityId).allMarketcaps)
-      .filter(item => !coPub || item.date <= businessDate(coPub.asOf));
+    const active = allMembers.filter(member => sources.get(member.securityId).companyMember);
+    const histories = active.flatMap(member => sources.get(member.securityId).allMarketcaps);
     const current = isCurrentResult(row, coPub), dto = toDataDTO(row), asOf = current ? dto.marketcapDate : null;
     const registeredHistory = aggregateRegisteredCompanyHistory(active.map(member => member.securityId), histories, asOf ? [asOf] : []);
     const composition = registeredHistory.find(item => item.date === asOf);
@@ -177,7 +177,7 @@ async function prepare() {
       state:current?'published':'unpublished',publication:current?toDataDTO(coPub):null,routeCode:representative?secRoutes.get(representative.securityId)??null:null,
       compositionComplete:complete,compositionReason:!current?'unpublished':!composition||composition.observedCount===0||composition.partial||row.marketcapCompleteness!=='complete'?'missing_input':!complete?'different_total':null,
       compositionObservedCount:composition?.observedCount??0,compositionTargetCount:active.length,securities,registeredHistory,aggregatedHistory:registeredHistory };
-    const companySecs = [...allMembers].sort((a,b)=>Number(a.type==null)-Number(b.type==null)
+    const companySecs = [...active].sort((a,b)=>Number(a.type==null)-Number(b.type==null)
       ||(a.type??'').localeCompare(b.type??'')||listedOrder(a,b)).map(member=>{
       const source=sources.get(member.securityId).security;
       return { ...toDataDTO(currentSecurity(member,secPub??null)),company:toDataDTO(currentCompany(row,coPub??null)),
@@ -189,8 +189,9 @@ async function prepare() {
       const rep=(members.get(item.companyId)||[]).find(member=>member.type==='보통주');
       return {...toDataDTO(item),securities:rep?[{securityId:rep.securityId}]:[],routeCode:rep?secRoutes.get(rep.securityId)??null:null};
     });
+    const detailRepresentative = companySecs.find(member => member.type === '보통주');
     const refs={companyHistory:asset(`company/${id}/history`,table(registeredHistory,['date','totalMarketcap','securitiesBreakdown','observedCount','targetCount','observedSecurityIds','partial'])),
-      prices:representative?sources.get(representative.securityId).assets.prices:undefined,memberMarketcaps:{},memberPrices:{}};
+      prices:detailRepresentative?sources.get(detailRepresentative.securityId).assets.prices:undefined,memberMarketcaps:{},memberPrices:{}};
     for (const member of allMembers) { refs.memberMarketcaps[member.securityId]=sources.get(member.securityId).assets.marketcap;refs.memberPrices[member.securityId]=sources.get(member.securityId).assets.prices; }
     writeJson(`data/company/${id}.json`,{company,companySecs,assets:refs,neighbors});
     for(const member of allMembers){ const source=sources.get(member.securityId);source.assets.companyHistory=refs.companyHistory;

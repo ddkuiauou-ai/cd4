@@ -51,6 +51,57 @@ test('batched static archives retain previous episodes while current DTO and com
  assert.equal(item.security.listingPeriods.length,2);assert.equal(item.security.lifecycleEvents[0].effectiveOn,'2017-03-31');
 });
 
+test('company membership uses the publication day, each listing episode and legacy master boundaries', () => {
+  const {load} = fixture();
+  const {companyMemberPeriods} = load('lib/data/company-membership.ts');
+  const securities = [
+    {securityId: 'security-1', listingDate: day('2024-03-13'), delistingDate: null},
+    {securityId: 'legacy', listingDate: day('2016-05-08'), delistingDate: day('2016-05-09')},
+  ];
+  const periods = [period('old', '2008-07-06', '2016-05-09'), period('new', '2024-03-13')];
+  assert.equal(companyMemberPeriods(securities, periods, '2008-07-06').get('security-1').periodId, 'old');
+  assert.deepEqual([...companyMemberPeriods(securities, periods, '2016-05-08').keys()], ['security-1', 'legacy']);
+  assert.equal(companyMemberPeriods(securities, periods, '2016-05-09').size, 0);
+  assert.equal(companyMemberPeriods(securities, periods, '2024-03-12').size, 0);
+  assert.equal(companyMemberPeriods(securities, periods, '2024-03-13').get('security-1').periodId, 'new');
+  assert.deepEqual([...companyMemberPeriods(securities, periods, null).keys()], ['security-1']);
+  assert.equal(companyMemberPeriods(securities, periods.slice(0, 1), null).size, 0);
+});
+
+test('live detail and static extraction use the same company members and chart episode before a relisting', async () => {
+  const {state, db, load} = lifecycleFixture();
+  const [securityPublication, companyPublication] = state.publications;
+  companyPublication.asOf = state.companies[0].marketcapDate = day('2016-05-08');
+  state.companies[0].marketcap = '10';
+  state.securities.push(
+    {...state.securities[0], securityId: 'preferred', ticker: '000002', type: '우선주', listingDate: day('2016-05-08')},
+    {...state.securities[0], securityId: 'closed', ticker: '000003', listingDate: day('2016-05-07'), delistingDate: day('2016-05-08')},
+  );
+  state.marketcaps = [
+    {securityId: 'security-1', date: day('2016-05-08'), marketcap: 10n},
+    {securityId: 'security-1', date: day('2024-03-13'), marketcap: 20n},
+  ];
+  const details = load('lib/data/detail-snapshot.ts');
+  const snapshot = await details.getSecurityDetailSnapshot('closed');
+  const company = snapshot.company;
+  assert.equal(snapshot.security.securityId, 'closed');
+  assert.deepEqual(snapshot.companySecs.map(row => row.securityId), ['security-1', 'preferred']);
+  assert.deepEqual(company.securities.map(row => [row.securityId, row.marketcap]), [['security-1', '10'], ['preferred', null]]);
+  assert.equal(company.totalMarketcap, '10');
+  const {readSecurityBatch} = load('lib/static-build/read-security-batch.ts');
+  const companies = new Map(state.companies.map(row => [row.companyId, row]));
+  const batch = await readSecurityBatch(db, state.securities, companies, securityPublication, companyPublication, new Map());
+  const active = batch.items.filter(row => row.companyMember);
+  assert.deepEqual(active.map(row => row.securityId), company.securities.map(row => row.securityId));
+  assert.deepEqual(active[0].allMarketcaps, company.securities[0].marketcapHistory);
+  assert.equal(active[0].archive.marketcaps.length, 2);
+
+  state.publications = state.publications.filter(row => row !== companyPublication);
+  const fallback = await details.getCompanyDetailSnapshot('company-1');
+  assert.equal(fallback.company.state, 'unpublished');
+  assert.deepEqual(fallback.company.registeredHistory.map(row => row.date), ['2024-03-13']);
+});
+
 test('static file detail picks prior episodes from archive and rejects invalid period IDs',async t=>{
  const {mkdtempSync,mkdirSync,writeFileSync,rmSync}=require('node:fs'),path=require('node:path'),os=require('node:os');
  const directory=mkdtempSync(path.join(os.tmpdir(),'cd-lifecycle-'));

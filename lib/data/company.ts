@@ -3,8 +3,10 @@ import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
-import { COMPANY_PUBLICATION_KEY, isCurrentResult, publicationState, readPublication, readSnapshot, type PublicationRow, type PublicationDTO, type ReadDatabase } from "./publication";
+import { COMPANY_PUBLICATION_KEY, SECURITY_PUBLICATION_KEY, isCurrentResult, publicationState, readPublication, readSnapshot, type PublicationRow, type PublicationDTO, type ReadDatabase } from "./publication";
 import { readMarketcapHistory, readRecentPrices, readRouteCodes, type MarketcapDTO } from "./history";
+import { companyMemberPeriods } from "./company-membership";
+import { listingContains } from "../security-lifecycle";
 import { aggregateRegisteredCompanyHistory, exactPercentage, type RegisteredCompanyObservation } from "./registered-company-history";
 
 /** The official snapshot and registered-history analysis remain separate. */
@@ -106,17 +108,22 @@ export async function readCompanyAggregatedMarketcap(tx: ReadDatabase, companyId
     const dto = toDataDTO(row);
     const allMembers = await tx.query.security.findMany({ where: eq(schema.security.companyId, companyId),
       orderBy: representativeSecurityOrder() });
-    const members = allMembers.filter(member => member.delistingDate == null);
+    const membershipDate = businessDate((publication ?? await readPublication(tx, SECURITY_PUBLICATION_KEY))?.asOf);
+    const periods = allMembers.length ? await tx.query.securityListingPeriod.findMany({
+      where: inArray(schema.securityListingPeriod.securityId, allMembers.map(member => member.securityId)),
+    }) : [];
+    const membership = companyMemberPeriods(allMembers, periods, membershipDate);
+    const members = allMembers.filter(member => membership.has(member.securityId));
     const ids = members.map(member => member.securityId);
-    const histories = await readMarketcapHistory(tx, ids, undefined, publication ? businessDate(publication.asOf)! : undefined);
+    const histories = await readMarketcapHistory(tx, ids, undefined, membershipDate ?? undefined, null);
     const routeCodes = allMembers.length ? await readRouteCodes(tx) : new Map<string, string | null>();
     const grouped = new Map<string, MarketcapDTO[]>();
-    for (const observation of histories) if (observation.securityId) {
+    for (const observation of histories) if (observation.securityId && listingContains(membership.get(observation.securityId), observation.date)) {
       const history = grouped.get(observation.securityId) ?? [];
       history.push(observation); grouped.set(observation.securityId, history);
     }
     const asOf = current ? dto.marketcapDate : null;
-    const registeredHistory = aggregateRegisteredCompanyHistory(ids, histories, asOf ? [asOf] : []);
+    const registeredHistory = aggregateRegisteredCompanyHistory(ids, [...grouped.values()].flat(), asOf ? [asOf] : []);
     const composition = asOf ? registeredHistory.find(observation => observation.date === asOf) : undefined;
     const complete = current && dto.marketcap != null && row.marketcapCompleteness === "complete" && composition != null
       && !composition.partial && composition.totalMarketcap === dto.marketcap;

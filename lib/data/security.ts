@@ -1,6 +1,6 @@
 import { isStaticBuild, getStaticRankingPage, getStaticRankingManifest } from '../static-build/server';
 import * as schema from "@/db/schema-postgres";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import { filterListingRows, isolateListingValues,listingContains, nameForListingPeriod, selectListingPeriod } from "../security-lifecycle";
 import { readSecurityLifecycles } from "./security-lifecycle";
 import { businessDate, toDataDTO } from "./dto";
@@ -137,11 +137,12 @@ export async function readSecurityByCode(tx: ReadDatabase, code: string, periodI
 
 export const getSecurityByCode = (code: string, periodId?: string) => readSnapshot(tx => readSecurityByCode(tx, code, periodId));
 
-export async function readCompanySecurities(tx: ReadDatabase, companyId: string) {
-  if (!companyId) return [];
+export async function readCompanySecurities(tx: ReadDatabase, companyId: string, securityIds?: string[]) {
+  if (!companyId || securityIds?.length === 0) return [];
   const publication = await readPublication(tx, SECURITY_PUBLICATION_KEY);
   const companyPublication = await readPublication(tx, COMPANY_PUBLICATION_KEY);
-  const rows = await tx.query.security.findMany({ where: eq(schema.security.companyId, companyId),
+  const rows = await tx.query.security.findMany({ where: and(eq(schema.security.companyId, companyId),
+    securityIds ? inArray(schema.security.securityId, securityIds) : undefined),
     with: { company: true }, orderBy: [asc(schema.security.type), ...representativeSecurityOrder()] });
   const ids = rows.map(row => row.securityId);
   const asOf = publication ? businessDate(publication.asOf)! : undefined;

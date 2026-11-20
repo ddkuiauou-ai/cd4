@@ -20,7 +20,7 @@ function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "mar
     const security = await readSecurityByCode(tx, code, periodId);
     if (!security) return null;
     const company = !security.historicalPeriod && security.companyId ? await readCompanyAggregatedMarketcap(tx, security.companyId) : null;
-    const companySecs = !security.historicalPeriod && security.companyId ? await readCompanySecurities(tx, security.companyId) : [];
+    const companySecs = company ? await readCompanySecurities(tx, company.companyId, company.securities.map(row => row.securityId)) : [];
     const candidateRanking = security.historicalPeriod || metric === "price" || metric === "shares" ? null
       : await readSecurityMetricDetailRanking(tx, security.securityId, metric);
     const ranking=candidateRanking && listingContains(security.selectedPeriod,candidateRanking.rankDate) && (candidateRanking.valueObservedAt == null || listingContains(security.selectedPeriod,candidateRanking.valueObservedAt)) ? candidateRanking : null;
@@ -61,7 +61,7 @@ function getLiveCompanyDetailSnapshot(code: string, start?: string, end?: string
     if (!companyId) return null;
     const company = await readCompanyAggregatedMarketcap(tx, companyId);
     if (!company) return null;
-    const companySecs = await readCompanySecurities(tx, companyId);
+    const companySecs = await readCompanySecurities(tx, companyId, company.securities.map(row => row.securityId));
     const representative = companySecs.find(member => member.type === "보통주") ?? null;
     const security = representative ? await readSecurityByCode(tx, representative.securityId) : null;
     const priceHistory = security?.prices.toReversed() ?? [];
