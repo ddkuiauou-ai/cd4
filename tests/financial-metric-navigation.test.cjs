@@ -11,13 +11,120 @@ const company = { companyId: 'company', routeCode: 'KOSPI.005930', state: 'publi
 const range = { start: '2026-09-01', end: '2026-10-01', periodId: 'common-listing-period' };
 const documentFor = (Component, props) => new JSDOM(renderToStaticMarkup(React.createElement(Component, props)));
 
+test('one marketcap menu follows the current entity while overview and price retain their own routes', () => {
+  const load = loader();
+  const { detailNavGroups } = load('components/detail-investor-records.tsx');
+  const { DetailInvestorNavigation } = load('components/detail-investor-navigation.tsx');
+  for (const [companyPage, basic, security, current] of [
+    [true, true, common, '기업 개요'],
+    [true, false, common, '시가총액'],
+    [false, true, preferred, '주가·거래'],
+    [false, false, preferred, '시가총액'],
+  ]) {
+    const groups = detailNavGroups({ company, security, companyPage, basic, metric: 'marketcap', scope: range });
+    const dom = documentFor(DetailInvestorNavigation, { groups, name: '삼성전자', metricLabel: current });
+    try {
+      const links = [...dom.window.document.querySelectorAll('nav a')];
+      assert.deepEqual(links.slice(0, 3).map(link => link.textContent), ['기업 개요', '시가총액', '주가·거래']);
+      assert.equal(links.filter(link => link.textContent === '시가총액').length, 1);
+      assert.deepEqual(links.filter(link => link.getAttribute('aria-current') === 'page').map(link => link.textContent), [current]);
+      const [overview, cap, price] = links.map(link => new URL(link.getAttribute('href'), 'https://example.test'));
+      assert.equal(overview.pathname, '/company/KOSPI.005930');
+      assert.equal(cap.pathname, companyPage ? '/company/KOSPI.005930/marketcap' : `/security/${security.routeCode}/marketcap`);
+      assert.equal(price.pathname, `/security/${security.routeCode}`);
+      assert.equal(links[2].getAttribute('aria-label'), companyPage ? '주가·거래 · 삼성전자 · 005930' : null);
+      assert.equal(cap.searchParams.get('period'), companyPage ? null : range.periodId);
+      assert.equal(price.searchParams.get('period'), companyPage ? null : range.periodId);
+    } finally { dom.window.close(); }
+  }
+});
+
+test('the detail menu keeps company marketcap usable without a representative and filters unavailable stock metrics', () => {
+  const { detailNavGroups } = loader()('components/detail-investor-records.tsx');
+  const options = { company, basic: true, metric: 'marketcap', scope: range };
+  const companyMenu = detailNavGroups({ ...options, companyPage: true, security: null }).flat();
+  assert.deepEqual(companyMenu.map(item => item.label), ['기업 개요', '시가총액']);
+  const stockMenu = detailNavGroups({
+    ...options, companyPage: false, security: { ...preferred, availableMetrics: ['dps'] },
+  }).flat();
+  assert.deepEqual(stockMenu.map(item => item.label), ['기업 개요', '주가·거래', '주당배당금']);
+});
+
+test('marketcap target links retain the reading chapter and remember the return location', () => {
+  const sections = [{ id: 'chart-analysis', label: '추이' }, { id: 'annual-data', label: '연도별 기록' }];
+  const load = loader({ '@/components/page-navigation': {
+    getReadingSection: targets => targets.find(target => target.id === 'annual-data')?.id,
+  } });
+  const { DetailSwitchLink } = load('components/detail-investor-navigation.tsx');
+  const aggregate = '/company/KOSPI.005930/marketcap';
+  const stock = '/security/KOSPI.005935/marketcap';
+  const origin = 'https://example.test';
+  const assigned = [];
+  const visits = [];
+  const history = { state: { otherState: true }, replaceState(next) { this.state = next; } };
+  const location = { href: origin + aggregate, assign: href => assigned.push(href) };
+  const globals = {
+    window: { location, history, scrollY: 870 },
+    document: { getElementById: id => ({ id }) },
+    sessionStorage: { setItem: (_, value) => visits.push(JSON.parse(value)) },
+  };
+  const previous = Object.fromEntries(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+  for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { value, configurable: true });
+  try {
+    const click = (href, securityId, chapters, surface, modifiers = {}) => {
+      const disclosure = { open: true, querySelector: () => ({ focus() {} }) };
+      let prevented = false;
+      const { props } = DetailSwitchLink({ candidate: { href, securityId, selected: false }, sections: chapters });
+      props.onClick({
+        button: 0, detail: 0, preventDefault: () => { prevented = true; },
+        currentTarget: {
+          href: origin + href,
+          closest: selector => surface === 'mobile' && selector === '[data-detail-cap-mobile]' ? disclosure
+            : surface === 'summary' && selector === '[data-detail-cap-summary]' ? {} : null,
+        },
+        ...modifiers,
+      });
+      return { prevented, open: disclosure.open };
+    };
+    assert.deepEqual(click(stock, 'preferred', sections, 'rail'), { prevented: true, open: true });
+    assert.equal(assigned.at(-1), origin + stock + '#annual-data');
+    assert.equal(visits.at(-1).destination, stock + '#annual-data');
+    assert.deepEqual(history.state.detailPeerReturn, { source: aggregate, scrollTop: 870, focusSecurityId: 'preferred', surface: 'rail' });
+    assert.equal(history.state.otherState, true);
+
+    location.href = origin + stock + '#annual-data';
+    assert.deepEqual(click(aggregate, 'company:company', sections, 'mobile'), { prevented: true, open: false });
+    assert.equal(assigned.at(-1), origin + aggregate + '#annual-data');
+    assert.equal(history.state.detailPeerReturn.surface, 'mobile');
+    assert.equal(history.state.detailPeerReturn.source, stock + '#annual-data');
+    assert.equal(click(aggregate, 'company:company', sections, 'mobile', { metaKey: true }).prevented, false);
+    assert.equal(assigned.length, 2);
+
+    // A full card opens its destination from the summary even when returning from an old fragment.
+    click(aggregate, 'company:company', [], 'summary');
+    assert.equal(assigned.at(-1), origin + aggregate);
+    assert.equal(history.state.detailPeerReturn.surface, 'summary');
+  } finally {
+    for (const [key, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  }
+});
+
 for (const [metric, unit] of metrics) {
   test(`${metric}: stock selection retains the date window and offers only members that supply this metric`, () => {
-    const { StockSelection } = loader()('components/detail-investor-records.tsx');
-    const dom = documentFor(StockSelection, { members: [common, preferred], current: common, label: '분석 종목', metric, scope: range });
+    const { detailSwitchCandidates, StockSelection } = loader()('components/detail-investor-records.tsx');
+    const candidates = detailSwitchCandidates({ members: [common, preferred], current: common, companyPage: false, basic: false, metric, scope: range });
+    const dom = documentFor(StockSelection, { candidates, label: '종목 전환' });
     try {
       const links = [...dom.window.document.querySelectorAll('a')];
       const expected = preferred.availableMetrics.includes(metric) ? [common, preferred] : [common];
+      assert.deepEqual(candidates.filter(candidate => candidate.href).map(candidate => candidate.securityId), expected.map(member => member.securityId));
+      if (expected.length === 1) {
+        assert.equal(links.length, 0, 'a single available security has no switch');
+        return;
+      }
       assert.equal(links.length, expected.length);
       for (const [i, member] of expected.entries()) {
         const destination = new URL(links[i].href, 'https://example.test');
@@ -38,7 +145,7 @@ for (const [metric, unit] of metrics) {
     const dom = documentFor(DetailInvestorNavigation, { groups });
     try {
       const links = [...dom.window.document.querySelectorAll('a')];
-      assert.equal(links.length, 10);
+      assert.equal(links.length, 9);
       const selected = links.filter(link => link.getAttribute('aria-current') === 'page');
       assert.equal(selected.length, 1);
       assert.equal(new URL(selected[0].href, 'https://example.test').pathname, `/security/${common.routeCode}/${metric}`);
@@ -75,14 +182,14 @@ test('nearby financial ranks keep the selected metric and date window without ca
       company: null, companySecs: [], history: [], priceHistory: [],
       ranking: { currentRank: 7, rankDate: '2026-10-08' },
       neighbors: [
-        { securityId: 'peer-before', routeCode: 'KOSPI.000001', ticker: '000001', exchange: 'KOSPI', korName: '이전 종목', currentRank: 6 },
-        { securityId: 'peer-after', routeCode: 'KOSPI.000002', ticker: '000002', exchange: 'KOSPI', korName: '다음 종목', currentRank: 8 },
+        { securityId: 'peer-before', routeCode: 'KOSPI.000001', ticker: '000001', exchange: 'KOSPI', korName: '이전 종목', currentRank: 6, value: '1.005' },
+        { securityId: 'peer-after', routeCode: 'KOSPI.000002', ticker: '000002', exchange: 'KOSPI', korName: '다음 종목', currentRank: 8, value: '0' },
       ],
     });
     const element = await fixture.pages.RestoredSecurityDetail({ code: common.routeCode, metric, search: { start: range.start, end: range.end, period: range.periodId } });
     const dom = new JSDOM(renderToStaticMarkup(element));
     try {
-      const links = [...dom.window.document.querySelectorAll('#nearby-ranks tbody a')];
+      const links = [...dom.window.document.querySelectorAll('#nearby-ranks nav a')];
       assert.equal(links.length, 2, metric);
       for (const link of links) {
         const destination = new URL(link.getAttribute('href'), 'https://example.test');

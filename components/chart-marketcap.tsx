@@ -22,6 +22,9 @@ import {
 } from "recharts";
 
 import { getMarketcapSeriesLabel, getMarketcapSelectionColor, isMarketcapSeriesSelected, type MarketcapSeries } from "@/lib/chart-selection";
+import styles from "./detail-chart.module.css";
+import { formatMarketcapAxisTick, readableAxis } from './detail-trend-plot';
+import type { RegisteredMarketcapDisplay } from './interactive-chart-section';
 
 const subscribeMounted = () => () => {};
 
@@ -40,6 +43,7 @@ type Props = {
   coverage?: Coverage;
   totalLabel?: string;
   axisFormat?: (value: number) => string;
+  registeredHistory?: RegisteredMarketcapDisplay;
   data: MarketcapDataPoint[];
   format: string;
   formatTooltip: string;
@@ -49,7 +53,7 @@ type Props = {
 };
 
 
-function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [], sourceValues, coverage, totalLabel = "전체 시총", axisFormat }: Props) {
+function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [], sourceValues, coverage, totalLabel = "전체 시총", axisFormat, registeredHistory }: Props) {
   const isClient = useSyncExternalStore(subscribeMounted, () => true, () => false);
 
   // 🛡️ 데이터 안전성 검증
@@ -156,6 +160,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   };
 
   const yAxisDomain = getYAxisDomain();
+  const valueAxis = registeredHistory ? readableAxis(registeredHistory.minimum, registeredHistory.maximum, formatMarketcapAxisTick) : undefined;
 
   // 빈 데이터 처리
   if (safeData.length === 0) {
@@ -168,7 +173,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
 
   if (!isClient || !data || data.length === 0) {
     return (
-      <div className="w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px] flex items-center justify-center">
+      <div className={`w-full ${styles.registeredComparisonPlot} flex items-center justify-center`}>
         <div className="text-sm text-muted-foreground">
           {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
         </div>
@@ -177,19 +182,21 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
   }
 
   return (
-    <div className="min-w-0 w-full h-[200px] sm:h-[220px] md:h-[240px] lg:h-[260px] xl:h-[280px]">
+    <div className={`min-w-0 w-full ${styles.registeredComparisonPlot}`}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
         <LineChart
           data={safeData}
+          accessibilityLayer
           margin={{ top: 8, right: 12, left: 8, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={!registeredHistory} />
           <XAxis
             dataKey="date"
-            tickFormatter={(value) => {
+            ticks={registeredHistory?.dateTicks}
+            tickFormatter={registeredHistory?.formatDate || ((value) => {
               const date = new Date(value);
               return formatDateKorean(date, { year: 'numeric', month: 'short', day: 'numeric' });
-            }}
+            })}
             stroke="var(--muted-foreground)"
 
             fontSize={12}
@@ -199,26 +206,28 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             interval="preserveStartEnd"
           />
           <YAxis
-            domain={axisFormat ? [0,1] : yAxisDomain} ticks={axisFormat ? [0,.25,.5,.75,1] : undefined}
-            tickFormatter={
-              axisFormat || (format === "formatNumber" ? formatNumberForChart : formatNumberRawForChart)
-            }
+            domain={valueAxis?.domain ?? (axisFormat ? [0,1] : yAxisDomain)}
+            ticks={valueAxis ? [...valueAxis.marks.keys()] : axisFormat ? [0,.25,.5,.75,1] : undefined}
+            tickFormatter={value => valueAxis?.marks.get(Number(value)) ?? (axisFormat || (format === "formatNumber" ? formatNumberForChart : formatNumberRawForChart))(value)}
             stroke="var(--muted-foreground)"
 
             fontSize={12}
             tick={{ fill: 'var(--muted-foreground)' }}
             axisLine={{ stroke: 'var(--border)' }}
             tickLine={{ stroke: 'var(--border)' }}
-            width={40} // 50 -> 40으로 더 줄임
+            width={registeredHistory ? 60 : 40}
           />
           <Tooltip
-            content={<CustomTooltip formatTooltip={formatTooltip} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
+            filterNull={!registeredHistory}
+            content={registeredHistory ? ({ active, label }) => active && typeof label === 'string' ? registeredHistory.renderObservation(label) : null
+              : <CustomTooltip formatTooltip={formatTooltip} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
             isAnimationActive={false}
           />
           <Legend
+            verticalAlign={registeredHistory ? 'top' : 'bottom'}
             itemSorter={(entry) => keys.indexOf(String(entry.value))}
             content={<CustomLegend payload={keys.filter(key => key !== "date" && key !== "value").map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} selectedSecurityId={selectedSecurityId} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
-            wrapperStyle={{
+            wrapperStyle={registeredHistory ? { paddingBottom: 8 } : {
               paddingTop: '2px', // 2px -> 2px 유지
               position: 'relative',
               marginTop: '-6px', // -8px -> -6px로 약간 완화
@@ -234,7 +243,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
             return (
               <Line
                 key={key}
-                type="monotone"
+                type={registeredHistory ? 'linear' : 'monotone'}
                 dataKey={key}
                 stroke={getLineColor(key, index)}
                 strokeWidth={lineStyle.strokeWidth}
@@ -242,6 +251,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
                 strokeDasharray={getStrokePattern(key)}
                 dot={safeData.length === 1}
                 activeDot={getActiveDotProps(key, index)}
+                isAnimationActive={registeredHistory ? false : undefined}
               />
             );
           })}

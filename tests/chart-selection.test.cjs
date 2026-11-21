@@ -19,6 +19,7 @@ function createLoader(recharts) {
     mod.filename = filename;
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = name => {
+      if (name.endsWith('.module.css')) return {__esModule:true,default:{}};
       if (name === 'recharts' && recharts) return recharts;
       const local = name.startsWith('@/') ? path.join(root, name.slice(2))
         : name.startsWith('.') ? path.resolve(path.dirname(filename), name) : null;

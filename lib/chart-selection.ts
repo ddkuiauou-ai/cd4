@@ -21,6 +21,23 @@ export type MarketcapChartPoint = {
 export const isMarketcapTotalKey = (key: string) =>
   key === "총합계" || key === "totalValue" || key === "totalMarketcap";
 
+export function marketcapDateAxis(dates: readonly string[]) {
+  const first = dates[0];
+  const last = dates.at(-1);
+  const yearOf = (date: string) => Number(date.slice(0, 4));
+  if (!first || !last || yearOf(last) - yearOf(first) <= 2) {
+    return { formatDate: (date: string) => date.replaceAll('-', '.') };
+  }
+  const span = yearOf(last) - yearOf(first);
+  const step = span > 15 ? 5 : span > 7 ? 2 : 1;
+  const years = new Map<number, string>();
+  for (const date of dates) {
+    const year = yearOf(date);
+    if (year > yearOf(first) && year < yearOf(last) && year % step === 0 && !years.has(year)) years.set(year, date);
+  }
+  return { formatDate: (date: string) => date.slice(0, 4), dateTicks: [first, ...years.values(), last] };
+}
+
 export function createMarketcapSeries(securities: readonly MarketcapSecurityIdentity[]): MarketcapSeries[] {
   return securities.map((security) => ({
     // Recharts interprets periods in string dataKey values as property paths.

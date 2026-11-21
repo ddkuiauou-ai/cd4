@@ -48,7 +48,7 @@ test("AppShell keeps its original footer by default and replaces it without dupl
   assert.equal(document.querySelector("main")?.textContent, "본문");
 });
 
-test("only the market layout selects the directory footer slot", async () => {
+test("the market layout selects the full directory footer", async () => {
   const loader = createLoader();
   const { default: MarketLayout } = loader.load("app/(market)/layout.tsx");
   const { html } = await loader.renderElement(React.createElement(MarketLayout, null, "랭킹 본문"));
@@ -56,4 +56,20 @@ test("only the market layout selects the directory footer slot", async () => {
   assert.equal(document.querySelectorAll('footer[aria-label="전체 콘텐츠 목차"]').length, 1);
   assert.equal(document.querySelectorAll(".site-footer").length, 0);
   assert.equal(document.querySelector("main .app-container")?.textContent, "랭킹 본문");
+});
+
+test("company and security layouts each expose one ranking directory without a ranking page fragment", async () => {
+  const loader = createLoader();
+  for (const route of ["company", "security"]) {
+    const { default: DetailLayout } = loader.load(`app/${route}/layout.tsx`);
+    const { html } = await loader.renderElement(React.createElement(DetailLayout, null, "상세 본문"));
+    const dom = new JSDOM(html);
+    try {
+      const { document } = dom.window;
+      assert.equal(document.querySelectorAll("footer").length, 1);
+      const footer = document.querySelector('footer[aria-label="전체 콘텐츠 목차"]');
+      assert.deepEqual([...footer.querySelectorAll("a")].map(link => link.getAttribute("href")), ["/", "/marketcaps", "/marketcap", "/per", "/pbr", "/eps", "/bps", "/div", "/dps"]);
+      assert.equal(document.querySelectorAll('nav[aria-label="모바일 하단 탐색"]').length, 1);
+    } finally { dom.window.close(); }
+  }
 });

@@ -19,13 +19,14 @@ function loadPresentation() {
     loaded.set(filename, mod);
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = name => {
+      if (name.endsWith('.module.css')) return {__esModule:true,default:{}};
       if (name.startsWith('.')) name = `@/${path.relative(root, path.resolve(path.dirname(filename), name))}`;
       const chart = {
         '@/components/chart-company-marketcap': 'summary',
         '@/components/chart-marketcap': 'detailed',
       }[name];
       if (chart) return { __esModule: true, default: props => {
-        renderedCharts.push({ chart, data: props.data, sourceValues: props.sourceValues, coverage: props.coverage, axisFormat: props.axisFormat });
+        renderedCharts.push({ chart, data: props.data, registered: props.registeredHistory });
         return React.createElement('div', { 'data-chart': chart });
       } };
       if (name === '@/components/chart-a11y-description') return { __esModule: true, default: () => null };
@@ -65,7 +66,7 @@ function companyHistory() {
     aggregatedHistory: [observation] };
 }
 
-test('one real history date renders exact observation values in SSR and defers the single-point chart', () => {
+test('one real history date renders exact observation values in SSR as a table', () => {
   const { Chart, renderedCharts } = loadPresentation();
   const data = companyHistory();
   const original = JSON.stringify(data);
@@ -82,11 +83,11 @@ test('one real history date renders exact observation values in SSR and defers t
   assert.equal(JSON.stringify(data), original);
 });
 
-test('the three-month filter can leave one date and still renders the compact observation state', () => {
+test('an explicit three-month window can leave one date and still renders the compact observation state', () => {
   const { Chart, renderedCharts } = loadPresentation();
   const data = companyHistory();
   data.aggregatedHistory.unshift({ date: '2025-09-22', totalMarketcap: 549_000_000_000_000, securitiesBreakdown: {} });
-  const html = renderToStaticMarkup(React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary' }));
+  const html = renderToStaticMarkup(React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary', start:'2026-07-02' }));
   assert.match(html, /기록 1개/);
   assert.doesNotMatch(html, /2025-09-22/);
   assert.equal(renderedCharts.length,0);
@@ -129,8 +130,8 @@ test('multiple recorded dates report the range in SSR and keep exact sources whe
     securitiesBreakdown: { common: 1_670_000_000_000_000, preferred: 30_000_000_000_000 } });
   const element = React.createElement(Chart, { companyMarketcapData: data, companySecs: [], type: 'summary' });
   const html = renderToStaticMarkup(element);
-  assert.match(html, /이력 범위 2026-09-30 ~ 2026-10-02 · 기록 2개/);
-  assert.match(html, /미등록 종목 값은 포함되지 않습니다/);
+  assert.match(html, /2026-09-30 ~ 2026-10-02 · 2일 관측/);
+  assert.match(html, /등록 종목 합계는 날짜별 관측값의 합계/);
   assert.match(html, /차트 준비 중/);
   assert.equal(renderedCharts.length, 0);
   await withMountedChart(async ({ dom, chartRoot }) => {
@@ -145,9 +146,11 @@ test('multiple recorded dates report the range in SSR and keep exact sources whe
     await React.act(async()=>intersect([{isIntersecting:true}]));
     assert.equal(renderedCharts.length, 1);
     const [rendered] = renderedCharts;
-    assert.deepEqual(rendered.data.map(point => rendered.sourceValues[point.date].value), data.aggregatedHistory.map(point => point.totalMarketcap));
-    assert.ok(rendered.data.every(point => point.value >= 0 && point.value <= 1));
-    assert.ok(rendered.data[0].value < rendered.data[1].value);
+    const tooltip=renderToStaticMarkup(rendered.registered.renderObservation('2026-09-30'));
+    assert.match(tooltip,/1,700,000,000,000,000원/);
+    assert.doesNotMatch(tooltip,/undefined|개 종목 관측/);
+    assert.ok(rendered.data.every(point => point['총합계'] >= 0 && point['총합계'] <= 1));
+    assert.ok(rendered.data[0]['총합계'] < rendered.data[1]['총합계']);
   });
 });
 
@@ -172,7 +175,7 @@ async function withMountedChart(run) {
   try { await run({ dom, chartRoot }); } finally { await React.act(async()=>chartRoot.unmount());dom.window.close();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];} }
 }
 
-test('summary range buttons actually switch recent and complete exact company history and preserve coverage',async()=>{
+test('summary range buttons switch monthly, recent and complete company history while preserving exact coverage',async()=>{
   await withMountedChart(async({ dom, chartRoot })=>{
   const {Chart,renderedCharts}=loadPresentation();const data=companyHistory();
   data.aggregatedHistory=[
@@ -183,17 +186,83 @@ test('summary range buttons actually switch recent and complete exact company hi
   const original=JSON.stringify(data);const container=dom.window.document.getElementById('root');
     await React.act(async()=>chartRoot.render(React.createElement(Chart,{companyMarketcapData:data,companySecs:[],type:'summary'})));
     const button=label=>[...container.querySelectorAll('button')].find(node=>node.textContent===label);
-    assert.ok(button('최근 3개월'));assert.ok(button('전체'));assert.equal(button('최근 3개월').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/기록 1개/);
-    assert.match(container.textContent,/차트 표시 범위/);
-    assert.equal(renderedCharts.at(-1).data.length,1);
+    assert.ok(button('최근 3개월'));assert.ok(button('전체'));assert.equal(button('5년').getAttribute('aria-pressed'),'true');
+    assert.match(container.textContent,/월별 마지막 관측.*2024-03-01 ~ 2026-10-02/);
+    assert.ok(container.querySelector('[aria-label="시가총액 차트 범위"]'));
+    await React.act(async()=>button('1년').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
+    assert.equal(button('1년').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/기록 1개/);
     await React.act(async()=>button('전체').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
-    assert.equal(button('전체').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/전체 이력 범위 2024-03-01 ~ 2026-10-02 · 기록 2개/);
-    const whole=renderedCharts.at(-1);assert.equal(whole.data.length,2);assert.equal(whole.sourceValues['2024-03-01'].value,'9007199254740993');assert.equal(whole.sourceValues['2026-10-02'].value,'9007199254740995');assert.deepEqual(whole.coverage['2024-03-01'],{observedCount:1,targetCount:2});
-    assert.ok(whole.data[0].value < whole.data[1].value);assert.ok(Object.values(whole.sourceValues['2024-03-01']).includes(null));
+    assert.equal(button('전체').getAttribute('aria-pressed'),'true');assert.match(container.textContent,/2024-03-01 ~ 2026-10-02 · 2일 관측/);
+    const whole=renderedCharts.at(-1);assert.equal(whole.data.length,2);
+    assert.ok(whole.data.every(row=>Object.keys(row).join(',')==='date,총합계'));
+    assert.match(renderToStaticMarkup(whole.registered.renderObservation('2024-03-01')),/1\/2개 종목 관측 · 부분 관측.*9,007,199,254,740,993원.*미관측/);
+    assert.match(renderToStaticMarkup(whole.registered.renderObservation('2026-10-02')),/9,007,199,254,740,995원/);
+    assert.ok(whole.data[0]['총합계'] < whole.data[1]['총합계']);
     await React.act(async()=>button('최근 3개월').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true})));
-    assert.equal(renderedCharts.at(-1).data.length,1);assert.match(container.textContent,/기록 1개/);
+    assert.equal(container.querySelector('[data-chart]'),null);assert.match(container.textContent,/기록 1개/);
     await React.act(async()=>chartRoot.render(React.createElement(Chart,{companyMarketcapData:data,companySecs:[],type:'summary',start:'2024-03-01',end:'2024-03-31'})));
-    assert.equal(container.querySelector('[aria-label="시가총액 차트 범위"]'),null);assert.match(container.textContent,/이력 기준 2024-03-01/);assert.equal(renderedCharts.at(-1).data.length,1);assert.equal(renderedCharts.at(-1).data[0].date,'2024-03-01');
+    assert.equal(container.querySelector('[aria-label="시가총액 차트 범위"]'),null);assert.match(container.textContent,/이력 기준 2024-03-01/);assert.equal(container.querySelector('[data-chart]'),null);
     assert.equal(JSON.stringify(data),original);
   });
+});
+
+test('period averages retain sparse observation counts, exact zero and signed PER differences', () => {
+  const load = require('./helpers/detail-presentation-loader.cjs').loader();
+  const { PeriodStats } = load('components/detail-period-stats.tsx');
+  const { DETAIL_METRICS, periodMeans } = load('lib/detail-presentation.ts');
+  const { summarizeBusinessWindow } = load('lib/business-analysis.ts');
+  const analysisEnd = '2026-11-20';
+  const rows = [
+    { date: '2023-12-29', value: '9007199254740993' },
+    { date: '2024-10-10', value: '0', state: 'provided' },
+    { date: '2026-11-20', value: '900', state: 'missing' },
+  ];
+  function render(metric, history, currentMultiple) {
+    const analysis = { analysisEnd, means: periodMeans(history, analysisEnd), summary: summarizeBusinessWindow(history) };
+    return JSDOM.fragment(renderToStaticMarkup(React.createElement(PeriodStats, {
+      metric, info: DETAIL_METRICS[metric], companyPage: false, basis: analysisEnd, analysis, currentMultiple,
+    })));
+  }
+  const cells = row => [...row.cells].map(cell => cell.textContent);
+  for (const [metric, unit] of [['div', '%'], ['dps', '원']]) {
+    const fragment = render(metric, rows);
+    assert.deepEqual(cells(fragment.querySelector('thead tr')), ['기간', '평균값', '관측 수']);
+    const records = [...fragment.querySelectorAll('tbody tr')];
+    assert.deepEqual(cells(records[0]), ['12개월제공 관측 없음', '—', '0개']);
+    assert.deepEqual(cells(records[1]), ['3년', metric === 'dps' ? '4,503,599,627,370,497원' : '4,503,599,627,370,496.5%', '2개']);
+    assert.equal(fragment.textContent.match(/2024-10-10/g).length, 1);
+    assert.doesNotMatch(fragment.textContent, /2026-11-20/);
+    assert.deepEqual(cells(render(metric, rows.slice(1)).querySelectorAll('tbody tr')[1]), ['3년', `0${unit}`, '1개']);
+  }
+
+  const per = render('per', [{ date: '2024-10-10', value: '10' }], '5');
+  assert.deepEqual(cells(per.querySelector('thead tr')), ['기간', '평균 PER', '현재 − 평균']);
+  const observed = per.querySelectorAll('tbody tr')[1];
+  assert.deepEqual(cells(observed), ['3년관측 1개', '10배', '−5배']);
+  assert.equal(observed.querySelector('.market-down').textContent, '−5배');
+  const differentEnding = render('div', [...rows, { date: '2026-11-25', value: '12' }]);
+  const lastObservation = differentEnding.querySelectorAll('tbody tr')[1].querySelector('time');
+  assert.equal(lastObservation.dateTime, '2024-10-10');
+  assert.match(differentEnding.textContent, /분석 범위 2023-12-29 ~ 2026-11-25/);
+
+  const publishedObservation = { date: analysisEnd, value: '12' };
+  for (const metric of ['per', 'div', 'dps']) {
+    const sharedEnding = render(metric, [...rows.slice(0, 2), publishedObservation], '10');
+    assert.match(sharedEnding.textContent, /2023-12-29부터 · 실제 관측 3개/);
+    assert.doesNotMatch(sharedEnding.textContent, /2026-11-20/);
+    const sameDay = render(metric, [publishedObservation], '10');
+    assert.match(sameDay.textContent, /실제 관측 1개/);
+    assert.doesNotMatch(sameDay.textContent, /2026-11-20/);
+  }
+
+  const pbr = render('pbr', [{ date: '2024-10-10', value: '0' }], '2.1234');
+  assert.deepEqual(cells(pbr.querySelector('thead tr')), ['기간', '평균 PBR', '현재 − 평균']);
+  const pbrRecord = pbr.querySelectorAll('tbody tr')[1];
+  assert.equal(pbrRecord.cells[0].querySelector('time').dateTime, '2024-10-10');
+  assert.deepEqual(cells(pbrRecord).slice(1), ['0배', '+2.12배']);
+  for (const metric of ['eps', 'bps']) {
+    const fragment = render(metric, [{ date: '2024-10-10', value: '-157' }, { date: '2024-12-20', value: '0' }]);
+    assert.deepEqual(cells(fragment.querySelector('thead tr')), ['기간', '평균값', '관측 수']);
+    assert.deepEqual(cells(fragment.querySelectorAll('tbody tr')[1]).slice(1), ['−79원', '2개']);
+  }
 });

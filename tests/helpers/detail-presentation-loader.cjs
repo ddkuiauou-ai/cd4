@@ -33,7 +33,8 @@ function pageLoader(snapshot){
   const named=keys=>Object.fromEntries(keys.map(key=>[key,empty]));
   const stubs={
     '@/lib/data/detail-snapshot':{getSecurityDetailSnapshot:async()=>{calls++;return snapshot},getCompanyDetailSnapshot:async()=>{calls++;return snapshot}},
-    '@/components/sticky-company-header':{StickyCompanyHeader:props=>React.createElement('h1',null,props.displayName,props.titleSuffix,props.detail?.value)},
+    '@/components/sticky-company-header':{StickyCompanyHeader:props=>React.createElement('div',{'data-detail-header':true},
+      React.createElement('h1',null,props.displayName,props.titleSuffix,props.detail?.value),props.actions,props.historyAction)},
     '@/components/recent-security-tracker':named(['RecentSecurityTracker']),
     '@/components/recent-securities-sidebar':named(['RecentSecuritiesSidebar']),
     '@/components/page-navigation':named(['PageNavigation']),

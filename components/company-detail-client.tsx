@@ -38,7 +38,7 @@ export function CompanyDetailClient(props: DetailSurfaceProps) {
   }, [base]);
   const name = props.company?.companyKorName || props.company?.companyName || '기업';
   useEffect(() => {
-    document.title = `${name} ${basic ? '기업 정보' : '기업 합산 시총'} - ${siteConfig.name}`;
+    document.title = `${name} ${basic ? '기업 개요' : '기업 합산 시가총액'} - ${siteConfig.name}`;
     if (base) {
       const canonical = new URL(`${base}${basic ? '' : '/marketcap'}/`, siteConfig.url).href;
       document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical);

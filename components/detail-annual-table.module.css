@@ -1,0 +1,102 @@
+.compact { min-width: 0; }
+.perShare > p { margin-block-end: 10px; }
+.mobileValue { min-width: 0; overflow-wrap: anywhere; }
+
+.statistics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin-block: 10px;
+  padding-block: 8px;
+  border-block: 1px solid var(--border);
+}
+.statistics dd { margin-block-start: 4px; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+
+.table { table-layout: fixed; line-height: 1.4; }
+.table :is(th, td) { padding: 8px 6px; vertical-align: top; overflow-wrap: anywhere; }
+.table thead th { font-size: 12px; white-space: nowrap; }
+.table th:first-child { width: 18%; padding-inline-start: 0; }
+.table thead th:nth-child(2) { width: 23%; }
+.table thead th:nth-child(3) { width: 34%; }
+.table :is(th, td):last-child { padding-inline-end: 0; white-space: nowrap; }
+.table td:nth-child(2) { font-weight: 650; }
+.table time { font-size: 12px; }
+
+.headerMetadata {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.annualTable { inline-size: 100%; table-layout: fixed; font-size: 14px; font-variant-numeric: tabular-nums; }
+.annualTable :is(th, td) { padding: 8px; text-align: end; overflow-wrap: anywhere; }
+.annualTable thead { background: var(--muted); color: var(--muted-foreground); font-size: 12px; }
+.annualTable thead th { font-weight: 650; }
+.annualTable thead small { display: block; font-size: 11px; font-weight: 400; }
+.annualTable th:first-child { width: 31%; text-align: start; }
+.withDividendComparison th:first-child { width: 26%; }
+.withDividendComparison thead th:last-child { width: 27%; }
+.annualTable tbody :is(th, td) { padding-block: 13px; }
+.annualTable tbody th { font-weight: 600; }
+.annualTable td:has(button) { padding-block: 0; }
+.annualTable td button { max-inline-size: 100%; white-space: normal; overflow-wrap: anywhere; }
+.annualTable tbody tr:nth-child(5n + 6) { border-top: 1px solid var(--border); }
+.annualTable time, .annualYearToDate { color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.annualTable time { display: block; margin-block-start: 1px; }
+.annualYearToDate { margin-inline-start: 4px; }
+.annualMetricValue { font-weight: 650; }
+.annualCoverage { display: block; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+
+.marketcapTable th:first-child { width: 31%; }
+.marketcapTable th:last-child { width: 24%; }
+.marketcapTable tbody tr { border-block-end: 1px solid var(--border); }
+.marketcapTable tbody :is(th, td) { vertical-align: top; }
+.marketcapTable td:has(details) { padding-block: 0 0.4375rem; }
+.marketcapTable td button { min-block-size: 44px; }
+
+.exactMarketcap summary {
+  cursor: pointer;
+  align-content: center;
+  min-block-size: 44px;
+  list-style: none;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.18em;
+}
+
+.exactMarketcap summary::-webkit-details-marker { display: none; }
+.exactMarketcap summary:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.exactMarketcap small { display: block; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+
+.dividendDifferences { display: grid; gap: 3px; }
+.preferredName { color: var(--muted-foreground); font-size: 11px; }
+.dividendDifferences dd { margin: 0; }
+
+.annualStatistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+  margin-block-start: 10px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.annualStatistics > div { display: flex; gap: 4px; }
+.annualStatistics dd { color: var(--foreground); }
+.statisticsAbove { margin-block: 0 10px; }
+
+@media (max-width: 480px) {
+  .annualTable :is(th, td) { padding-inline: 4px 8px; }
+  .annualTable { font-size: 12px; }
+  .annualTable thead { font-size: 11px; }
+  .withDividendComparison thead th:last-child { width: 28%; }
+}
+
+@media (min-width: 640px) {
+  .statistics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

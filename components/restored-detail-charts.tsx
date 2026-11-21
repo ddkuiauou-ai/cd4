@@ -1,15 +1,18 @@
 'use client';
 
+import { formatInvestorAmount, formatInvestorNumber, usesInvestorPrecision } from '@/lib/investor-number';
 import dynamic from 'next/dynamic';
 import { lazy } from 'react';
-import { DetailAnnualTable } from './detail-annual-table';
+import { DetailAnnualTable, type AnnualDividendComparison } from './detail-annual-table';
 import { DetailHistoryChart } from './detail-history-chart';
 import { ChartWhenVisible } from './detail-chart-visibility';
+import { DetailChartSkeleton } from './detail-record-skeleton';
 import { chartMonths, lastMonthlyObservations } from './detail-chart-observations';
-import type { DividendComparisonSeries } from './detail-trend-plot';
+import type { DividendComparisonDifference, DividendComparisonSeries } from './detail-trend-plot';
 import type { DetailSecurityRow } from './detail-types';
+import styles from './detail-chart.module.css';
 import { DETAIL_METRICS, actualCandlesticks, priceMovingAverages, earlierDate, monthlyHeatmap, selectDetailRange, type DetailAnnualRow, type DetailMetric, type DetailObservation } from '@/lib/detail-presentation';
-import { businessChartAxisValue, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, formatCompactBusinessValue, isBusinessDay, summarizeBusinessWindow, type BusinessValue } from '@/lib/business-analysis';
+import { businessChartAxisValue, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, formatCompactBusinessValue, formatMarketcapAmount, isBusinessDay, subtractBusinessValues, summarizeBusinessWindow, type BusinessValue } from '@/lib/business-analysis';
 
 export { ChartWhenVisible } from './detail-chart-visibility';
 
@@ -17,6 +20,9 @@ function PriceChartPlaceholder() {
   return <div className="flex h-[320px] items-center justify-center border-y border-border text-sm text-muted-foreground sm:h-[340px] md:h-[380px] lg:h-[420px]">차트 준비 중…</div>;
 }
 const Candles = dynamic(() => import('./chart-candlestick').then(module => module.CandlestickChart), { ssr: false, loading: PriceChartPlaceholder });
+const CandlesWithSkeleton = dynamic(() => import('./chart-candlestick').then(module => module.CandlestickChart), {
+  ssr: false, loading: () => <DetailChartSkeleton variant="price" label="주가 차트" plotOnly />,
+});
 const PERHeatmap = lazy(() => import('./chart-per-heatmap'));
 const BPSHeatmap = lazy(() => import('./chart-bps-heatmap'));
 const DPSHeatmap = lazy(() => import('./chart-dps-heatmap'));
@@ -56,14 +62,16 @@ function MonthlyRecord({ rows, metric, name }: { rows: DetailObservation[]; metr
   const projection = projectBusinessChartRows(monthly);
   const heatmap = monthlyHeatmap(projection.rows.map(row => ({ date: row.date, value: row.plot })));
   const sourceValues = Object.fromEntries(monthly.map(row => [`${Number(row.date.slice(5, 7))}월/${row.date.slice(0, 4)}`, row.value]));
-  const valueFormatter = (value: number) => formatCompactBusinessValue(businessChartAxisValue(projection.min, projection.max, value));
+  const valueFormatter = (value: number) => metric === 'bps'
+    ? formatCompactBusinessValue(businessChartAxisValue(projection.min, projection.max, value))
+    : formatInvestorNumber(businessChartAxisValue(projection.min, projection.max, value), info.unit);
   const Heatmap = metric === 'bps' ? BPSHeatmap : metric === 'dps' ? DPSHeatmap : PERHeatmap;
 
   return <div className="space-y-3">
     <p className="text-xs text-muted-foreground tabular-nums">
       {monthly[0].date} ~ {monthly.at(-1)!.date} · {monthly.length.toLocaleString('ko-KR')}개월 · 각 월의 마지막 제공값 · 빈 칸 미제공
     </p>
-    <ChartWhenVisible fallback={<div className="flex items-center justify-center border-y border-border text-sm text-muted-foreground" style={{ height: Math.max(240, heatmap.length * 28 + 104) }}>차트 준비 중…</div>}>
+    <ChartWhenVisible fallback={<DetailChartSkeleton variant="monthly" height={Math.max(240, heatmap.length * 28 + 104)} label="월별 기록 차트" plotOnly />}>
       <Heatmap data={heatmap} minValue={0} maxValue={1} sourceValues={sourceValues} valueFormatter={valueFormatter} />
     </ChartWhenVisible>
   </div>;
@@ -77,28 +85,31 @@ function DistributionRecord({ rows, metric, currentValue }: { rows: DetailObserv
 
   const projection = projectBusinessChartRows(valid);
   const distribution = projection.rows.flatMap(row => row.plot == null ? [] : [{ date: row.date, value: row.plot }]);
-  const formatAxis = (value: number) => formatCompactBusinessValue(businessChartAxisValue(projection.min, projection.max, value));
-  const formatTooltip = (value: number) => formatBusinessValue(businessChartAxisValue(projection.min, projection.max, value));
+  const coordinate = (value: number) => businessChartAxisValue(projection.min, projection.max, value);
+  const formatTooltip = (value: number) => metric === 'bps' ? formatBusinessValue(coordinate(value)) : formatInvestorNumber(coordinate(value), info.unit);
+  const formatAxis = (value: number) => metric === 'bps' ? formatCompactBusinessValue(coordinate(value)) : formatTooltip(value);
+  const mean = metric === 'bps' ? `${formatBusinessValue(summary.mean)}${info.unit}` : formatInvestorAmount(summary.mean, info.unit);
   const Distribution = metric === 'bps' ? BPSDistribution : metric === 'dps' ? DPSDistribution : PERDistribution;
   const currentAvailable = compareBusinessValues(currentValue, 0) != null;
   const belowCurrent = metric === 'per' && currentAvailable
     ? valid.filter(row => (compareBusinessValues(row.value, currentValue) ?? 1) <= 0).length : null;
 
-  return <div className="space-y-3">
-    <p className="text-xs text-muted-foreground tabular-nums">{summary.start} ~ {summary.end} · 실제 제공 {summary.count.toLocaleString('ko-KR')}개</p>
+  return <figure className={styles.figure}>
     {metric === 'per' && <p className="text-sm tabular-nums">
       {belowCurrent == null ? '현재 PER 미제공으로 관측일 비율을 계산할 수 없습니다.' : <>
-        현재 PER {formatBusinessValue(currentValue)}배 이하 <strong>{(belowCurrent / summary.count * 100).toFixed(1)}%</strong>
+        현재 PER <span title={`${formatBusinessValue(currentValue)}배`}>{formatInvestorAmount(currentValue, '배')}</span> 이하{' '}
+        <strong>{formatInvestorAmount(belowCurrent / summary.count * 100, '%')}</strong>
         <span className="text-muted-foreground"> ({belowCurrent.toLocaleString('ko-KR')}/{summary.count.toLocaleString('ko-KR')} 관측일)</span>
       </>}
     </p>}
-    <ChartWhenVisible>
-      <Distribution data={distribution} formatCoordinate={formatAxis} formatDetailCoordinate={formatTooltip} sourceSummary={`평균 ${formatBusinessValue(summary.mean)}${info.unit}`} />
+    <ChartWhenVisible fallback={<DetailChartSkeleton variant="distribution" label="과거 분포 차트" plotOnly />}>
+      <Distribution data={distribution} formatCoordinate={formatAxis} formatDetailCoordinate={formatTooltip} sourceSummary={`평균 ${mean}`} />
     </ChartWhenVisible>
-  </div>;
+    <figcaption className={styles.caption}>{summary.start} ~ {summary.end} · 실제 제공 {summary.count.toLocaleString('ko-KR')}개</figcaption>
+  </figure>;
 }
 
-export function DetailPriceHistory({ rows, start, end }: { rows: Record<string, unknown>[]; start?: string; end?: string }) {
+export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false }: { rows: Record<string, unknown>[]; start?: string; end?: string; usePlotSkeleton?: boolean }) {
   const latest = end || String(rows.at(-1)?.date || '');
   const visibleStart = start || (end ? '' : earlierDate(latest, 3));
   const candles = actualCandlesticks(rows, visibleStart, latest);
@@ -107,35 +118,52 @@ export function DetailPriceHistory({ rows, start, end }: { rows: Record<string, 
   if (visible.length < 2 || closeRows.filter(row => row.value != null).length > visible.length) {
     return <div className="space-y-3">
       {closeRows.some(row => row.value != null) && <p className="text-xs text-muted-foreground">시가·고가·저가·종가가 충분하지 않아 제공된 종가를 표시합니다.</p>}
-      <DetailHistoryChart rows={closeRows} movingAverages={closeRows} label="종가" unit="원" metric="marketcap" />
+      <DetailHistoryChart rows={closeRows} movingAverages={closeRows} label="종가" unit="원" metric="marketcap" usePlotSkeleton={usePlotSkeleton} />
     </div>;
   }
-  return <div className="space-y-3">
-    <p className="text-xs text-muted-foreground tabular-nums">실제 거래 범위 {visible[0].time} ~ {visible.at(-1)!.time} · {visible.length.toLocaleString('ko-KR')}개 기록 · 5·10거래일 이동평균</p>
-    <ChartWhenVisible fallback={<PriceChartPlaceholder />}>
-      <Candles data={candles} movingAverageValues={closeRows.map(row => ({ time: row.date, average5: row.average5, average10: row.average10 }))} />
+  const PriceChart = usePlotSkeleton ? CandlesWithSkeleton : Candles;
+  return <figure className={styles.figure}>
+    <ChartWhenVisible fallback={usePlotSkeleton ? <DetailChartSkeleton variant="price" label="주가 차트" plotOnly /> : <PriceChartPlaceholder />}>
+      <PriceChart data={candles} movingAverageValues={closeRows.map(row => ({ time: row.date, average5: row.average5, average10: row.average10 }))} />
     </ChartWhenVisible>
-  </div>;
+    <figcaption className={styles.caption}>실제 거래 범위 {visible[0].time} ~ {visible.at(-1)!.time} · {visible.length.toLocaleString('ko-KR')}개 기록 · 5·10거래일 이동평균</figcaption>
+  </figure>;
 }
 
-export function DetailAnnualHistory({ rows, label, unit, yearEndOnly = false }: { rows: DetailAnnualRow[]; label: string; unit: string; yearEndOnly?: boolean }) {
+export function DetailAnnualHistory({ rows, label, unit, metric, yearEndOnly = false, dividendComparison }: {
+  rows: DetailAnnualRow[]; label: string; unit: string; metric?: DetailMetric; yearEndOnly?: boolean;
+  dividendComparison?: AnnualDividendComparison;
+}) {
+  const marketcap = metric === 'marketcap';
+  const layout = marketcap ? 'marketcap' : unit === '배' ? 'ratio' : undefined;
+  const isPerShare = metric === 'eps' || metric === 'bps';
+  const hasDividendComparison = (metric === 'div' || metric === 'dps') && Boolean(dividendComparison?.pairs.length);
+  const exact = (value: BusinessValue) => value == null ? '—' : `${formatBusinessValue(value)}${unit}`;
+  const exactWon = (value: BusinessValue) => exact(value).replace(/^-/, '−');
+  const compact = (value: BusinessValue) => value == null ? '—' : `${formatCompactBusinessValue(value)}${unit}`;
   return <DetailAnnualTable
     rows={rows}
-    label={label}
+    label={marketcap && label === DETAIL_METRICS.marketcap.label ? '종목 시총' : label}
     yearEndOnly={yearEndOnly}
-    formatValue={value => value == null ? '—' : `${formatCompactBusinessValue(value)}${unit}`}
-    formatDetailValue={value => value == null ? '—' : `${formatBusinessValue(value)}${unit}`}
+    layout={layout}
+    dividendComparison={hasDividendComparison && dividendComparison ? { ...dividendComparison, unit: metric === 'div' ? '%p' : '원' } : undefined}
+    financialMetric={marketcap ? undefined : metric}
+    formatValue={marketcap ? formatMarketcapAmount : isPerShare ? exactWon
+      : usesInvestorPrecision(metric) ? value => formatInvestorAmount(value, unit) : layout ? exact : compact}
+    formatDetailValue={exact}
   />;
 }
 
 const comparisonColors = ['var(--chart-2)', 'var(--chart-1)', 'var(--brand-ink)', 'var(--chart-3)', 'var(--chart-5)'];
 const comparisonDashes = ['', '5 3', '2 3', '8 3 2 3', '9 4'];
+const shareOrder = (member: DetailSecurityRow) => member.type === '보통주' ? 0 : member.type?.includes('우선주') ? 1 : 2;
 
-export function DividendComparisonChart({ members, metric, start, end }: {
-  members: DetailSecurityRow[]; metric: 'div' | 'dps'; start?: string; end?: string;
+export function DividendComparisonChart({ members, metric, start, end, selectedSecurityId }: {
+  members: DetailSecurityRow[]; metric: 'div' | 'dps'; start?: string; end?: string; selectedSecurityId?: string;
 }) {
   const info = DETAIL_METRICS[metric];
-  const distinctMembers = [...new Map(members.map(member => [member.securityId, member])).values()];
+  const distinctMembers = [...new Map(members.map(member => [member.securityId, member])).values()]
+    .sort((left, right) => shareOrder(left) - shareOrder(right) || (left.ticker ?? left.securityId).localeCompare(right.ticker ?? right.securityId));
   const histories = distinctMembers.map(member => ({
     member,
     rows: (member.dividendHistory ?? []).flatMap(row => !isBusinessDay(row.date) || compareBusinessValues(row[metric], 0) == null
@@ -166,23 +194,59 @@ export function DividendComparisonChart({ members, metric, start, end }: {
       label: `${name} (${member.ticker || member.routeCode || member.securityId})`,
       color: comparisonColors[index % comparisonColors.length],
       dash: comparisonDashes[Math.floor(index / comparisonColors.length + index) % comparisonDashes.length],
+      selected: member.securityId === selectedSecurityId,
       values: Object.fromEntries(rows.map(row => [row.date.slice(0, 7), row])),
     });
     offset += months.size;
   }
+  const commonShares = distinctMembers.filter(member => member.type === '보통주');
+  const common = commonShares.length === 1 ? series.find(item => item.id === commonShares[0].securityId) : undefined;
+  const preferredIds = new Set(distinctMembers.filter(member => member.type?.includes('우선주')).map(member => member.securityId));
+  const preferred = common ? series.filter(item => preferredIds.has(item.id)) : [];
+  const months = chartMonths(minMonth, maxMonth);
+  const latestDate = series[0].values[maxMonth]?.date;
+  const sharedDate = latestDate && series.every(item => item.values[maxMonth]?.date === latestDate) ? latestDate : null;
+  const monthCount = Object.keys(series[0].values).length;
+  const countShared = series.every(item => Object.keys(item.values).length === monthCount);
+  const differenceUnit = metric === 'div' ? '%p' : '원';
+  const differences: Record<string, DividendComparisonDifference[]> = Object.fromEntries(months.map(month => [month, preferred.map(item => {
+    const base = common?.values[month];
+    const own = item.values[month];
+    const difference = base && own && base.date === own.date ? subtractBusinessValues(own.value, base.value) : null;
+    const value = difference != null
+      ? formatInvestorAmount(difference, differenceUnit, true)
+      : base && own ? '관측일이 달라 미산출' : '비교 관측 미제공';
+    return { id: item.id, label: preferred.length === 1 ? '우선주 − 보통주' : `${item.label} − 보통주`, value };
+  })]));
 
-  return <div className="space-y-3">
-    <p className="text-xs text-muted-foreground tabular-nums">{dates[0]} ~ {dates.at(-1)} · 각 종목의 월별 마지막 제공값 · 단위 {info.unit}</p>
-    <ul className="flex flex-wrap gap-x-4 gap-y-2 text-xs tabular-nums" aria-label="비교 종목별 관측 수">
-      {series.map(({ id, label, color, dash, values }) => <li className="flex min-w-0 items-center gap-2" key={id}>
-        <svg aria-hidden="true" className="shrink-0" width="20" height="8" viewBox="0 0 20 8">
-          <path d="M0 4h20" fill="none" stroke={color} strokeDasharray={dash || undefined} strokeWidth={2} />
-        </svg>
-        <span className="min-w-0 break-words">{label} <span className="text-muted-foreground">{Object.keys(values).length}개월</span></span>
-      </li>)}
+  return <figure className={styles.figure}>
+    <p className={styles.caption}>{sharedDate ? <>마지막 관측 <time dateTime={sharedDate}>{sharedDate}</time></> : `마지막 표시 월 ${maxMonth.replace('-', '.')}`}</p>
+    <ul className={styles.comparisonLegend} aria-label="비교 종목별 마지막 표시 월의 관측값">
+      {series.map(({ id, label, color, dash, selected, values }) => {
+        const latest = values[maxMonth];
+        return <li key={id} aria-current={selected ? true : undefined}>
+          <svg aria-hidden="true" width="20" height="8" viewBox="0 0 20 8">
+            <path d="M0 4h20" fill="none" stroke={color} strokeDasharray={dash || undefined} strokeWidth={dash ? 2 : 3} />
+          </svg>
+          <span>{label} {selected && <small className={styles.selectedSeries}>선택</small>}</span>
+          <strong>{latest ? formatInvestorAmount(latest.value, info.unit) : '미제공'}</strong>
+          {(!sharedDate && latest || !countShared) && <span className={styles.comparisonMeta}>
+            {!sharedDate && latest && <time dateTime={latest.date}>{latest.date}</time>}
+            {!sharedDate && latest && !countShared && ' · '}
+            {!countShared && `${Object.keys(values).length}개월 제공`}
+          </span>}
+        </li>;
+      })}
     </ul>
-    <ChartWhenVisible>
-      <DividendComparisonPlot months={chartMonths(minMonth, maxMonth)} series={series} minimum={min} maximum={max} unit={info.unit} />
-    </ChartWhenVisible>
-  </div>;
+    {differences[maxMonth].length > 0 && <dl className={styles.comparisonDifferences}>
+      {differences[maxMonth].map(({ id, label, value }) => <div key={id}><dt>{label}</dt><dd>{value}</dd></div>)}
+    </dl>}
+    <div className={styles.chartArea} role="group" aria-label={`${info.name} 비교 차트. 좌우 방향키로 관측값을 확인할 수 있습니다.`}>
+      <p className={styles.axisUnit}>단위 {info.unit}</p>
+      <ChartWhenVisible fallback={<DetailChartSkeleton label={info.name + ' 비교 차트'} />}>
+        <DividendComparisonPlot months={months} series={series} differences={differences} minimum={min} maximum={max} unit={info.unit} />
+      </ChartWhenVisible>
+    </div>
+    <figcaption className={styles.caption}>{minMonth.replace('-', '.')} ~ {maxMonth.replace('-', '.')} · 각 종목의 월별 마지막 제공값{countShared && ` · 종목당 ${monthCount}개월 제공`}</figcaption>
+  </figure>;
 }

@@ -68,6 +68,9 @@ export async function securityMetadata(code: string, metric: Metric = "price"): 
   const label = metricLabels[metric];
   const routes = await getEntityRouteInventory();
   const path = securityPath({ ...identity, routeCode: routes.securities.get(identity.securityId) ?? null }, metric);
+  if (metric === 'price') {
+    return businessMetadata(`${name} 주가·거래`, `${name} (${identity.exchange} ${identity.ticker})의 종가와 거래량, 연도별 주가 기록과 상장 이력을 확인하세요.`, path);
+  }
   return businessMetadata(`${name} ${label}·종목 이력`, `${name} (${identity.exchange} ${identity.ticker})의 ${label}, 최신 관측과 마지막 제공값, 선택 기간의 원천 이력을 확인하세요.`, path);
 }
 
@@ -83,7 +86,7 @@ export async function companyMetadata(code: string, marketcapDetail = false): Pr
   if (!identity) return missingMetadata("회사를 찾을 수 없습니다");
   const name = identity.korName || identity.name;
   const routes = await getEntityRouteInventory();
-  return businessMetadata(`${name} ${marketcapDetail ? '기업 합산 시총' : '기업 정보'}`, marketcapDetail
+  return businessMetadata(`${name} ${marketcapDetail ? '기업 합산 시가총액' : '기업 개요'}`, marketcapDetail
     ? `${name}의 기업 합산 시가총액, 공개 순위, 구성 종목 비중과 실제 관측 이력을 확인하세요.`
     : `${name}의 기업 정보와 구성 종목별 시가총액·주가를 확인하세요. 자료별 기준일과 미제공 상태를 함께 표시합니다.`,
     companyPath({ ...identity, routeCode: routes.companies.get(identity.companyId) ?? null }, marketcapDetail ? "marketcap" : undefined));

@@ -57,7 +57,7 @@ async function withOutline(url, verify) {
   });
   const active = () => [...doc.querySelectorAll('a[aria-current="location"]')].map(link => link.getAttribute('href'));
   try {
-    await verify({ render, move, active });
+    await verify({ render, move, active, doc });
   } finally {
     await React.act(async () => { root.unmount(); });
     for (const [key, descriptor] of prior) {
@@ -74,6 +74,8 @@ test('the outline follows the browser fragment offset and then follows manual sc
     assert.deepEqual(active(), ['#constituents']);
     await move({ top: 250, positions: { constituents: -110, dividends: 188, profile: 450 }, event: 'hashchange', hash: '#dividends' });
     assert.deepEqual(active(), ['#dividends']);
+    await move({ top: 247, positions: { constituents: -107, dividends: 191.14, profile: 453 } });
+    assert.deepEqual(active(), ['#dividends'], 'sticky title height and fractional anchor rounding do not move the active section backwards');
     await move({ top: 100, positions: { constituents: 120, dividends: 350, profile: 680 } });
     assert.deepEqual(active(), ['#constituents'], 'the previous hash does not replace the actual reading position');
   });
@@ -88,5 +90,14 @@ test('the outline recognizes a restored final fragment when the browser reaches 
     assert.deepEqual(active(), ['#dividends']);
     await move({ top: 500, positions: { constituents: -390, dividends: 60, profile: 420 } });
     assert.deepEqual(active(), ['#profile'], 'scrolling to the end also reaches the final visible section');
+  });
+});
+
+test('the outline uses the reached fragment margin even when the first section uses a smaller one', async () => {
+  await withOutline('http://localhost/security/samsung/div/', async ({ render, move, active, doc }) => {
+    doc.getElementById('constituents').style.scrollMarginTop = '96px';
+    await render();
+    await move({ top: 247, positions: { constituents: -107, dividends: 188, profile: 453 } });
+    assert.deepEqual(active(), ['#dividends']);
   });
 });

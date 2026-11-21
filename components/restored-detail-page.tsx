@@ -38,6 +38,7 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
     company: company ? {
       companyId: company.companyId, routeCode: company.routeCode, companyName: company.companyName, companyKorName: company.companyKorName,
       totalMarketcap: company.totalMarketcap, totalMarketcapDate: company.totalMarketcapDate, marketcapCompleteness: company.marketcapCompleteness,
+      marketcapRank: company.marketcapRank, exclusionReason: company.exclusionReason,
       state: company.state, compositionComplete: company.compositionComplete, compositionReason: company.compositionReason,
       compositionObservedCount: company.compositionObservedCount, compositionTargetCount: company.compositionTargetCount,
       company: corporationView(company.company), publication: publicationView(company.publication),

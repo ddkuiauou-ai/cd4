@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, Copy, Link } from "lucide-react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -23,6 +24,7 @@ export interface ShareButtonProps extends SharePayload {
     size?: ButtonProps["size"];
     copyVariant?: ButtonProps["variant"];
     copySize?: ButtonProps["size"];
+    compactActions?: boolean;
 }
 
 export function ShareButton({
@@ -33,6 +35,7 @@ export function ShareButton({
     size = "sm",
     copyVariant,
     copySize,
+    compactActions = false,
     className,
 }: ShareButtonProps) {
     const { toast } = useToast();
@@ -162,43 +165,54 @@ export function ShareButton({
         }
     }, [canNativeShare, handleCopy, isSharing, resolvedPayload.text, resolvedPayload.title, resolvedPayload.url, toast]);
 
-    const resolvedCopyVariant = copyVariant ?? (canNativeShare ? "ghost" : variant);
-    const resolvedCopySize = copySize ?? size;
+    const resolvedCopyVariant = copyVariant ?? (compactActions || canNativeShare ? "ghost" : variant);
+    const actionClass = compactActions ? "relative size-11 shrink-0" : "min-h-10 gap-1.5";
+    const iconClass = compactActions
+        ? "absolute inset-0 flex items-center justify-center motion-reduce:hidden"
+        : "inline-flex items-center gap-1.5";
+    const isCopied = copyState === "success";
+    const copyLabel = isCopied ? "복사 완료" : "링크 복사";
+    const shareLabel = compactActions && !canNativeShare ? "공유하기 (링크 복사)" : "공유하기";
+    const StaticCopyIcon = isCopied ? Check : Link;
 
     return (
         <div data-share-actions data-pinned={isPinned} className={cn("flex items-center gap-2", className)}>
             <Button
                 type="button"
                 variant={resolvedCopyVariant}
-                size={resolvedCopySize}
-                className="min-h-10 gap-1.5"
+                size={compactActions ? "icon" : copySize ?? size}
+                className={actionClass}
                 disabled={isCopying}
                 onClick={() => void handleCopy()}
-                aria-label={copyState === "success" ? "복사 완료" : "링크 복사"}
+                aria-label={copyLabel}
+                title={compactActions ? copyLabel : undefined}
             >
                 <AnimateIcon
-                    key={copyState === "success" ? `copy-success-${animateKey}` : "copy-idle"}
-                    animate={copyState === "success" ? "default" : false}
+                    key={isCopied ? `copy-success-${animateKey}` : "copy-idle"}
+                    animate={isCopied ? "default" : false}
                     animateOnHover
-                    className="inline-flex items-center gap-1.5"
+                    className={iconClass}
                 >
-                    {copyState === "success" ? <AnimatedCheck size={18} animateOnHover /> : <AnimatedLink size={18} />}
-                    <span className="text-xs font-medium">{copyState === "success" ? "복사 완료" : "링크 복사"}</span>
+                    {isCopied ? <AnimatedCheck size={18} aria-hidden="true" animateOnHover={compactActions ? undefined : true} /> : <AnimatedLink size={18} aria-hidden="true" />}
+                    {!compactActions && <span data-share-label className="text-xs font-medium">{copyLabel}</span>}
                 </AnimateIcon>
+                {compactActions && <StaticCopyIcon size={18} aria-hidden="true" className="hidden motion-reduce:block" />}
             </Button>
-            {canNativeShare && <Button
+            {(compactActions || canNativeShare) && <Button
                 type="button"
                 variant={variant}
-                size={size}
-                className="min-h-10 gap-1.5"
-                disabled={isSharing}
+                size={compactActions ? "icon" : size}
+                className={actionClass}
+                disabled={isSharing || (!canNativeShare && isCopying)}
                 onClick={() => void handleShare()}
-                aria-label="공유하기"
+                aria-label={shareLabel}
+                title={compactActions ? shareLabel : undefined}
             >
-                <AnimateIcon animateOnHover className="inline-flex items-center gap-1.5">
-                    <AnimatedCopy size={18} />
-                    <span className="text-xs font-medium">공유하기</span>
+                <AnimateIcon animateOnHover className={iconClass}>
+                    <AnimatedCopy size={18} aria-hidden="true" />
+                    {!compactActions && <span data-share-label className="text-xs font-medium">공유하기</span>}
                 </AnimateIcon>
+                {compactActions && <Copy size={18} aria-hidden="true" className="hidden motion-reduce:block" />}
             </Button>}
         </div>
     );

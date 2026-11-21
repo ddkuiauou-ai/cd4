@@ -54,7 +54,8 @@ test('the real toast renderer exposes copy/share failures and pinning keeps a si
       // Animation is outside this behavioral test. Keep ShareButton, Toast,
       // useToast, Radix, and the actual copy/share event handlers real.
       if (name.includes('/animate-ui/icons/')) return new Proxy({}, { get: (_, key) =>
-        key === 'AnimateIcon' ? ({ children }) => React.createElement('span', null, children) : () => React.createElement('svg') });
+        key === 'AnimateIcon' ? ({ children, className }) => React.createElement('span', { className }, children)
+          : () => React.createElement('svg', { 'data-animated-icon': key }) });
       const local = name.startsWith('@/') ? path.join(project, name.slice(2))
         : name.startsWith('.') ? path.resolve(path.dirname(filename), name) : null;
       if (!local) return require(name);
@@ -90,6 +91,26 @@ test('the real toast renderer exposes copy/share failures and pinning keeps a si
     assert.deepEqual(copied, ['http://localhost/detail/']);
     assert.match(document.body.textContent, /페이지 링크가 복사되었습니다/);
     assert.ok(document.querySelector('button[aria-label="복사 완료"]'));
+
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+    await React.act(async () => mounted.render(React.createElement(React.Fragment, null,
+      React.createElement(ShareButton, { key: 'compact', compactActions: true, url: 'http://localhost/detail/?period=123' }),
+      React.createElement(Toaster))));
+    const copy = document.querySelector('button[aria-label="링크 복사"]');
+    const share = document.querySelector('button[aria-label="공유하기 (링크 복사)"]');
+    assert.equal(copy.title, '링크 복사');
+    assert.equal(share.title, '공유하기 (링크 복사)');
+    assert.equal(copy.textContent + share.textContent, '');
+    assert.ok(copy.querySelector('[data-animated-icon="Link"]'));
+    assert.ok(share.querySelector('[data-animated-icon="Copy"]'));
+    assert.ok(copy.querySelector('.lucide-link'));
+    assert.ok(share.querySelector('.lucide-copy'));
+    assert.doesNotMatch(copy.className, /(?:^| )border(?: |$)/);
+    assert.match(share.className, /(?:^| )border(?: |$)/);
+    await click('공유하기 (링크 복사)');
+    assert.deepEqual(copied, ['http://localhost/detail/', 'http://localhost/detail/?period=123']);
+    assert.ok(document.querySelector('button[aria-label="복사 완료"] [data-animated-icon="Check"]'));
+    assert.ok(document.querySelector('button[aria-label="복사 완료"] .lucide-check'));
   } finally {
     if (mounted) await React.act(async () => mounted.unmount());
     pending.clear();

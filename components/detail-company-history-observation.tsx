@@ -1,4 +1,4 @@
-import { formatBusinessValue, formatCompactBusinessValue, type BusinessValue } from '@/lib/business-analysis';
+import { formatBusinessValue, formatMarketcapAmount, type BusinessValue } from '@/lib/business-analysis';
 import type { DetailCompanyData } from './detail-types';
 
 type CompanyData = NonNullable<DetailCompanyData>;
@@ -31,14 +31,17 @@ export function DetailCompanyHistoryObservation({ data, observation, count, sele
         <p className="text-sm text-muted-foreground">추이를 그릴 이력이 부족합니다. 등록된 날짜의 값을 표시합니다.</p>
         {selectedMissing && <p className="text-sm text-muted-foreground">선택한 종목의 이력이 이 날짜에 등록되어 있지 않습니다. 기업 합산과 다른 종목의 비교값을 함께 표시합니다.</p>}
         <dl className="divide-y divide-border text-sm">
-            {rows.map(row => <div key={row.id} data-history-security={row.id} data-selected={row.selected} className="flex items-start justify-between gap-4 py-3">
+            {rows.map(row => {
+                const exact = formatBusinessValue(row.value);
+                const amount = exact === '—' ? '미등록' : formatMarketcapAmount(row.value);
+                return <div key={row.id} data-history-security={row.id} data-selected={row.selected} className="flex items-start justify-between gap-4 py-3">
                 <dt className={`min-w-0 ${row.selected ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{row.label}{selectedSecurityId && <span className="mt-1 block text-xs font-normal text-muted-foreground">{row.selected ? '선택 종목' : row.id === 'aggregate' ? '기업 합산 비교' : '비교 종목'}</span>}</dt>
                 <dd className="min-w-0 text-right tabular-nums">
-                    <span className={`block ${row.selected ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>{row.value != null && formatBusinessValue(row.value) !== '—' ? `${formatCompactBusinessValue(row.value)}원` : '미등록'}</span>
-                    {row.value != null && formatBusinessValue(row.value) !== '—' && <span className="mt-1 block break-all text-xs text-muted-foreground">{formatBusinessValue(row.value)}원</span>}
+                    <span className={`block ${row.selected ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>{amount}</span>
+                    {exact !== '—' && amount !== `${exact}원` && <span className="mt-1 block break-words text-xs text-muted-foreground">{exact}원</span>}
                 </dd>
-            </div>)}
+            </div>})}
         </dl>
-        <p className="text-xs leading-relaxed text-muted-foreground">합계는 해당 날짜에 등록된 종목 값 기준입니다. {'observedCount' in observation && `${observation.observedCount}/${observation.targetCount}개 종목 관측.`} 미등록 종목의 값은 포함되지 않습니다.</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">합계는 해당 날짜에 등록된 종목 값 기준입니다. {Number.isInteger(observation.observedCount) && Number.isInteger(observation.targetCount) && `${observation.observedCount}/${observation.targetCount}개 종목 관측.`} 미등록 종목의 값은 포함되지 않습니다.</p>
     </div>;
 }

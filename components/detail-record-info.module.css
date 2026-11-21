@@ -1,0 +1,72 @@
+.trigger {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 40px;
+  min-block-size: 40px;
+  padding: 0;
+  vertical-align: middle;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.trigger svg {
+  inline-size: 16px;
+  block-size: 16px;
+  stroke-width: 1.5;
+}
+
+.trigger.withValue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  min-inline-size: 36px;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: inherit;
+  white-space: nowrap;
+}
+
+.withValue svg {
+  position: absolute;
+  inset-block-start: 1px;
+  inset-inline-end: -8px;
+  inline-size: 10px;
+  block-size: 10px;
+  color: var(--muted-foreground);
+}
+
+.trigger:is(:hover, [aria-expanded="true"]) {
+  background: var(--muted);
+}
+
+.trigger:is(:hover, [aria-expanded="true"]) svg {
+  color: var(--primary-muted);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.note {
+  position: fixed;
+  z-index: 70;
+  box-sizing: border-box;
+  width: max-content;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.14);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

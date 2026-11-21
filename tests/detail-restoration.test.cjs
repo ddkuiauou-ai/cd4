@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const React = require('react');
+const { JSDOM } = require('jsdom');
 const { loader, pageLoader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 const load = loader();
 const helpers = load('lib/detail-presentation.ts');
@@ -142,6 +143,21 @@ test('detail uses one snapshot, preserves rich sections and exports the full exa
   for(const text of ['PER 추이','과거 분포','기간별 평균','월별 기록','연도별 기록','전체 이력 CSV'])assert.ok(html.includes(text),text);
   assert.doesNotMatch(html, /input type="date"|순위 CSV/);
   assert.equal(page.csv().data.length,2);assert.equal(page.csv().data[0].per,'0');assert.equal(page.csv().data[1].per,'10');
+  assert.equal(page.csv().label,'테스트 PER 전체 이력 CSV');assert.equal(page.csv().buttonText,'CSV');
+});
+
+test('metric change calls the prior observation the previous trading day only when its quote date matches',async()=>{
+  const history=[{date:'2026-10-06',per:'8'},{date:'2026-10-08',per:'10'}];
+  const quotes=[{date:'2026-10-06',close:'80'},{date:'2026-10-08',close:'100'}];
+  const render=async priceHistory=>renderToStaticMarkup(await pageLoader({...common,history,priceHistory})
+    .pages.RestoredSecurityDetail({code:'security-id',metric:'per'}));
+  const previousTrade=JSDOM.fragment(await render(quotes)).querySelector('[data-prior-observation]');
+  assert.match(previousTrade.textContent,/PER 전일 대비\+25%/);
+  assert.equal(previousTrade.dataset.priorObservation,'2026-10-06');
+  const previousValue=JSDOM.fragment(await render([quotes[0],{date:'2026-10-07',close:'85'},quotes[1]]))
+    .querySelector('[data-prior-observation]');
+  assert.match(previousValue.textContent,/PER 직전 제공값 대비\+25%/);
+  assert.equal(previousValue.querySelector('time').dateTime,'2026-10-06');
 });
 
 test('unpublished detail never exposes a stale current metric or last provided result',async()=>{
@@ -179,6 +195,312 @@ test('non-BPS annual rows keep the last real observation and mark a partial late
   assert.equal(helpers.aggregateDetailRows([rows[1]],'year')[0].date,'2025-10-08','annual averaging cannot invent a future December date');
 });
 
+test('PER and PBR annual tables keep the source multiple and separate rates from unavailable comparisons',()=>{
+  const {JSDOM}=require('jsdom');
+  const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+  for (const metric of ['per', 'pbr']) {
+    const rows=helpers.detailAnnualRows([
+      {date:'2019-12-30',value:null},
+      {date:'2020-12-30',value:'5'},
+      {date:'2021-12-30',value:'0'},
+      {date:'2022-12-29',value:'1250.05'},
+      {date:'2023-12-28',value:'1250.05'},
+      {date:'2025-12-30',value:'10'},
+      {date:'2026-10-08',value:'12.34'},
+    ],metric);
+    const label=metric.toUpperCase();
+    const summaryBelow=metric==='per';
+    const dom=new JSDOM(renderToStaticMarkup(React.createElement(DetailAnnualHistory,{rows,label,unit:'배',metric})));
+    try {
+      const document=dom.window.document;
+      const table=document.querySelector('table');
+      const statistics=document.querySelector('dl');
+      assert.ok(statistics.compareDocumentPosition(table) & (summaryBelow?dom.window.Node.DOCUMENT_POSITION_PRECEDING:dom.window.Node.DOCUMENT_POSITION_FOLLOWING));
+      assert.deepEqual([...statistics.querySelectorAll('dt')].map(el=>el.textContent),['평균','최저','최고','상승 · 하락 연도']);
+      assert.deepEqual([...table.tHead.rows[0].cells].map(cell=>cell.textContent),['연도 / 관측일',label,'전년 대비']);
+      const records=[...table.tBodies[0].rows];
+      assert.equal(records.length, 7);
+      assert.match(records[0].cells[0].textContent,/2026연중/);
+      assert.equal(records[0].cells[1].textContent,'12.34배');
+      assert.equal(records[0].cells[2].textContent,'+23.4%');
+      assert.equal(records[0].querySelector('time').dateTime,'2026-10-08');
+      const gap=records[1].cells[2];
+      assert.match(cellDescription(gap),/인접한 전년 관측값이 없어/);
+      assert.equal(records[2].cells[2].textContent,'0%');
+      assert.equal(records[3].cells[1].textContent,'1,250.05배');
+      assert.equal(visibleValue(records[3].cells[2]),'+1,250.05배');
+      assert.equal(records[4].cells[1].textContent,'0배');
+      assert.equal(visibleValue(records[6].cells[1]),'—');
+    } finally {dom.window.close();}
+  }
+});
+
+test('financial annual records show a single table with local notes and the actual year count',()=>{
+  const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+  const {FinancialAnnualMetadata}=load('components/detail-annual-table.tsx');
+  const observations=[
+    {date:'2019-12-30',value:'2'},
+    {date:'2021-12-30',value:'0'},
+    {date:'2022-12-29',value:'0'},
+    {date:'2023-12-28',value:'-3'},
+    {date:'2024-12-30',value:'2'},
+    {date:'2025-12-30',value:null},
+    {date:'2026-10-08',value:'10'},
+  ];
+  for (const [metric,label,unit,differenceUnit] of [['per','PER','배','배'],['dps','주당배당금','원','원'],['div','배당수익률','%','%p']]) {
+    const rows=helpers.detailAnnualRows(observations,metric);
+    const document=JSDOM.fragment(renderToStaticMarkup(React.createElement(React.Fragment,null,
+      React.createElement(FinancialAnnualMetadata,{count:rows.length}),
+      React.createElement(DetailAnnualHistory,{rows,label,unit,metric}))));
+    const table=document.querySelector('table');
+    const records=[...table.tBodies[0].rows];
+    assert.equal(document.querySelectorAll('table').length,1);
+    assert.equal(table.tHead.rows[0].cells.length,3);
+    assert.equal(records[0].cells[0].querySelector('time').dateTime,'2026-10-08');
+    assert.match(records[0].cells[0].textContent,/2026.*연중/);
+    assert.equal(document.querySelectorAll('ul,ol').length,0);
+    assert.match(document.textContent,/7개 연도/);
+    const lookupNote=button=>document.getElementById(button.getAttribute('aria-describedby'));
+    assert.match(lookupNote(document.querySelector('button')).textContent,/각 연도의 마지막 관측값/);
+    const exceptions=records.slice(2,5).map(row=>row.cells[2].querySelector('button'));
+    assert.deepEqual(exceptions.map(button=>button.textContent),['+5'+differenceUnit,'−3'+differenceUnit,'0'+differenceUnit]);
+    exceptions.forEach(button=>assert.match(lookupNote(button).textContent,/전년 값이 0 이하라 변화율을 계산할 수 없어/));
+    for (const [index,reason] of [[0,/전년 값이 미제공/],[1,/현재 값이 미제공/],[5,/인접한 전년 관측값이 없어/],[6,/전년 관측값이 없습니다/]]) {
+      const button=records[index].cells[2].querySelector('button');
+      assert.equal(button.textContent,'—');
+      assert.match(lookupNote(button).textContent,reason);
+    }
+  }
+});
+
+test('EPS and BPS annual records show one exact won amount and preserve the source observation date',()=>{
+  const {JSDOM}=require('jsdom');
+  const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+  const {FinancialAnnualMetadata}=load('components/detail-annual-table.tsx');
+  const observations=[
+    {date:'2022-12-29',value:'-9007199254740993'},
+    {date:'2023-12-28',value:'0'},
+    {date:'2024-12-12',value:'40123'},
+    {date:'2024-12-30',value:null,state:'source_missing'},
+    {date:'2025-12-30',value:'57951',observedCount:1,targetCount:2},
+    {date:'2026-10-08',value:'6605'},
+  ];
+  for (const metric of ['eps','bps']) {
+    const rows=helpers.detailAnnualRows(observations,metric);
+    const label=metric.toUpperCase();
+    const yearEndOnly=metric==='bps';
+    const html=renderToStaticMarkup(React.createElement(React.Fragment,null,
+      React.createElement(FinancialAnnualMetadata,{count:rows.length,yearEndOnly}),
+      React.createElement(DetailAnnualHistory,{rows,label,unit:'원',metric,yearEndOnly})));
+    const dom=new JSDOM(html);
+    try {
+      const document=dom.window.document;
+      const table=document.querySelector('table');
+      const records=[...table.tBodies[0].rows];
+      assert.equal(document.querySelectorAll('table').length,1);
+      assert.ok(table.compareDocumentPosition(document.querySelector('dl')) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING);
+      assert.deepEqual([...table.tHead.rows[0].cells].map(cell=>cell.textContent),['연도 / 관측일',label,'전년 대비']);
+      assert.equal(records.length,yearEndOnly?4:5);
+      assert.match(records[0].cells[0].textContent,yearEndOnly?/^20252025-12-30$/:/2026.*연중/);
+      assert.equal(records[0].cells[1].firstChild.textContent,yearEndOnly?'57,951원':'6,605원');
+      assert.equal(records[0].cells[0].querySelector('time').dateTime,yearEndOnly?'2025-12-30':'2026-10-08');
+      if(yearEndOnly) assert.match(cellDescription(document.querySelector('[class*="headerMetadata"]')),/12월 마지막 관측값/);
+      const missing=records.find(row=>row.querySelector('time').dateTime.startsWith('2024'));
+      assert.equal(visibleValue(missing.cells[1]),'—');
+      assert.match(cellDescription(missing.cells[1]),yearEndOnly?/마지막 12월 관측일.*미제공/:/관측값 미제공/);
+      assert.equal(missing.querySelector('time').dateTime,'2024-12-30');
+      const covered=records.find(row=>row.querySelector('time').dateTime.startsWith('2025'));
+      assert.match(covered.cells[1].textContent,/1\/2개 관측/);
+      assert.match(cellDescription(covered.cells[2]),/전년 값이 미제공/);
+      const zero=records.find(row=>row.querySelector('time').dateTime.startsWith('2023'));
+      assert.equal(visibleValue(zero.cells[1]),'0원');
+      assert.equal(visibleValue(zero.cells[2]),'+9,007,199,254,740,993원');
+      assert.equal(visibleValue(records.at(-1).cells[1]),'−9,007,199,254,740,993원');
+    } finally {dom.window.close();}
+  }
+});
+
+function visibleValue(cell) {
+  return (cell.querySelector('button') ?? cell).textContent;
+}
+
+function cellDescription(cell) {
+  return cell.ownerDocument.getElementById(cell.querySelector('button').getAttribute('aria-describedby')).textContent;
+}
+
+test('PBR differences and EPS and BPS averages use the provided source observations', () => {
+  const { PeriodStats } = load('components/detail-period-stats.tsx');
+  const basis = '2026-11-20';
+  const source = [
+    { date: '2026-01-02', value: '0', state: 'provided' },
+    { date: '2026-10-08', value: '-6' },
+    { date: basis, value: null, state: 'source_missing' },
+  ];
+  for (const metric of ['pbr', 'eps', 'bps']) {
+    const fragment = JSDOM.fragment(renderToStaticMarkup(React.createElement(PeriodStats, {
+      analysis: { means: helpers.periodMeans(source, basis), summary: analysis.summarizeBusinessWindow(source), analysisEnd: basis },
+      metric, info: helpers.DETAIL_METRICS[metric], companyPage: false, basis, currentMultiple: '0',
+    })));
+    const headers = [...fragment.querySelector('thead tr').cells].map(cell => cell.textContent);
+    assert.deepEqual(headers, metric === 'pbr' ? ['기간', '평균 PBR', '현재 − 평균'] : ['기간', '평균값', '관측 수']);
+    const record = fragment.querySelector('tbody tr');
+    assert.deepEqual([...record.cells].slice(1).map(cell => cell.textContent), metric === 'pbr' ? ['−3배', '+3배'] : ['−3원', '2개']);
+    assert.equal(record.querySelector('time').dateTime, '2026-10-08');
+    assert.match(fragment.textContent, /실제 관측 2개/);
+    assert.doesNotMatch(fragment.textContent, /2026-11-20/);
+  }
+});
+
+test('annual dividend comparisons identify each preferred stock by the annual observation date and keep the separate prior-year rate',()=>{
+  const {JSDOM}=require('jsdom');
+  const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+  const {FinancialAnnualMetadata}=load('components/detail-annual-table.tsx');
+  const pairs=[{securityId:'preferred',label:'우선주 000002'},{securityId:'special',label:'우선주 000003'}];
+  const rows=helpers.detailAnnualRows([
+    {date:'2000-12-30',value:'0'}, {date:'2024-12-30',value:'-1'}, {date:'2025-12-30',value:'1'}, {date:'2026-10-08',value:'1.5'},
+  ],'div');
+  const byDate={
+    '2026-10-08':{preferred:'0.22',special:'0'},
+    '2025-12-30':{preferred:'-0.25',special:null},
+    '2024-12-27':{preferred:'1',special:'2'},
+  };
+  const props={rows,dividendComparison:{commonName:'보통주',pairs,byDate}};
+  for (const [metric,label,unit,differenceUnit] of [['div','배당수익률','%','%p'],['dps','주당배당금','원','원']]) {
+    const dom=new JSDOM(renderToStaticMarkup(React.createElement(React.Fragment,null,
+      React.createElement(FinancialAnnualMetadata,{count:rows.length,dividendComparison:props.dividendComparison}),
+      React.createElement(DetailAnnualHistory,{...props,label,unit,metric}))));
+    try {
+      const {document}=dom.window;
+      const table=document.querySelector('table');
+      assert.match(document.getElementById(document.querySelector('button').getAttribute('aria-describedby')).textContent,/최근 5년 중 같은 날의 관측값/);
+      assert.deepEqual([...table.tHead.rows[0].cells].map(cell=>cell.textContent),['연도 / 관측일',label,'전년 대비','우선주 − 보통주 '+differenceUnit]);
+      const records=[...table.tBodies[0].rows];
+      assert.match(records[0].cells[0].textContent,/2026.*연중/);
+      assert.equal(visibleValue(records[0].cells[1]),metric==='dps'?'2원':'1.5%');
+      assert.match(records[0].cells[1].textContent,/1\.5/);
+      assert.equal(records[0].cells[2].textContent,'+50%');
+      assert.equal(records[0].querySelector('time').dateTime,'2026-10-08');
+      assert.deepEqual([...records[0].cells[3].querySelectorAll('dt')].map(node=>node.textContent),pairs.map(pair=>pair.label));
+      assert.equal(visibleValue(records[0].cells[3].querySelector('[data-security-id="preferred"] dd')),(metric==='dps'?'+0.2':'+0.22')+differenceUnit);
+      assert.equal(records[0].cells[3].querySelector('[data-security-id="special"] dd').textContent,'0'+differenceUnit);
+      assert.equal(visibleValue(records[1].cells[3].querySelector('[data-security-id="preferred"] dd')),(metric==='dps'?'−0.3':'−0.25')+differenceUnit);
+      assert.equal(records[1].cells[3].querySelector('[data-security-id="special"] dd').textContent,'—같은 날 비교값 없음');
+      assert.match(records[2].cells[1].textContent,new RegExp('^[−-]1'+unit));
+      for (const unavailable of records.slice(2)) {
+        assert.deepEqual([...unavailable.cells[3].querySelectorAll('dd')].map(node=>node.textContent),['—같은 날 비교값 없음','—같은 날 비교값 없음']);
+      }
+    } finally {dom.window.close();}
+  }
+});
+
+test('annual dividend rows show named comparisons inline and disclose precise values by touch',async()=>{
+  const {JSDOM}=require('jsdom');
+  const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost'});
+  const previous=new Map();
+  for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true})){
+    previous.set(key,Object.getOwnPropertyDescriptor(globalThis,key));
+    Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
+  }
+  let mounted;
+  try {
+    const {createRoot}=require('react-dom/client');
+    const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+    const pairs=[{securityId:'preferred',label:'우선주 000002'},{securityId:'special',label:'우선주 000003'}];
+    const rows=helpers.detailAnnualRows([
+      {date:'2024-12-30',value:'0'}, {date:'2025-12-30',value:'1'}, {date:'2026-10-08',value:'2.00001'},
+    ],'dps');
+    const byDate={'2026-10-08':{preferred:'1',special:'-1'}};
+    mounted=createRoot(document.getElementById('root'));
+    const render=chosen=>React.act(async()=>mounted.render(React.createElement(DetailAnnualHistory,{
+      rows,label:'주당배당금',metric:'dps',unit:'원',dividendComparison:{commonName:'보통주',pairs:chosen,byDate},
+    })));
+
+    await render(pairs);
+    const table=document.querySelector('table');
+    const first=table.tBodies[0].rows[0];
+    assert.equal(first.cells[0].querySelector('time').dateTime,'2026-10-08');
+    assert.equal(first.cells[1].querySelector('button').textContent,'2원');
+    assert.equal(first.cells[2].textContent,'+100%');
+    assert.match(first.cells[3].textContent,/우선주 000002\+1원.*우선주 000003−1원/);
+    assert.equal(document.querySelectorAll('ul').length,0);
+    const control=first.cells[1].querySelector('button');
+    const exact=document.getElementById(control.getAttribute('aria-describedby'));
+    assert.equal(exact.textContent,'원값 2.00001원');
+    await React.act(async()=>control.click());
+    assert.equal(control.getAttribute('aria-expanded'),'true');
+    await React.act(async()=>control.click());
+    assert.equal(control.getAttribute('aria-expanded'),'false');
+
+    await render(pairs.slice(0,1));
+    assert.equal(first.cells[3].querySelector('dt').className,'sr-only');
+    assert.equal(first.cells[3].querySelector('dd').textContent,'+1원');
+    const exception=table.tBodies[0].rows[1].cells[2].querySelector('button');
+    assert.equal(exception.textContent,'+1원');
+    assert.match(document.getElementById(exception.getAttribute('aria-describedby')).textContent,/전년 값이 0 이하/);
+  } finally {
+    if(mounted)await React.act(async()=>mounted.unmount());
+    for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+    dom.window.close();
+  }
+});
+
+test('marketcap annual records group dates, preserve legitimate coverage and disclose exact amounts at any width',async()=>{
+  const {JSDOM}=require('jsdom');
+  const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost'});
+  const previous=new Map();
+  for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true})){
+    previous.set(key,Object.getOwnPropertyDescriptor(globalThis,key));
+    Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
+  }
+  let mounted;
+  try {
+    const {createRoot}=require('react-dom/client');
+    const {DetailAnnualHistory}=load('components/restored-detail-charts.tsx');
+    const rows=helpers.detailAnnualRows([
+      {date:'2022-12-30',value:'150000000000',targetCount:2},
+      {date:'2023-12-28',value:null,observedCount:0,targetCount:2,observedSecurityIds:[]},
+      {date:'2024-12-30',value:'0',observedCount:1,targetCount:2,observedSecurityIds:['common']},
+      {date:'2025-12-30',value:'1687385008678000',observedCount:2,targetCount:2,observedSecurityIds:['common','preferred']},
+      {date:'2026-10-08',value:'9007199254740993',observedCount:1,targetCount:2,observedSecurityIds:['preferred']},
+    ],'marketcap');
+    mounted=createRoot(document.getElementById('root'));
+    await React.act(async()=>mounted.render(React.createElement(DetailAnnualHistory,{rows,label:'등록 종목 합계',metric:'marketcap',unit:'원'})));
+    const table=document.querySelector('table');
+    assert.match(table.caption.textContent,/연도별 등록 종목 합계 및 전년 대비 변화율.*등록 종목을 합산합니다/);
+    assert.deepEqual([...table.tHead.rows[0].cells].map(cell=>cell.textContent),['연도 / 관측일','등록 종목 합계','전년 대비']);
+    const records=[...table.tBodies[0].rows];
+    assert.match(records[0].cells[0].textContent,/2026.*연중/);
+    assert.equal(records[0].querySelector('summary').textContent,'9,007조 1,993억 원');
+    assert.match(records[0].cells[1].textContent,/1\/2개 관측 · 일부/);
+    assert.match(records[0].cells[2].textContent,/^—관측 종목이 달라/);
+    assert.equal(records[0].querySelector('time').dateTime,'2026-10-08');
+    assert.match(records[1].cells[1].textContent,/1,687조 3,850억 원.*2\/2개 관측/);
+    assert.match(records[2].cells[1].textContent,/0원1\/2개 관측/);
+    assert.match(records[3].cells[1].textContent,/^—0\/2개 관측/);
+    assert.equal(records[4].querySelector('summary').textContent,'1,500억 원');
+    assert.equal(records[4].querySelector('.annualCoverage'),null);
+
+    assert.equal(document.querySelectorAll('table').length,1);
+    const details=records[0].querySelector('details');
+    assert.equal(details.open,false);
+    await React.act(async()=>details.querySelector('summary').click());
+    assert.equal(details.open,true);
+    assert.equal(details.querySelector('strong').textContent,'9,007,199,254,740,993원');
+    assert.equal((records[0].textContent.match(/1\/2개 관측/g)??[]).length,1);
+
+    const stockRows=helpers.detailAnnualRows([{date:'2026-10-08',value:'155660013382000'}],'marketcap');
+    await React.act(async()=>mounted.render(React.createElement(DetailAnnualHistory,{rows:stockRows,label:'시가총액',metric:'marketcap',unit:'원'})));
+    assert.equal(document.querySelector('thead tr').cells[1].textContent,'종목 시총');
+    assert.doesNotMatch(document.querySelector('table').textContent,/개 관측/);
+    assert.equal(document.querySelector('tbody summary').textContent,'155조 6,600억 원');
+    assert.equal(document.querySelector('tbody details strong').textContent,'155,660,013,382,000원');
+  } finally {
+    if(mounted)await React.act(async()=>mounted.unmount());
+    for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+    dom.window.close();
+  }
+});
+
 test('invalid ranges suppress all analysis charts while official snapshots stay visible',async()=>{
   const company={companyId:'company-id',companyName:'Test',companyKorName:'테스트',state:'published',publication,totalMarketcap:'100',totalMarketcapDate:'2026-10-08',securities:[]};
   const page=pageLoader({...common,company});
@@ -187,8 +509,9 @@ test('invalid ranges suppress all analysis charts while official snapshots stay 
 });
 
 
-test('detail exposes its public asOf, revision and scope in a compact source explanation',async()=>{
+test('detail presents its public asOf once and omits repeated publication metadata at the bottom',async()=>{
   const page=pageLoader({...common,security:{...security,publication:{asOf:'2026-10-08',revision:'9007199254740993',scopeKey:'krx-all'}}});
   const html=renderToStaticMarkup(await page.pages.RestoredSecurityDetail({code:'security-id',metric:'per'}));
-  assert.match(html,/조회 기준 · 자료 공개 정보/);assert.equal((html.match(/공개 기준일/g) ?? []).length,1);assert.match(html,/2026-10-08/);assert.match(html,/자료 갱신번호/);assert.match(html,/9007199254740993/);assert.match(html,/한국거래소 전체 \(krx-all\)/);assert.match(html,/실제 관측일/);
+  assert.equal((html.match(/공개 기준일/g) ?? []).length,1);assert.match(html,/공개 기준일 2026-10-08/);
+  assert.doesNotMatch(html,/조회 기준 · 자료 공개 정보|자료 갱신번호|9007199254740993|지표 설명 · 계산식/);
 });

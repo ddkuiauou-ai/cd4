@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { hasCompanyRankingCsvChanges, readRankingCsvMetadata, readRankingCsvResponseMetadata, serializeCsvRows, type RankingCsvExpectedRow } from "@/lib/csv/ranking";
@@ -30,6 +30,8 @@ export interface CsvDownloadButtonProps {
   filename?: string;
   className?: string;
   label?: string;
+  buttonText?: string;
+  compact?: boolean;
   scope?: RankingDownloadScope;
   metric?: RankingDownloadMetric;
   // A page's reference date is not a guarantee that all company rows share it.
@@ -43,7 +45,7 @@ export interface CsvDownloadButtonProps {
 }
 
 export function CsvDownloadButton({
-  data, filename = "data.csv", className, label = "CSV 다운로드", scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
+  data, filename = "data.csv", className, label = "CSV 다운로드", buttonText, compact = false, scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
   revision, scopeKey = "krx-all", refreshHref, staticSource,
 }: CsvDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -51,6 +53,7 @@ export function CsvDownloadButton({
   const [hasError, setHasError] = useState(false);
   const [hasNewBasis, setHasNewBasis] = useState(false);
   const isRanking = scope !== undefined && metric !== undefined;
+  const HistoryIcon = compact ? FileDown : Download;
   const href = isRanking ? staticSource?.url ?? getRankingDownloadUrl(scope, metric, { revision, scopeKey }) : undefined;
 
   const handleRankingDownload = async (event: MouseEvent<HTMLAnchorElement>) => {
@@ -134,10 +137,12 @@ export function CsvDownloadButton({
           disabled={!data?.length}
           variant="outline"
           size="sm"
-          className={cn("min-h-10", className)}
+          aria-label={buttonText || compact ? label : undefined}
+          title={compact ? label : undefined}
+          className={cn(compact ? "min-h-11 gap-1.5 px-2.5 [--detail-history-action-min-height:44px]" : "min-h-10", className)}
         >
-          <Download aria-hidden="true" className="mr-2 h-4 w-4" />
-          {label}
+          <HistoryIcon aria-hidden="true" className={cn("size-4", !compact && "mr-2")} />
+          {buttonText ?? label}
         </Button>
       )}
       {(message || isRanking) && (

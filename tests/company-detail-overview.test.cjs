@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const React = require('react');
 const { JSDOM } = require('jsdom');
 const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
-const { CompanyProfile, CompanyMarketcapOverview, CompanyConstituents } = loader()('components/company-detail-overview.tsx');
+const { CompanyProfile, CompanyMarketcapOverview } = loader()('components/company-detail-overview.tsx');
+
+const { ConstituentsTable } = loader()('components/detail-investor-records.tsx');
 
 const day = '2026-10-08';
 function fixture() {
@@ -32,37 +34,29 @@ test('company profile keeps five fields, hides duplicated English names, and onl
   });
 });
 
-test('constituent table uses official marketcap snapshot, exact titles and date/range-aware concrete links', () => {
+test('the constituent table links exact published amounts to their stock and price histories', () => {
   const data = fixture();
   data.members = data.members.map(row => ({...row, marketcap: '1', marketcapDate: '2026-10-09'}));
-  inspect(CompanyConstituents, {...data, basic: false, start: '2026-07-01', end: day}, doc => {
+  inspect(ConstituentsTable, {...data, scope: {start: '2026-07-01', end: day}, basis: day}, doc => {
     const rows = doc.querySelectorAll('tbody tr');
-    assert.equal(doc.querySelectorAll('thead th').length, 3);
-    assert.equal(rows.length, 3);
-    assert.equal(rows[0].querySelectorAll('td')[0].title, '495,000,000,000,000원 · 시가총액 기준 2026-10-08');
-    assert.equal(rows[0].querySelector('a').getAttribute('href'), '/security/KOSPI.005930/marketcap?start=2026-07-01&end=2026-10-08');
-    assert.equal(rows[1].querySelector('a').getAttribute('href'), '/security/preferred/marketcap?start=2026-07-01&end=2026-10-08');
-    assert.match(rows[1].textContent, /60,000원0.00%/);
-    assert.match(doc.querySelector('.detail-company-price-gap').textContent, /14,000원 \(18.92%\)/);
-    assert.match(doc.querySelector('.detail-company-disclosure').textContent, /우선종목 가격이 보통종목보다 14,000원 낮습니다.*\|우선주 − 보통주\| ÷ 보통주 × 100/);
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].cells[2].querySelector('a').title, '495,000,000,000,000원');
+    assert.equal(rows[0].cells[2].querySelector('a').getAttribute('href'), '/security/KOSPI.005930/marketcap?start=2026-07-01&end=2026-10-08');
+    assert.equal(rows[1].cells[3].querySelector('a').getAttribute('href'), '/security/preferred?start=2026-07-01&end=2026-10-08');
   });
-  inspect(CompanyConstituents, {...data, basic: true}, doc => assert.equal(doc.querySelector('tbody a').getAttribute('href'), '/security/KOSPI.005930'));
 });
 
-test('missing latest quotes never fall back to stale values or rates; mismatched dates stay visible', () => {
+test('the constituent table keeps a missing latest close and displays a differing trading date', () => {
   const data = fixture();
-  data.preferred.prices = [{date: '2026-10-07', close: '60000', rate: -1}, {date: day, close: null, rate: 2}];
-  inspect(CompanyConstituents, {...data, basic: true}, doc => {
-    const quote = doc.querySelectorAll('tbody tr')[1].querySelectorAll('td')[1];
-    assert.equal(quote.textContent, '——2026-10-08');
-    assert.equal(doc.querySelector('.detail-company-price-gap strong').textContent, '—');
-    assert.match(doc.querySelector('.detail-company-disclosure').textContent, /같은 기준일의 유효한 주가/);
+  data.preferred.prices = [{date: '2026-10-07', close: '60000'}, {date: day, close: null}];
+  inspect(ConstituentsTable, {...data, scope: {}, basis: day}, doc => {
+    const cell = doc.querySelectorAll('tbody tr')[1].cells[3];
+    assert.equal(cell.textContent, '—');
+    assert.equal(cell.querySelector('a'), null);
   });
-  data.preferred.prices = [{date: '2026-10-07', close: '60000', rate: -1}];
-  inspect(CompanyConstituents, {...data, basic: true}, doc => {
-    assert.match(doc.querySelectorAll('tbody tr')[1].textContent, /2026-10-07/);
-    assert.match(doc.querySelector('.detail-company-disclosure').textContent, /거래 기준일이 달라/);
-    assert.doesNotMatch(doc.querySelector('.detail-company-comparison-basis').textContent, /종가 기준/);
+  data.preferred.prices.pop();
+  inspect(ConstituentsTable, {...data, scope: {}, basis: day}, doc => {
+    assert.match(doc.querySelectorAll('tbody tr')[1].cells[3].textContent, /60,000원.*2026-10-07/);
   });
 });
 
@@ -88,16 +82,12 @@ test('the cap overview retains snapshot guards, distinct rank dates, and readabl
   });
 });
 
-test('empty membership remains explicit and valid supplied identities remain findable', () => {
-  inspect(CompanyConstituents, {company: null, members: [], basic: true}, doc => {
-    assert.match(doc.body.textContent, /등록된 구성 종목이 없습니다/);
+test('empty membership stays explicit and unlisted rows never enter the company composition', () => {
+  inspect(ConstituentsTable, {company: null, members: [], scope: {}}, doc => {
+    assert.match(doc.body.textContent, /확인된 구성 종목이 없습니다/);
     assert.equal(doc.querySelectorAll('table').length, 0);
   });
   const data = fixture();
-  data.members.push({...data.common, securityId: 'another', routeCode: 'KOSPI.000001', korName: '추가종목'});
-  inspect(CompanyConstituents, {...data, basic: true}, doc => {
-    assert.equal(doc.querySelectorAll('tbody a').length, 3);
-    assert.match(doc.body.textContent, /추가종목/);
-  });
+  data.members.push({...data.common, securityId: 'another', routeCode: 'KOSPI.000001'});
   inspect(CompanyMarketcapOverview, {...data, ranking: null}, doc => assert.equal(doc.querySelectorAll('.detail-company-composition-segment').length, 2));
 });

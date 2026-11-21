@@ -1,10 +1,11 @@
 'use client';
 
+import { formatInvestorAmount, formatInvestorNumber } from '@/lib/investor-number';
 import { ResponsiveHeatMap } from '@nivo/heatmap';
 import type { HeatMapSerie } from '@nivo/heatmap';
 import { useState, useEffect } from 'react';
 import { heatmapLabelColor, heatmapTheme } from './chart-theme';
-import { formatBusinessValue, formatCompactBusinessValue, type BusinessValue } from '@/lib/business-analysis';
+import { formatBusinessValue, type BusinessValue } from '@/lib/business-analysis';
 
 interface PERHeatmapProps {
   data: HeatMapSerie<{ x: string, y: number }, object>[];
@@ -45,8 +46,14 @@ export default function PERHeatmap({ data, minValue, maxValue, valueFormatter, s
           theme={readableTheme}
           labelTextColor={heatmapLabelColor}
           borderColor="transparent"
-          label={cell => sourceValues ? formatCompactBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null) : cell.formattedValue || ''}
-          tooltip={sourceValues ? ({ cell }) => <div className="max-w-[calc(100vw-48px)] rounded-md border border-border bg-popover p-3 text-sm shadow-md">{cell.data.x}년 {cell.serieId} · {formatBusinessValue(sourceValues[`${cell.serieId}/${cell.data.x}`] ?? null)}배</div> : undefined}
+          label={cell => sourceValues ? formatInvestorNumber(sourceValues[`${cell.serieId}/${cell.data.x}`], '배') : cell.formattedValue || ''}
+          tooltip={sourceValues ? ({ cell }) => {
+            const value = sourceValues[`${cell.serieId}/${cell.data.x}`];
+            return <div className="max-w-[calc(100vw-48px)] rounded-md border border-border bg-popover p-3 text-sm shadow-md"
+              title={value == null ? undefined : formatBusinessValue(value) + '배'}>
+              {cell.data.x}년 {cell.serieId} · {formatInvestorAmount(value, '배')}
+            </div>;
+          } : undefined}
           data={data}
           margin={{ top: 40, right: 20, bottom: 64, left: 48 }}
           valueFormat={formatValue}

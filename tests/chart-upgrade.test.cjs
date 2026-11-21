@@ -71,6 +71,7 @@ async function withChartEnvironment(run, stubs = {}) {
     mod.paths = Module._nodeModulePaths(path.dirname(filename));
     mod.require = (name) => {
       if (name in stubs) return stubs[name];
+      if (name.endsWith(".module.css")) return {__esModule: true, default: new Proxy({}, {get: (_, key) => String(key)})};
       if (name === "recharts") return chartModules;
       if (name === "@nivo/heatmap") return {
         ...heatmap,
@@ -189,6 +190,62 @@ test("company chart renders the axis break at finite coordinates using the Recha
   });
 });
 
+test('registered cap charts show exact registered values, coverage and missing observations, with a table for one date', async () => {
+  await withChartEnvironment(async ({container,render,load,flushFrames}) => {
+    const {InteractiveChartSection}=load(path.join(root,'components/interactive-chart-section.tsx'));
+    const company={totalMarketcap:'77777777777777777',securities:[
+      {securityId:'common',ticker:'000001',korName:'기업',type:'보통주',marketcapHistory:[{date:'2026-10-08',marketcap:'9007199254740993'}]},
+      {securityId:'preferred',ticker:'000002',korName:'기업우',type:'우선주',marketcapHistory:[{date:'2026-10-08',marketcap:'0'}]},
+    ],aggregatedHistory:[
+      {date:'2025-10-08',totalMarketcap:'12',observedCount:2,targetCount:2,securitiesBreakdown:{common:'10',preferred:'2'}},
+      {date:'2026-08-20',totalMarketcap:'9007199254740994',observedCount:1,targetCount:2,securitiesBreakdown:{common:'9007199254740994',preferred:null}},
+      {date:'2026-09-14',totalMarketcap:null,observedCount:0,targetCount:2,securitiesBreakdown:{common:null,preferred:null}},
+      {date:'2026-10-08',totalMarketcap:'9007199254740993',observedCount:2,targetCount:2,securitiesBreakdown:{common:'9007199254740993',preferred:'0'}},
+    ]};
+    const Chart=({data})=>React.createElement(InteractiveChartSection,{companyMarketcapData:company,companySecs:[],type:'summary',...data});
+    await render(Chart,{});
+    assert.equal(container.querySelector('button[aria-pressed="true"]').textContent,'5년');
+    assert.equal(container.querySelectorAll('.recharts-line').length,1);
+    assert.equal(container.querySelector('.recharts-legend-wrapper'),null);
+    assert.match(container.querySelector('figcaption').textContent,/2025-10-08 ~ 2026-10-08 · 3일 관측/);
+    const recent=[...container.querySelectorAll('button')].find(button=>button.textContent==='최근 3개월');
+    await React.act(async()=>recent.click());
+    await flushFrames();
+    assert.match(container.querySelector('figcaption').textContent,/2026-08-20 ~ 2026-10-08 · 2일 관측.*부분 관측 1일.*미관측 1일/s);
+    const assertLegendPosition=()=>{
+      const {position,marginTop,top,paddingBottom}=container.querySelector('.recharts-legend-wrapper').style;
+      assert.equal(position,'absolute');
+      assert.equal(marginTop,'');
+      assert.equal(top,'8px');
+      assert.equal(paddingBottom,'8px');
+    };
+    const move=async key=>{
+      await React.act(async()=>container.querySelector('.recharts-wrapper').dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+      return container.querySelector('.recharts-tooltip-wrapper')?.textContent ?? '';
+    };
+    await move('ArrowLeft');await move('ArrowLeft');
+    assert.match(await move('ArrowLeft'),/2026-08-20.*1\/2개 종목 관측 · 부분 관측.*등록 종목 합계9,007,199,254,740,994원.*우선주 · 000002미관측/);
+    assert.match(await move('ArrowRight'),/2026-09-14.*0\/2개 종목 관측.*등록 종목 합계미관측/);
+    assert.match(await move('ArrowRight'),/2026-10-08.*등록 종목 합계9,007,199,254,740,993원.*우선주 · 0000020원/);
+    assert.doesNotMatch(container.textContent,/77,777,777,777,777,777/);
+    const all=[...container.querySelectorAll('button')].find(button=>button.textContent==='전체');
+    await React.act(async()=>all.click());
+    await flushFrames();
+    assert.match(container.querySelector('figcaption').textContent,/2025-10-08 ~ 2026-10-08/);
+
+    await render(Chart,{type:'detailed',selectedSecurityId:'preferred'});
+    assert.equal(container.querySelectorAll('button').length,0);
+    assertLegendPosition();
+    await move('ArrowRight');await move('ArrowRight');await move('ArrowRight');await move('ArrowRight');
+    assert.match(container.querySelector('.recharts-tooltip-wrapper [aria-current="true"]').textContent,/우선주 · 0000020원/);
+
+    await render(Chart,{type:'detailed',selectedSecurityId:'preferred',start:'2026-10-08',end:'2026-10-08'});
+    assert.equal(container.querySelector('svg.recharts-surface'),null);
+    assert.match(container.querySelector('[data-history-state="sparse"]').textContent,/2026-10-08.*9,007,199,254,740,993원/);
+  });
+});
+
 test("DPS growth chart keeps horizontal grid lines and dividend-first legend with named axes", async () => {
   await withChartEnvironment(async ({ container, render, load }) => {
     const Chart = load(path.join(root, "components/chart-dps-growth.tsx")).default;
@@ -231,7 +288,7 @@ test('restored single financial observations keep a real dot for positive, zero 
       await render(Chart,[{date:'2026-10-08',value}]);
       const point=container.querySelector('.recharts-line-dot');assert.ok(point,'single supplied value needs a point');
       assert.ok(Number.isFinite(Number(point.getAttribute('cx'))));assert.ok(Number.isFinite(Number(point.getAttribute('cy'))));
-      assert.match(container.textContent,/추이를 그릴 이력이 부족/);assert.match(container.textContent,new RegExp(value+'배'));
+      assert.match(container.textContent,/추이를 그릴 이력이 부족/);assert.match(container.textContent,new RegExp(value.replace('-', '−')+'배'));
     }
     await render(Chart,[{date:'2026-10-08',value:null}]);assert.equal(container.querySelector('.recharts-line-dot'),null);
   });
@@ -242,9 +299,132 @@ test('monthly chart shows the raw count separately from its final provided point
     const History=load(path.join(root,'components/detail-history-chart.tsx')).DetailHistoryChart;
     const Chart=({data})=>React.createElement(History,{rows:data,metric:'per',label:'PER',unit:'배'});
     await render(Chart,[{date:'2026-10-01',value:'1'},{date:'2026-10-02',value:'2'},{date:'2026-10-08',value:'3'}]);
-    assert.match(container.textContent,/선택 원천 관측 2026-10-01 ~ 2026-10-08 · 3개 기록/);
+    assert.match(container.querySelector('figcaption').textContent,/각 월의 마지막 제공값 · 1개 \/ 원천 관측 3개/);
     assert.ok(container.querySelector('.recharts-line-dot'));
-    assert.match(container.querySelector('[role="img"]').getAttribute('aria-label'),/표시 관측 1개/);
+    assert.match(container.querySelector('figcaption').textContent,/2026-10-08 · 3배/);
+    assert.match(container.querySelector('[role="group"][aria-label^="PER 차트"]').getAttribute('aria-label'),/좌우 방향키/);
+  });
+});
+
+test('history axis labels follow the displayed sampling unit without repeating a month for daily points', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
+    const rows = [
+      {date:'2025-10-31',value:'1'}, {date:'2026-09-10',value:'2'},
+      {date:'2026-10-01',value:'4'}, {date:'2026-10-08',value:'3'},
+    ];
+    const labels = () => [...container.querySelectorAll('.recharts-cartesian-axis-tick-value[orientation="bottom"]')].map(node => node.textContent);
+    const Daily = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'dps', unit:'원', label:'주당배당금'});
+    await render(Daily,rows);
+    assert.ok(labels().includes('2026-10-01') && labels().includes('2026-10-08'));
+    assert.equal(new Set(labels()).size, labels().length);
+
+    const PER = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'per', unit:'배', label:'PER'});
+    await render(PER,rows);
+    assert.ok(labels().includes('2026.10'));
+    const yearly = [...container.querySelectorAll('button')].find(button => button.textContent === '연간');
+    await React.act(async () => yearly.click());
+    await flushFrames();
+    assert.deepEqual(labels(), ['2025','2026']);
+  });
+});
+
+test('ratio charts use rounded value ticks and calendar bounds while exact keyboard tooltips distinguish a gap from zero', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
+    const PBR = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'pbr', unit:'배', label:'PBR'});
+    await render(PBR,[
+      {date:'2026-01-30',value:'-3.1234'},
+      {date:'2026-03-30',value:'0'},
+      {date:'2026-04-30',value:'4.5678'},
+    ]);
+    const ticks = orientation => [...container.querySelectorAll(`.recharts-cartesian-axis-tick-value[orientation="${orientation}"]`)].map(node => node.textContent);
+    assert.deepEqual(ticks('left'), ['−4','−2','0','2','4','6']);
+    assert.deepEqual(ticks('bottom'), ['2026.01','2026.02','2026.03','2026.04']);
+    const wrapper = container.querySelector('.recharts-wrapper');
+    const tooltip = () => container.querySelector('.recharts-tooltip-wrapper')?.textContent ?? '';
+    const move = async key => {
+      await React.act(async () => wrapper.dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+    };
+    for (let i = 0; i < 4; i++) await move('ArrowLeft');
+    assert.match(tooltip(), /2026-01-30PBR −3\.12배/);
+    assert.equal(container.querySelector('.recharts-tooltip-wrapper strong').title, '-3.1234배');
+    await move('ArrowRight');
+    assert.match(tooltip(), /2026\.02PBR 미제공/);
+    await move('ArrowRight');
+    assert.match(tooltip(), /2026-03-30PBR 0배/);
+  });
+});
+
+test('dense ratio charts keep the isolated and final observations while ordinary points remain interactive', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
+    const PER = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'per', unit:'배', label:'PER'});
+    const ordinary = Array.from({length:12},(_,index) => ({date:`2024-${String(index+1).padStart(2,'0')}-15`,value:String(index+1)}));
+    await render(PER,[...ordinary,
+      {date:'2025-03-14',value:'13'}, {date:'2025-05-15',value:'14'}, {date:'2025-06-16',value:'15'},
+      {date:'2025-07-15',value:null},
+    ]);
+    const points = [...container.querySelectorAll('.detail-ratio-dot')];
+    assert.equal(points.length,2);
+    assert.deepEqual(points.map(point => point.getAttribute('r')), ['2','3']);
+    assert.ok(points.every(point => Number.isFinite(Number(point.getAttribute('cx')))));
+    const chart = container.querySelector('.recharts-wrapper');
+    for (let index=0; index<20; index++) {
+      await React.act(async () => chart.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true})));
+      await flushFrames();
+    }
+    assert.match(container.querySelector('.recharts-tooltip-wrapper').textContent,/2024-01-15PER 1배/);
+  });
+});
+
+test('EPS axis labels are won amounts and the yearly tooltip identifies an average rather than the last day', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
+    const EPS = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'eps', unit:'원', label:'EPS'});
+    await render(EPS,[{date:'2025-10-01',value:'-2200.32'}, {date:'2025-10-31',value:'0'},
+      {date:'2026-02-27',value:'12000.2'}, {date:'2026-10-08',value:'8400.42'}]);
+    const currencyTicks = [...container.querySelectorAll('text[orientation="left"]')].map(node=>node.textContent);
+    assert.ok(currencyTicks.includes('0') && currencyTicks.some(label=>/^\d{1,3},\d{3}$/.test(label)));
+    assert.match(container.querySelector('figcaption').textContent,/각 월의 마지막 제공값 · 3개 \/ 원천 관측 4개/);
+    const yearly = [...container.querySelectorAll('button')].find(button=>button.textContent==='연간');
+    await React.act(async()=>yearly.click());
+    await flushFrames();
+    const chart=container.querySelector('.recharts-wrapper');
+    for(let index=0;index<3;index++) {
+      await React.act(async()=>chart.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true})));
+      await flushFrames();
+    }
+    const tooltip = container.querySelector('.recharts-tooltip-wrapper');
+    assert.match(tooltip.textContent,/2026년EPS 10,200원평균에 포함된 제공 관측 2개/);
+    assert.equal(tooltip.querySelector('strong').title,'10,200.31원');
+  });
+});
+
+test('BPS tooltips retain exact December observation dates and compare only adjacent annual values', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
+    const BPS = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'bps', unit:'원', label:'BPS', annual:true});
+    await render(BPS,[{date:'2021-12-30',value:'10000'}, {date:'2022-12-29',value:'0'}, {date:'2023-12-28',value:'-1234.56'},
+      {date:'2024-10-08',value:'90000'}, {date:'2025-12-15',value:'18000'}, {date:'2025-12-30',value:null}, {date:'2026-10-08',value:'25000'}]);
+    const chart=container.querySelector('.recharts-wrapper');
+    const tooltip=()=>container.querySelector('.recharts-tooltip-wrapper')?.textContent ?? '';
+    const move=async key=>{
+      await React.act(async()=>chart.dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+    };
+    for(let index=0;index<6;index++) await move('ArrowLeft');
+    assert.match(tooltip(),/2021-12-30BPS 10,000원/);
+    await move('ArrowRight');
+    assert.match(tooltip(),/2022-12-29BPS 0원전년 대비 −100%/);
+    await move('ArrowRight');
+    assert.match(tooltip(),/2023-12-28BPS −1,235원전년 대비 차이 −1,235원/);
+    assert.equal(container.querySelector('.recharts-tooltip-wrapper strong').title,'-1,234.56원');
+    await move('ArrowRight');
+    assert.match(tooltip(),/2024년BPS 미제공/);
+    await move('ArrowRight');
+    assert.match(tooltip(),/2025-12-30BPS 미제공/);
   });
 });
 
@@ -271,10 +451,13 @@ test('DPS keyboard tooltips preserve real zero percent and explain exact nonposi
     };
     for(const [previous,current,reason]of [['0','9007199254740994','0'],['-9007199254740993','1','음수']]){
       await render(Chart,[{date:'2026-10-01',value:previous},{date:'2026-10-08',value:current}]);
+      assert.equal(container.querySelector('[aria-label="금액과 변화율의 축"]'),null);
+      assert.equal(container.querySelector('text[orientation="right"]'),null);
       await move('ArrowLeft');const first=await move('ArrowLeft');assert.match(first,/직전 제공 기록이 없습니다/);assert.doesNotMatch(first,/—%/);
       const second=await move('ArrowRight');assert.match(second,/직전 제공 기록 대비 차이 9,007,199,254,740,994원/);assert.ok(second.includes(`이전 값이 ${reason}라 증감률 계산 불가`));assert.doesNotMatch(second,/—%|Infinity|NaN/);
     }
     await render(Chart,[{date:'2026-10-01',value:'100'},{date:'2026-10-08',value:'100'}]);
+    assert.match(container.querySelector('[aria-label="금액과 변화율의 축"]').textContent,/주당배당금 \(원\).*변화율 \(%\)/);
     await move('ArrowLeft');const zero=await move('ArrowRight');assert.match(zero,/직전 제공 기록 대비 0%/);assert.doesNotMatch(zero,/계산 불가|차이/);
     await render(Chart,[{date:'2026-10-01',value:'0',observedSecurityIds:['a']},{date:'2026-10-08',value:'100',observedSecurityIds:['a','b']}]);
     await move('ArrowLeft');const changed=await move('ArrowRight');assert.match(changed,/관측 종목 구성이 달라/);assert.doesNotMatch(changed,/차이|0%|계산 불가/);
@@ -308,9 +491,10 @@ test('dividend comparison keeps same-name securities distinct and exposes actual
       member('first','000001',[{date:'2026-01-11',div:'7',dps:null},{date:'2026-01-30',div:'0',dps:null},{date:'2026-03-12',div:'1',dps:null}]),
       member('second','000002',[{date:'2026-02-26',div:'0.5',dps:null},{date:'2026-03-13',div:'2',dps:null}]),
     ]);
-    const legend = container.querySelector('ul[aria-label="비교 종목별 관측 수"]');
-    assert.match(legend.textContent,/같은이름 \(000001\) 2개월/);
-    assert.match(legend.textContent,/같은이름 \(000002\) 2개월/);
+    const legend = container.querySelector('ul[aria-label="비교 종목별 마지막 표시 월의 관측값"]');
+    assert.match(legend.textContent,/같은이름 \(000001\) 1%2026-03-12/);
+    assert.match(legend.textContent,/같은이름 \(000002\) 2%2026-03-13/);
+    assert.match(container.querySelector('figcaption').textContent,/종목당 2개월 제공/);
     assert.equal(container.querySelectorAll('.recharts-line').length, 2);
     assert.equal(container.querySelectorAll('.recharts-line-dot').length, 4);
     const move = async key => {
@@ -327,5 +511,46 @@ test('dividend comparison keeps same-name securities distinct and exposes actual
     const february = await move('ArrowRight');
     assert.match(february,/같은이름 \(000001\)미제공/);
     assert.match(february,/같은이름 \(000002\)0.5% \(2026-02-26\)/);
+  });
+});
+
+test('dividend comparison keeps its selected legend and computes differences from the same date in percentage points or won', async () => {
+  await withChartEnvironment(async ({container, render, load, flushFrames}) => {
+    const {DividendComparisonChart} = load(path.join(root,'components/restored-detail-charts.tsx'));
+    const common={securityId:'common',ticker:'000001',korName:'기업',type:'보통주',dividendHistory:[
+      {date:'2026-01-30',div:'0',dps:'0'}, {date:'2026-02-27',div:'1.44',dps:'1446'}, {date:'2026-03-30',div:'0.77',dps:'1446'},
+    ]};
+    const preferred={securityId:'preferred',ticker:'000002',korName:'기업우',type:'우선주',dividendHistory:[
+      {date:'2026-01-30',div:'0',dps:'0'}, {date:'2026-02-26',div:'1.62',dps:'1447'}, {date:'2026-03-30',div:'0.99',dps:'1447'},
+    ]};
+    const Chart=({data})=>React.createElement(DividendComparisonChart,data);
+    await render(Chart,{members:[preferred,common],metric:'div',selectedSecurityId:'preferred'});
+    const legend=()=>container.querySelector('[aria-label="비교 종목별 마지막 표시 월의 관측값"]');
+    const keys=()=>[...legend().querySelectorAll('path')].map(node=>[node.getAttribute('stroke'),node.getAttribute('stroke-dasharray')]);
+    const styles=keys();
+    assert.match(legend().querySelector('[aria-current="true"]').textContent,/기업우 .*선택0.99%/);
+    assert.equal(container.querySelectorAll('figure time[datetime="2026-03-30"]').length,1);
+    assert.match(container.textContent,/우선주 − 보통주\+0.22%p/);
+    const move=async key=>{
+      await React.act(async()=>container.querySelector('.recharts-wrapper').dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+      return container.querySelector('.recharts-tooltip-wrapper')?.textContent ?? '';
+    };
+    await move('ArrowLeft');
+    await move('ArrowLeft');
+    const january=await move('ArrowLeft');
+    assert.match(january,/기업 \(000001\)0%.*기업우 \(000002\)0%/);
+    assert.match(january,/우선주 − 보통주0%p/);
+    const february=await move('ArrowRight');
+    assert.match(february,/2026-02-27.*2026-02-26.*관측일이 달라 미산출/);
+    assert.doesNotMatch(february,/%p/);
+    await render(Chart,{members:[common,preferred],metric:'dps',selectedSecurityId:'common'});
+    assert.deepEqual(keys(),styles);
+    assert.match(legend().querySelector('[aria-current="true"]').textContent,/기업 \(000001\) 선택1,446원/);
+    assert.match(container.textContent,/우선주 − 보통주\+1원/);
+    await render(Chart,{members:[common,{...preferred,dividendHistory:preferred.dividendHistory.slice(0,2)}],metric:'dps',selectedSecurityId:'preferred'});
+    assert.match(legend().querySelector('[aria-current="true"]').textContent,/기업우 .*선택미제공/);
+    assert.doesNotMatch(legend().querySelector('[aria-current="true"]').textContent,/1,447원|2026-02-26/);
+    assert.match(container.textContent,/우선주 − 보통주비교 관측 미제공/);
   });
 });

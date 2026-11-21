@@ -18,7 +18,7 @@
 
 ## L3 — 테스트·시안 승인과 UI 완료를 구분
 
-UI 완료를 판단할 때 승인된 범위를 실제 화면·동작과 대조하고 테스트·사용자 수락·배포의 확인 범위를 밝힌다. **기준** [UI 구현과 확인](rules/ui.md#구현과-확인) · **근거** [승인 시안과 구현 대조](ui-plan-conformance-review-2026-10-05.md)
+UI 완료를 판단할 때 승인된 범위를 실제 화면·동작과 대조한다. 상세에서는 기록을 읽다가 우측에서 종목을 바꾼 뒤 뒤로 가서 스크롤 위치와 키보드 포커스를 확인한다. 각 목차 항목을 연 직후 현재 항목과 종목 전환의 목적 구간이 일치하는지 확인한다. 정적 화면은 차트와 이력이 로드된 뒤에도 같은 위치인지 확인한다. **기준** [UI 구현과 확인](rules/ui.md#구현과-확인) · **근거** [승인 시안과 구현 대조](ui-plan-conformance-review-2026-10-05.md) · [상세 목차와 종목 전환 회귀](../tests/detail-context-navigation.test.cjs)
 
 ## L4 — 최근 본 종목의 로컬 중복·식별 기준
 
@@ -38,11 +38,13 @@ UI 완료를 판단할 때 승인된 범위를 실제 화면·동작과 대조�
 
 ## L8 — 반응형 시안은 중간 폭의 공간 배분부터 확인
 
-랭킹 본문의 실제 폭을 기준으로 식별·지표 열의 읽기 폭을 확보하고 남는 공간을 차트에 준다. 중간 폭과 레일 전환도 확인한다. **기준** [랭킹 표 배치](../DESIGN.md#ranking-metric-first) · **근거** [시안 측정](archive/ranking-mock-review-2026-11-01.md) · [제품 적용](ranking-responsive-verification-2026-11-02.md)
+좌우 레일이 나타나는 중간 폭에서는 실제 본문 너비로 정렬을 확인한다. 랭킹은 식별·지표 열과 차트의 폭을, 상세는 긴 제목과 작업 버튼, 대표값과 순위의 기준선을 대조한다. [랭킹 표 배치](../DESIGN.md#ranking-metric-first) · [시안 측정](archive/ranking-mock-review-2026-11-01.md) · [상세 화면 검수](../.impeccable/surfaces/components-detail-surface-tsx.md#다운로드와-검수)
+
+로딩 검수는 첫 HTML 응답과 이력 로딩을 각각 확인한다. 상위 경로의 공통 스켈레톤이 지표 전용 스켈레톤보다 먼저 보일 수 있다. [상세 로딩 경계 회귀](../tests/detail-metric-loading.test.cjs)
 
 ## L9 — 넘침 검사와 실제 글자 정렬 검사를 구분
 
-좁은 표에서 이름·코드·값을 쌓으면 실제 글자의 시작점과 읽기 순서를 비교한다. 부모 박스 안에 들어가도 텍스트는 어긋날 수 있다. **기준** [랭킹 표 정렬](../DESIGN.md#ranking-metric-first) · **근거** [320px 시안의 글자 좌표](archive/ranking-mock-review-2026-11-01.md)
+좁은 표에서 이름·코드·값을 쌓으면 실제 글자의 시작점과 읽기 순서를 비교한다. 상세 대표값은 빌드된 화면에서 숫자의 자간과 단위의 시작점도 비교한다. **기준** [랭킹 표 정렬](../DESIGN.md#ranking-metric-first) · [상세 대표값과 단위](../DESIGN.md#상세-대표값과-단위) · **근거** [320px 시안의 글자 좌표](archive/ranking-mock-review-2026-11-01.md) · [PER 대표값의 자간과 단위](../components/detail-investor-summary.module.css)
 
 ## L10 — 작은 차트의 오버레이는 선분·끝점·최소 높이를 함께 확인
 
@@ -62,7 +64,7 @@ UI 완료를 판단할 때 승인된 범위를 실제 화면·동작과 대조�
 
 ## L14 — 현행 설계 지침과 과거 작업 상태를 분리
 
-설계가 바뀌면 현재 동작을 설명하는 문서와 구현 참조를 맞추고 대체된 시안·측정은 당시 기록에 연결한다. **기준** [현행 문서와 이력 관리](README.md#현재-지침과-기준) · **근거** [옛 렌더러 교체와 승인 자료 보존](ranking-cleanup-verification-2026-11-02.md#정리-범위)
+설계가 바뀌면 DESIGN.md와 디자인 보조 파일의 예시 링크·선택 상태를 실제 화면과 대조한다. 화면별 brief에는 구현과 후속 시안의 경계를 기록하고, 회귀 테스트는 현재 페이지가 사용하는 컴포넌트에서 실행한다. **기준** [현행 문서와 이력 관리](README.md#현재-지침과-기준) · **근거** [상세 화면 인수인계](../.impeccable/surfaces/components-detail-surface-tsx.md) · [상세 탐색 회귀](../tests/detail-context-navigation.test.cjs) · [옛 렌더러 교체와 승인 자료 보존](ranking-cleanup-verification-2026-11-02.md#정리-범위)
 
 ## L15 — 프로덕션 빌드 전에 NODE_ENV 확인
 

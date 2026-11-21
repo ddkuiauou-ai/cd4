@@ -22,6 +22,15 @@
 .bottom :is(a,button) { display:flex; align-items:center; gap:8px; min-height:44px; padding:0; }
 .bottom svg { width:17px; height:17px; flex:none; stroke-width:1.6; }
 .recentButton { color:inherit; font:inherit; background:none; border:0; cursor:pointer; }
+.detail { border-top:2px solid var(--foreground); }
+.detail .directory { gap:24px 28px; padding-block:30px 36px; }
+.detail .brand { font-size:22px; }
+.detail .brand img { width:22px; height:22px; }
+.detail .allRankings { min-height:36px; font-size:13px; }
+.detail .group h2 { margin-bottom:4px; padding:0; border:0; font-family:inherit; font-size:14px; font-weight:700; line-height:1.5; }
+.detail .links { display:block; }
+.detail .directoryLink { min-height:32px; padding-block:6px; color:var(--muted-foreground); }
+.detail .directoryLink strong { font-size:13px; font-weight:400; }
 @media (min-width:768px) { .footer { display:block; } }
 @media (min-width:1100px) {
   .directory { grid-template-columns:minmax(260px,1.3fr) minmax(160px,.85fr) minmax(260px,1.3fr) minmax(180px,.95fr); column-gap:32px; }
@@ -31,6 +40,8 @@
   .allRankings { margin-top:24px; }
   .directoryLink strong { font-size:18px; }
   .directoryLink span { font-size:14px; }
+  .detail .directory { grid-template-columns:minmax(200px,1.7fr) repeat(3,minmax(0,1fr)); }
+  .detail .allRankings { margin-top:8px; }
 }
 @media (hover:hover) {
   .directoryLink:hover strong,.allRankings:hover { color:var(--brand-ink); text-decoration:underline; text-underline-offset:5px; }

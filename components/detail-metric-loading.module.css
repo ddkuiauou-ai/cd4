@@ -1,0 +1,132 @@
+.bar {
+  display: block;
+  max-inline-size: 100%;
+  block-size: 0.75rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--muted-foreground) 18%, transparent);
+}
+
+.compositionBar {
+  display: inline-block;
+  block-size: 0.72em;
+  vertical-align: middle;
+}
+
+.loading {
+  --loading-title-line: calc(clamp(1.5rem, 4.5vw, 2.15rem) * 1.2);
+}
+
+.mobileNav,
+.inlineOutline {
+  align-items: center;
+  min-block-size: 45px;
+}
+
+.inlineOutline { align-content: center; }
+
+.metricLine,
+.outlineLine {
+  display: flex;
+  align-items: center;
+  min-block-size: 40px;
+  padding-inline: 8px;
+}
+
+.outlineLine { min-block-size: 36px; }
+
+.breadcrumb { min-block-size: 21px; }
+.identityMeta { min-block-size: 1.125rem; }
+
+.header,
+.actions,
+.split,
+.fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.header {
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding-block: 0.5rem;
+  margin-block-start: 1px;
+}
+
+.title {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  align-content: center;
+  min-block-size: var(--loading-title-line);
+}
+
+.title > .bar { block-size: calc(var(--loading-title-line) * 0.66); }
+
+.actions {
+  flex: none;
+  margin-inline-start: auto;
+  min-block-size: 44px;
+  justify-content: start;
+  gap: 0;
+  inline-size: 10.5rem;
+  max-inline-size: 100%;
+}
+
+.actions > .bar { margin-inline: calc((44px - 1.125rem) / 2); }
+.actions > .bar:last-child { margin-inline: 1rem 0; }
+
+.headline {
+  align-items: end;
+  grid-template-rows: 1.22rem max(46px, calc(clamp(40px, 7.7vw, 54px) * 1.08));
+}
+
+.headline > :nth-child(-n + 2) { align-self: center; }
+.amount { block-size: 69%; max-inline-size: 10rem; }
+.rank { block-size: 43%; max-inline-size: 5rem; }
+
+.comparisonStrip { min-block-size: 1.22rem; align-items: center; }
+.supportTitle { display: flex; align-items: center; min-block-size: 1.5rem; }
+
+.valuationTable tr:first-child {
+  background: color-mix(in srgb, var(--background) 92%, var(--muted-foreground) 8%);
+}
+.valuationTable td { block-size: 3rem; padding: 0.5rem; border-block-end: 0; }
+.valuationTable td + td > .bar { margin-inline-start: auto; }
+.valuationTable tr:first-child td { block-size: 3.25rem; }
+.valuationTable tr:last-child td { block-size: 3.75rem; }
+.cellDetail { block-size: 0.5rem; margin-block-start: 0.375rem; }
+.related :is(dt, dd),
+.relatedAmount,
+.closeChange { align-content: center; }
+.related dt { min-block-size: 1.21875rem; }
+.related dd,
+.relatedAmount { min-block-size: 1.5rem; }
+.closeChange { min-block-size: 1.125rem; }
+.closeChange .bar { block-size: 0.5rem; }
+
+.split { min-block-size: 44px; margin-block-end: 0.5rem; }
+.sectionTitle { block-size: clamp(0.875rem, 2.1vw, 1.125rem); margin-block: 0.25rem; }
+
+.cardIdentity { display: grid; justify-items: start; align-content: start; gap: 0.375rem; }
+.differenceValues > div { display: grid; align-content: center; gap: 0.25rem; min-block-size: 2rem; }
+.differenceValues dt .bar { block-size: 0.5rem; }
+
+.chartHeading h2 {
+  display: flex;
+  align-items: center;
+  max-inline-size: 100%;
+  min-block-size: 1.35em;
+}
+
+.chartHeading h2 .bar { block-size: 0.72em; }
+.railTitle { margin-block: 0.25rem 0.5rem; }
+.fact { min-block-size: 1.75rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar { animation: detail-metric-pulse 1.8s ease-in-out infinite alternate; }
+
+  @keyframes detail-metric-pulse {
+    to { opacity: 0.6; }
+  }
+}

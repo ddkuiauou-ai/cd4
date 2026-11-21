@@ -71,10 +71,11 @@ function rootMetadata() {
 test("all actual security routes identify the security and retain their unique legacy canonical and branded OG", async () => {
   for (const metric of ["", "marketcap", "per", "pbr", "eps", "bps", "div", "dps"]) {
     const { load, calls } = metadataFixture();
-    const page = load(`app/security/[secCode]/${metric ? `${metric}/` : ""}page.tsx`);
+    const page = load(`app/security/[secCode]/${metric || "(basic)"}/page.tsx`);
     const metadata = await page.generateMetadata(pageProps("stable-security", { start: "2020-01-01", end: "2026-10-02" }));
     assertGraph(metadata, `${origin}/security/KOSPI.005930${metric ? `/${metric}` : ""}/`);
     assert.match(metadata.title, /삼성전자/);
+    if (!metric) assert.match(metadata.title, /주가·거래/);
     assert.equal(calls.length, 2, "metadata reads identity and alias uniqueness, never financial results");
     assert.deepEqual(Object.keys(calls[0].columns).sort(), ["companyId", "exchange", "korName", "name", "securityId", "ticker"]);
     assert.doesNotMatch(metadata.description, /2020-01-01|2026-10-02/, "selected source windows cannot pretend to be an official metadata date");
@@ -96,12 +97,12 @@ test("a unique market/ticker alias retains its original canonical while reused-c
 });
 
 test("actual company metadata names the company and resolves a security alias to original company canonical", async () => {
-  for (const suffix of ["", "marketcap/"]) {
+  for (const segment of ["(basic)", "marketcap"]) {
     const { load, calls } = metadataFixture();
-    const page = load(`app/company/[secCode]/${suffix}page.tsx`);
+    const page = load(`app/company/[secCode]/${segment}/page.tsx`);
     const metadata = await page.generateMetadata(pageProps("KOSPI.005930"));
-    assertGraph(metadata, `${origin}/company/KOSPI.005930${suffix ? "/marketcap" : ""}/`);
-    assert.match(metadata.title, /삼성전자 회사/);
+    assertGraph(metadata, `${origin}/company/KOSPI.005930${segment === "marketcap" ? "/marketcap" : ""}/`);
+    assert.equal(metadata.title, segment === 'marketcap' ? '삼성전자 회사 기업 합산 시가총액' : '삼성전자 회사 기업 개요');
     assert.ok(calls.every(call => !Object.keys(call.columns).some(key => /marketcap|revision|publication/i.test(key))));
     assert.ok(calls.some(call => call.table === "company" && call.args[0] === "stable-company"));
   }
@@ -137,7 +138,7 @@ test("missing identities and invalid codes expose no canonical metadata and do n
   assert.equal(missing.robots.index, false);
   assert.equal(missing.alternates.canonical, null);
   assert.equal(missing.openGraph, null);
-  const invalid = await load("app/company/[secCode]/page.tsx").generateMetadata(pageProps("%invalid"));
+  const invalid = await load("app/company/[secCode]/(basic)/page.tsx").generateMetadata(pageProps("%invalid"));
   assert.equal(invalid.title, "회사를 찾을 수 없습니다");
   assert.equal(invalid.robots.index, false);
   assert.equal(invalid.alternates.canonical, null);

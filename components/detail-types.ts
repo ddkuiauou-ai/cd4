@@ -30,7 +30,7 @@ export type DetailPublication = Pick<NonNullable<CompanyMarketcapAggregated['pub
 type CompanyMember = CompanyMarketcapAggregated['securities'][number];
 export type DetailCompanyView = Pick<CompanyMarketcapAggregated,
     'companyId' | 'companyName' | 'companyKorName' | 'totalMarketcap' | 'totalMarketcapDate' | 'marketcapCompleteness'
-    | 'state' | 'routeCode' | 'compositionComplete' | 'compositionReason' | 'compositionObservedCount' | 'compositionTargetCount'
+    | 'state' | 'routeCode' | 'marketcapRank' | 'exclusionReason' | 'compositionComplete' | 'compositionReason' | 'compositionObservedCount' | 'compositionTargetCount'
     | 'aggregatedHistory' | 'registeredHistory'> & {
     company: DetailCorporation;
     publication: DetailPublication | null;

@@ -33,9 +33,10 @@ async function render(snapshot = base, search = {}, { company = false, basic = f
     return {
       html, fixture, periods,
       current:overview?.textContent,
-      primary:overview?.querySelector('.investor-primary-value')?.textContent,
+      primary:overview?.querySelector('.investor-primary-value')?.textContent
+        ?? overview?.querySelector('.marketcapValues dd[data-emphasis]')?.firstChild?.textContent,
       statistics:indicators?.textContent,
-      comparison:window.document.querySelector('.investor-overview > p')?.textContent ?? '',
+      comparison:window.document.querySelector('#current-overview .comparisonStrip [data-prior-observation], .investor-overview > p, #chart-analysis .marketcapComparison')?.textContent ?? '',
       quote:[...overview?.querySelectorAll('dl > div') ?? []].find(row => row.querySelector('dt')?.textContent === '전일 대비')?.querySelector('dd').textContent,
     };
   } finally { window.close(); }
@@ -131,7 +132,8 @@ test('company period means disclose partial sums and share the custom window wit
 test('an end-only custom range gives the standalone marketcap chart the same raw observations as the statistics', async () => {
   const snapshot = {...base,history:rows([['2024-10-01','100'],['2026-10-08','200']])};
   const normal = await render(snapshot);
-  assert.equal(normal.fixture.historyCharts[0].selectedStart,'2026-07-08');
+  assert.equal(normal.fixture.historyCharts[0].selectedStart,undefined);
+  assert.deepEqual(normal.fixture.historyCharts[0].rows.map(row => row.date),['2024-10-01','2026-10-08']);
   const custom = await render(snapshot,{end:'2026-10-08'});
   assert.equal(custom.fixture.historyCharts[0].selectedStart,undefined);
   assert.equal(custom.fixture.historyCharts[0].selectedEnd,'2026-10-08');
@@ -168,7 +170,7 @@ test('the selected security quote remains independent from company constituent p
   const dom = new JSDOM(html);
   try {
     const doc = dom.window.document;
-    const quote = doc.querySelector('#securities-summary tbody tr td:last-child');
+    const quote = [...doc.querySelectorAll('aside dl > div')].find(row=>row.querySelector('dt')?.textContent==='대표 보통주 종가');
     assert.match(quote.textContent,/72,000원.*2026-10-07/);
     assert.match(doc.querySelector('.detail-identity-meta').textContent,/기업 전체.*2026-10-08/);
     assert.doesNotMatch(doc.querySelector('#current-overview').textContent,/72,000원/);
@@ -191,13 +193,16 @@ test('metric comparison uses a matching raw observation at the displayed snapsho
 
 test('nonpositive prior metrics show an exact difference and the reason percentage change is unavailable', async () => {
   for (const [previous,current,reason] of [['0','9007199254740994','0'],['-9007199254740993','1','음수']]) {
-    const { comparison } = await render({
-      ...base,security:{...security,eps:current,epsState:'provided',epsDate:'2026-10-08'},
-      history:[{date:'2026-10-01',eps:previous,epsState:'provided'},{date:'2026-10-08',eps:current,epsState:'provided'}],
-    },{},{metric:'eps'});
-    assert.match(comparison,/2026-10-01 이력 대비 차이 9,007,199,254,740,994원/);
-    assert.ok(comparison.includes(`이전 값이 ${reason}라 증감률 계산 불가`));
-    assert.doesNotMatch(comparison,/%|Infinity|NaN/);
+    for (const metric of ['eps', 'bps']) {
+      const fields = (value, date) => ({ [metric]: value, [metric + 'State']: 'provided', date });
+      const { comparison } = await render({
+        ...base,security:{...security,[metric]:current,[metric + 'State']:'provided',[metric + 'Date']:'2026-10-08'},
+        history:[fields(previous,'2026-10-01'),fields(current,'2026-10-08')],
+      },{},{metric});
+      assert.match(comparison,/직전 제공값과 차이9,007,199,254,740,994원2026-10-01/);
+      assert.ok(comparison.includes(`이전 값이 ${reason}라 증감률 계산 불가`));
+      assert.doesNotMatch(comparison,/%|Infinity|NaN/);
+    }
   }
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
+import styles from "./detail-chart.module.css";
 import {
     formatNumberRaw,
     formatNumberTooltip,
@@ -20,9 +21,12 @@ import {
     Legend,
     usePlotArea,
     useYAxisScale,
+    type DotItemDotProps,
 } from "recharts";
 
 import { getMarketcapSeriesLabel, getMarketcapSelectionColor, isMarketcapSeriesSelected, type MarketcapSeries } from "@/lib/chart-selection";
+import { formatMarketcapAxisTick, readableAxis } from './detail-trend-plot';
+import type { RegisteredMarketcapDisplay } from './interactive-chart-section';
 
 const subscribeMounted = () => () => {};
 const subscribeViewport = (callback: () => void) => { window.addEventListener('resize',callback); return () => window.removeEventListener('resize',callback); };
@@ -42,6 +46,7 @@ type Props = {
   coverage?: Coverage;
   totalLabel?: string;
   axisFormat?: (value: number) => string;
+  registeredHistory?: RegisteredMarketcapDisplay;
     data: MarketcapDataPoint[];
     format: string;
     formatTooltip: string;
@@ -360,7 +365,7 @@ function AxisBreakIndicator({ axisBreak }: { axisBreak: AxisBreakConfig }) {
     );
 }
 
-function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [], sourceValues, coverage, totalLabel = "전체 시총", axisFormat }: Props) {
+function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총액 구성", selectedSecurityId, series = [], sourceValues, coverage, totalLabel = "전체 시총", axisFormat, registeredHistory }: Props) {
     const isClient = useSyncExternalStore(subscribeMounted, () => true, () => false);
     const isMobile = useSyncExternalStore(subscribeViewport, () => window.innerWidth < 768, () => false);
 
@@ -386,7 +391,8 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
     }, []);
 
     // 🎯 선택된 타입에 따른 동적 컬러 결정 (개선된 버전)
-    const getLineColor = (key: string, index: number) =>
+    const singleAggregate = Boolean(registeredHistory && !series.length);
+    const getLineColor = (key: string, index: number) => singleAggregate ? 'var(--chart-2)' :
       getMarketcapSelectionColor(key, series, selectedSecurityId, selectedType) ?? colors.base[index % colors.base.length];
 
     // 🎯 선택된 타입에 따른 라인 스타일 결정 함수 (개선)
@@ -431,6 +437,9 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
 
         return [...data].sort((a, b) => (a.date < b.date ? -1 : 1));
     }, [data]);
+    const lastAggregate = singleAggregate ? sortedData.findLastIndex(point => typeof point['총합계'] === 'number') : -1;
+    const aggregateDot = ({ index, cx, cy }: DotItemDotProps) => index !== lastAggregate || cx == null || cy == null ? null
+      : <circle cx={cx} cy={cy} r={3.5} fill="var(--background)" stroke="var(--chart-2)" strokeWidth={1.5} />;
 
     const lineKeys = useMemo(() => {
         if (!sortedData.length) {
@@ -453,6 +462,7 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
         () => transformChartData(sortedData, lineKeys, axisBreak),
         [sortedData, lineKeys, axisBreak]
     );
+    const valueAxis = registeredHistory ? readableAxis(registeredHistory.minimum, registeredHistory.maximum, formatMarketcapAxisTick) : undefined;
 
     const yAxisDomain = useMemo(
         () => computeYAxisDomain(transformedData, lineKeys),
@@ -494,7 +504,7 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
 
     if (!data || data.length === 0) {
         return (
-            <div className="flex items-center justify-center h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] bg-muted rounded-lg border border-dashed border-border">
+            <div className={`flex items-center justify-center ${styles.capitalizationPlot} bg-muted rounded-lg border border-dashed border-border`}>
                 <div className="text-center space-y-3">
                     <div className="w-16 h-16 mx-auto bg-background rounded-full flex items-center justify-center">
                         <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -512,7 +522,7 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
 
     if (!isClient || !data || data.length === 0) {
         return (
-            <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px] flex items-center justify-center">
+            <div className={`w-full ${styles.capitalizationPlot} flex items-center justify-center`}>
                 <div className="text-sm text-muted-foreground">
                     {!isClient ? "차트 로딩 중..." : "차트 데이터가 없습니다"}
                 </div>
@@ -521,10 +531,11 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
     }
 
     return (
-        <div className="min-w-0 w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[350px] xl:h-[380px]">
+        <div className={`min-w-0 w-full ${styles.capitalizationPlot}`}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
                 <LineChart
                     data={transformedData}
+                    accessibilityLayer
                     margin={{
                         top: 8,   // 5 -> 8로 조금 증가 (범례와의 여백)
                         right: 12, // 10 -> 12로 조금 증가
@@ -532,13 +543,14 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
                         bottom: 10, // 12 -> 10으로 더 줄임 (더 타이트하게)
                     }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={!registeredHistory} />
                     <XAxis
                         dataKey="date"
-                        tickFormatter={(value) => {
+                        ticks={registeredHistory?.dateTicks}
+                        tickFormatter={registeredHistory?.formatDate || ((value) => {
                             const date = new Date(value);
                             return formatDateKorean(date, { year: 'numeric', month: 'short', day: 'numeric' });
-                        }}
+                        })}
                         stroke="var(--muted-foreground)"
 
                         fontSize={12}
@@ -548,44 +560,48 @@ function ChartCompanyMarketcap({ data, formatTooltip, selectedType = "시가총�
                         interval="preserveStartEnd"
                     />
                     <YAxis
-                        domain={axisFormat ? [0,1] : yAxisDomain}
-                        tickFormatter={axisFormat || formatTickValue}
+                        domain={valueAxis?.domain ?? (axisFormat ? [0,1] : yAxisDomain)}
+                        tickFormatter={value => valueAxis?.marks.get(Number(value)) ?? (axisFormat || formatTickValue)(value)}
                         stroke="var(--muted-foreground)"
 
                         fontSize={12}
                         tick={{ fill: 'var(--muted-foreground)' }}
                         axisLine={{ stroke: 'var(--border)' }}
                         tickLine={{ stroke: 'var(--border)' }}
-                        width={40} // 50 -> 40으로 더 줄임 (Y축과 카드 경계 가까이)
-                        ticks={axisFormat ? [0,.25,.5,.75,1] : yAxisTicks}
+                        width={registeredHistory ? 60 : 40}
+                        ticks={valueAxis ? [...valueAxis.marks.keys()] : axisFormat ? [0,.25,.5,.75,1] : yAxisTicks}
                     />
                     <Tooltip
-                        content={<CustomTooltip formatTooltip={formatTooltip} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
+                        filterNull={!registeredHistory}
+                        content={registeredHistory ? ({ active, label }) => active && typeof label === 'string' ? registeredHistory.renderObservation(label) : null
+                            : <CustomTooltip formatTooltip={formatTooltip} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
                         isAnimationActive={false}
                     />
-                    <Legend
+                    {!singleAggregate && <Legend
+                        verticalAlign={registeredHistory ? 'top' : 'bottom'}
                         itemSorter={(entry) => lineKeys.indexOf(String(entry.value))}
                         content={<CustomLegend payload={lineKeys.map((key, index) => ({ value: key, type: 'line', color: getLineColor(key, index) }))} selectedType={selectedType} selectedSecurityId={selectedSecurityId} series={series} sourceValues={sourceValues} coverage={coverage} totalLabel={totalLabel} />}
-                        wrapperStyle={{
+                        wrapperStyle={registeredHistory ? { paddingBottom: 8 } : {
                             paddingTop: '2px', // 0px -> 2px로 약간 증가
                             position: 'relative',
                             marginTop: '-6px', // -8px -> -6px로 약간 완화
                         }}
-                    />
+                    />}
                     {lineKeys.map((key, index) => {
                         const lineStyle = getLineStyle(key);
 
                         return (
                             <Line
                                 key={key}
-                                type="monotone"
+                                type={registeredHistory ? 'linear' : 'monotone'}
                                 dataKey={key}
                                 stroke={getLineColor(key, index)}
-                                strokeWidth={lineStyle.strokeWidth}
+                                strokeWidth={singleAggregate ? 2 : lineStyle.strokeWidth}
                                 strokeOpacity={lineStyle.strokeOpacity}
                                 strokeDasharray={getStrokePattern(key)}
-                                dot={sortedData.length === 1}
+                                dot={singleAggregate ? aggregateDot : sortedData.length === 1}
                                 activeDot={getActiveDotProps(key, index)}
+                                isAnimationActive={registeredHistory ? false : undefined}
                             />
                         );
                     })}

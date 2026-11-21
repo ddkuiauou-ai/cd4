@@ -5,9 +5,19 @@ const { JSDOM } = require('jsdom');
 const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 const load = loader();
 const { prepareDetailComparison } = load('lib/detail-comparison.ts');
+const { formatMarketcapAmount } = load('lib/business-analysis.ts');
 const { DetailComparisonSummary } = load('components/detail-comparison-summary.tsx');
 
 const day = '2026-10-08';
+
+test('marketcap display splits units exactly before rounding to eok and preserves small won amounts', () => {
+  assert.equal(formatMarketcapAmount('1687385493086466'), '1,687조 3,855억 원');
+  assert.equal(formatMarketcapAmount('9007199254740993'), '9,007조 1,993억 원');
+  assert.equal(formatMarketcapAmount('999999999999'), '1조 원');
+  assert.equal(formatMarketcapAmount('99999999'), '99,999,999원');
+  assert.equal(formatMarketcapAmount('0'), '0원');
+  assert.equal(formatMarketcapAmount(null), '—');
+});
 function fixtures() {
   const common = { securityId: 'common', name: 'Common', korName: '삼성전자', ticker: '005930', type: '보통주',
     marketcap: '495000000000000', marketcapDate: day, prices: [{date: day, close: '74000'}] };

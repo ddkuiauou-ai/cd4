@@ -1,30 +1,36 @@
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Fragment, type ReactNode } from 'react';
 import type { getSecurityDetailSnapshot } from '@/lib/data/detail-snapshot';
 import type { SecurityListingPeriod, SecurityLifecycleEvent } from '@/lib/security-lifecycle';
-import { businessChangePercent, compareBusinessValues, isBusinessDay, subtractBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
-import { DETAIL_METRICS, detailAnnualRows, detailObservations, earlierDate, periodMeans, selectDetailRange, sourceValue, type DetailMetric, type DetailObservation, type DetailAnnualRow } from '@/lib/detail-presentation';
+import { businessChangePercent, compareBusinessValues, formatMarketcapAmount, isBusinessDay, subtractBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
+import { formatInvestorAmount, formatInvestorNumber, usesInvestorPrecision } from '@/lib/investor-number';
+import { prepareDetailComparison } from '@/lib/detail-comparison';
+import { DETAIL_METRICS, detailAnnualRows, detailObservations, periodMeans, selectDetailRange, sourceValue, type DetailMetric, type DetailObservation, type DetailAnnualRow } from '@/lib/detail-presentation';
 import { companyPath, securityPath, securityRouteCode } from '@/lib/entity-paths';
 import { recentDetailPath } from '@/lib/recent-securities';
 import { siteConfig } from '@/config/site';
 import type { DetailSecurityRow, DetailCompanyView, DetailCorporation, DetailPublication } from './detail-types';
 import { CompanyProfile, CompanyMarketcapOverview } from './company-detail-overview';
-import { DetailInvestorNavigation, DetailInvestorOutline } from './detail-investor-navigation';
+import { DetailInvestorNavigation, DetailInvestorOutline, DetailInvestorRail, DetailMarketcapMobileSwitch, DetailMarketcapSwitch, type DetailRailFact } from './detail-investor-navigation';
+import { MarketcapAmount, type MarketcapCompositionModel } from './detail-marketcap-composition';
 import {
-  companyMetricLinks, ConstituentsTable, detailHref, detailMetricLabel, detailNavGroups, DetailRecordHeading, detailValue,
-  DividendTable, InvestorTable, metricAvailable, securityName, securityValue, StockSelection,
-  valuationReference, ValuationSummary, type ValuationObservation,
+  annualDividendComparison, companyMetricLinks, ConstituentsTable, detailEntityMembers, detailHref, detailMetricLabel, detailNavGroups, DetailRecordHeading, detailSwitchCandidates, detailValue,
+  dividendComparisonHeading, DividendTable, InvestorTable, metricAvailable, securityName, securityValue, StockSelection,
+  RelatedMetricSummary, valuationReference, ValuationSummary, type ValuationObservation,
 } from './detail-investor-records';
-import { detailEntityMembers } from './detail-entity-selector';
 import { DetailHistoryChart } from './detail-history-chart';
+import { PeriodStats } from './detail-period-stats';
 import { DetailFinancialAnalysis, DetailPriceHistory, DetailAnnualHistory, DividendComparisonChart } from './restored-detail-charts';
+import { FinancialAnnualMetadata } from './detail-annual-table';
+import { DetailAnnualSkeleton, DetailChartSkeleton } from './detail-record-skeleton';
 import { InteractiveChartSection } from './interactive-chart-section';
 import { StickyCompanyHeader } from './sticky-company-header';
 import { SecurityLifecycle } from './security-lifecycle';
 import { RecentSecurityTracker } from './recent-security-tracker';
-import { RecentSecuritiesSidebar } from './recent-securities-sidebar';
 import { CsvDownloadButton } from './CsvDownloadButton';
 import ShareButton from './share-button';
+import styles from './detail-investor-summary.module.css';
 
 export type DetailSearch = Record<string, string | string[] | undefined>;
 type SecuritySnapshot = NonNullable<Awaited<ReturnType<typeof getSecurityDetailSnapshot>>>;
@@ -69,6 +75,7 @@ export interface DetailAnalysis {
   summary: ReturnType<typeof summarizeBusinessWindow>;
   means: ReturnType<typeof periodMeans>;
   priorObservation: { date: string; value: DetailObservation['value'] } | null;
+  priorIsPreviousTrade?: boolean;
   snapshotChange: string | null;
   snapshotDifference: string | null;
   priorValueSign: number | null;
@@ -81,12 +88,22 @@ export interface DetailAnalysis {
   hasPrices?: boolean;
 }
 
-type DetailSnapshotAnalysis = Pick<DetailAnalysis, 'priorObservation' | 'snapshotChange' | 'snapshotDifference' | 'priorValueSign'
+type DetailSnapshotAnalysis = Pick<DetailAnalysis, 'priorObservation' | 'priorIsPreviousTrade' | 'snapshotChange' | 'snapshotDifference' | 'priorValueSign'
   | 'snapshotComparisonReason' | 'hasHistory' | 'historyEnd' | 'previousValuation' | 'hasPrices'>;
 
 function priceObservations(rows: Record<string, unknown>[]) {
   return rows.flatMap(row => typeof row.date === 'string' && isBusinessDay(row.date) && sourceValue(row.close) != null
     ? [{ date: row.date, value: sourceValue(row.close) }] : []).sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function previousTradeDate(prices: Record<string, unknown>[], day: string) {
+  let previous: string | null = null;
+  for (const row of prices) {
+    const date = row.date;
+    if (typeof date === 'string' && date < day && (!previous || date > previous)
+      && isBusinessDay(date) && compareBusinessValues(sourceValue(row.close), 0) != null) previous = date;
+  }
+  return previous;
 }
 
 type DetailAnalysisInput = Pick<DetailSurfaceProps, 'security' | 'company' | 'history' | 'metric' | 'companyPage' | 'search'>
@@ -106,9 +123,15 @@ export function prepareDetailAnalysis({ security, company, history, metric, comp
   const sameCoverage = !companyPage || snapshotObservation && priorObservation && JSON.stringify([...(snapshotObservation.observedSecurityIds ?? [])].sort()) === JSON.stringify([...(priorObservation.observedSecurityIds ?? [])].sort());
   const priceRows = basic && !companyPage ? priceObservations(prices) : [];
   const priceAnnual = basic && !companyPage ? detailAnnualRows(invalid ? [] : selectDetailRange(priceRows, start, end)) : undefined;
+  const price = securityValue(security, 'price');
+  const priorIsPreviousTrade = !basic && !companyPage && (metric === 'per' || metric === 'pbr' || metric === 'div' || metric === 'dps')
+    && !!priorObservation && !!snapshot.date && snapshot.date === price.date && price.value != null
+    && prices.some(row => row.date === price.date && compareBusinessValues(sourceValue(row.close), price.value) === 0)
+    && previousTradeDate(prices, snapshot.date) === priorObservation.date;
   return {
     analysisEnd, summary: summarizeBusinessWindow(selected), means: periodMeans(selected, analysisEnd),
     priorObservation: priorObservation ? { date: priorObservation.date, value: priorObservation.value } : null,
+    priorIsPreviousTrade,
     snapshotChange: priorObservation && sameCoverage ? businessChangePercent(priorObservation.value, snapshot.value) : null,
     snapshotDifference: priorObservation && sameCoverage ? subtractBusinessValues(snapshot.value, priorObservation.value) : null,
     priorValueSign: priorObservation ? compareBusinessValues(priorObservation.value, 0) : null,
@@ -130,6 +153,10 @@ const stateLabels: Record<string, string> = {
   source_missing: '원천 미제공', unsupported: '미지원', row_missing: '원천 행 미제공', unexplained_missing: '자료 확인 필요', no_observation: '관측 없음',
 };
 
+const nonnegativeMarketcap = (value: DetailObservation['value'] | undefined) =>
+  (compareBusinessValues(value ?? null, 0) ?? -1) >= 0 ? value ?? null : null;
+const validRank = (value: number | null | undefined) => typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+
 type DetailRecord = { id: string; label: string; body: ReactNode };
 
 export function DetailSurface(props: DetailSurfaceProps) {
@@ -138,8 +165,13 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const info = DETAIL_METRICS[metric];
   const label = detailMetricLabel(metric);
   const dividend = !basic && !companyPage && (metric === 'dps' || metric === 'div');
+  const valuation = !basic && !companyPage && (metric === 'per' || metric === 'pbr');
+  const financialMetric = !basic && !companyPage && usesInvestorPrecision(metric) ? metric : undefined;
+  const compactActions = financialMetric !== undefined;
+  const marketcapDetail = !basic && metric === 'marketcap';
+  const aggregateMarketcap = companyPage && marketcapDetail;
   const pricePage = basic && !companyPage;
-  const pageLabel = companyPage ? basic ? '기업 정보' : '기업 합산 시총' : basic ? '종목 기본 정보' : metric === 'marketcap' ? '종목 시가총액' : label;
+  const pageLabel = companyPage ? basic ? '기업 개요' : '시가총액' : basic ? '주가·거래' : label;
   const name = companyPage ? company?.companyKorName || company?.companyName || '기업' : security ? securityName(security) : '종목';
   const route = companyPage && company ? companyPath(company, basic ? undefined : 'marketcap') : security ? securityPath(security, basic ? undefined : metric) : '/marketcaps';
   const rankingRoute = companyPage ? '/marketcaps' : '/' + metric;
@@ -147,8 +179,8 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const stem = (companyPage ? company?.routeCode || company?.companyId || 'company' : secCode).replace(/[.]/g, '-');
   const start = single(search.start), end = single(search.end);
   const periodId = companyPage ? undefined : security?.selectedPeriod?.periodId;
-  const scope = { start, end, periodId };
   const invalid = !validRange(start, end);
+  const scope = { start: invalid ? undefined : start, end: invalid ? undefined : end, periodId };
   const publication = companyPage ? company?.publication : security?.publication;
   const snapshot = securityValue(security, metric);
   const price = securityValue(security, 'price');
@@ -157,18 +189,67 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const lastClose = price.value == null && security?.historicalPeriod ? sourceValue(quote?.close) : null;
   const quoteDate = typeof quote?.date === 'string' && isBusinessDay(quote.date) ? quote.date : price.date;
   const rate = quote?.rate != null && Number.isFinite(Number(quote.rate)) ? Number(quote.rate) : null;
-  const rateText = rate == null ? '—' : (rate > 0 ? '+' : '') + detailValue(rate, '%');
+  const financialRate = compactActions && !security?.historicalPeriod && price.value != null && quoteDate ? sourceValue(quote?.rate) : null;
+  const financialRateSign = compareBusinessValues(financialRate, 0);
+  const publishedQuoteRate = price.value != null ? rate : null;
+  const rateText = compactActions ? formatInvestorAmount(financialRate, '%', true)
+    : rate == null ? '—' : (rate > 0 ? '+' : '') + detailValue(rate, '%');
+  const rateSign = compactActions ? financialRateSign : rate;
+  const rateDirection = rateSign == null ? undefined : rateSign === 0 ? 'flat' : rateSign > 0 ? 'up' : 'down';
   const analytics = initialAnalysis ?? prepareDetailAnalysis(props);
   const { analysisEnd, annualRows } = analytics;
   const snapshotAnalysis = initialSnapshotAnalysis ?? analytics;
+  const prior = snapshotAnalysis.priorObservation;
+  const immediatePrior = snapshotAnalysis.priorIsPreviousTrade;
   const { hasHistory, historyEnd } = snapshotAnalysis;
   const rangePending = historyPending && !initialAnalysis;
   const selected = invalid ? [] : selectDetailRange(history, start, end);
-  const navSecurity = security && !Array.isArray(security.availableMetrics) && !basic && hasHistory && !metricAvailable(security, metric)
+  const navSecurity = security && !companyPage && !basic && hasHistory && !metricAvailable(security, metric)
     ? { ...security, availableMetrics: (Object.keys(DETAIL_METRICS) as DetailMetric[]).filter(key => key === metric || metricAvailable(security, key)) }
     : security;
-  const members = detailEntityMembers(company, companySecs, security);
-  const selectedMembers = security && !members.some(member => member.securityId === security.securityId) && !companyPage ? [security, ...members] : members;
+  const members = detailEntityMembers(security?.historicalPeriod && !companyPage ? null : company, companySecs, security);
+  const composition = marketcapDetail && company && (companyPage || !security?.historicalPeriod)
+    ? prepareDetailComparison(company, members).composition : undefined;
+  const currentMember = !companyPage && navSecurity;
+  const selectedMembers = currentMember
+    ? members.some(member => member.securityId === currentMember.securityId)
+      ? members.map(member => member.securityId === currentMember.securityId ? { ...member, ...currentMember } : member)
+      : [currentMember, ...members]
+    : members;
+  const candidates = detailSwitchCandidates({ members: selectedMembers, current: navSecurity, companyPage, basic, metric, scope });
+  const companyCap = company?.state === 'published' ? nonnegativeMarketcap(company.totalMarketcap) : null;
+  const companyExclusion = company?.exclusionReason ?? (aggregateMarketcap ? ranking?.exclusionReason : null);
+  const compositionModel: MarketcapCompositionModel | undefined = marketcapDetail ? {
+    members: candidates.map(candidate => {
+      const official = composition && company?.securities.find(member => member.securityId === candidate.securityId);
+      const amount = official ? company?.state === 'published' ? nonnegativeMarketcap(official.marketcap) : null
+        : candidate.selected && !company && !security?.historicalPeriod ? nonnegativeMarketcap(snapshot.value) : null;
+      return {
+        candidate,
+        amount,
+        date: amount == null ? null : official ? official.marketcapDate : snapshot.date,
+        percentage: composition?.rows.find(row => row.securityId === candidate.securityId)?.percentage ?? null,
+      };
+    }),
+    aggregate: company && composition ? {
+      candidate: {
+        securityId: 'company:' + company.companyId, name: '기업 합산', type: null, ticker: null,
+        selected: aggregateMarketcap, href: detailHref(companyPath(company, 'marketcap'), { start: scope.start, end: scope.end }),
+        value: formatMarketcapAmount(companyCap),
+      },
+      amount: companyCap,
+      rank: company.state === 'published' ? validRank(company.marketcapRank ?? (aggregateMarketcap ? ranking?.currentRank : null)) : null,
+      date: companyCap == null ? null : composition.date,
+      rankDate: company.publication?.asOf ?? (aggregateMarketcap ? ranking?.rankDate ?? null : null),
+      status: companyCap != null ? null : company.state === 'unpublished' ? '아직 공개된 기업 합산값이 없습니다.'
+        : company.marketcapCompleteness === 'missing_input' ? '합산 자료가 부족합니다.' : '합산 근거를 확인 중입니다.',
+      exclusion: company.state === 'published' && companyExclusion
+        ? stateLabels[companyExclusion] || (/^[a-z][a-z0-9_]*$/.test(companyExclusion) ? '기업 순위 산정 기준을 충족하지 않습니다.' : companyExclusion) : null,
+    } : null,
+    basis: publication?.asOf,
+    complete: composition?.complete ?? false,
+    reason: composition?.reason ?? null,
+  } : undefined;
   const canShowMetric = companyPage || basic || Boolean(security && metricAvailable(security, metric)) || hasHistory;
   const siblingMetricLinks = security && !canShowMetric ? selectedMembers.filter(row => row.securityId !== security.securityId && metricAvailable(row, metric)) : [];
   const metricState = security?.[`${metric}State`] ?? 'no_observation';
@@ -176,23 +257,26 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const lastDate = security?.[`${metric}LastProvidedDate`];
   const missing = !basic && !companyPage && snapshot.value == null && <p role="status" className="investor-muted">
     {security?.historicalPeriod ? '선택한 상장기의 공개 현재값이 없습니다.' : security?.state === 'unpublished' ? '아직 공개된 종목 지표가 없습니다.'
-      : label + ' 현재값 미제공 · ' + (stateLabels[metricState] || '자료 확인 필요')}
+      : (compactActions ? '' : label + ' 현재값 미제공 · ') + (stateLabels[metricState] || '자료 확인 필요')}
     {security?.state === 'published' && !security.historicalPeriod && lastValue != null && typeof lastDate === 'string'
-      && <> · 마지막 제공값 {detailValue(lastValue, info.unit)} ({lastDate})</>}
+      && <> · 마지막 제공값 {compactActions ? formatInvestorAmount(lastValue, info.unit) : detailValue(lastValue, info.unit)} ({lastDate})</>}
   </p>;
   const exclusion = ranking?.exclusionReason;
   const exclusionLabel = exclusion && !(snapshot.value == null && exclusion === metricState)
     ? stateLabels[exclusion] || (/^[a-z][a-z0-9_]*$/.test(exclusion) ? '순위 산정 기준을 충족하지 않습니다.' : exclusion) : null;
 
-  const state = invalid ? <p role="alert" className="investor-muted">시작일과 종료일을 확인해 주세요. 시작일은 종료일 이전이어야 합니다.</p> : historyPending
-    ? <p role="status" className="investor-pending">이력 자료를 불러오는 중…</p> : historyError
-      ? <p className="investor-muted">이력 자료를 표시할 수 없습니다.</p> : null;
+  const pendingHistory = historyPending && !historyError && !invalid;
+  const state = invalid ? <p role="alert" className="investor-muted">시작일과 종료일을 확인해 주세요. 시작일은 종료일 이전이어야 합니다.</p> : historyError
+    ? <p className="investor-muted">이력 자료를 표시할 수 없습니다.</p> : historyPending && !compactActions && !marketcapDetail
+      ? <p role="status" className="investor-pending">이력 자료를 불러오는 중…</p> : null;
   const showHistoryCsv = pricePage ? Boolean(snapshotAnalysis.hasPrices) : !basic && hasHistory;
   const fileMetric = pricePage ? 'price' : companyPage ? 'company-marketcap' : metric;
-  const fileLabel = name + ' ' + (pricePage ? '주가' : pageLabel) + ' 전체 이력 CSV';
+  const fileLabel = name + ' ' + (pricePage ? '주가' : aggregateMarketcap ? '기업 합산 시가총액' : marketcapDetail ? '종목 시가총액' : pageLabel) + ' 전체 이력 CSV';
   const fileName = [stem, fileMetric, periodId ? security?.selectedPeriod?.listingDate : null, !pricePage && historyEnd].filter(Boolean).join('-') + '.csv';
-  const download = showHistoryCsv && <div id="history-download" className="investor-history-action">
-    <CsvDownloadButton key={fileName} data={historyPending || historyError ? undefined : historyCsvRows(props)} filename={fileName} label={fileLabel} />
+  const headerCompact = compactActions || marketcapDetail;
+  const download = (showHistoryCsv || headerCompact && historyPending) && <div id="history-download" className={`investor-history-action ${styles.historyAction}`}>
+    <CsvDownloadButton key={fileName} data={historyPending || historyError ? undefined : historyCsvRows(props)} filename={fileName} label={fileLabel}
+      buttonText={headerCompact ? 'CSV' : '전체 이력 CSV'} compact={headerCompact} />
   </div>;
   const section = (id: string, title: string, content: ReactNode, accessory?: ReactNode): DetailRecord => ({
     id, label: title, body: <section id={id} tabIndex={-1} className="investor-record"><DetailRecordHeading title={title}>{accessory}</DetailRecordHeading>{content}</section>,
@@ -200,42 +284,55 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const order: DetailRecord[] = [];
 
   const priceHistory = () => section('price-history', pricePage ? '주가와 거래량' : companyPage ? '대표 보통주 주가' : name + ' 주가',
-    state || <DetailPriceHistory rows={prices} start={start} end={end} />,
+    headerCompact && pendingHistory ? <DetailChartSkeleton variant="price" />
+      : state || <DetailPriceHistory rows={prices} start={start} end={end} usePlotSkeleton={compactActions} />,
     <span className="investor-muted">{companyPage && security ? securityName(security) + ' · ' : ''}{start || end ? '선택 기간' : '최근 3개월'}</span>);
-  const annual = () => section('annual-data', metric === 'bps' ? '연말 기록' : '연도별 기록',
-    invalid || historyError || rangePending || historyPending && !annualRows.length ? state
-      : <DetailAnnualHistory rows={annualRows} label={companyPage ? '등록 종목 합계' : label} unit={info.unit} yearEndOnly={metric === 'bps'} />);
-  const average = () => section('indicators', '기간별 평균', rangePending || historyError ? state
-    : <PeriodStats analysis={analytics} info={info} companyPage={companyPage} />,
+  const annual = () => {
+    const comparison = dividend ? annualDividendComparison({ members, securityId: security?.securityId, metric, rows: annualRows, scope }) : undefined;
+    const unavailable = invalid || (marketcapDetail ? historyPending || historyError : compactActions ? (historyPending || historyError) && !initialAnalysis
+      : historyError || rangePending || historyPending && !annualRows.length);
+    return section('annual-data', metric === 'bps' ? '연말 기록' : '연도별 기록', unavailable
+      ? marketcapDetail && pendingHistory ? <DetailAnnualSkeleton marketcap={companyPage ? 'company' : 'security'} />
+        : compactActions && pendingHistory ? <DetailAnnualSkeleton comparison={Boolean(comparison?.pairs.length)} /> : state
+      : <DetailAnnualHistory rows={annualRows} label={companyPage ? '등록 종목 합계' : label} unit={info.unit} metric={metric} yearEndOnly={metric === 'bps'}
+        dividendComparison={comparison} />,
+    marketcapDetail && !unavailable && annualRows.length > 0 ? <span className="investor-muted">{annualRows.length}개 연도</span>
+      : compactActions && !unavailable && <FinancialAnnualMetadata count={annualRows.length} yearEndOnly={metric === 'bps'} dividendComparison={comparison} />);
+  };
+  const average = () => section('indicators', '기간별 평균', rangePending || historyError && !(compactActions && initialAnalysis)
+    ? headerCompact && pendingHistory ? <DetailAnnualSkeleton /> : state
+    : <PeriodStats metric={metric} analysis={analytics} info={info} companyPage={companyPage} basis={publication?.asOf} currentMultiple={valuation ? snapshot.value : undefined} />,
     Boolean(start || end) && <span className="investor-muted">지정한 기간</span>);
   const extra = (kind: 'distribution' | 'monthly') => section(kind === 'distribution' ? 'metric-analysis' : 'monthly-records',
-    kind === 'distribution' ? '과거 분포' : '월별 기록', state || <DetailFinancialAnalysis rows={selected} metric={metric} name={name} kind={kind} currentValue={snapshot.value} />);
+    kind === 'distribution' ? '과거 분포' : '월별 기록', compactActions && pendingHistory
+      ? <DetailChartSkeleton variant={kind} />
+      : state || <DetailFinancialAnalysis rows={selected} metric={metric} name={name} kind={kind} currentValue={snapshot.value} />);
   const compare = (showCsv = false) => section('securities-summary', metric === 'marketcap' && !basic && !companyPage ? '구성 종목 비교' : '구성 종목별 시가총액',
-    <ConstituentsTable members={members} current={!companyPage ? security?.securityId : undefined} scope={scope} csvStem={stem}
-      company={company} showCsv={showCsv} basis={publication?.asOf} />);
-  const related = (key: DetailMetric) => {
-    if (!security || !metricAvailable(security, key)) return null;
-    const value = securityValue(security, key);
-    return <Link prefetch={false} href={detailHref(securityPath(security, key), scope)}>{detailValue(value.value, DETAIL_METRICS[key].unit)}</Link>;
-  };
+    <ConstituentsTable members={members} scope={scope} csvStem={stem}
+      company={company} showCsv={showCsv} basis={publication?.asOf} candidates={candidates} />);
   const relatedMetric = metric === 'eps' ? 'per' : metric === 'bps' ? 'pbr' : null;
-  const relatedLink = relatedMetric ? related(relatedMetric) : null;
   const dividendComparison = dividend && members.filter(member => member.dividendHistory?.some(row => row[metric] != null)
     || metricAvailable(member, metric)).length >= 2
     ? section('dividend-comparison', '구성 종목 ' + label + ' 비교 추이',
-      state || <DividendComparisonChart members={members} metric={metric} start={start} end={end} />,
+      invalid ? state : <DividendComparisonChart members={members} selectedSecurityId={security?.securityId} metric={metric} start={start} end={end} />,
       <span className="investor-muted">{start || end ? '선택 기간' : '최근 5년'}</span>) : null;
 
   const trend = () => {
     const companyHistory = companyPage && company;
     const chartForStockCap = metric === 'marketcap' && !companyPage;
-    const stockCapStart = !start && !end && chartForStockCap ? earlierDate(history.at(-1)?.date || '', 3) : start;
+    const metricTitle = metric === 'dps' ? '주당배당금과 변화율' : label + ' 추이';
+    const chart = marketcapDetail && pendingHistory
+      ? <DetailChartSkeleton variant="marketcap" marketcapScope={companyPage ? 'company' : 'security'} customRange={Boolean(start || end)} /> : financialMetric && pendingHistory
+      ? <DetailChartSkeleton variant={financialMetric} customRange={Boolean(start || end)} /> : state || (companyHistory
+      ? <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="summary" start={start} end={end} />
+      : <DetailHistoryChart key={route} rows={selected} metric={metric} label={label} unit={info.unit} selectedStart={start}
+        selectedEnd={end || (chartForStockCap ? undefined : analysisEnd)} annual={metric === 'bps'} customRange={Boolean(start || end)} withStatistics />);
     return section('chart-analysis', companyPage ? '합산 시가총액 추이' : metric === 'bps' ? '연말 BPS'
-      : metric === 'dps' ? '주당배당금과 변화율' : label + ' 추이', state || (companyHistory
-        ? <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="summary" start={start} end={end} />
-        : <DetailHistoryChart key={route} rows={selected} metric={metric} label={label} unit={info.unit} selectedStart={stockCapStart}
-          selectedEnd={end || (chartForStockCap ? undefined : analysisEnd)} annual={metric === 'bps'} customRange={Boolean(start || end)} withStatistics />),
-    dividend && <span className="investor-muted">{name}</span>);
+      : dividend || chartForStockCap ? name + ' ' + metricTitle : metricTitle,
+      marketcapDetail && !state && !pendingHistory && hasHistory ? <>
+        {chart}
+        <div className={styles.marketcapComparison}><SnapshotDifference analysis={snapshotAnalysis} unit={info.unit} /></div>
+      </> : chart);
   };
 
   if (companyPage && basic) {
@@ -244,12 +341,12 @@ export function DetailSurface(props: DetailSurfaceProps) {
     if (links.length) order.push(section('investment-metrics', '투자 지표', <div className="investor-investment-links">
       {links.map(({ metric: key, member, value, href }) => <Link key={key} href={href} prefetch={false}>
         <span>{detailMetricLabel(key)} <small>{securityName(member)}</small></span><strong>{detailValue(value.value, DETAIL_METRICS[key].unit)}</strong>
-        {value.date && <small>{value.date}</small>}
+        {value.date && value.date !== publication?.asOf && <small>{value.date}</small>}
       </Link>)}
     </div>));
     const dividendTarget = members.find(member => metricAvailable(member, 'div'));
     if (members.length) order.push(section('dividend-summary', '배당 비교', <DividendTable members={members} scope={scope} basis={publication?.asOf} />,
-      dividendTarget && <Link prefetch={false} href={detailHref(securityPath(dividendTarget, 'div'), { start, end })}>
+      dividendTarget && <Link prefetch={false} href={detailHref(securityPath(dividendTarget, 'div'), scope)}>
         {securityName(dividendTarget)} 배당수익률 보기
       </Link>));
     order.push({ id: 'company-information', label: '기업 개요', body: <CompanyProfile company={company} members={members} title="기업 개요" /> });
@@ -263,22 +360,20 @@ export function DetailSurface(props: DetailSurfaceProps) {
   } else if (canShowMetric) {
     switch (metric) {
       case 'marketcap':
-        if (companyPage) order.push(compare(), trend());
-        else {
-          order.push(trend());
-          if (company && members.length) {
-            order.push(compare(), section('marketcap-component-history', '종목별 시가총액 이력',
-              state || <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="detailed"
+        order.push(trend(), annual());
+        if (!companyPage && company && composition && members.length) {
+          order.push(compare(), section('marketcap-component-history', '종목별 시가총액 이력',
+            pendingHistory ? <DetailChartSkeleton variant="marketcap" marketcapScope="comparison" />
+              : state || <InteractiveChartSection companyMarketcapData={company} companySecs={companySecs} type="detailed"
                 selectedSecurityId={security?.securityId} selectedType={security?.type || '시가총액 구성'} start={start} end={end} />));
-          }
         }
-        order.push(annual(), average(), priceHistory());
+        order.push(average(), priceHistory());
         break;
       case 'per':
         order.push(trend(), extra('distribution'), average(), extra('monthly'), annual(), priceHistory());
         break;
       case 'pbr':
-        order.push(trend(), section('book-value', '연말 주당순자산', state || <DetailHistoryChart rows={detailObservations(sourceHistory, 'bps')}
+        order.push(trend(), section('book-value', '연말 BPS', pendingHistory ? <DetailChartSkeleton variant="bps" customRange={Boolean(start || end)} withStatistics={false} /> : state || <DetailHistoryChart rows={detailObservations(sourceHistory, 'bps')}
           label="BPS" unit="원" metric="bps" annual selectedStart={start} selectedEnd={end || analysisEnd} customRange={Boolean(start || end)} />,
         security && metricAvailable(security, 'bps') && <Link prefetch={false} href={detailHref(securityPath(security, 'bps'), scope)}>BPS 상세 보기</Link>),
         average(), annual(), priceHistory());
@@ -299,40 +394,85 @@ export function DetailSurface(props: DetailSurfaceProps) {
         order.push(trend(), annual(), priceHistory(), average());
         break;
     }
-    if (ranking?.currentRank != null && neighbors.some(row => Number(row.currentRank ?? row.marketcapRank) !== ranking.currentRank)) {
-      order.push(section('nearby-ranks', '가까운 ' + (companyPage ? '기업 시가총액' : label) + ' 순위',
-        <NearbyRanks rows={neighbors} ranking={ranking} metric={metric} companyPage={companyPage} scope={scope} />,
+    const rank = ranking?.currentRank;
+    const nearby = rank == null ? null : compactActions
+      ? nearbyRankLinks(neighbors, rank, security?.securityId, metric, scope)
+      : neighbors.some(row => Number(row.currentRank ?? row.marketcapRank) !== rank)
+        ? <NearbyRanks rows={neighbors} currentRank={rank} metric={metric} companyPage={companyPage} scope={scope} /> : null;
+    if (nearby) {
+      order.push(section('nearby-ranks', '가까운 ' + (companyPage ? '기업 시가총액' : label) + ' 순위', nearby,
         <Link prefetch={false} href={rankingRoute}>전체 순위 보기</Link>));
     }
   }
-  const hasLifecycle = !companyPage && security && Boolean(security.listingPeriods?.length || security.lifecycleEvents?.length || security.historicalPeriod);
+  const hasLifecycle = pricePage && security && Boolean(security.listingPeriods?.length || security.lifecycleEvents?.length || security.historicalPeriod);
   if (hasLifecycle) order.push({ id: 'listing-history', label: '상장 기간 · 이름 변경', body:
-    <section id="listing-history" className="investor-record detail-listing-history" aria-label="상장 이력">
+    <section id="listing-history" tabIndex={-1} className="investor-record detail-listing-history" aria-label="상장 이력">
       <SecurityLifecycle periods={security.listingPeriods ?? []} events={security.lifecycleEvents ?? []} selected={security.selectedPeriod ?? null} route={route} search={search} />
-      {security.historicalPeriod && <p className="investor-muted">이전 상장기의 자료입니다. 현재 공개값과 순위는 현재 상장기의 자료입니다.</p>}
     </section>,
   });
   const sections = order.map(({ id, label: sectionLabel }) => ({ id, label: sectionLabel }));
+  if (marketcapDetail) sections.unshift({ id: 'current-overview', label: '요약' });
+  if (dividend && selectedMembers.length > 1) sections.unshift({ id: 'dividend-summary', label: dividendComparisonHeading(selectedMembers) });
   const compactShare = detailHref(route + '/', scope);
+  const previous = snapshotAnalysis.previousValuation ?? null;
+  const basis = publication?.asOf;
+  const rankHref = sections.some(item => item.id === 'nearby-ranks') ? '#nearby-ranks' : rankingRoute;
+  const rankNumber = validRank(ranking?.currentRank)?.toLocaleString('ko-KR');
+  const rankText = rankNumber ? rankNumber + '위' : null;
+  const rankDate = ranking?.rankDate && ranking.rankDate !== basis ? ranking.rankDate : null;
+  const hasValuationComposition = metric === 'pbr' || price.value != null
+    || securityValue(security, 'eps').value != null || previous != null;
+  const hasQuoteChange = compactActions ? financialRateSign != null : publishedQuoteRate != null;
+  const quoteChange = hasQuoteChange && <span className={styles.quoteChange}>
+    <span>주가 전일 대비</span>{' '}
+    <strong className={rateDirection === 'up' ? 'market-up' : rateDirection === 'down' ? 'market-down' : undefined}>{rateText}</strong>
+    {dividend && quoteDate && quoteDate !== basis && <small><time dateTime={quoteDate}>{quoteDate}</time></small>}
+  </span>;
+  const valuationSupport = valuation && security && canShowMetric && hasValuationComposition &&
+    <ValuationSummary metric={metric} security={security} previous={previous} scope={scope} basis={basis} quoteChange={quoteChange} />;
+  const facts: DetailRailFact[] = [];
+  const fact = (label: string, value: string, date?: string | null, href?: string, direction?: DetailRailFact['direction']) => {
+    facts.push({ label, value, date: date && date !== basis ? date : undefined, href, direction });
+  };
+  const quoteHref = !pricePage && security && price.value != null
+    ? detailHref(securityPath(security), companyPage ? { start: scope.start, end: scope.end } : scope) : undefined;
+  if (companyPage) {
+    const cap = company?.state === 'published' ? company.totalMarketcap : null;
+    fact('합산 시가총액', marketcapDetail ? formatMarketcapAmount(cap) : detailValue(cap, '원', true), typeof company?.totalMarketcapDate === 'string' ? company.totalMarketcapDate : null,
+      company && basic ? detailHref(companyPath(company, 'marketcap'), scope) : undefined);
+  } else if (!pricePage) {
+    fact(label, compactActions ? formatInvestorAmount(snapshot.value, info.unit)
+      : marketcapDetail ? formatMarketcapAmount(snapshot.value) : detailValue(snapshot.value, info.unit), snapshot.date);
+  }
+  if (security && (!companyPage || security.type === '보통주')) fact(companyPage ? '대표 보통주 종가' : pricePage && lastClose != null ? '마지막 종가' : '종가',
+    compactActions ? formatInvestorAmount(price.value, '원') : detailValue(pricePage ? price.value ?? lastClose : price.value, '원'), pricePage ? quoteDate : price.date, quoteHref);
+  if (!companyPage && (pricePage ? rate != null : hasQuoteChange)) fact(pricePage ? '전일 대비' : '주가 전일 대비', rateText, quoteDate, undefined, rateDirection);
+  if (valuation && previous) fact('1년 전 기준', compactActions ? formatInvestorAmount(previous.metric, info.unit) : detailValue(previous.metric, info.unit), previous.date);
+  if (!pricePage && rankText) fact(companyPage ? '기업 순위' : label + ' 순위', rankText, ranking?.rankDate, rankHref);
+  const selectedCap = compositionModel?.members.find(member => member.candidate.selected);
+  const separateStockCap = marketcapDetail && !companyPage && snapshot.value != null && (!selectedCap || selectedCap.date !== snapshot.date
+    || compareBusinessValues(selectedCap.amount, snapshot.value) !== 0);
 
-  return <div className="app-container detail-grid investor-detail">
+  return <div className="app-container detail-grid investor-detail" data-detail-route={route}>
     {security && <RecentSecurityTracker secCode={secCode} securityId={security.securityId} routeCode={security.routeCode}
-      lastPath={recentDetailPath(route, scope.periodId ? { period: scope.periodId, start, end } : { start, end })}
+      lastPath={recentDetailPath(route, { period: scope.periodId, start: scope.start, end: scope.end })}
       name={security.name} korName={security.korName} ticker={security.ticker} exchange={security.exchange}
       metricType={metric} metricValue={security[metric]} />}
-    <DetailInvestorNavigation groups={detailNavGroups({ company, security: navSecurity, companyPage, basic, metric, scope })} />
-    <div className="detail-content investor-content">
+    <DetailInvestorNavigation groups={detailNavGroups({ company, security: navSecurity, companyPage, basic, metric, scope })} name={name} metricLabel={pageLabel} />
+    <div className={`detail-content investor-content${headerCompact ? ' ' + styles.focusedContent : ''}${marketcapDetail ? ' ' + styles.marketcapContent : ''}${compactActions ? ' ' + styles.financialContent : ''}`}>
       <nav aria-label="Breadcrumb" className="detail-breadcrumb investor-breadcrumb">
         <Link prefetch={false} href="/">홈</Link><span aria-hidden="true">·</span><Link prefetch={false} href={rankingRoute}>
           {companyPage ? '기업 시가총액 순위' : label + ' 순위'}
         </Link><span aria-hidden="true">·</span><span>{name}</span>
       </nav>
       <StickyCompanyHeader displayName={name} companyName={company?.companyKorName || security?.company?.korName}
-        logoUrl={security?.company?.logo || company?.company?.logo} titleSuffix={pageLabel}
-        actions={<ShareButton title={name + ' ' + pageLabel} text={siteConfig.name + '에서 ' + name + '의 ' + pageLabel + ' 기록을 확인하세요.'}
+        logoUrl={security?.company?.logo || company?.company?.logo} titleSuffix={' ' + pageLabel}
+        historyAction={download} compactActions={headerCompact}
+        contextActions={compositionModel ? <DetailMarketcapMobileSwitch model={compositionModel} sections={sections} /> : undefined}
+        actions={<ShareButton className={styles.shareActions} compactActions={headerCompact} title={name + ' ' + pageLabel} text={siteConfig.name + '에서 ' + name + '의 ' + pageLabel + ' 기록을 확인하세요.'}
           url={new URL(compactShare, siteConfig.url).href} />} />
       <div className="detail-identity-meta">
-        <p>{companyPage ? '기업 전체 · 보통주·우선주 합산' : [security?.type, security?.ticker, security?.exchange].filter(Boolean).join(' · ')}</p>
+        <p>{companyPage ? '기업 전체' : [security?.type, security?.ticker, security?.exchange].filter(Boolean).join(' · ')}</p>
         <p>공개 기준일 {publication?.asOf || '미공개'}</p>
       </div>
       {historyError && <p role="alert" className="investor-error">{historyError} <button type="button" onClick={onRetry}>다시 시도</button></p>}
@@ -340,29 +480,75 @@ export function DetailSurface(props: DetailSurfaceProps) {
         <span>선택 기간 {start || '처음'} ~ {end || '마지막'}</span>
         <Link prefetch={false} href={detailHref(route, { periodId })}>기간 초기화</Link>
       </div>}
+      {security?.historicalPeriod && !companyPage && <p className="investor-muted">
+        이전 상장기의 자료입니다. 현재 공개값과 순위는 현재 상장기의 자료입니다.
+        {!pricePage && <> <Link prefetch={false} href={detailHref(securityPath(security), scope) + '#listing-history'}>상장 이력 보기</Link></>}
+      </p>}
 
       <div className="investor-overview">
-        {!dividend && download}
-        {companyPage ? <CompanyMarketcapOverview company={company} members={members} ranking={ranking} basis={publication?.asOf} /> :
-          dividend ? <section id="current-overview" className="investor-dividend-overview">
-            <DetailRecordHeading title="구성 종목 배당 비교" />
-            <DividendTable members={selectedMembers} securityId={security?.securityId} metric={metric} csvStem={stem} scope={scope} basis={publication?.asOf} />
-            <div className="investor-stock-scope">
-              {security && <StockSelection members={selectedMembers} current={security} label="분석 종목" metric={metric} scope={scope} />}
-              {download}
+        {compositionModel ? <section id="current-overview" tabIndex={-1} aria-label="시가총액 요약">
+          <DetailMarketcapSwitch model={compositionModel} />
+          {!companyPage && <div className={styles.marketcapFacts}>
+            {separateStockCap && <span className={styles.separateStockCap}>현재 종목 시총 <strong><MarketcapAmount value={snapshot.value} /></strong>
+              {snapshot.date && snapshot.date !== basis && <time dateTime={snapshot.date}>{snapshot.date}</time>}</span>}
+            <span><strong>{name}</strong> 종목 시총 순위 <b>{rankText ?? '—'}</b>
+              {rankDate && <time dateTime={rankDate}>{rankDate}</time>}</span>
+            <span>종가 {quoteHref ? <Link prefetch={false} href={quoteHref} title={detailValue(price.value, '원')}>{detailValue(price.value, '원')}</Link> : '—'}
+              {price.date && price.date !== basis && <time dateTime={price.date}>{price.date}</time>}</span>
+          </div>}
+          {missing}
+        </section> : companyPage ? <CompanyMarketcapOverview company={company} members={members} ranking={ranking} basis={publication?.asOf} /> :
+          compactActions ? <section id="current-overview" aria-label="현재 공개값">
+            <div className={styles.summaryHero}>
+              <dl className={styles.headlineRow} data-ranked={Boolean(rankText) || undefined}>
+                <div className={styles.headlineColumn}>
+                  <dt>현재 {label}</dt>
+                  <dd className={snapshot.value == null ? styles.headlineMissing
+                    : `investor-primary-value ${styles.headlineAmount}${valuation ? ' ' + styles.multipleHeadlineAmount : ''}`}>
+                    {snapshot.value == null ? '미제공' : <>{formatInvestorNumber(snapshot.value, info.unit)}
+                      <span className={styles.headlineUnit}>{info.unit}</span></>}
+                  </dd>
+                  {snapshot.value != null && snapshot.date && snapshot.date !== basis
+                    && <dd className="investor-muted"><time dateTime={snapshot.date}>{snapshot.date}</time></dd>}
+                </div>
+                {rankText && <div className={styles.headlineColumn}>
+                  <dt>{label} 순위</dt>
+                  <dd><Link className={styles.headlineRank} prefetch={false} href={rankHref}
+                    aria-label={label + ' 순위 ' + rankText}>
+                    <strong>{rankNumber}</strong><span className={styles.rankUnit}>위</span>
+                  </Link></dd>
+                  {rankDate && <dd className="investor-muted"><time dateTime={rankDate}>{rankDate}</time></dd>}
+                </div>}
+              </dl>
+              {missing}
+              <div className={styles.comparisonStrip}>
+                {dividend && prior && <p className={styles.reference}>
+                  <span>{immediatePrior ? '직전 거래일' : '직전 제공값'}</span><strong>{formatInvestorAmount(prior.value, info.unit)}</strong>
+                  {!immediatePrior && <time dateTime={prior.date}>{prior.date}</time>}
+                </p>}
+                {(valuation || relatedMetric) && canShowMetric && <SnapshotDifference analysis={snapshotAnalysis} unit={info.unit} label={label}
+                  immediate={immediatePrior} financialComparison />}
+                {valuation && previous && <p className={styles.reference} data-valuation-reference={previous.date}>
+                  <span>1년 전 기준</span><strong>{formatInvestorAmount(previous.metric, info.unit)}</strong>
+                  {metric === 'pbr' && <time dateTime={previous.date}>{previous.date}</time>}
+                </p>}
+                {dividend && quoteChange}
+              </div>
             </div>
-            {missing}
+            {valuationSupport && <div className={styles.valuationSupport}>{valuationSupport}</div>}
+            {relatedMetric && security && <div className={styles.valuationSupport}>
+              <RelatedMetricSummary security={security} metric={relatedMetric} scope={scope} basis={basis} quoteChange={quoteChange} />
+            </div>}
+            {dividend && <DividendTable members={selectedMembers} securityId={security?.securityId} metric={metric}
+              csvStem={stem} scope={scope} basis={basis} candidates={candidates} />}
           </section> :
           <section id="current-overview" aria-label="현재 공개값">
-            {security && (pricePage || metric === 'marketcap') && <StockSelection members={selectedMembers} current={security}
-              label="종목 선택" metric={pricePage ? undefined : 'marketcap'} scope={scope} />}
-            {security && !basic && (metric === 'per' || metric === 'pbr') && canShowMetric
-              ? <ValuationSummary metric={metric} security={security} previous={snapshotAnalysis.previousValuation ?? null} scope={scope} basis={publication?.asOf} />
-              : <dl className="investor-amounts">
+            <dl className="investor-amounts">
                 <div className="investor-primary">
                   <dt>{pricePage ? lastClose != null ? '마지막 종가' : '종가' : label}</dt>
-                  <dd className="investor-primary-value" title={detailValue(pricePage ? price.value ?? lastClose : snapshot.value, pricePage ? '원' : info.unit)}>
-                    {detailValue(pricePage ? price.value ?? lastClose : snapshot.value, pricePage ? '원' : info.unit, metric === 'marketcap' && !pricePage)}
+                  <dd className="investor-primary-value"
+                    title={detailValue(pricePage ? price.value ?? lastClose : snapshot.value, pricePage ? '원' : info.unit)}>
+                    {detailValue(pricePage ? price.value ?? lastClose : snapshot.value, pricePage ? '원' : info.unit)}
                   </dd>
                   {(pricePage ? quoteDate : snapshot.date) !== publication?.asOf
                     && <dd className="investor-muted">{(pricePage ? quoteDate : snapshot.date) || '기준일 미등록'}</dd>}
@@ -371,66 +557,66 @@ export function DetailSurface(props: DetailSurfaceProps) {
                   <div><dt>전일 대비</dt><dd className={rate && rate > 0 ? 'market-up' : rate && rate < 0 ? 'market-down' : ''}>{rateText}</dd></div>
                   <div><dt>거래량</dt><dd>{detailValue(sourceValue(quote?.volume), '주')}</dd></div>
                 </> : <>
-                  {relatedMetric && relatedLink && <div><dt>{detailMetricLabel(relatedMetric)}</dt><dd>{relatedLink}</dd></div>}
                   {security && <div><dt>종가</dt><dd>{price.value == null ? '—' : <Link prefetch={false}
                     href={detailHref(securityPath(security), scope)}>{detailValue(price.value, '원')}</Link>}</dd>
                     {price.date && price.date !== publication?.asOf && <dd className="investor-muted">{price.date}</dd>}</div>}
                   {ranking?.currentRank != null && <div><dt>전체 순위</dt><dd>{ranking.currentRank.toLocaleString('ko-KR')}위</dd>
                     {ranking.rankDate && ranking.rankDate !== publication?.asOf && <dd className="investor-muted">{ranking.rankDate}</dd>}</div>}
                 </>}
-              </dl>}
+            </dl>
             {missing}
           </section>}
-        {!basic && canShowMetric && <SnapshotDifference analysis={snapshotAnalysis} unit={info.unit} />}
+        {!compactActions && !marketcapDetail && !basic && canShowMetric && <SnapshotDifference analysis={snapshotAnalysis} unit={info.unit} />}
+        {!companyPage && !dividend && !marketcapDetail && canShowMetric && <StockSelection candidates={candidates} label="종목 전환" />}
         {!basic && !companyPage && exclusionLabel && <p className="investor-muted">순위 제외 사유 · {exclusionLabel}</p>}
         {!canShowMetric && !historyPending && !historyError && <div className="investor-unavailable">
           <p>이 종목의 {label} 제공 이력이 없습니다. 지표 이동에서 제공되는 다른 기록을 볼 수 있습니다.</p>
           {siblingMetricLinks.map(member => <Link key={member.securityId} prefetch={false}
-            href={detailHref(securityPath(member, metric), { start, end })}>{securityName(member)} {label} 보기</Link>)}
+            href={detailHref(securityPath(member, metric), { start: scope.start, end: scope.end })}>{securityName(member)} {label} 보기</Link>)}
         </div>}
       </div>
 
       <DetailInvestorOutline sections={sections} inline />
+      {headerCompact && <p role="status" className="sr-only">{pendingHistory && '이력 자료를 불러오는 중…'}</p>}
       {order.map(({ id, body }) => <Fragment key={id}>{body}</Fragment>)}
-      {!basic && canShowMetric && <details id="metric-formula" className="investor-disclosure">
-        <summary>지표 설명 · 계산식</summary><p>{companyPage ? '기업 시가총액은 회사의 보통주·우선주 등 종목을 합산한 공개 결과입니다.' : info.formula}</p>
-      </details>}
-      <PublicationBasis publication={publication} companyPage={companyPage} />
     </div>
-    <aside className="context-rail investor-context hidden xl:block" data-full-recent-rail>
-      <div className="detail-rail-content">
-        <RecentSecuritiesSidebar currentSecCode={secCode} />
-        <DetailInvestorOutline sections={sections} />
-      </div>
-    </aside>
+    <DetailInvestorRail candidates={candidates} facts={facts} sections={sections} secCode={secCode} name={name}
+      candidateTitle={companyPage ? basic ? '주가·거래 보기' : '종목 시총 보기' : undefined} preserveSections={marketcapDetail || !companyPage}
+      composition={compositionModel}
+      historyReady={!historyPending || Boolean(historyError)} />
   </div>;
 }
 
-function SnapshotDifference({ analysis, unit }: { analysis: DetailSnapshotAnalysis; unit: string }) {
+function SnapshotDifference({ analysis, unit, label, immediate, financialComparison }: {
+  analysis: DetailSnapshotAnalysis; unit: string; label?: string; immediate?: boolean; financialComparison?: boolean;
+}) {
   const { priorObservation, snapshotChange, snapshotDifference, priorValueSign, snapshotComparisonReason } = analysis;
   if (snapshotComparisonReason) return <p className="investor-muted">{snapshotComparisonReason}</p>;
   if (!priorObservation) return null;
   const date = priorObservation.date;
-  if (snapshotChange != null) return <p className="investor-muted">
+  const sign = compareBusinessValues(snapshotChange, 0);
+  if (snapshotChange != null && label) return <p className={styles.reference} data-prior-observation={date}>
+    <span>{label} {immediate ? '전일 대비' : '직전 제공값 대비'}</span>
+    <strong className={sign === 1 ? 'market-up' : sign === -1 ? 'market-down' : undefined}>
+      {sign === 1 ? '+' : ''}{(financialComparison ? formatInvestorAmount(snapshotChange, '%') : detailValue(snapshotChange, '%')).replace(/^-/, '−')}
+    </strong>
+    {!immediate && <time dateTime={date}>{date}</time>}
+  </p>;
+  if (snapshotChange != null) return <p className="investor-muted" data-prior-observation={date}>
     {date} 이력 대비 {compareBusinessValues(snapshotChange, 0) === 1 ? '+' : ''}{detailValue(snapshotChange, '%')}
   </p>;
-  return snapshotDifference != null && priorValueSign != null && priorValueSign <= 0 ? <p className="investor-muted">
-    {date} 이력 대비 차이 {detailValue(snapshotDifference, unit)} · 이전 값이 {priorValueSign === 0 ? '0' : '음수'}라 증감률 계산 불가
-  </p> : null;
-}
-
-function PeriodStats({ analysis, info, companyPage }: { analysis: DetailAnalysis; info: typeof DETAIL_METRICS[DetailMetric]; companyPage: boolean }) {
-  const { means, summary, analysisEnd } = analysis;
-  return <>
-    {analysisEnd && <p className="investor-muted">분석 기준 {analysisEnd}</p>}
-    <dl className="investor-period-stats">
-      {means.map(row => <div key={row.label}><dt>{row.label}</dt><dd>{detailValue(row.mean, info.unit, companyPage)}</dd>
-        <dd className="investor-muted">{row.count ? row.start + ' ~ ' + row.end + ' · ' + row.count.toLocaleString('ko-KR') + '개' : '제공 관측 없음'}</dd></div>)}
-    </dl>
-    <p className="investor-muted">{summary.count ? '분석 범위 ' + summary.start + ' ~ ' + summary.end + ' · 실제 관측 ' + summary.count.toLocaleString('ko-KR') + '개' : '이 범위에 제공된 관측이 없습니다.'}
-      {companyPage && ' · 날짜별 등록 종목 부분 합계의 평균입니다. 관측 종목 구성이 다른 날짜도 포함될 수 있습니다.'}</p>
-    {summary.count > 0 && <p className="investor-muted">최저 {detailValue(summary.min, info.unit)} · 최고 {detailValue(summary.max, info.unit)}</p>}
-  </>;
+  if (snapshotDifference == null || priorValueSign == null || priorValueSign > 0) return null;
+  const reason = '이전 값이 ' + (priorValueSign === 0 ? '0' : '음수') + '라 증감률 계산 불가';
+  if (financialComparison && label) return <p className={styles.reference} data-prior-observation={date}>
+    <span>{label} 직전 제공값과 차이</span>
+    <strong>{unit === '원' ? detailValue(snapshotDifference, unit).replace(/^-/, '−') : formatInvestorAmount(snapshotDifference, unit)}</strong>
+    <time dateTime={date}>{date}</time>
+    <small className={styles.comparisonNote}>{reason}</small>
+  </p>;
+  return <p className="investor-muted" data-prior-observation={date}>
+    {label ? label + ' 직전 제공값과 차이' : date + ' 이력 대비 차이'} {detailValue(snapshotDifference, unit)}
+    {label && <> <time dateTime={date}>{date}</time></>} · {reason}
+  </p>;
 }
 
 function TradeInfo({ security, quote, date }: { security: DetailSecurityView | null; quote?: Record<string, unknown>; date: string | null }) {
@@ -456,8 +642,45 @@ function SecurityCompanyInfo({ company }: { company: DetailCorporation }) {
     ]} />;
 }
 
-function NearbyRanks({ rows, ranking, metric, companyPage, scope }: {
-  rows: Record<string, unknown>[]; ranking: NonNullable<Ranking>; metric: DetailMetric; companyPage: boolean; scope: { start?: string; end?: string };
+function nearbyRankLinks(rows: Record<string, unknown>[], currentRank: number, securityId: string | undefined,
+  metric: DetailMetric, scope: { start?: string; end?: string }) {
+  if (!Number.isSafeInteger(currentRank) || currentRank <= 0) return null;
+  const candidates = rows.flatMap(row => {
+    const rawRank = row.currentRank;
+    if (typeof rawRank !== 'number' && (typeof rawRank !== 'string' || !/^\d+$/.test(rawRank))) return [];
+    const position = Number(rawRank);
+    const id = row.securityId;
+    const value = sourceValue(Object.hasOwn(row, 'value') ? row.value : row[metric]);
+    const name = row.korName || row.name || row.ticker;
+    if (typeof id !== 'string' || !id || id === securityId || typeof name !== 'string' || !name || value == null
+      || !Number.isSafeInteger(position) || position <= 0 || position === currentRank) return [];
+    const path = securityPath({ securityId: id, routeCode: typeof row.routeCode === 'string' ? row.routeCode : null,
+      ticker: String(row.ticker ?? ''), exchange: String(row.exchange ?? '') }, metric);
+    return [{ id, name, position, value, href: detailHref(path, { start: scope.start, end: scope.end }) }];
+  }).sort((left, right) => left.position - right.position);
+  const higher = candidates.findLast(row => row.position < currentRank);
+  const lower = candidates.find(row => row.position > currentRank);
+  if (!higher && !lower) return null;
+  return <nav className={styles.nearbyRanks} aria-label="인접 순위">
+    {[higher, lower].map((row, index) => {
+      if (!row) return null;
+      const isHigher = index === 0;
+      const Chevron = isHigher ? ChevronLeft : ChevronRight;
+      return <Link key={row.id} prefetch={false} href={row.href} data-direction={isHigher ? 'higher' : 'lower'}>
+        <span className={styles.nearbyRankText}>
+          <span className={styles.nearbyRankDirection}>{isHigher ? '높은 순위' : '낮은 순위'}</span>
+          <strong className={styles.nearbyRankPosition}>{row.position.toLocaleString('ko-KR')}위</strong>
+          <span className={styles.nearbyRankName}>{row.name}</span>
+          <span className={styles.nearbyRankValue}>{formatInvestorAmount(row.value, DETAIL_METRICS[metric].unit)}</span>
+        </span>
+        <Chevron size={18} aria-hidden="true" />
+      </Link>;
+    })}
+  </nav>;
+}
+
+function NearbyRanks({ rows, currentRank, metric, companyPage, scope }: {
+  rows: Record<string, unknown>[]; currentRank: number; metric: DetailMetric; companyPage: boolean; scope: { start?: string; end?: string };
 }) {
   const info = DETAIL_METRICS[metric];
   const data = rows.flatMap(row => {
@@ -468,25 +691,13 @@ function NearbyRanks({ rows, ranking, metric, companyPage, scope }: {
     const name = String(row.korName || row.name || row.ticker || '—');
     const path = companyPage ? companyPath({ companyId: String(id), routeCode: target }, 'marketcap')
       : securityPath({ securityId: String(id), ticker: String(row.ticker ?? ''), exchange: String(row.exchange ?? ''), routeCode: target }, metric);
-    return [{ key: String(id), selected: position === ranking.currentRank, cells: [
-      { value: position.toLocaleString('ko-KR') + '위' }, { value: name, display: position === ranking.currentRank ? name
+    return [{ key: String(id), selected: position === currentRank, cells: [
+      { value: position.toLocaleString('ko-KR') + '위' }, { value: name, display: position === currentRank ? name
         : <Link prefetch={false} href={detailHref(path, { start: scope.start, end: scope.end })}>{name}</Link> },
       { value: detailValue(sourceValue(row.value ?? row[metric] ?? row.totalMarketcap), info.unit, metric === 'marketcap') },
     ] }];
   });
   return <InvestorTable columns={['순위', '이름', detailMetricLabel(metric)]} rows={data} label="인접 순위" />;
-}
-
-function PublicationBasis({ publication, companyPage }: { publication?: DetailPublication | null; companyPage: boolean }) {
-  return <details id="publication-basis" className="investor-disclosure">
-    <summary>조회 기준 · 자료 공개 정보</summary>
-    <dl className="investor-publication">
-      <div><dt>자료 갱신번호</dt><dd>{publication?.revision ?? '—'}</dd></div>
-      <div><dt>자료 범위</dt><dd>{publication?.scopeKey === 'krx-all' ? '한국거래소 전체 (krx-all)' : publication?.scopeKey || '—'}</dd></div>
-    </dl>
-    <p>현재값과 순위는 공개 결과를 사용합니다. 이력과 통계의 실제 관측일은 각 기록에서 확인할 수 있습니다.
-      {companyPage && ' 과거 등록 종목 합계는 그날 제공된 관측으로 계산합니다.'}</p>
-  </details>;
 }
 
 function historyCsvRows({ basic, companyPage, company, sourceHistory, prices, metric }: DetailSurfaceProps) {

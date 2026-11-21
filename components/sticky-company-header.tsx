@@ -14,11 +14,15 @@ interface StickyCompanyHeaderProps {
     titleBadge?: string | null;
     detail?: { label?: string | null; value?: string | null; badge?: string | null } | null;
     actions?: ReactNode;
+    historyAction?: ReactNode;
+    contextActions?: ReactNode;
+    compactActions?: boolean;
     onPinChange?: (pinned: boolean) => void;
 }
 
 export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyOffset = 80,
-    titleSuffix = '시가총액', titleBadge, detail, actions, onPinChange }: StickyCompanyHeaderProps) {
+    titleSuffix = '시가총액', titleBadge, detail, actions, historyAction, contextActions, compactActions = false,
+    onPinChange }: StickyCompanyHeaderProps) {
     const sentinel = useRef<HTMLDivElement>(null);
     const bar = useRef<HTMLDivElement>(null);
     const [pinned, setPinned] = useState(false);
@@ -68,12 +72,15 @@ export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyO
 
     return <>
         <div ref={sentinel} aria-hidden="true" className="h-px" />
-        <div ref={bar} data-detail-header className={cn('sticky z-30 bg-background py-2', pinned && 'border-b border-border py-2')}
+        <div ref={bar} data-detail-header data-pinned={pinned || undefined} className={cn('sticky z-30 bg-background py-2', pinned && 'border-b border-border py-2')}
             style={{ top: offset }}>
-            <div className="flex min-w-0 items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
+            <div className={cn('flex min-w-0 items-center justify-between gap-3', (historyAction || compactActions) && 'flex-wrap gap-y-2')}>
+                <div className={cn('flex min-w-0 items-center gap-3', compactActions ? 'max-w-full flex-[1_1_12rem]'
+                    : historyAction && 'max-w-full flex-auto')}>
                     <div className="min-w-0">
-                        <h1 className={cn('break-keep [overflow-wrap:anywhere] font-bold tracking-tight sm:[overflow-wrap:normal]', pinned ? 'text-lg sm:text-xl' : 'text-2xl sm:text-[32px]')}>
+                        <h1 className={cn('break-keep [overflow-wrap:anywhere] font-bold tracking-tight',
+                            !historyAction && !compactActions && 'sm:[overflow-wrap:normal]',
+                            pinned ? 'text-lg sm:text-xl' : 'text-2xl sm:text-[32px]')}>
                             {displayName}<span className="detail-title-suffix mt-1 block text-sm font-medium text-muted-foreground sm:ml-2 sm:mt-0 sm:inline">{titleSuffix}</span>
                         </h1>
                         {(titleBadge || detail?.value || detail?.badge) && <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -83,8 +90,13 @@ export function StickyCompanyHeader({ displayName, companyName, logoUrl, stickyO
                         </div>}
                     </div>
                 </div>
-                {actions && <div className="detail-share shrink-0">{actions}</div>}
+                {historyAction || compactActions ? <div data-detail-header-actions className={cn('ms-auto flex max-w-full items-start justify-end gap-2',
+                    compactActions ? 'shrink-0' : 'flex-wrap')}>
+                    {actions && <div className="detail-share shrink-0">{actions}</div>}
+                    {historyAction}
+                </div> : actions && <div className="detail-share shrink-0">{actions}</div>}
             </div>
+            {contextActions}
         </div>
     </>;
 }

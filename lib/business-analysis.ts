@@ -39,6 +39,11 @@ export function formatBusinessValue(value: BusinessValue | undefined): string {
   return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction ? `.${fraction}` : ''}`;
 }
 
+export function roundBusinessValue(value: BusinessValue, places: number): string | null {
+  const parsed = decimal(value);
+  return parsed ? divide(parsed.coefficient, 10n ** BigInt(parsed.scale), places) : null;
+}
+
 export function compareBusinessValues(left: BusinessValue, right: BusinessValue): number | null {
   const a = decimal(left), b = decimal(right);
   if (!a || !b) return null;
@@ -87,6 +92,23 @@ export function formatCompactBusinessValue(value: BusinessValue | undefined, dig
   if (!unit) return formatBusinessValue(value);
   const places = digits ?? (magnitude >= unit.divisor * power * 10n ? 0 : 1);
   return `${divide(parsed.coefficient, unit.divisor * power, Math.max(0, Math.min(places, 8)))}${unit.label}`;
+}
+
+export function formatMarketcapAmount(value: BusinessValue): string {
+  const parsed = decimal(value);
+  if (!parsed) return '—';
+  const negative = parsed.coefficient < 0n;
+  const magnitude = negative ? -parsed.coefficient : parsed.coefficient;
+  const divisor = 100_000_000n * 10n ** BigInt(parsed.scale);
+  if (magnitude < divisor) return `${formatBusinessValue(value)}원`;
+
+  const roundedEok = (magnitude + divisor / 2n) / divisor;
+  const jo = roundedEok / 10_000n;
+  const eok = roundedEok % 10_000n;
+  const parts = [];
+  if (jo > 0n) parts.push(`${formatBusinessValue(jo.toString())}조`);
+  if (eok > 0n) parts.push(`${formatBusinessValue(eok.toString())}억`);
+  return (negative ? '-' : '') + parts.join(' ') + ' 원';
 }
 
 /** Normalize exact source decimals before converting a chart coordinate to Number. */

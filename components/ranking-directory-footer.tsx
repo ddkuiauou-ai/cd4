@@ -33,9 +33,9 @@ const groups = [
   },
 ];
 
-export function RankingDirectoryFooter() {
+export function RankingDirectoryFooter({ detail = false }: { detail?: boolean }) {
   return (
-    <footer className={styles.footer} aria-label="전체 콘텐츠 목차">
+    <footer className={detail ? `${styles.footer} ${styles.detail}` : styles.footer} aria-label="전체 콘텐츠 목차">
       <div className="app-container">
         <div className={styles.directory}>
           <div className={styles.identity}>
@@ -44,7 +44,7 @@ export function RankingDirectoryFooter() {
               <Image src="/icon.svg" alt="" width={29} height={29} />
               <span>단타대회</span>
             </div>
-            <p className={styles.description}>기업·종목별 숫자와<br /> 전체 순위를 확인하세요.</p>
+            {!detail && <p className={styles.description}>기업·종목별 숫자와<br /> 전체 순위를 확인하세요.</p>}
             <Link prefetch={false} href="/" className={styles.allRankings}>
               전체 순위 살펴보기<ArrowRight aria-hidden="true" />
             </Link>
@@ -57,7 +57,7 @@ export function RankingDirectoryFooter() {
                   <li key={link.href}>
                     <Link prefetch={false} href={link.href} className={styles.directoryLink}>
                       <strong>{link.title}</strong>
-                      <span>{link.description}</span>
+                      {!detail && <span>{link.description}</span>}
                     </Link>
                   </li>
                 ))}
@@ -65,13 +65,13 @@ export function RankingDirectoryFooter() {
             </nav>
           ))}
         </div>
-        <nav className={styles.bottom} aria-label="보조 탐색">
+        {!detail && <nav className={styles.bottom} aria-label="보조 탐색">
           <Link prefetch={false} href="/dashboard">메인<ArrowUpRight aria-hidden="true" /></Link>
           <div className={styles.actions}>
             <RecentPanelTrigger className={styles.recentButton}>최근 본 종목<History aria-hidden="true" /></RecentPanelTrigger>
             <a href="#ranking-title">맨 위로<ArrowUp aria-hidden="true" /></a>
           </div>
-        </nav>
+        </nav>}
       </div>
     </footer>
   );

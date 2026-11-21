@@ -15,7 +15,8 @@ function presentationLoader(extra = {}) {
   const named = (...keys) => Object.fromEntries(keys.map(key=>[key,empty]));
   let downloaded;
   const load = loader({
-    '@/components/sticky-company-header':{StickyCompanyHeader:({displayName,detail})=>React.createElement('h1',null,displayName,detail?.value)},
+    '@/components/sticky-company-header':{StickyCompanyHeader:({displayName,detail,historyAction})=>React.createElement('div',{'data-detail-header':true},
+      React.createElement('h1',null,displayName,detail?.value),historyAction)},
     '@/components/company-financial-tabs':named('CompanyFinancialTabs'),
     '@/components/detail-mobile-navigation':named('DetailMobileNavigation'),
     '@/components/recent-security-tracker':named('RecentSecurityTracker'),
@@ -137,7 +138,44 @@ test('optimized static props omit full histories while preserving official quote
   assert.equal(initial.security.bps,'-1');assert.equal(initial.neighbors[0].value,'9007199254740993.25');
   assert.doesNotMatch(JSON.stringify(initial),/9876543210123456789/);
   const html=renderToStaticMarkup(React.createElement(surface.DetailSurface,{...initial,historyPending:true}));
-  assert.match(html,/12개월 평균/);assert.match(html,/실제 관측 3개/);assert.match(html,/data-testid="annual"/);assert.match(html,/2026-10-08/);assert.match(html,/전체 이력 CSV/);
+  assert.match(html,/평균 PBR/);assert.match(html,/실제 관측 3개/);assert.match(html,/data-testid="annual"/);assert.match(html,/2026-10-08/);assert.match(html,/전체 이력 CSV/);
+});
+
+test('financial static pending keeps prepared annual records and renders skeletons only for delayed data',()=>{
+  const {load}=presentationLoader();
+  const {DetailSurface,prepareDetailAnalysis}=load('components/detail-surface.tsx');
+  const prepared={
+    ...props, metric:'per',
+    security:{...security, per:'2', perState:'provided', perDate:'2026-10-08', availableMetrics:['per']},
+  };
+  const shell={...prepared, history:[], sourceHistory:[], initialAnalysis:prepareDetailAnalysis(prepared), historyPending:true};
+  const render=overrides=>new JSDOM(renderToStaticMarkup(React.createElement(DetailSurface,{...shell,...overrides}))).window;
+  const pending=render();
+  try {
+    const page=pending.document;
+    assert.match(page.querySelector('#current-overview').textContent,/현재 PER2배/);
+    assert.ok(page.querySelector('#chart-analysis [data-variant="per"]'));
+    assert.ok(page.querySelector('#annual-data [data-testid="annual"]'));
+    assert.match(page.querySelector('#indicators').textContent,/실제 관측 3개/);
+    assert.equal(page.querySelector('#history-download button').disabled,true);
+    assert.equal([...page.querySelectorAll('[role="status"]')].filter(node=>node.textContent.includes('이력 자료를 불러오는 중')).length,1);
+  } finally { pending.close(); }
+
+  const custom=render({initialAnalysis:undefined, search:{start:'2026-10-01'}});
+  try {
+    const page=custom.document;
+    assert.ok(page.querySelector('#chart-analysis [data-custom-range]'));
+    assert.ok(page.querySelector('#annual-data .annual[aria-hidden="true"]'));
+    assert.equal(page.querySelector('#annual-data [data-testid="annual"]'),null);
+  } finally { custom.close(); }
+
+  const failed=render({historyError:'이력 자료를 불러오지 못했습니다.'});
+  try {
+    const page=failed.document;
+    assert.match(page.querySelector('[role="alert"]').textContent,/다시 시도/);
+    assert.equal(page.querySelector('#chart-analysis [data-variant="per"]'),null);
+    assert.ok(page.querySelector('#annual-data [data-testid="annual"]'));
+  } finally { failed.close(); }
 });
 
 test('static wrapper offers an inline benchmark and compact assets while standalone retains server rendering',async()=>{
@@ -234,20 +272,25 @@ test('static browser queries update filters and navigation without changing full
     assert.match(visibleRange(),/2026-10-01 ~ 2026-10-08/);
     const bpsLink=document.querySelector('#detail-metric-navigation a[href*="/bps?"]');
     assert.match(bpsLink.getAttribute('href'),/start=2026-10-01&end=2026-10-08/);
-    assert.match(document.querySelector('#current-overview').textContent,/2025-10-08/);
-    assert.match(document.querySelector('.investor-overview').textContent,/2026-10-01 이력 대비 차이/);
-    assert.match(average(),/이력 자료를 불러오는 중/);
-    assert.match(document.querySelector('#annual-data').textContent,/이력 자료를 불러오는 중/);
+    const referenceDate=()=>document.querySelector('[data-valuation-reference]')?.dataset.valuationReference;
+    const priorDate=()=>document.querySelector('[data-prior-observation]')?.dataset.priorObservation;
+    assert.equal(referenceDate(),'2025-10-08');
+    assert.equal(priorDate(),'2026-10-01');
+    assert.match(document.querySelector('[data-prior-observation]').textContent,/직전 제공값과 차이.+이전 값이 0/);
+    assert.match(document.querySelector('[role="status"].sr-only').textContent,/이력 자료를 불러오는 중/);
+    assert.ok(document.querySelector('#indicators [aria-hidden="true"]'));
+    assert.ok(document.querySelector('#annual-data [aria-hidden="true"]'));
     assert.equal(document.querySelector('#history-download button').disabled,true);
     assert.equal(context.csv().data,undefined);
 
     const initialSearch=window.location.search;
     const replaceSearch=async search=>React.act(async()=>{window.history.replaceState({},'',search);window.dispatchEvent(new window.PopStateEvent('popstate'));});
     await replaceSearch('?period=old&start=2020-01-01');
-    assert.doesNotMatch(document.querySelector('.investor-overview').textContent,/2025-10-08|2026-10-01 이력 대비/);
-    assert.equal(document.querySelector('#history-download'),null);
+    assert.equal(referenceDate(),undefined);
+    assert.equal(priorDate(),undefined);
+    assert.equal(document.querySelector('#history-download button').disabled,true);
     await replaceSearch(initialSearch);
-    assert.match(document.querySelector('#current-overview').textContent,/2025-10-08/);
+    assert.equal(referenceDate(),'2025-10-08');
     assert.equal(document.querySelector('#history-download button').disabled,true);
     await React.act(async()=>{release();});
 
@@ -311,6 +354,22 @@ test('compact static props retain current metric fields, comparison summaries an
       assert.equal(compact.window.document.querySelector(selector).outerHTML,full.window.document.querySelector(selector).outerHTML);
     }
     full.window.close();compact.window.close();
+
+    const detail={...input,basic:false,history:[{date:publication.asOf,value:values.marketcap}],sourceHistory:member.marketcaps};
+    const {prepareDetailAnalysis}=context.load('components/detail-surface.tsx');
+    const ready=markup(detail);
+    const pending=markup({...compactDetailProps(detail), initialAnalysis:prepareDetailAnalysis(detail), historyPending:true});
+    try {
+      const page=pending.window.document;
+      assert.equal(page.querySelector('#current-overview').outerHTML,ready.window.document.querySelector('#current-overview').outerHTML);
+      const scope=companyPage?'company':'security';
+      assert.ok(page.querySelector(`#chart-analysis [data-chart="marketcap"][data-marketcap-scope="${scope}"]`));
+      assert.ok(page.querySelector(`#annual-data .annual[data-marketcap-scope="${scope}"]`));
+      assert.equal(page.querySelector('#annual-data [data-testid="annual"]'),null);
+      assert.equal(page.querySelector('#history-download button').disabled,true);
+    } finally {
+      ready.window.close();pending.window.close();
+    }
   }
 });
 

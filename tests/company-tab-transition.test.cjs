@@ -72,7 +72,7 @@ test('company tabs keep the header and snapshot while URLs, ranges, title and ba
     assert.equal(document.querySelector('[data-testid="view"]').textContent,'기업 합산 시총 추이');
     assert.equal(harness.latest().history,initial.history);
     assert.equal(document.querySelector('nav').dataset.activeTab,'marketcap');
-    assert.match(document.title,/삼성전자 기업 합산 시총/);
+    assert.match(document.title,/삼성전자 기업 합산 시가총액/);
     assert.equal(document.querySelector('link[rel="canonical"]').href,'https://www.chundan.xyz/company/KOSPI.005930/marketcap/');
     const historyLength=window.history.length;
     await React.act(async()=>document.querySelector('nav a[aria-current="page"]').click());
@@ -87,7 +87,7 @@ test('company tabs keep the header and snapshot while URLs, ranges, title and ba
     await React.act(async()=>document.querySelector('nav a').click());
     assert.equal(window.location.search,'?start=2026-09-01&end=2026-10-01');
     assert.equal(document.querySelector('nav').dataset.activeTab,'info');
-    assert.match(document.title,/삼성전자 기업 정보/);
+    assert.match(document.title,/삼성전자 기업 개요/);
   } finally {await harness.close();}
 });
 

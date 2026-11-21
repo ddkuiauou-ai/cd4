@@ -1,2 +1,5 @@
-import { CompanyDetailLoading } from '@/components/company-detail-loading';
-export default function Loading() { return <CompanyDetailLoading />; }
+import { DetailMetricLoading } from '@/components/detail-metric-loading';
+
+export default function Loading() {
+  return <DetailMetricLoading metric="marketcap" companyPage />;
+}

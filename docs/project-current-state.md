@@ -29,7 +29,7 @@ Knowledge 기록에는 시총 랭킹·히트맵을 Stock Explainer의 탐색 입
 
 ## 3. 실제 제품 표면
 
-서비스 설정의 이름은 `천하제일 단타대회`, URL은 `https://www.chundan.xyz`다. 폴더 이름은 cd4지만 README·package 이름·일부 화면 문구에는 CD3가 남아 있다. 설정된 URL이 현재 운영 대상을 증명하지는 않는다. 근거: [site 설정](../config/site.ts), [package.json](../package.json), [종목 페이지](../app/security/[secCode]/page.tsx).
+서비스 설정의 이름은 `천하제일 단타대회`, URL은 `https://www.chundan.xyz`다. 폴더 이름은 cd4지만 README·package 이름·일부 화면 문구에는 CD3가 남아 있다. 설정된 URL이 현재 운영 대상을 증명하지는 않는다. 근거: [site 설정](../config/site.ts), [package.json](../package.json), [종목 페이지](https://github.com/ddkuiauou-ai/cd4/blob/5ceb6c2fa3b428cbe6cd5faf851e6b8796d1d50f/app/security/%5BsecCode%5D/page.tsx).
 
 | 영역 | 실제 소스에서 확인한 동작 | 주요 근거 |
 | --- | --- | --- |
@@ -37,8 +37,8 @@ Knowledge 기록에는 시총 랭킹·히트맵을 Stock Explainer의 탐색 입
 | 기업 순위 `/marketcaps` | 회사에 연결된 종목들의 합산 시총과 기업 순위 | [기업 조회](../lib/data/company.ts), [순위 페이지](../app/(market)/marketcaps/page.tsx) |
 | 종목 순위 `/marketcap` | 개별 종목 시총, 현재/이전 순위와 가격 정보 | [종목 조회](../lib/data/security.ts), [순위 페이지](../app/(market)/marketcap/page.tsx) |
 | 지표 순위 | `/per`, `/pbr`, `/eps`, `/bps`, `/div`, `/dps` 및 페이지 번호 경로 | [지표 메뉴](../components/market-nav.tsx), [공통 순위 조회](../lib/data/security.ts) |
-| 기업 상세 | `/company/[secCode]`, `/company/[secCode]/marketcap`; 합산 추이·종목 구성 비교 | [기업 상세](../app/company/[secCode]/page.tsx), [기업 시총 상세](../app/company/[secCode]/marketcap/page.tsx) |
-| 종목 상세 | `/security/[secCode]` 및 `marketcap/per/pbr/eps/bps/div/dps` 하위 경로 | [종목 상세](../app/security/[secCode]/page.tsx), [지표 탭](../components/company-financial-tabs.tsx) |
+| 기업 상세 | `/company/[secCode]`, `/company/[secCode]/marketcap`; 합산 추이·종목 구성 비교 | [기업 상세](https://github.com/ddkuiauou-ai/cd4/blob/5ceb6c2fa3b428cbe6cd5faf851e6b8796d1d50f/app/company/%5BsecCode%5D/page.tsx), [기업 시총 상세](../app/company/[secCode]/marketcap/page.tsx) |
+| 종목 상세 | `/security/[secCode]` 및 `marketcap/per/pbr/eps/bps/div/dps` 하위 경로 | [종목 상세](https://github.com/ddkuiauou-ai/cd4/blob/5ceb6c2fa3b428cbe6cd5faf851e6b8796d1d50f/app/security/%5BsecCode%5D/page.tsx), [지표 탭](../components/company-financial-tabs.tsx) |
 | 대시보드 | `/dashboard`에 별도 화면 존재 | [대시보드](../app/dashboard/page.tsx) |
 | 반복 방문 | 최근 본 종목 최대 10개와 확인한 지표를 localStorage에 저장 | [최근 종목 저장](../lib/recent-securities.ts), [사이드바](../components/sidebar-manager.tsx) |
 | 공유·다운로드 | 상세 공유·링크 복사, 목록·상세에서 사용하는 CSV 컴포넌트 | [공유](../components/share-button.tsx), [CSV](../components/CsvDownloadButton.tsx) |
@@ -99,7 +99,7 @@ flowchart LR
 | APP-04 | DB 갱신과 웹 반영 시점이 분리됨. 정적 사이트의 오래된 데이터와 서버 캐시 갱신 문제가 발생할 수 있음 | [배포 흐름](../.github/workflows/deploy-r2.yml), [기업 캐시](../lib/data/company.ts), [종목 캐시](../lib/data/security.ts). 코드 위험, 운영 갱신 지연 미측정 |
 | APP-05 | 모바일 홈은 1–10위만 표시하지만 다음 페이지 offset은 20. 홈에서 두 번째 페이지로 가면 11–20위가 건너뛰어질 수 있음 | 홈 128·184행, [페이지 범위](../lib/data/pagination.ts) 7–10행. 소스 흐름 기반 판단, 브라우저 재현 미실시 |
 | APP-06 | `secCode`를 거래소·티커로 분리하지만 첫 종목 조회는 ticker만 사용. 거래소+티커 식별 계약과 구현 차이 | [코드 조회](../lib/data/security.ts) 338–350행. 실제 중복 티커로 발생하는지 미검증 |
-| APP-07 | 회사·종목 이미지 경로와 구조화 데이터의 이미지 URL에 별도 규칙이 남음. R2의 `company.logo`와 정합성 확인 필요 | [기업 상세](../app/company/[secCode]/page.tsx) 164행, [종목 상세](../app/security/[secCode]/page.tsx) 78행, [구조화 데이터](../lib/structured-data.ts). 실제 이미지 요청 미검증 |
+| APP-07 | 회사·종목 이미지 경로와 구조화 데이터의 이미지 URL에 별도 규칙이 남음. R2의 `company.logo`와 정합성 확인 필요 | [기업 상세](https://github.com/ddkuiauou-ai/cd4/blob/5ceb6c2fa3b428cbe6cd5faf851e6b8796d1d50f/app/company/%5BsecCode%5D/page.tsx#L164), [종목 상세](https://github.com/ddkuiauou-ai/cd4/blob/5ceb6c2fa3b428cbe6cd5faf851e6b8796d1d50f/app/security/%5BsecCode%5D/page.tsx#L78), [구조화 데이터](../lib/structured-data.ts). 실제 이미지 요청 미검증 |
 | APP-08 | 타입 검사가 실패하며 build 설정은 타입·lint 오류를 무시함. 성공한 build만으로 검사 통과를 판단할 수 없음 | [Next 설정](../next.config.ts) 15–21행. 실제 타입 검사 결과는 다음 절과 handoff 참조 |
 
 기업 합산 기준일·상폐 처리, PER/PBR 유효값 범위, 이전 기업순위 의미, 거래소별 부분 갱신의 문제는 [DAG 연동 계약](dag-integration.md)에 별도로 기록했다. 앱만 수정해 양쪽의 계산 정책을 다르게 만들지 않도록 함께 확인한다.

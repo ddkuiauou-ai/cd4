@@ -45,12 +45,12 @@ async function renderPbr(history, search = {}, identity = security) {
 
 function currentPbr(document) {
   const overview = document.querySelector("#current-overview");
-  return overview.querySelector(".investor-primary-value").textContent;
+  return overview.querySelector(".investor-primary-value, .headlineMissing").textContent;
 }
 
 function periodMean(document, label) {
-  return [...document.querySelectorAll("#indicators dl > div")]
-    .find(row => row.querySelector("dt").textContent === label)?.querySelector("dd").textContent;
+  return [...document.querySelectorAll("#indicators tbody tr")]
+    .find(row => row.cells[0].textContent.startsWith(label))?.cells[1].textContent;
 }
 
 test("actual PBR detail keeps a supplied PBR independent from missing BPS and its last value, including the full source CSV", async () => {
@@ -71,7 +71,9 @@ test("actual PBR detail keeps a supplied PBR independent from missing BPS and it
   assert.deepEqual(calls, [["historical-security", "pbr"]]);
   assert.deepEqual(state.transactions, [{ isolationLevel: "repeatable read", accessMode: "read only" }]);
   assert.match(csv, /^date,pbr,bps,state\r?\n2026-10-02,2,,provided/);
-  assert.match(document.querySelector("#history-download").textContent, /주가순자산비율.*전체 이력 CSV|PBR.*전체 이력 CSV/);
+  const download = document.querySelector("#history-download button");
+  assert.equal(download.textContent, "CSV");
+  assert.equal(download.getAttribute("aria-label"), "예시종목 PBR 전체 이력 CSV");
   assert.deepEqual(history, original);
   dom.window.close();
 });
@@ -87,8 +89,8 @@ test("selected PBR history preserves zero and negative observations, skips missi
   const { document, text, calls, csv, downloads, snapshot, dom } = await renderPbr(history, { start: "2026-09-30", end: "2026-10-02" });
   assert.deepEqual(calls, [["historical-security", "pbr"]]);
   assert.match(document.querySelector("#chart-analysis").textContent, /직접 지정 기간 2026-09-30 ~ 2026-10-02/);
-  assert.equal(periodMean(document, "12개월 평균"), "-1배");
-  assert.match(document.querySelector("#indicators").textContent, /최저\s*-2배.*최고\s*0배/);
+  assert.equal(periodMean(document, "12개월"), "−1배");
+  assert.match(document.querySelector("#indicators").textContent, /최저\s*−2배.*최고\s*0배/);
   assert.match(text, /분석 범위 2026-09-30 ~ 2026-10-01 · 실제 관측 2개/);
   assert.deepEqual(snapshot.history.map(row => row.pbr), ["999", "-2", "0", null]);
   assert.deepEqual(downloads[0].data.map(row => [row.date, row.pbr, row.state]), [
@@ -118,7 +120,7 @@ test("an invalid period never reaches a SQL bound or produces analysis and remai
   const invalid = await renderPbr([{ date: "2026-10-02", pbr: "2", pbrState: "provided" }], { start: "2026-02-30", end: "2026-10-02" });
   assert.deepEqual(invalid.calls, [["historical-security", "pbr"]]);
   assert.ok(invalid.document.querySelector('[role="alert"]'));
-  assert.equal(periodMean(invalid.document, "12개월 평균"), "—");
+  assert.equal(periodMean(invalid.document, "12개월"), "—");
   assert.ok(invalid.state.queries.every(query => !query.params.includes("2026-02-30")));
   invalid.dom.window.close();
   const empty = await renderPbr([], { start: "2026-09-30", end: "2026-10-02" });
@@ -135,7 +137,7 @@ test("unpublished PBR values are hidden while available raw history and zero-val
     { start: "2026-10-01", end: "2026-10-02" },
     { ...security, state: "unpublished", publication: null, pbr: "987654" },
   );
-  assert.equal(currentPbr(document), "—");
+  assert.equal(currentPbr(document), "미제공");
   assert.equal(snapshot.security.state, "unpublished");
   assert.equal(snapshot.security.pbr, null);
   assert.equal(snapshot.security.pbrLastProvided, null);

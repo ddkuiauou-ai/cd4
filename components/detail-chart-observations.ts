@@ -1,6 +1,10 @@
 import { compareBusinessValues, isBusinessDay } from '@/lib/business-analysis';
 import type { DetailObservation } from '@/lib/detail-presentation';
 
+export const marketcapPeriods = [['3M', '최근 3개월'], ['1Y', '1년'], ['5Y', '5년'], ['all', '전체']];
+export const marketcapPeriodMonths: Record<string, number> = { '3M': 3, '1Y': 12, '5Y': 60 };
+export const isMarketcapMonthly = (period: string) => period === '1Y' || period === '5Y';
+
 export function lastMonthlyObservations(rows: readonly DetailObservation[]) {
   const months = new Map<string, DetailObservation>();
   for (const row of rows) {
