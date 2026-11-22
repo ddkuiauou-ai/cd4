@@ -1,5 +1,7 @@
-import { formatBusinessValue, formatCompactBusinessValue, isBusinessDay } from "./business-analysis";
+import { formatBusinessValue, formatCompactBusinessValue, formatMarketcapAmount, isBusinessDay, type BusinessValue } from "./business-analysis";
 import { companyPath, companyRouteCodes, securityPath, securityRouteCodes, type SecurityRouteIdentity } from './entity-paths';
+import { formatInvestorAmount } from './investor-number';
+import { metricItems } from './metric-navigation';
 /**
  * 최근 본 종목 관리 유틸리티
  * 로컬 스토리지를 사용하여 최근 본 종목을 저장하고 관리합니다.
@@ -10,6 +12,7 @@ export interface RecentlyViewedSecurity {
     securityId?: string;
     routeCode?: string | null;
     lastPath?: string;
+    lastCompanyMarketcap?: BusinessValue;
     name: string; // 영문명
     korName?: string; // 한글명
     ticker: string; // "005930"
@@ -28,7 +31,7 @@ export interface RecentlyViewedSecurity {
 }
 
 const STORAGE_KEY = 'recently-viewed-securities';
-const MAX_RECENT_SECURITIES = 10;
+const MAX_RECENT_SECURITIES = 50;
 let snapshotText: string | null | undefined;
 let snapshotRows: RecentlyViewedSecurity[] = [];
 
@@ -272,9 +275,33 @@ export function getLastViewedMetric(security: RecentlyViewedSecurity): MetricTyp
 }
 
 export function getRecentSecurityPath(security: RecentlyViewedSecurity): string {
-    const destination = sanitizedRecentDetailPath(security.lastPath);
-    if (destination) return destination;
+    const destination = parseRecentDetailPath(security.lastPath);
+    if (destination) {
+        const query = destination.query.size ? '?' + destination.query : '';
+        return destination.kind === 'security' && !destination.metric
+            ? destination.pathname + '/marketcap' + query + '#price-history' : destination.pathname + query;
+    }
     return securityPath({ securityId: security.securityId || security.secCode, routeCode: security.secCode }, getLastViewedMetric(security));
+}
+
+export function getRecentSecurityPreview(security: RecentlyViewedSecurity, path: string): { label: string; valueText?: string } {
+    const priceHistory = path.endsWith('#price-history');
+    const destination = parseRecentDetailPath(priceHistory ? path.slice(0, -'#price-history'.length) : path);
+    if (!destination) return { label: '종목 상세' };
+    if (priceHistory && destination.kind === 'security' && destination.metric === 'marketcap') return { label: '주가·거래' };
+    if (!destination.metric) return { label: destination.kind === 'company' ? '기업 개요' : '주가·거래' };
+    const item = metricItems.find(item => item.key === destination.metric);
+    if (!item) return { label: '종목 상세' };
+    if (destination.kind === 'company' && item.key === 'marketcap') {
+        const amount = formatMarketcapAmount(security.lastCompanyMarketcap ?? null);
+        return amount === '—' ? { label: '합산 시가총액' } : { label: '합산 시가총액', valueText: `합산 시총 ${amount}` };
+    }
+    const observation = security.metrics[item.key];
+    if (observation?.lastViewed !== security.lastViewed) return { label: item.label };
+    const unit = item.key === 'per' || item.key === 'pbr' ? '배' : item.key === 'div' ? '%' : '원';
+    const amount = item.key === 'marketcap' ? formatMarketcapAmount(observation.value) : formatInvestorAmount(observation.value, unit);
+    const shortLabel = item.key === 'div' ? '배당률' : METRIC_CONFIG[item.key].label;
+    return amount === '—' ? { label: item.label } : { label: item.label, valueText: `${shortLabel} ${amount}` };
 }
 
 /** Upgrade old aliases only after a unique match in the complete identity inventory. */

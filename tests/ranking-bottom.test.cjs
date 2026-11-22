@@ -103,14 +103,14 @@ function recentRecord(index) {
   };
 }
 
-for (const count of [0, 1, 4, 10]) {
-  test(`ranking preview limits ${count} stored records without changing full history or fetching`, async () => {
+for (const count of [0, 1, 4, 10, 50]) {
+  test(`rail preview limits ${count} stored records without changing full history or fetching`, async () => {
     const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'http://localhost:3001/' });
     let root, requests = 0;
     const errors = [];
     const values = {
       window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage,
-      StorageEvent: dom.window.StorageEvent, IS_REACT_ACT_ENVIRONMENT: true,
+      StorageEvent: dom.window.StorageEvent, Event: dom.window.Event, IS_REACT_ACT_ENVIRONMENT: true,
       fetch: async () => { requests++; throw new Error('History must not fetch'); },
     };
     const prior = new Map(Object.keys(values).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
@@ -124,28 +124,37 @@ for (const count of [0, 1, 4, 10]) {
       const { createRoot } = require('react-dom/client');
       root = createRoot(document.getElementById('root'));
       await React.act(async () => root.render(React.createElement(React.StrictMode, null,
-        React.createElement('div', { id: 'preview' }, React.createElement(RecentSecuritiesSidebar, { variant: 'ranking-preview' })),
+        React.createElement('div', { id: 'preview' }, React.createElement(RecentSecuritiesSidebar, { variant: 'preview' })),
         React.createElement('div', { id: 'full' }, React.createElement(RecentSecuritiesSidebar)))));
       const preview = document.getElementById('preview'), full = document.getElementById('full');
-      assert.equal(preview.querySelectorAll('li').length, Math.min(4, count));
+      const visiblePreviewRows = () => [...preview.querySelectorAll('li')].filter(row => !row.closest('[inert]'));
+      const trigger = preview.querySelector('[data-recent-panel-trigger]');
+      assert.equal(visiblePreviewRows().length, Math.min(3, count));
       assert.equal(full.querySelectorAll('li').length, count);
       assert.match(preview.textContent, new RegExp(`${count}개`));
-      assert.equal(preview.querySelector('button[aria-label$="최근 기록 삭제"]'), null);
-      assert.doesNotMatch(preview.textContent, /전체 삭제|PBR 0배/);
+      assert.match(full.textContent, new RegExp(`${count}개`));
+      assert.equal(preview.querySelectorAll('button[aria-label$="최근 기록 삭제"]').length, Math.min(5, count));
+      assert.doesNotMatch(preview.textContent, /전체 삭제|KOSPI/);
       assert.equal(JSON.parse(localStorage.getItem(storageKey)).length, count, 'Preview limits must not truncate stored history');
       if (count) {
-        assert.match(preview.textContent, /전체 기록 보기/);
+        assert.equal(trigger.getAttribute('aria-label'), '최근 본 종목 더 보기');
+        assert.equal(trigger.querySelector('span').getAttribute('aria-hidden'), 'true');
+        assert.ok(document.getElementById(trigger.getAttribute('aria-controls')).hasAttribute('inert'));
         assert.match(full.textContent, /PBR 0배/);
         assert.equal(preview.querySelector('a').getAttribute('href'), recentRecord(0).lastPath);
         assert.equal(preview.querySelector('a>span').textContent, recentRecord(0).korName);
+        assert.equal(preview.querySelector('a>span:last-child').textContent, 'PBR 0배');
+        assert.equal(preview.querySelector('a').getAttribute('aria-label'), `${recentRecord(0).korName} PBR 0배`);
       } else {
         assert.match(preview.textContent, /종목을 둘러보면 이곳에 표시됩니다/);
         assert.equal(preview.querySelector('button'), null);
       }
       if (count === 10) {
-        await React.act(async () => full.querySelector('button[aria-label$="최근 기록 삭제"]').click());
+        const [remove, nextRemove] = preview.querySelectorAll('button[aria-label$="최근 기록 삭제"]');
+        await React.act(async () => remove.click());
+        assert.equal(document.activeElement, nextRemove);
         assert.equal(full.querySelectorAll('li').length, 9);
-        assert.equal(preview.querySelectorAll('li').length, 4);
+        assert.equal(preview.querySelector('ul').querySelectorAll('li').length, 3);
         assert.match(preview.textContent, /9개/);
         assert.equal(preview.querySelector('a').getAttribute('href'), recentRecord(1).lastPath);
         const clear = [...full.querySelectorAll('button')].find(button => button.textContent === '전체 삭제');
@@ -154,6 +163,26 @@ for (const count of [0, 1, 4, 10]) {
         assert.equal(full.querySelectorAll('li').length, 0);
         assert.match(preview.textContent, /0개/);
         assert.equal(localStorage.getItem(storageKey), null);
+      }
+      if (count === 50) {
+        let panelRequests = 0;
+        window.addEventListener('app:toggle-recent', () => { panelRequests++; });
+        const section = preview.querySelector('[data-recent-preview]');
+        const movePointer = async (type, relatedTarget) => React.act(async () => section.dispatchEvent(
+          new dom.window.PointerEvent(type, { pointerType: 'mouse', bubbles: true, relatedTarget })
+        ));
+        await movePointer('pointerover', null);
+        assert.equal(visiblePreviewRows().length, 5);
+        assert.equal(trigger.querySelector('span').getAttribute('aria-hidden'), 'false');
+        assert.equal(panelRequests, 0);
+        await movePointer('pointerout', full);
+        assert.equal(visiblePreviewRows().length, 3);
+        await React.act(async () => trigger.click());
+        assert.equal(visiblePreviewRows().length, 5);
+        assert.equal(panelRequests, 0);
+        assert.equal(trigger.getAttribute('aria-controls'), 'header-recent-records');
+        await React.act(async () => trigger.click());
+        assert.equal(panelRequests, 1);
       }
       assert.equal(requests, 0);
       assert.deepEqual(errors, []);

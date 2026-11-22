@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { createBusinessPageLoader } = require('./helpers/business-page-loader.cjs');
-const { fixture, day } = require('./helpers/business-data.cjs');
+const { fixture, day, publication } = require('./helpers/business-data.cjs');
 const { createStaticAliases } = require('../scripts/static-aliases.cjs');
 const { projectExpected, firstDifference, routeInventory, normalizeAuditTimestamps } = require('../scripts/verify-static-input.cjs');
 
@@ -136,11 +136,60 @@ test('file detail adapter preserves live provider DTO fields, exact decimals, pu
   assert.equal(firstDifference(projectExpected(server.getStaticCompanyDetail('company-1'), liveCompany), liveCompany), null);
 });
 
-test('route inventory accounts for every eight security, two company, ranking and first-page alias URL', () => {
-  const manifest = { securityCodes: ['s1', 's2'], companyCodes: ['c1'], routes: Array(25),
+test('static dividend comparison reads the sibling at the exact anniversary observation, including its unadjusted close', t => {
+  const { directory, manifest, server } = input(t);
+  const date = '2025-10-02';
+  const period = { periodId: 'current', listingDate: '2024-01-01', delistingDate: null };
+  const common = { securityId: 'common', state: 'published', dpsDate: '2026-10-08', prices: [], marketcaps: [], listingPeriods: [period] };
+  const preferred = { ...common, securityId: 'preferred' };
+  write(directory, 'manifest.json', { ...manifest, securityAliases: { common: 'common' } });
+  write(directory, 'identities.json', [{ securityId: 'common', companyId: 'company-1' }]);
+  write(directory, 'data/company/company-1.json', { company: {}, companySecs: [common, preferred] });
+  write(directory, 'data/security/common.json', { security: common, assets: {}, rankings: {},
+    metrics: [{ date, dps: '1446', div: '1.62' }, { date: '2025-10-10', dps: '1600' }] });
+  write(directory, 'data/security/preferred.json', { security: preferred, assets: {}, rankings: {},
+    metrics: [{ date, dps: '1447', div: '0', divState: 'provided' }, { date: '2025-10-31', dps: '1700' }],
+    archive: { marketcaps: [], prices: [{ date, close: '70000', advClose: '69000' }], metrics: [
+      { date, dps: '1447', div: '0', divState: 'provided' }, { date: '2025-10-31', dps: '1700' },
+    ] } });
+  const detail = server.getStaticSecurityDetail('common', 'dps');
+  assert.deepEqual(detail.companySecs.find(member => member.securityId === 'preferred').dividendReference,
+    { date, dps: '1447', div: '0', price: '70000' });
+});
+
+for (const metric of ['marketcap', 'dps']) test(`${metric} constituent ranks use the official publication and listing period`, async t => {
+  const { directory, manifest, server } = input(t);
+  const { db, load, state } = fixture();
+  const date = '2026-10-02';
+  state.publications.push(publication('security_rank', metric, 1n, 2));
+  state.ranks.push({ ...state.ranks[0], securityId: 'security-2', currentRank: 3 });
+  const rows = await load('lib/data/security-ranking-detail.ts').readSecurityMemberRanks(db, ['security-1', 'security-2'], metric);
+  assert.deepEqual(rows.map(({ rank, date }) => ({ rank, date })), [{ rank: 1, date }, { rank: 3, date }]);
+  const [query] = state.queries.filter(entry => entry.table === 'rank');
+  assert.match(query.sql, /"publication_key".*"result_revision".*"calculation_id".*"rank_date".*"ranking_state".*"security_id" in/i);
+  assert.ok(query.params.includes(`security_rank/krx-all/${metric}`));
+  assert.ok(query.params.includes('included'));
+  const members = rows.map(({ securityId }) => ({
+    securityId, state: 'published', prices: [], marketcaps: [],
+    listingPeriods: [{ periodId: 'current', listingDate: securityId === 'security-1' ? '2024-01-01' : '2026-10-02', delistingDate: null }],
+  }));
+  write(directory, 'manifest.json', { ...manifest, securityAliases: { 'security-1': 'security-1' } });
+  write(directory, 'identities.json', [{ securityId: 'security-1', companyId: 'company-1' }]);
+  write(directory, 'data/company/company-1.json', { company: {}, companySecs: members });
+  for (const [index, security] of members.entries()) {
+    const ranking = { currentRank: rows[index].rank, rankDate: date, rankingState: 'included',
+      valueObservedAt: index === 0 ? date : '2026-10-01' };
+    write(directory, `data/security/${security.securityId}.json`, { security, assets: {}, metrics: [], rankings: { [metric]: { ranking } } });
+  }
+  const detail = server.getStaticSecurityDetail('security-1', metric);
+  assert.deepEqual(detail.companySecs.map(member => member[`${metric}Ranking`]), [{ rank: 1, date }, undefined]);
+});
+
+test('route inventory accounts for seven security metrics, two company routes, rankings and first-page aliases', () => {
+  const manifest = { securityCodes: ['s1', 's2'], companyCodes: ['c1'], routes: Array(23),
     extraction: { sourceSecurities: 3004, sourceCompanies: 2745 } };
   const result = routeInventory(manifest, [{ scopes: { all: { totalPages: 1 } } }, { scopes: { all: { totalPages: 2 }, custom: { totalPages: 1 } } }]);
-  assert.deepEqual(result, { expectedPages: 25, actualPages: 25, fullPlannedPages: 29529 });
+  assert.deepEqual(result, { expectedPages: 23, actualPages: 23, fullPlannedPages: 26525 });
 });
 
 test('parity normalization changes only audit timestamp representation and preserves exact financial/source dates', () => {

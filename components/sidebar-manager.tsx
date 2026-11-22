@@ -54,7 +54,7 @@ export function SidebarManager({
         ? new Date(metricDateValue).toISOString().slice(0, 10) : '—';
     return (
         <div className="detail-rail-content space-y-6">
-            <div className="hidden xl:block"><RecentSecuritiesSidebar currentSecCode={secCode} /></div>
+            <div className="hidden xl:block"><RecentSecuritiesSidebar currentSecCode={secCode} variant="preview" /></div>
             <button type="button" aria-expanded={expanded} aria-controls={panelId} onClick={() => setExpanded(value => !value)}
                 className="flex min-h-11 w-full items-center justify-between gap-3 text-sm font-semibold xl:hidden">
                 페이지 목차 · 핵심 지표<ChevronDown className="h-4 w-4" aria-hidden="true" />

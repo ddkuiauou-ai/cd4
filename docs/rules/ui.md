@@ -2,7 +2,7 @@
 
 ## 작업 전
 
-- [PRODUCT](../../PRODUCT.md)에서 제품 범위, [DESIGN](../../DESIGN.md)에서 해당 화면의 승인된 동작과 표현을 확인한다. [화면별 brief](../../.impeccable/implementation-brief.md)와 실제 컴포넌트·CSS를 대조한다. 오래된 시안과 충돌하면 최신 사용자 결정과 해당 brief를 따르고 차이를 알린다.
+- [PRODUCT](../../PRODUCT.md)에서 제품 범위, [DESIGN](../../DESIGN.md)에서 해당 화면의 승인된 동작과 표현을 확인한다. [화면별 brief](../../.impeccable/implementation-brief.md)와 실제 컴포넌트·CSS를 대조한다. 최신 사용자 결정은 표현 기준을 DESIGN에, 화면 순서·제공 조건을 해당 brief에 반영한다. 날짜별 시안은 당시 결정의 근거로 읽는다.
 - 세션에 제공된 `impeccable:impeccable` 스킬을 읽는다. 저장소 루트에서 스킬의 `scripts/impeccable context --target <대상 경로>`를 세션당 한 번 실행한다. 해당 작업의 playbook을 선택하고 UI 편집 직전에 `reference/craft-floor.md`를 읽는다.
 - 검토에는 critique/audit 등 해당 playbook을 쓴다. 런처에 접근할 수 없으면 PRODUCT·DESIGN·실제 화면으로 확인한 범위를 밝힌다. context 경고만으로 전역 설정을 바꾸지 않는다.
 

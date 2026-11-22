@@ -195,9 +195,9 @@ test('static wrapper offers an inline benchmark and compact assets while standal
     delete process.env.STATIC_DETAIL_INLINE;
     const optimized=await RestoredSecurityDetail({code:security.securityId,metric:'pbr'});
     assert.deepEqual(optimized.props.initial.sourceHistory,[]);assert.equal(optimized.props.initial.initialAnalysis.summary.count,3);assert.deepEqual(optimized.props.assets,assets);assert.equal(assetReads,1);
-    const basic=await RestoredSecurityDetail({code:security.securityId,basic:true});
-    assert.equal(basic.type.name,'StaticDetailClient');assert.equal(basic.props.initial.basic,true);
-    assert.deepEqual(basic.props.initial.prices,props.prices);assert.deepEqual(basic.props.assets,assets);assert.equal(assetReads,2);
+    const marketcap=await RestoredSecurityDetail({code:security.securityId,metric:'marketcap'});
+    assert.equal(marketcap.type.name,'StaticDetailClient');assert.equal(marketcap.props.initial.metric,'marketcap');
+    assert.deepEqual(marketcap.props.initial.prices,props.prices);assert.deepEqual(marketcap.props.assets,assets);assert.equal(assetReads,2);
     delete process.env.NEXT_OUTPUT_MODE;
     const standalone=await RestoredSecurityDetail({code:security.securityId,metric:'pbr'});
     assert.equal(standalone.type.name,'DetailSurface');assert.equal(standalone.props.sourceHistory.length,3);assert.equal(assetReads,2);
@@ -207,8 +207,8 @@ test('static wrapper offers an inline benchmark and compact assets while standal
   }
 });
 
-test('static basic information restores real multi-day price history without embedding it in the initial quote',async()=>{
-  const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/security/KOSPI.000001/'});
+test('static stock marketcap restores real multi-day price history without embedding it in the initial quote',async()=>{
+  const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/security/KOSPI.000001/marketcap/'});
   const priceRows=[{date:'2026-10-01',close:'90',open:'85',high:'91',low:'84',rate:0,volume:'9007199254740993'},...props.prices];
   const sources={
     '/basic-cap':table(['date','marketcap'],[['2026-10-01','900'],['2026-10-08','1000']]),
@@ -221,16 +221,16 @@ test('static basic information restores real multi-day price history without emb
   try{
     const context=loader({
       'next/navigation':{useSearchParams:()=>new URLSearchParams('')},
-      '@/components/detail-surface':{DetailSurface:value=>React.createElement('output',{'data-testid':'price-history'},JSON.stringify({prices:value.prices,pending:value.historyPending,basic:value.basic,rank:value.ranking.currentRank}))},
+      '@/components/detail-surface':{DetailSurface:value=>React.createElement('output',{'data-testid':'price-history'},JSON.stringify({prices:value.prices,pending:value.historyPending,metric:value.metric,rank:value.ranking.currentRank}))},
     });
     const {StaticDetailClient}=context('components/static-detail-client.tsx');
-    const initial={...props,basic:true,metric:'marketcap',history:[],sourceHistory:[]};
+    const initial={...props,basic:false,metric:'marketcap',history:[],sourceHistory:[]};
     assert.equal(initial.prices.length,1);
     const {createRoot}=require('react-dom/client');
     mounted=createRoot(document.getElementById('root'));
     await React.act(async()=>mounted.render(React.createElement(StaticDetailClient,{initial,assets:{marketcap:'/basic-cap',prices:'/basic-prices'}})));
     const restored=JSON.parse(document.querySelector('[data-testid="price-history"]').textContent);
-    assert.deepEqual(restored.prices,priceRows);assert.equal(restored.pending,false);assert.equal(restored.basic,true);assert.equal(restored.rank,1);
+    assert.deepEqual(restored.prices,priceRows);assert.equal(restored.pending,false);assert.equal(restored.metric,'marketcap');assert.equal(restored.rank,1);
     assert.deepEqual(new Set(calls),new Set(['/basic-cap','/basic-prices']));
     assert.equal(initial.prices.length,1,'full price history remains in shared assets rather than initial page props');
   }finally{if(mounted)await React.act(async()=>mounted.unmount());restore();dom.window.close();}
@@ -334,7 +334,7 @@ test('compact static props retain current metric fields, comparison summaries an
   const corporation={companyId:'company-one',name:'Example Corporation',korName:'예시기업',logo:null,industry:'제조업',establishedDate:'2000-01-01',homepage:'https://example.com',resultSourceRef:'unused-source-reference'};
   const values={marketcap:'9007199254740993',per:'10',pbr:'2',bps:'0',eps:'-5',div:'1',dps:'100'};
   const fields=Object.fromEntries(Object.entries(values).flatMap(([metric,value])=>[[metric,value],[`${metric}State`,'provided'],[`${metric}Date`,'2026-10-08']]));
-  const member={...security,...fields,company:corporation,availableMetrics:Object.keys(values),prices:props.prices,marketcaps:[{date:'2026-10-08',marketcap:values.marketcap}]};
+  const member={...security,...fields,company:corporation,availableMetrics:Object.keys(values),dpsRanking:{rank:150,date:'2026-10-08'},prices:props.prices,marketcaps:[{date:'2026-10-08',marketcap:values.marketcap}]};
   const company={company:corporation,companyId:'company-one',routeCode:'KOSPI.000001',companyName:corporation.name,companyKorName:corporation.korName,state:'published',publication,totalMarketcap:values.marketcap,totalMarketcapDate:'2026-10-08',marketcapCompleteness:'complete',compositionComplete:true,compositionReason:null,compositionObservedCount:1,compositionTargetCount:1,securities:[{...member,marketcapDate:'2026-10-08',percentage:100,marketcapHistory:member.marketcaps}],aggregatedHistory:[],registeredHistory:[],resultSourceRef:'unused-company-source'};
   for(const metric of Object.keys(values)){
     const input={...props,metric,security:member,company,companySecs:[member]};
@@ -343,11 +343,12 @@ test('compact static props retain current metric fields, comparison summaries an
     assert.equal(compact.security[`${metric}State`],'provided');
     assert.equal(compact.security[`${metric}Date`],'2026-10-08');
     assert.equal(compact.companySecs[0][metric],values[metric]);
+    assert.deepEqual(compact.companySecs[0].dpsRanking, member.dpsRanking);
     assert.deepEqual(compact.companySecs[0].availableMetrics,Object.keys(values));
     assert.doesNotMatch(JSON.stringify(compact),/unused-source-reference|unused-company-source/);
   }
   for(const companyPage of [false,true]){
-    const input={...props,basic:true,metric:'marketcap',companyPage,security:member,company,companySecs:[member]};
+    const input={...props,basic:companyPage,metric:'marketcap',companyPage,security:member,company,companySecs:[member]};
     const markup=variant=>new JSDOM(renderToStaticMarkup(React.createElement(DetailSurface,variant)));
     const full=markup(input), compact=markup(compactDetailProps(input));
     for (const selector of ['#detail-metric-navigation','#current-overview']) {
@@ -366,6 +367,7 @@ test('compact static props retain current metric fields, comparison summaries an
       assert.ok(page.querySelector(`#chart-analysis [data-chart="marketcap"][data-marketcap-scope="${scope}"]`));
       assert.ok(page.querySelector(`#annual-data .annual[data-marketcap-scope="${scope}"]`));
       assert.equal(page.querySelector('#annual-data [data-testid="annual"]'),null);
+      assert.equal(page.querySelectorAll('#annual-prices .responsiveAnnual .annualDate').length,6);
       assert.equal(page.querySelector('#history-download button').disabled,true);
     } finally {
       ready.window.close();pending.window.close();

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-21T08:00:31.688072+00:00",
+  "generatedAt": "2026-11-22T18:07:04.908404+00:00",
   "title": "Design System: 천하제일 단타대회 · B 대회 기록실",
   "extensions": {
     "colorMeta": {
@@ -779,9 +779,9 @@
         "purpose": "워드마크 hover에서 원본 별의 작은 회전. reduced-motion 규칙을 따른다."
       },
       {
-        "name": "company-tab-selection",
-        "value": "transform 180ms cubic-bezier(.16,1,.3,1)",
-        "purpose": "기업 정보·기업 합산 시총의 공통 하단 기준선 위에서 선택 밑줄을 이동한다. prefers-reduced-motion에서는 transition: none을 사용한다."
+        "name": "marketcap-target-underline",
+        "value": "180ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "데스크톱 우측 시총 대상 탭의 밑줄 이동. 글자·체크 위치는 고정하며 동작 줄이기 설정에서는 즉시 전환한다."
       }
     ],
     "breakpoints": [
@@ -798,7 +798,15 @@
         "value": "768px"
       },
       {
-        "name": "standard-annual-table",
+        "name": "annual-records-container",
+        "value": "600px"
+      },
+      {
+        "name": "marketcap-composition-container",
+        "value": "39rem"
+      },
+      {
+        "name": "annual-statistics-four-columns",
         "value": "640px"
       },
       {
@@ -872,7 +880,7 @@
       "name": "Metric Navigation",
       "kind": "nav",
       "refersTo": "metric-navigation",
-      "description": "랭킹 A의 첫 탐색 단계. 2026-11-01 요청에 따라 일곱 지표를 본문 폭 680px 미만에서 한 줄 가로 스크롤로 제공하고 넓은 화면에서는 텍스트 메뉴로 읽는다. 활성 지표는 금색 밑줄이며 상세의 기본 정보 포함 8탭과 구분한다.",
+      "description": "랭킹의 일곱 지표는 본문 폭 680px 미만에서 한 줄 가로 스크롤로 제공하고, 넓은 화면에서는 텍스트 메뉴로 배치한다. 활성 지표는 금색 밑줄로 표시한다.",
       "html": "<div class=\"ds-ranking-nav-context\"><nav class=\"ds-metrics\" aria-label=\"순위 지표\"><a href=\"/marketcaps\" aria-current=\"page\">시가총액</a><a href=\"/per\">PER</a><a href=\"/pbr\">PBR</a><a href=\"/eps\">EPS</a><a href=\"/bps\">BPS</a><a href=\"/div\">배당수익률</a><a href=\"/dps\">주당배당금</a></nav></div>",
       "css": ".ds-ranking-nav-context{container:ds-ranking-nav/inline-size}.ds-metrics{display:flex;flex-wrap:wrap;align-items:center;gap:4px 24px;font-family:var(--font-sans,\"Apple SD Gothic Neo\",\"Malgun Gothic\",system-ui,sans-serif)}.ds-metrics a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 4px;border-bottom:3px solid transparent;color:var(--muted-foreground,#506079);font-size:14px;line-height:1.4;font-weight:500;white-space:nowrap;text-align:center;text-decoration:none}.ds-metrics a[aria-current=page]{color:var(--foreground,#111b2c);border-bottom-color:var(--primary,#f0cc62);font-weight:700}.ds-metrics a:not([aria-current]):hover{color:var(--foreground,#111b2c);background:var(--muted,#f7f7f7)}.ds-metrics a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:3px;border-radius:3px}@container ds-ranking-nav (width < 680px){.ds-metrics{flex-wrap:nowrap;gap:0 16px;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding:6px;scroll-padding-inline:6px;scrollbar-width:thin}.ds-metrics a{flex:0 0 auto;min-width:44px;font-size:13px;padding:8px 6px}}"
     },
@@ -912,8 +920,8 @@
       "name": "Security Card",
       "kind": "custom",
       "refersTo": "security-card",
-      "description": "배당과 시가총액에서 공유하는 구성 종목 카드다. 선택된 종목은 테두리·체크로 표시한다. 아래는 주당배당금 상세로 이동하는 카드 예시다.",
-      "html": "<nav class=\"ds-cards\" aria-label=\"주당배당금 종목 선택\"><a href=\"/security/KOSPI.005930/dps\" aria-current=\"page\"><b>삼성전자 <span aria-hidden=\"true\">✓</span></b><small>보통주 · 005930</small></a><a href=\"/security/KOSPI.005935/dps\"><b>삼성전자우</b><small>우선주 · 005935</small></a></nav>",
+      "description": "주당배당금 비교 카드의 제목 예시. 선택 종목에는 체크를, 다른 종목에는 제공된 주당배당금 순위를 표시한다. 시가총액도 좁은 화면의 대상 목록에서 카드 형식을 쓰며, 본문에서는 합산 요약 아래의 구성 행으로 전환한다.",
+      "html": "<nav class=\"ds-cards\" aria-label=\"주당배당금 종목 선택\"><a href=\"/security/KOSPI.005930/dps\" aria-current=\"page\"><b>삼성전자 <span aria-hidden=\"true\">✓</span></b><small>보통주 · 005930</small></a><a href=\"/security/KOSPI.005935/dps\"><b>삼성전자우 <span aria-label=\"주당배당금 순위 150위\">150위</span></b><small>우선주 · 005935</small></a></nav>",
       "css": ".ds-cards{font-family:var(--font-sans,system-ui,sans-serif);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ds-cards a{min-height:44px;padding:10px;border:1px solid var(--border,#ccd3df);border-radius:4px;background:var(--background,#fff);color:var(--foreground,#111b2c);text-decoration:none}.ds-cards b{display:flex;justify-content:space-between;gap:4px}.ds-cards small{display:block;color:var(--muted-foreground,#506079)}.ds-cards a[aria-current]{border-color:var(--selected-border,#c59220)}.ds-cards a span{color:var(--brand-ink,#906200)}.ds-cards a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:2px}"
     },
     {
@@ -921,7 +929,7 @@
       "kind": "custom",
       "refersTo": "detail-navigation",
       "description": "데스크톱 상세의 왼쪽 메뉴 예시. 실제 종목에서 제공되는 지표를 연결한다. 모바일에서는 지표 변경 버튼에서 같은 목적지를 연다.",
-      "html": "<nav class=\"ds-detail-nav\" aria-label=\"상세 지표 이동\"><a href=\"/company/KOSPI.005930\">기업 개요</a><a href=\"/security/KOSPI.005930/marketcap\">시가총액</a><a href=\"/security/KOSPI.005930\">주가·거래</a><a href=\"/security/KOSPI.005930/per\" aria-current=\"page\">PER</a><a href=\"/security/KOSPI.005930/pbr\">PBR</a><a href=\"/security/KOSPI.005930/eps\">EPS</a><a href=\"/security/KOSPI.005930/bps\">BPS</a><a href=\"/security/KOSPI.005930/dps\">주당배당금</a><a href=\"/security/KOSPI.005930/div\">배당수익률</a></nav>",
+      "html": "<nav class=\"ds-detail-nav\" aria-label=\"상세 지표 이동\"><a href=\"/company/KOSPI.005930\">기업 개요</a><a href=\"/security/KOSPI.005930/marketcap\">시가총액</a><a href=\"/security/KOSPI.005930/per\" aria-current=\"page\">PER</a><a href=\"/security/KOSPI.005930/pbr\">PBR</a><a href=\"/security/KOSPI.005930/eps\">EPS</a><a href=\"/security/KOSPI.005930/bps\">BPS</a><a href=\"/security/KOSPI.005930/dps\">주당배당금</a><a href=\"/security/KOSPI.005930/div\">배당수익률</a></nav>",
       "css": ".ds-detail-nav{font-family:var(--font-sans,system-ui,sans-serif);display:grid;max-width:13rem}.ds-detail-nav a{display:flex;align-items:center;min-height:40px;padding:6px 8px;border-inline-start:2px solid transparent;color:var(--foreground,#111b2c);text-decoration:none;font-size:14px}.ds-detail-nav a[aria-current]{background:var(--muted,#f7f7f7);border-color:var(--record-rule,#c61628);color:var(--brand-red,#bc1027);font-weight:700}.ds-detail-nav a:focus-visible{outline:2px solid var(--ring,#a26300);outline-offset:2px}"
     }
   ],

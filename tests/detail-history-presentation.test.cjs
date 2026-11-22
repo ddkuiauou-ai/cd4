@@ -1,52 +1,23 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
-const { readFileSync, existsSync } = require('node:fs');
-const Module = require('node:module');
-const ts = require('typescript');
 const React = require('react');
-const { renderToStaticMarkup } = require('react-dom/server');
 const { JSDOM } = require('jsdom');
-
-const root = path.resolve(__dirname, '..');
+const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 
 function loadPresentation() {
-  const loaded = new Map();
   const renderedCharts = [];
-  function load(filename) {
-    if (loaded.has(filename)) return loaded.get(filename).exports;
-    const mod = new Module(filename);
-    loaded.set(filename, mod);
-    mod.paths = Module._nodeModulePaths(path.dirname(filename));
-    mod.require = name => {
-      if (name.endsWith('.module.css')) return {__esModule:true,default:{}};
-      if (name.startsWith('.')) name = `@/${path.relative(root, path.resolve(path.dirname(filename), name))}`;
-      const chart = {
-        '@/components/chart-company-marketcap': 'summary',
-        '@/components/chart-marketcap': 'detailed',
-      }[name];
-      if (chart) return { __esModule: true, default: props => {
-        renderedCharts.push({ chart, data: props.data, registered: props.registeredHistory });
-        return React.createElement('div', { 'data-chart': chart });
-      } };
-      if (name === '@/components/chart-a11y-description') return { __esModule: true, default: () => null };
-      if (!name.startsWith('@/')) return require(name);
-      const local = path.join(root, name.slice(2));
-      const resolved = [`${local}.ts`, `${local}.tsx`].find(existsSync);
-      assert.ok(resolved, `Local module not found: ${name}`);
-      return load(resolved);
-    };
-    const { outputText } = ts.transpileModule(readFileSync(filename, 'utf8'), {
-      fileName: filename,
-      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
-        jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-    });
-    mod._compile(outputText, filename);
-    return mod.exports;
-  }
+  const chartStub = chart => ({ __esModule: true, default: props => {
+    renderedCharts.push({ chart, data: props.data, registered: props.registeredHistory });
+    return React.createElement('div', { 'data-chart': chart });
+  } });
+  const load = loader({
+    '@/components/chart-company-marketcap': chartStub('summary'),
+    '@/components/chart-marketcap': chartStub('detailed'),
+    '@/components/chart-a11y-description': { __esModule: true, default: () => null },
+  });
   return {
-    Chart: load(path.join(root, 'components/interactive-chart-section.tsx')).InteractiveChartSection,
-    Header: load(path.join(root, 'components/header-rank.tsx')).default,
+    Chart: load('components/interactive-chart-section.tsx').InteractiveChartSection,
+    Header: load('components/header-rank.tsx').default,
     renderedCharts,
   };
 }
@@ -217,10 +188,10 @@ test('period averages retain sparse observation counts, exact zero and signed PE
     { date: '2024-10-10', value: '0', state: 'provided' },
     { date: '2026-11-20', value: '900', state: 'missing' },
   ];
-  function render(metric, history, currentMultiple) {
+  function render(metric, history, currentValue) {
     const analysis = { analysisEnd, means: periodMeans(history, analysisEnd), summary: summarizeBusinessWindow(history) };
     return JSDOM.fragment(renderToStaticMarkup(React.createElement(PeriodStats, {
-      metric, info: DETAIL_METRICS[metric], companyPage: false, basis: analysisEnd, analysis, currentMultiple,
+      metric, info: DETAIL_METRICS[metric], companyPage: false, basis: analysisEnd, analysis, currentValue,
     })));
   }
   const cells = row => [...row.cells].map(cell => cell.textContent);
@@ -229,11 +200,22 @@ test('period averages retain sparse observation counts, exact zero and signed PE
     assert.deepEqual(cells(fragment.querySelector('thead tr')), ['기간', '평균값', '관측 수']);
     const records = [...fragment.querySelectorAll('tbody tr')];
     assert.deepEqual(cells(records[0]), ['12개월제공 관측 없음', '—', '0개']);
-    assert.deepEqual(cells(records[1]), ['3년', metric === 'dps' ? '4,503,599,627,370,497원' : '4,503,599,627,370,496.5%', '2개']);
+    assert.deepEqual(cells(records[1]), ['3년', metric === 'dps' ? '4,503,599,627,370,497원5년 평균 대비 0%' : '4,503,599,627,370,496.5%', '2개']);
     assert.equal(fragment.textContent.match(/2024-10-10/g).length, 1);
     assert.doesNotMatch(fragment.textContent, /2026-11-20/);
     assert.deepEqual(cells(render(metric, rows.slice(1)).querySelectorAll('tbody tr')[1]), ['3년', `0${unit}`, '1개']);
   }
+
+  const payouts = [
+    { date: '2024-10-10', value: '30' },
+    { date: '2026-10-30', value: '120' },
+    { date: analysisEnd, value: '0', state: 'provided' },
+  ];
+  const dps = render('dps', payouts, '90');
+  assert.match(dps.querySelector('p').textContent, /현재 주당배당금 90원 · 12개월 평균 대비 \+50%/);
+  assert.deepEqual(cells(dps.querySelector('tbody tr')), ['12개월', '60원3년 평균 대비 +20%', '2개']);
+  assert.equal(render('dps', payouts, '0').querySelector('p .market-down').textContent, '−100%');
+  assert.doesNotMatch(render('dps', payouts.slice(-1), '90').textContent, /평균 대비/);
 
   const per = render('per', [{ date: '2024-10-10', value: '10' }], '5');
   assert.deepEqual(cells(per.querySelector('thead tr')), ['기간', '평균 PER', '현재 − 평균']);
@@ -260,6 +242,18 @@ test('period averages retain sparse observation counts, exact zero and signed PE
   const pbrRecord = pbr.querySelectorAll('tbody tr')[1];
   assert.equal(pbrRecord.cells[0].querySelector('time').dateTime, '2024-10-10');
   assert.deepEqual(cells(pbrRecord).slice(1), ['0배', '+2.12배']);
+  const bookMultiples = [
+    { date: '2008-10-10', value: '2' }, { date: '2018-10-10', value: '6' }, { date: '2022-10-10', value: '4' },
+    { date: '2024-10-10', value: '3' }, { date: analysisEnd, value: '2' },
+  ];
+  const comparisons = [...render('pbr', bookMultiples, '3').querySelectorAll('tbody tr')];
+  assert.deepEqual(comparisons.map(row => row.cells[1].querySelector('small')?.textContent), [
+    '3년 평균 대비 −20%', '5년 평균 대비 −16.67%', '10년 평균 대비 −20%', '20년 평균 대비 +10.29%', undefined,
+  ]);
+  assert.equal(comparisons[0].cells[2].textContent, '+1배');
+  assert.equal(render('per', bookMultiples, '3').querySelector('tbody td small'), null);
+  const zeroShorterMean = render('pbr', [bookMultiples[3], { date: analysisEnd, value: '0' }], '3');
+  assert.equal(zeroShorterMean.querySelector('tbody tr').cells[1].querySelector('small').textContent, '3년 평균 대비 −100%');
   for (const metric of ['eps', 'bps']) {
     const fragment = render(metric, [{ date: '2024-10-10', value: '-157' }, { date: '2024-12-20', value: '0' }]);
     assert.deepEqual(cells(fragment.querySelector('thead tr')), ['기간', '평균값', '관측 수']);

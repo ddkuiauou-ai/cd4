@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { formatInvestorAmount, usesInvestorPrecision } from '@/lib/investor-number';
-import { compareBusinessValues, formatBusinessValue, formatCompactBusinessValue, isBusinessDay, subtractBusinessValues, type BusinessValue } from '@/lib/business-analysis';
+import { formatInvestorAmount, formatInvestorNumber, usesInvestorPrecision } from '@/lib/investor-number';
+import { businessPercentageOf, businessRatio, compareBusinessValues, formatBusinessValue, formatCompactBusinessValue, isBusinessDay, roundBusinessValue, subtractBusinessValues, type BusinessValue } from '@/lib/business-analysis';
 import { businessDate } from '@/lib/data/dto';
 import { DETAIL_METRICS, earlierDate, sourceValue, type DetailAnnualRow, type DetailMetric } from '@/lib/detail-presentation';
 import { companyPath, securityPath } from '@/lib/entity-paths';
 import { DetailSwitchLink, type DetailNavItem, type DetailSwitchCandidate } from './detail-investor-navigation';
 import { DetailSecurityCard } from './detail-security-card';
+import { DetailRecordInfo } from './detail-record-info';
 import type { DetailCompanyData, DetailCompanyView, DetailSecurityRow } from './detail-types';
 import { CsvDownloadButton } from './CsvDownloadButton';
 import type { AnnualDividendComparison } from './detail-annual-table';
@@ -59,26 +60,23 @@ export function detailNavGroups({ company, security, companyPage, basic, metric,
   company: DetailCompanyView | null; security: ScopedSecurity | null; companyPage: boolean; basic: boolean; metric: DetailMetric; scope: Scope;
 }): DetailNavItem[][] {
   const { periodId, ...range } = scope;
-  const companyLinks = company ? [
-    { label: '기업 개요', href: detailHref(companyPath(company), range), selected: companyPage && basic },
-  ] : [];
-  if (company && (companyPage || !security)) {
-    companyLinks.push({
-      label: '시가총액', href: detailHref(companyPath(company, 'marketcap'), range), selected: companyPage && !basic,
-    });
-  }
-  if (!security) return [companyLinks];
-  const target = companyPage ? securityName(security) + (security.ticker ? ' · ' + security.ticker : '') : undefined;
-  const item = (key?: DetailMetric) => ({
-    label: key ? detailMetricLabel(key) : '주가·거래',
-    href: detailHref(securityPath(security, key), { ...range, periodId: companyPage ? undefined : periodId }),
-    selected: !companyPage && (key ? !basic && metric === key : basic),
+  const target = companyPage && security ? securityName(security) + (security.ticker ? ' · ' + security.ticker : '') : undefined;
+  const item = (key: DetailMetric): DetailNavItem => ({
+    label: detailMetricLabel(key),
+    href: security && (key === 'marketcap' || metricAvailable(security, key))
+      ? detailHref(securityPath(security, key), { ...range, periodId: companyPage ? undefined : periodId }) : undefined,
+    selected: !companyPage && !basic && metric === key,
     target,
   });
-  if (!companyPage && metricAvailable(security, 'marketcap')) companyLinks.push(item('marketcap'));
-  const financial = (['per', 'pbr', 'eps', 'bps'] as const).filter(key => metricAvailable(security, key)).map(item);
-  const dividend = (['dps', 'div'] as const).filter(key => metricAvailable(security, key)).map(item);
-  return [companyLinks, [item()], financial, dividend];
+  const companyLinks = [
+    { label: '기업 개요', href: company ? detailHref(companyPath(company), range) : undefined, selected: companyPage && basic },
+    company && (companyPage || !security) ? {
+      label: '시가총액', href: detailHref(companyPath(company, 'marketcap'), range), selected: companyPage && !basic,
+    } : item('marketcap'),
+  ];
+  const financial = (['per', 'pbr', 'eps', 'bps'] as const).map(item);
+  const dividend = (['dps', 'div'] as const).map(item);
+  return [companyLinks, [], financial, dividend];
 }
 
 /** Enrich the published-date membership with the matching comparison fields. */
@@ -99,13 +97,15 @@ export function detailSwitchCandidates({ members, current, companyPage, basic, m
     const available = companyPage || basic || metric === 'marketcap' || metricAvailable(member, metric);
     const info = basic ? { unit: '원' } : DETAIL_METRICS[metric];
     const observation = basic ? memberPrice(member) : securityValue(member, metric);
-    const href = available ? detailHref(securityPath(member, basic ? undefined : metric), {
+    const rank = !basic && !companyPage && metric === 'dps' && !selected ? member.dpsRanking : undefined;
+    const href = available ? detailHref(securityPath(member, basic ? 'marketcap' : metric), {
       ...scope, periodId: selected ? scope.periodId : undefined,
-    }) : undefined;
+    }) + (basic ? '#price-history' : '') : undefined;
     return {
       securityId: member.securityId, name: securityName(member), ticker: member.ticker, type: member.type, selected,
       href, value: !basic && usesInvestorPrecision(metric) ? formatInvestorAmount(observation.value, info.unit)
         : detailValue(observation.value, info.unit, !basic && metric === 'marketcap'),
+      ...(rank && Number.isSafeInteger(rank.rank) && rank.rank > 0 ? { dpsRanking: rank } : {}),
     };
   });
 }
@@ -134,13 +134,13 @@ const investorNumCell = (value: BusinessValue, unit: string, date?: string | nul
   display: value == null ? '—' : <span title={detailValue(value, unit)}>{formatInvestorAmount(value, unit)}</span>,
 });
 
-export function InvestorTable({ columns, rows, label, emphasized, basis, columnDates }: {
-  columns: string[]; rows: TableRow[]; label: string; emphasized?: number; basis?: string | null; columnDates?: Record<number, string>;
+export function InvestorTable({ columns, rows, label, emphasized, basis }: {
+  columns: string[]; rows: TableRow[]; label: string; emphasized?: number; basis?: string | null;
 }) {
   return <div className="detail-table-scroll"><table className="investor-table">
     <caption className="sr-only">{label}</caption>
     <thead><tr>{columns.map((column, index) => <th key={column} scope="col" data-emphasis={index === emphasized || undefined}>
-      {column}{columnDates?.[index] && <small><time dateTime={columnDates[index]}>{columnDates[index]}</time></small>}
+      {column}
     </th>)}</tr></thead>
     <tbody>{rows.map(({ key, cells, selected, difference }) => <tr key={key} data-selected={selected || undefined} data-difference={difference || undefined}>
       {cells.map(({ value, display, date, note }, index) => {
@@ -193,7 +193,7 @@ export function ConstituentsTable({ members, scope, csvStem, company, showCsv, b
     const destination = candidates?.find(item => item.securityId === member.securityId);
     const amount = (value: BusinessValue, date: string | null, metric?: DetailMetric) => ({
       ...numCell(value, '원', date, metric === 'marketcap'),
-      display: value == null ? '—' : <Link prefetch={false} href={detailHref(securityPath(member, metric), range)}
+      display: value == null ? '—' : <Link prefetch={false} href={detailHref(securityPath(member, metric ?? 'marketcap'), range) + (metric ? '' : '#price-history')}
         title={detailValue(value, '원')} aria-label={name + ' ' + (metric ? '시가총액' : '종가') + ' ' + detailValue(value, '원')}>
         {detailValue(value, '원', metric === 'marketcap')}
       </Link>,
@@ -264,9 +264,79 @@ export function dividendComparisonHeading(members: DetailSecurityRow[]) {
     ? '보통주·우선주 배당 비교' : '구성 종목 배당 비교';
 }
 
-export function DividendTable({ members, securityId, metric, csvStem, scope, basis, candidates }: {
+const dividendFields = [
+  { key: 'dps', label: '주당배당금', unit: '원' },
+  { key: 'div', label: '배당수익률', unit: '%p' },
+  { key: 'price', label: '종가', unit: '원' },
+] as const;
+const dividendGapChangeLabel = '1년간 격차 변화';
+const dividendGapMagnitude = (value: string) => value.replace(/^-/, '');
+
+function dividendGaps(members: DetailSecurityRow[], rows: TableRow[], securityId: string | undefined,
+  currentDate: string | null, referenceDay: string | null) {
+  const selected = members.find(member => member.securityId === securityId);
+  const common = members.filter(member => member.type === '보통주');
+  if (!selected || common.length !== 1) return [];
+  const [commonStock] = common;
+  const peers = selected.securityId === commonStock.securityId ? members.filter(member => member.type?.includes('우선주'))
+    : selected.type?.includes('우선주') ? [commonStock] : [];
+  const name = (member: DetailSecurityRow) => members.some(other => other.securityId !== member.securityId && securityName(other) === securityName(member))
+    ? `${securityName(member)} (${member.ticker || member.securityId})` : securityName(member);
+  const selectedRow = rows.find(row => row.key === selected.securityId);
+  return peers.map(peer => {
+    const peerRow = rows.find(row => row.key === peer.securityId);
+    const selectedReference = selected.dividendReference;
+    const peerReference = peer.dividendReference;
+    const periods = [
+      { label: '현재', date: currentDate, differences: dividendFields.map((_, index) => {
+        const own = selectedRow?.cells[index + 1];
+        const other = peerRow?.cells[index + 1];
+        return currentDate && own?.date === currentDate && other?.date === currentDate
+          ? subtractBusinessValues(own.value, other.value) : null;
+      }) },
+      { label: '1년 전', date: referenceDay, differences: dividendFields.map(({ key }) =>
+        referenceDay && selectedReference?.date === referenceDay && peerReference?.date === referenceDay
+          ? subtractBusinessValues(selectedReference[key], peerReference[key]) : null) },
+    ];
+    const [current, previous] = periods;
+    const change = current.differences.map((value, index) => {
+      const prior = previous.differences[index];
+      return value == null || prior == null ? null
+        : subtractBusinessValues(dividendGapMagnitude(value), dividendGapMagnitude(prior));
+    });
+    return { key: peer.securityId, selectedName: name(selected), peerName: name(peer), periods,
+      change: change.some(value => value != null) ? change : null };
+  });
+}
+
+function DividendGapAmount({ value, unit }: { value: string | null; unit: string }) {
+  const sign = compareBusinessValues(value, 0);
+  if (value == null || sign == null) return '—';
+  return <>{formatInvestorAmount(dividendGapMagnitude(value), unit)} <span>{sign === 0 ? '같음' : sign === 1 ? '높음' : '낮음'}</span></>;
+}
+
+function DividendGapChange({ values, previous, current }: {
+  values: (string | null)[]; previous: (string | null)[]; current: (string | null)[];
+}) {
+  return <p className={styles.dividendGapChange}>
+    <span>{dividendGapChangeLabel}</span>
+    {dividendFields.map(({ key, label, unit }, index) => {
+      const value = values[index];
+      const sign = compareBusinessValues(value, 0);
+      if (value == null || sign == null) return null;
+      const before = previous[index];
+      const after = current[index];
+      const range = key !== 'dps' && before != null && after != null
+        ? ` 격차 ${formatInvestorAmount(dividendGapMagnitude(before), unit)} → ${formatInvestorAmount(dividendGapMagnitude(after), unit)},` : '';
+      return <span key={key}>{label}{range} <strong>{sign === 0 ? '변화 없음'
+        : `${formatInvestorAmount(dividendGapMagnitude(value), unit)} ${sign > 0 ? '벌어짐' : '좁아짐'}`}</strong></span>;
+    })}
+  </p>;
+}
+
+export function DividendTable({ members, securityId, metric, csvStem, scope, basis, candidates, referenceDay = null }: {
   members: DetailSecurityRow[]; securityId?: string; metric?: 'dps' | 'div'; csvStem?: string; scope: Scope; basis?: string | null;
-  candidates?: DetailSwitchCandidate[];
+  candidates?: DetailSwitchCandidate[]; referenceDay?: string | null;
 }) {
   const columns = ['종목', '주당배당금(원)', '배당수익률(%)', '종가(원)'];
   const formatAmount = metric ? formatInvestorAmount : detailValue;
@@ -277,7 +347,7 @@ export function DividendTable({ members, securityId, metric, csvStem, scope, bas
     const dps = securityValue(member, 'dps');
     const div = securityValue(member, 'div');
     const price = memberPrice(member);
-    const target = detailHref(securityPath(member), { ...scope, periodId: key === securityId ? scope.periodId : undefined });
+    const target = detailHref(securityPath(member, 'marketcap'), { ...scope, periodId: key === securityId ? scope.periodId : undefined }) + '#price-history';
     return { key, selected: key === securityId, cells: [
       { value: name, display: <>{name}{member.ticker && <small>{member.ticker}</small>}</> },
       makeCell(dps.value, '원', dps.date), makeCell(div.value, '%', div.date),
@@ -286,7 +356,7 @@ export function DividendTable({ members, securityId, metric, csvStem, scope, bas
     ] };
   });
   const common = members.filter(member => member.type === '보통주');
-  if (common.length === 1) {
+  if (common.length === 1 && (!metric || !candidates)) {
     const commonRow = rows.find(row => row.key === common[0].securityId);
     for (const member of members.filter(member => member.type?.includes('우선주'))) {
       const preferredRow = rows.find(row => row.key === member.securityId);
@@ -312,28 +382,49 @@ export function DividendTable({ members, securityId, metric, csvStem, scope, bas
   </>;
   const allowed = candidates.filter(candidate => candidate.href).length >= 2;
   const candidateById = new Map(candidates.map(candidate => [candidate.securityId, candidate]));
-  const fields = ['주당배당금', '배당수익률', '종가'];
   const emphasis = metric === 'dps' ? 0 : 1;
-  const comparisonRows = rows.filter(row => !row.difference);
-  const comparing = comparisonRows.length > 1;
+  const comparing = rows.length > 1;
   const heading = dividendComparisonHeading(members);
-  const showDates = fields.map((_, index) => comparisonRows.some(row => row.cells[index + 1].date && row.cells[index + 1].date !== basis));
-  return <section id="dividend-summary" tabIndex={-1} className={styles.dividendComparison} aria-labelledby="dividend-comparison-heading">
+  const showDates = dividendFields.map((_, index) => rows.some(row => row.cells[index + 1].date && row.cells[index + 1].date !== basis));
+  const currentDate = rows.find(row => row.selected)?.cells[emphasis + 1].date ?? basis ?? null;
+  const gaps = dividendGaps(members, rows, securityId, currentDate, referenceDay);
+  const gapColumns = dividendFields.map(({ label, unit }) => `${label} 차이(${unit})`);
+  const gapValues = (values: BusinessValue[]) => Object.fromEntries(gapColumns.map((column, index) => [column, values[index]]));
+  const csvRows = gaps.length > 0 ? [
+    ...comparisonCsv(columns, rows).map(row => ({ ...row, 시점: '현재 종목값', 관측일: null, ...gapValues([null, null, null]) })),
+    ...gaps.flatMap(({ selectedName, peerName, periods, change }) => {
+      const comparison = selectedName + ' − ' + peerName;
+      const slices = change ? [...periods, { label: dividendGapChangeLabel, date: null, differences: change }] : periods;
+      return slices.map(({ label, date, differences }) => ({
+        [columns[0]]: comparison, [columns[1]]: null, [columns[2]]: null, [columns[3]]: null,
+        시점: label, 관측일: date, ...gapValues(differences),
+      }));
+    }),
+  ] : comparisonCsv(columns, rows);
+  return <section id="dividend-summary" tabIndex={-1} className={styles.dividendComparison}
+    data-divider={metric === 'dps' && comparing || undefined} aria-labelledby="dividend-comparison-heading">
     <header className="investor-record-heading">
       <h2 id="dividend-comparison-heading">{heading}</h2>
-      {csvStem && <CsvDownloadButton key={csvStem + metric} data={comparisonCsv(columns, rows)}
+      {csvStem && <CsvDownloadButton key={csvStem + metric} data={csvRows}
         filename={csvStem + (comparing ? '-dividend-comparison-' : '-dividend-information-') + metric + '.csv'}
         label={comparing ? '배당 비교표 CSV' : '종목 배당 정보 CSV'} />}
     </header>
     <div className={styles.securityCards} data-comparing={comparing || undefined} aria-label={allowed ? '조회할 종목' : heading} role="group">
-      {comparisonRows.map(row => {
+      {rows.map(row => {
         const candidate = candidateById.get(row.key);
+        const rank = candidate?.dpsRanking;
+        const rankLabel = rank ? <span className={styles.dividendCardRank}>
+          <span className="sr-only">주당배당금 순위 </span>{rank.rank.toLocaleString('ko-KR')}위
+          {rank.date && rank.date !== basis && <time dateTime={rank.date}>{rank.date}</time>}
+        </span> : undefined;
         return <DetailSecurityCard key={row.key} candidate={candidate} name={row.cells[0].value} selectable={allowed}
-          description={[candidate?.type, candidate?.ticker].filter(Boolean).join(' · ')}
-          renderTarget={(target, identity, className) => <DetailSwitchLink candidate={target} className={className}>{identity}</DetailSwitchLink>}>
+          description={[candidate?.type, candidate?.ticker].filter(Boolean).join(' · ')} headerEnd={rankLabel}
+          renderTarget={(target, identity, className) => <DetailSwitchLink candidate={{
+            ...target, href: target.href ? target.href + '#dividend-summary' : undefined,
+          }} className={className}>{identity}</DetailSwitchLink>}>
           <dl className={styles.values}>
-            {row.cells.slice(1).map(({ value, display, date }, index) => <div key={fields[index]} data-with-date={showDates[index] || undefined}>
-              <dt>{fields[index]}</dt>
+            {row.cells.slice(1).map(({ value, display, date }, index) => <div key={dividendFields[index].key} data-with-date={showDates[index] || undefined}>
+              <dt>{dividendFields[index].label}</dt>
               <dd data-emphasis={index === emphasis || undefined}>{display ?? value ?? '—'}
                 {date && date !== basis && <small><time dateTime={date}>{date}</time></small>}
               </dd>
@@ -342,87 +433,189 @@ export function DividendTable({ members, securityId, metric, csvStem, scope, bas
         </DetailSecurityCard>;
       })}
     </div>
-    {rows.filter(row => row.difference).map(row => <div key={row.key} className={styles.difference}>
-      <h3>{row.cells[0].value}</h3>
-      <dl>
-        {row.cells.slice(1).map(({ value, display, date }, index) => <div key={fields[index]}>
-          <dt>{fields[index]}</dt><dd>{display ?? value ?? '—'}{date && date !== basis && <small><time dateTime={date}>{date}</time></small>}</dd>
+    {gaps.map(({ key, selectedName, peerName, periods, change }) => <div key={key} className={styles.dividendGap}>
+      <h3>{selectedName} <small>{peerName} 대비</small></h3>
+      <div className={styles.valuationPeriods}>
+        {periods.map(({ label, date, differences }) => <div key={label} className={styles.valuationPeriod}>
+          <h4>{label}{date && <time dateTime={date}>{date}</time>}</h4>
+          <dl>
+            {dividendFields.map(({ key, label, unit }, index) => <div key={key}>
+              <dt>{label}</dt><dd><DividendGapAmount value={differences[index]} unit={unit} /></dd>
+            </div>)}
+          </dl>
+          {differences.every(value => value == null) && <small>같은 날 비교할 자료가 없습니다.</small>}
         </div>)}
-      </dl>
+      </div>
+      {change && <DividendGapChange values={change} previous={periods[1].differences} current={periods[0].differences} />}
     </div>)}
   </section>;
 }
 
 export type ValuationObservation = { date: string; metric: BusinessValue; related: BusinessValue; price: BusinessValue };
+const valuationInput = { per: 'eps', pbr: 'bps', eps: 'per', bps: 'pbr', dps: 'div', div: 'dps' } as const;
+type ValuationOverviewMetric = keyof typeof valuationInput;
+
+const valuationHelp = {
+  per: { label: '주가수익비율(PER) 뜻', text: '주가수익비율(PER)은 종가를 주당순이익(EPS)으로 나눈 배수입니다.' },
+  eps: { label: '주당순이익(EPS) 뜻', text: '주당순이익(EPS)은 기업의 순이익을 주식 한 주 기준으로 나타낸 값입니다. 종가를 PER로 나눠 구할 수 있으며, PER을 반올림하면 계산값이 공개값과 조금 다를 수 있습니다.' },
+  pbr: { label: '주가순자산비율(PBR) 뜻', text: '주가순자산비율(PBR)은 종가를 주당순자산(BPS)으로 나눈 배수입니다.' },
+  bps: { label: '주당순자산(BPS) 뜻', text: '주당순자산(BPS)은 기업의 순자산을 주식 한 주 기준으로 나타낸 값입니다. 종가를 PBR로 나눠 구할 수 있으며, PBR을 반올림하면 계산값이 공개값과 조금 다를 수 있습니다.' },
+  dps: { label: '주당배당금 뜻', text: '주당배당금은 주식 한 주에 지급된 배당금입니다. 종가에 배당수익률을 곱해 구할 수 있으며, 수익률을 반올림하면 계산값이 공개값과 조금 다를 수 있습니다.' },
+  div: { label: '배당수익률 뜻', text: '배당수익률은 종가 대비 주당배당금의 비율입니다. 주당배당금을 종가로 나누고 100을 곱해 백분율로 표시합니다.' },
+};
 
 export function valuationReference({ metric, currentDate, sourceHistory, prices }: {
-  metric: 'per' | 'pbr'; currentDate: string | null; sourceHistory: Record<string, unknown>[]; prices: Record<string, unknown>[];
+  metric: ValuationOverviewMetric; currentDate: string | null; sourceHistory: Record<string, unknown>[]; prices: Record<string, unknown>[];
 }): ValuationObservation | null {
   if (!currentDate) return null;
   const target = earlierDate(currentDate, 12);
-  const related = metric === 'per' ? 'eps' : 'bps';
+  const related = valuationInput[metric];
   const priceByDay = new Map(prices.flatMap(row => typeof row.date === 'string' ? [[row.date, row] as const] : []));
   let observation: ValuationObservation | null = null;
   for (const row of sourceHistory) {
     const date = detailDay(row.date);
     if (!date || date > target || observation && date <= observation.date) continue;
     const value = fieldValue(row, metric);
-    const book = fieldValue(row, related);
+    const input = fieldValue(row, related);
     const price = fieldValue(priceByDay.get(date), 'close');
-    if (value == null || metric === 'per' && (book == null || price == null)) continue;
-    observation = { date, metric: value, related: book, price };
+    if (value == null || metric === 'per' && (input == null || price == null)) continue;
+    observation = { date, metric: value, related: input, price };
   }
   return observation;
 }
 
-export function ValuationSummary({ metric, security, previous, scope, basis, quoteChange }: {
-  metric: 'per' | 'pbr'; security: DetailSecurityRow; previous: ValuationObservation | null; scope: Scope; basis?: string | null;
-  quoteChange?: ReactNode;
+function matchesPublishedRatio(result: Cell, numerator: Cell, denominator: Cell, unit: '배' | '%') {
+  if (!result.date || numerator.date !== result.date || denominator.date !== result.date) return false;
+  const multiplier = unit === '%' ? 100 : 1;
+  const ratio = businessRatio(numerator.value, denominator.value, 2, multiplier);
+  // Check the published value against both the source values and the displayed won amounts.
+  return ratio != null && formatInvestorAmount(ratio, unit) === formatInvestorAmount(result.value, unit)
+    && ratio === businessRatio(roundBusinessValue(numerator.value, 0), roundBusinessValue(denominator.value, 0), 2, multiplier);
+}
+
+function displayedNumber(value: BusinessValue, unit: string) {
+  return formatInvestorNumber(value, unit).replaceAll(',', '').replaceAll('−', '-');
+}
+
+function perShareCalculation(result: Cell, price: Cell, multiple: Cell) {
+  if (!result.date || price.date !== result.date || multiple.date !== result.date
+    || compareBusinessValues(price.value, 0) !== 1 || compareBusinessValues(result.value, 0) !== 1) return null;
+
+  const amount = businessRatio(price.value, multiple.value, 0);
+  if (amount == null) return null;
+  const published = formatInvestorAmount(result.value, '원');
+  const matches = formatInvestorAmount(amount, '원') === published;
+  // A published two-decimal multiple can imply a range of per-share amounts.
+  const matchesRoundedMultiple = compareBusinessValues(businessRatio(price.value, result.value, 2), multiple.value) === 0;
+  if (!matches && !matchesRoundedMultiple) return null;
+
+  const displayedAmount = businessRatio(displayedNumber(price.value, '원'), displayedNumber(multiple.value, '배'), 0);
+  if (displayedAmount == null || displayedAmount === '0') return null;
+  const estimate = formatInvestorAmount(displayedAmount, '원');
+  return { estimate: estimate === published ? null : estimate };
+}
+
+function dividendPerShareCalculation(result: Cell, price: Cell, dividendYield: Cell) {
+  const yieldSign = compareBusinessValues(dividendYield.value, 0);
+  if (!result.date || price.date !== result.date || dividendYield.date !== result.date
+    || compareBusinessValues(price.value, 0) !== 1 || yieldSign == null || yieldSign < 0) return null;
+  const amount = businessPercentageOf(price.value, dividendYield.value);
+  if (amount == null) return null;
+  const published = formatInvestorAmount(result.value, '원');
+  const matches = formatInvestorAmount(amount, '원') === published;
+  // A published two-decimal yield can imply a range of won amounts.
+  const matchesRoundedYield = yieldSign > 0 && compareBusinessValues(businessRatio(result.value, price.value, 2, 100), dividendYield.value) === 0;
+  if (!matches && !matchesRoundedYield) return null;
+
+  const displayedAmount = businessPercentageOf(displayedNumber(price.value, '원'), displayedNumber(dividendYield.value, '%'));
+  if (displayedAmount == null) return null;
+  const estimate = formatInvestorAmount(displayedAmount, '원');
+  return { estimate: estimate === published ? null : estimate };
+}
+
+function MetricCalculation({ metric, result, first, second, approximate, estimate }: {
+  metric: ValuationOverviewMetric; result: Cell; first: Cell; second: Cell; approximate: boolean;
+  estimate?: string | null;
 }) {
-  const related = metric === 'per' ? 'eps' : 'bps';
-  const second = securityValue(security, related);
-  const price = securityValue(security, 'price');
-  const relatedCell = (observation: typeof second, key?: DetailMetric): Cell => {
-    const cell = investorNumCell(observation.value, '원', observation.date);
-    return observation.value == null || key && !metricAvailable(security, key) ? cell : { ...cell, display: <Link prefetch={false}
-      href={detailHref(securityPath(security, key), scope)}>{cell.display}</Link> };
-  };
-  const rows = [
-    { key: related, cells: [
-      { value: detailMetricLabel(related) }, relatedCell(second, related), investorNumCell(previous?.related ?? null, '원'),
-    ] },
-    { key: 'price', cells: [
-      { value: '종가' }, { ...relatedCell(price), note: quoteChange }, investorNumCell(previous?.price ?? null, '원'),
-    ] },
-  ];
-  return <div className={styles.support}>
-    <h2>{detailMetricLabel(metric)} 구성 지표</h2>
-    <InvestorTable label={detailMetricLabel(related) + '와 종가 비교'} columns={['지표', '현재', '1년 전']} rows={rows} basis={basis}
-      columnDates={previous ? { 2: previous.date } : undefined} />
+  const dividendYield = metric === 'div';
+  const product = metric === 'dps' && approximate;
+  const secondLabel = { per: '주당순이익 EPS', pbr: '주당순자산 BPS', div: '종가', dps: '배당수익률', eps: 'PER', bps: 'PBR' }[metric];
+  const inputs = [{ label: dividendYield ? '주당배당금' : '종가', cell: first, multiply: false }];
+  if (second.value != null || (metric !== 'eps' && metric !== 'bps')) {
+    inputs.push({ label: secondLabel, cell: second, multiply: product });
+  }
+  return <div className={styles.metricCalculation} data-calculation={approximate || undefined} data-product={product || undefined}>
+    <dl className={styles.calculationInputs}>
+      {inputs.map(({ label, cell, multiply }) => <div key={label}>
+        <dt>{label}</dt>
+        <dd>{multiply && <span className={styles.multiplicationSign} aria-hidden="true">× </span>}
+          {cell.display}{cell.date && cell.date !== result.date && <small><time dateTime={cell.date}>{cell.date}</time></small>}</dd>
+      </div>)}
+    </dl>
+    {approximate && <span className={styles.calculationOperator}>
+      <span aria-hidden="true">{dividendYield ? '× 100 ≈' : '≈'}</span>
+      <span className="sr-only">{product ? '종가에 배당수익률을 곱하면 약'
+        : dividendYield ? '주당배당금을 종가로 나누고 100을 곱하면 약' : `종가를 ${secondLabel}로 나누면 약`}</span>
+    </span>}
+    <dl className={styles.calculationResult}>
+      <dt>{estimate ? '계산' : '공개'} {detailMetricLabel(metric)}</dt><dd>{estimate ?? result.display}</dd>
+    </dl>
   </div>;
 }
 
-export function RelatedMetricSummary({ metric, security, scope, basis, quoteChange }: {
-  metric: 'per' | 'pbr'; security: DetailSecurityRow; scope: Scope; basis?: string | null; quoteChange?: ReactNode;
+function ValuationPeriod({ label, metric, result, price, input }: {
+  label: string; metric: ValuationOverviewMetric; result: Cell; price: Cell; input: Cell;
 }) {
-  const observations = [...(metricAvailable(security, metric) ? [metric] : []), 'price'] as const;
-  return <dl className={styles.relatedSummary}>
-    {observations.map(key => {
-      const { value, date } = securityValue(security, key);
-      const text = formatInvestorAmount(value, key === 'price' ? '원' : '배');
-      return <div key={key}>
-        <dt>{key !== 'price' && value == null
-          ? <Link prefetch={false} href={detailHref(securityPath(security, key), scope)}>{detailMetricLabel(key)}</Link>
-          : detailMetricLabel(key)}</dt>
-        <dd>
-          {value == null ? text : <Link prefetch={false}
-            href={detailHref(securityPath(security, key === 'price' ? undefined : key), scope)}>{text}</Link>}
-          {date && date !== basis && <small><time dateTime={date}>{date}</time></small>}
-          {key === 'price' && quoteChange}
-        </dd>
-      </div>;
-    })}
-  </dl>;
+  const calculation = metric === 'eps' || metric === 'bps' ? perShareCalculation(result, price, input)
+    : metric === 'dps' ? dividendPerShareCalculation(result, price, input) : null;
+  const dividendYield = metric === 'div';
+  const first = dividendYield ? input : price;
+  const second = dividendYield ? price : input;
+  const approximate = metric === 'eps' || metric === 'bps' || metric === 'dps'
+    ? calculation != null : matchesPublishedRatio(result, first, second, dividendYield ? '%' : '배');
+  return <section className={styles.valuationPeriod} aria-label={label + ' ' + detailMetricLabel(metric) + ' 구성'}>
+    <h3>{label}{result.date && <> <time dateTime={result.date}>{result.date}</time></>}</h3>
+    <MetricCalculation metric={metric} result={result} first={first} second={second} approximate={approximate} estimate={calculation?.estimate} />
+    {calculation?.estimate && <p className={styles.calculationEstimate}>공개 {detailMetricLabel(metric)} {result.display}</p>}
+    {price.note}
+  </section>;
+}
+
+export function ValuationSummary({ metric, security, previous, scope, quoteChange }: {
+  metric: ValuationOverviewMetric; security: ScopedSecurity; previous: ValuationObservation | null; scope: Scope;
+  quoteChange?: ReactNode;
+}) {
+  const related = valuationInput[metric];
+  const resultUnit = DETAIL_METRICS[metric].unit;
+  const inputUnit = DETAIL_METRICS[related].unit;
+  const second = (metric === 'eps' || metric === 'bps') && (security.historicalPeriod || !metricAvailable(security, related))
+    ? { value: null, date: null } : securityValue(security, related);
+  const price = securityValue(security, 'price');
+  const relatedCell = (observation: typeof second, unit: string, key?: DetailMetric): Cell => {
+    const cell = investorNumCell(observation.value, unit, observation.date);
+    return observation.value == null || key && !metricAvailable(security, key) ? cell : { ...cell, display: <Link prefetch={false}
+      href={detailHref(securityPath(security, key), scope)}>{cell.display}</Link> };
+  };
+  const current = securityValue(security, metric);
+  const result = investorNumCell(current.value, resultUnit, current.date);
+  const label = detailMetricLabel(metric);
+  return <>
+    <div className={styles.valuationHeading}>
+      <h2>현재와 1년 전 {label}</h2>
+      <div className={styles.valuationHelp}>
+        <DetailRecordInfo {...valuationHelp[metric]} />
+      </div>
+    </div>
+    <div className={styles.valuationPeriods}>
+      <ValuationPeriod metric={metric} label="현재" result={result}
+        price={{ ...relatedCell(price, '원'), note: quoteChange }} input={relatedCell(second, inputUnit, related)} />
+      {previous ? <ValuationPeriod metric={metric} label="1년 전" result={investorNumCell(previous.metric, resultUnit, previous.date)}
+        price={investorNumCell(previous.price, '원', previous.date)} input={investorNumCell(previous.related, inputUnit, previous.date)} />
+        : <section className={styles.valuationPeriod} aria-label={'1년 전 ' + label + ' 구성'}>
+          <h3>1년 전</h3><p className={styles.valuationPeriodMissing}>비교할 관측값이 없습니다.</p>
+        </section>}
+    </div>
+  </>;
 }
 
 export function companyMetricLinks(members: DetailSecurityRow[], scope: Scope) {

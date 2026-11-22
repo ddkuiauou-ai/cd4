@@ -6,7 +6,7 @@ const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-
 const load = loader();
 const { prepareDetailComparison } = load('lib/detail-comparison.ts');
 const { formatMarketcapAmount } = load('lib/business-analysis.ts');
-const { DetailComparisonSummary } = load('components/detail-comparison-summary.tsx');
+const { DetailComparisonSummary, DetailPriceGap } = load('components/detail-comparison-summary.tsx');
 
 const day = '2026-10-08';
 
@@ -50,6 +50,62 @@ test('same-date price differences use exact decimal amounts and the common-stock
   assert.equal(priceComparisons[0].percent, '20');
   assert.equal(priceComparisons[0].commonPrice, '100.25');
   assert.equal(priceComparisons[0].direction, 'lower');
+});
+
+test('marketcap comparison uses the nearest shared close before the anniversary and shows the change in the price gap', () => {
+  const { common, preferred, company, members } = fixtures();
+  common.prices[0].close = '262000';
+  preferred.prices[0].close = '194000';
+  common.marketcapReferencePrices = [
+    { date: '2025-10-09', close: '90000' },
+    { date: '2025-10-07', close: '91000' },
+    { date: '2025-10-02', close: '89000' },
+    { date: '2025-09-19', close: '85000' },
+  ];
+  preferred.marketcapReferencePrices = [
+    { date: '2025-10-09', close: '72000' },
+    { date: '2025-10-06', close: '71000' },
+    { date: '2025-10-02', close: '70000' },
+    { date: '2025-09-19', close: '68000' },
+  ];
+  const { priceComparisons } = prepareDetailComparison(company, members);
+  assert.deepEqual(priceComparisons[0].previous, { date: '2025-10-02', commonPrice: '89000',
+    price: '70000', difference: '19000', percent: '21.35', direction: 'lower' });
+  const render = rows => new JSDOM(renderToStaticMarkup(React.createElement(DetailPriceGap, {
+    priceComparisons: rows, compareYear: true,
+  })));
+  const dom = render(priceComparisons);
+  try {
+    const doc = dom.window.document;
+    assert.deepEqual([...doc.querySelectorAll('time')].map(node => node.dateTime), [day, '2025-10-02']);
+    assert.match(doc.body.textContent, /19,000원 → 68,000원, 49,000원 벌어짐/);
+  } finally {
+    dom.window.close();
+  }
+  preferred.marketcapReferencePrices.push({ date: '2025-10-02', close: '69000' });
+  const unmatched = prepareDetailComparison(company, members).priceComparisons;
+  assert.equal(unmatched[0].previous, null);
+  const missing = render(unmatched);
+  try {
+    assert.match(missing.window.document.body.textContent, /같은 거래일의 종가가 확인되지 않습니다/);
+    assert.doesNotMatch(missing.window.document.body.textContent, /종가 격차/);
+  } finally {
+    missing.window.close();
+  }
+});
+
+test('price comparisons follow the displayed snapshot even when a later history record disagrees', () => {
+  const { company, common, preferred, members } = fixtures();
+  Object.assign(common, { price: '262000', priceDate: day, priceState: 'provided' });
+  Object.assign(preferred, { price: '194000', priceDate: day, priceState: 'provided' });
+  preferred.prices.push({ date: '2026-10-09', close: '60000' });
+  let [comparison] = prepareDetailComparison(company, members).priceComparisons;
+  assert.equal(comparison.date, day);
+  assert.equal(comparison.difference, '68000');
+  assert.equal(comparison.percent, '25.95');
+  preferred.priceState = 'source_missing';
+  [comparison] = prepareDetailComparison(company, members).priceComparisons;
+  assert.equal(comparison.difference, null);
 });
 
 test('a higher preferred price and equal prices are distinct from a discount', () => {

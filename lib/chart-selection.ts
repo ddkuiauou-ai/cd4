@@ -88,8 +88,10 @@ export function getMarketcapSelectionColor(
   selectedType = "시가총액 구성",
 ): string | undefined {
   if (!isMarketcapSeriesSelected(key, series, selectedSecurityId, selectedType)) return undefined;
-  if (isMarketcapTotalKey(key)) return "var(--brand-ink)";
-  const type = series.find((item) => item.key === key)?.type;
+  return getMarketcapScopeColor(isMarketcapTotalKey(key) ? null : series.find((item) => item.key === key)?.type);
+}
+
+export function getMarketcapScopeColor(type?: string | null): string {
   return type?.includes("보통주") ? "var(--market-up)"
     : type?.includes("우선주") ? "var(--market-down)" : "var(--brand-ink)";
 }

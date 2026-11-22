@@ -85,19 +85,23 @@ test('repeated visits update one ticker across ID, route alias and market change
   assert.equal(rows[0].metrics.pbr.value, null);
 }));
 
-test('the ten-item limit applies after duplicates are merged and different tickers remain distinct', () => {
-  const otherRows = Array.from({ length: 11 }, (_, index) => {
+test('the fifty-item limit applies after duplicates are merged and evicts the oldest distinct visit', () => {
+  const otherRows = Array.from({ length: 55 }, (_, index) => {
     const ticker = String(index + 1).padStart(6, '0');
     return samsung({ ticker, secCode: `KOSPI.${ticker}`, securityId: `id-${ticker}`, lastViewed: 20 - index });
   });
   withStorage([
     ...Array.from({ length: 11 }, (_, index) => samsung({ securityId: `old-${index}`, lastViewed: 100 - index })),
     ...otherRows,
-  ], recent => {
+  ], (recent, storage) => {
     const rows = recent.getRecentlyViewedSecurities();
-    assert.equal(rows.length, 10);
-    assert.equal(new Set(rows.map(row => row.ticker)).size, 10);
-    assert.deepEqual(rows.map(row => row.ticker), ['005930', ...otherRows.slice(0, 9).map(row => row.ticker)]);
+    assert.equal(rows.length, 50);
+    assert.equal(new Set(rows.map(row => row.ticker)).size, 50);
+    assert.deepEqual(rows.map(row => row.ticker), ['005930', ...otherRows.slice(0, 49).map(row => row.ticker)]);
+    recent.addRecentlyViewedSecurity({
+      secCode: 'KOSPI.999999', name: 'New stock', ticker: '999999', exchange: 'KOSPI',
+    }, 'per', '0');
+    assert.deepEqual(storage.stored().map(row => row.ticker), ['999999', ...rows.slice(0, 49).map(row => row.ticker)]);
   });
 });
 

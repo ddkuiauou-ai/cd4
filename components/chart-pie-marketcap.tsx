@@ -35,6 +35,7 @@ interface ChartPieMarketcapProps {
     };
     selectedType?: string; // 🎯 라인 차트와 동일한 어노테이션 기능
     selectedSecurityId?: string;
+    compact?: boolean;
 }
 
 // 🎨 라인 차트와 동일한 색상 시스템 적용 (가독성 개선)
@@ -79,7 +80,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Readon
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">비율</span>
                         <span className="text-xs font-medium text-foreground text-right">
-                            {data.percentage.toFixed(1)}%
+                            {data.percentage.toFixed(2)}%
                         </span>
                     </div>
                 </div>
@@ -143,10 +144,10 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
                             </span>
                         </div>
                         <div className="flex flex-col items-end">
-                            <span className="text-[11px] font-semibold text-foreground">
-                                {segment.percentage.toFixed(1)}%
+                            <span className="text-xs font-semibold text-foreground">
+                                {segment.percentage.toFixed(2)}%
                             </span>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                                 {formatBusinessValue(segment.rawValue ?? segment.value)}원
                             </span>
                         </div>
@@ -157,7 +158,7 @@ const StackedBarTooltip = ({ active, payload, segments }: StackedBarTooltipProps
     );
 };
 
-export default function ChartPieMarketcap({ data, centerText, selectedType = '시가총액 구성', selectedSecurityId }: ChartPieMarketcapProps) {
+export default function ChartPieMarketcap({ data, centerText, selectedType = '시가총액 구성', selectedSecurityId, compact = false }: ChartPieMarketcapProps) {
     const isClient = useSyncExternalStore(subscribeReady, () => true, () => false);
 
     const series = useMemo(() => createMarketcapSeries(data), [data]);
@@ -173,7 +174,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
 
     const stackedSegments = useMemo(
         () =>
-            chartData.map((item) => ({
+            compact ? [] : chartData.map((item) => ({
                 key: item.key,
                 name: item.name,
                 label: item.compactLabel,
@@ -183,7 +184,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 color: item.color,
                 highlighted: item.highlighted,
             })),
-        [chartData],
+        [chartData, compact],
     );
 
     const stackedBarData = useMemo(() => {
@@ -191,9 +192,10 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
             return [] as Array<Record<string, number | string>>;
         }
 
+        const total = stackedSegments.reduce((sum, segment) => sum + segment.value, 0);
         const totalRow = stackedSegments.reduce(
             (acc, segment) => {
-                acc[segment.key] = segment.percentage;
+                acc[segment.key] = total > 0 ? segment.value / total * 100 : 0;
                 return acc;
             },
             { name: '시가총액 구성' } as Record<string, number | string>,
@@ -206,7 +208,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
 
     if (!isClient || chartData.length === 0) {
         return (
-            <div className="relative flex h-full w-full items-center justify-center">
+            <div className={compact ? "relative flex min-h-36 w-full items-center justify-center" : "relative flex h-full w-full items-center justify-center"}>
                 <div className="text-sm text-muted-foreground">
                     {!isClient ? '차트 로딩 중...' : '차트 데이터가 없습니다'}
                 </div>
@@ -215,21 +217,22 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
     }
 
     return (
-        <div className="flex h-full w-full flex-col gap-3">
-            <div className="relative flex-1" style={{ minHeight: 240 }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={240} minHeight={240}>
+        <div className={compact ? "grid w-full grid-cols-[min(9rem,35%)_minmax(0,1fr)] items-center gap-3" : "flex h-full w-full flex-col gap-3"}>
+            <div className={compact ? "relative aspect-square min-w-0" : "relative min-h-60 flex-1"}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={compact ? 0 : 240} minHeight={compact ? 0 : 240}>
                     <PieChart>
                         <Pie
                             data={chartData}
                             cx="50%"
                             cy="50%"
                             labelLine={false}
-                            outerRadius="100%"
-                            innerRadius="32%"
+                            outerRadius={compact ? "94%" : "100%"}
+                            innerRadius={compact ? "70%" : "32%"}
                             fill="var(--chart-3)"
                             dataKey="value"
                             stroke="var(--background)"
                             strokeWidth={2}
+                            isAnimationActive={!compact}
                         >
                             {chartData.map((entry) => {
                                 const isHighlighted = entry.highlighted;
@@ -248,6 +251,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                         <Tooltip
                             content={<CustomTooltip />}
                             wrapperStyle={{ zIndex: 50 }}
+                            allowEscapeViewBox={compact ? { x: true } : undefined}
                             isAnimationActive={false}
                         />
                     </PieChart>
@@ -255,11 +259,11 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
 
                 {centerText && (
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-                        <div className="-mt-2 text-center">
-                            <p className="mb-0.5 text-sm font-semibold leading-tight text-muted-foreground lg:text-base">
+                        <div className={compact ? "text-center" : "-mt-2 text-center"}>
+                            <p className={compact ? "mb-0.5 text-xs leading-tight text-muted-foreground" : "mb-0.5 text-sm font-semibold leading-tight text-muted-foreground lg:text-base"}>
                                 {centerText.title}
                             </p>
-                            <p className="text-lg font-black leading-tight text-foreground lg:text-xl xl:text-2xl">
+                            <p className={compact ? "text-sm font-bold leading-tight tabular-nums" : "text-lg font-black leading-tight text-foreground lg:text-xl xl:text-2xl"}>
                                 {centerText.value}
                             </p>
                         </div>
@@ -267,8 +271,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                 )}
             </div>
 
-            <div className="flex flex-col gap-2">
-                <div className="relative flex items-center justify-center" style={{ minHeight: stackedBarHeight }}>
+            <div className="flex min-w-0 flex-col gap-2">
+                {!compact && <div className="relative flex items-center justify-center" style={{ minHeight: stackedBarHeight }}>
                     <ResponsiveContainer width="90%" height={stackedBarHeight} minWidth={200}>
                         <BarChart data={stackedBarData} layout="vertical" margin={{ top: 6, right: 12, bottom: 6, left: 12 }}>
                             <CartesianGrid horizontal={false} vertical={false} />
@@ -277,6 +281,7 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             <Tooltip
                                 content={<StackedBarTooltip segments={stackedSegments} selectedType={selectedType} />}
                                 cursor={{ fill: 'var(--muted)' }}
+                                isAnimationActive={false}
                             />
                             {stackedSegments.map((segment) => (
                                 <Bar
@@ -291,10 +296,10 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             ))}
                         </BarChart>
                     </ResponsiveContainer>
-                </div>
+                </div>}
 
                 <div
-                    className="flex w-full flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-sm text-foreground"
+                    className={compact ? "grid w-full gap-1 text-sm text-foreground" : "flex w-full flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-sm text-foreground"}
                     role="list"
                     aria-label="시가총액 구성 종목"
                 >
@@ -305,7 +310,9 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                             <span
                                 key={entry.key}
                                 role="listitem"
-                                className="inline-flex min-w-0 items-baseline gap-1.5"
+                                aria-current={isHighlighted || undefined}
+                                title={compact ? `${entry.name} · ${formatBusinessValue(entry.rawValue ?? entry.value)}원` : undefined}
+                                className={compact ? "grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-1.5" : "inline-flex min-w-0 items-baseline gap-1.5"}
                             >
                                 <span
                                     className="inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-sm"
@@ -315,8 +322,8 @@ export default function ChartPieMarketcap({ data, centerText, selectedType = '�
                                     }}
                                     aria-hidden="true"
                                 />
-                                <span className="min-w-0 break-words font-medium tracking-tight">{entry.compactLabel}</span>
-                                <span className="shrink-0 font-semibold tabular-nums">{entry.percentage.toFixed(1)}%</span>
+                                <span className="min-w-0 break-keep break-words font-medium tracking-tight">{entry.compactLabel}</span>
+                                <span className="shrink-0 font-semibold tabular-nums">{entry.percentage.toFixed(2)}%</span>
                             </span>
                         );
                     })}

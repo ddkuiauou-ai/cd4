@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type MouseEvent } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { compareBusinessValues, formatBusinessValue, summarizeBusinessWindow, type BusinessValue } from '@/lib/business-analysis';
 import type { AnnualComparisonReason } from '@/lib/detail-presentation';
@@ -9,6 +10,7 @@ import { DetailRecordInfo } from './detail-record-info';
 import styles from './detail-annual-table.module.css';
 
 interface AnnualRow { date: string; value: BusinessValue; changeRate?: number; difference?: string; comparisonReason?: AnnualComparisonReason; observedCount?: number; targetCount?: number; yearToDate?: boolean; yearEnd?: boolean; }
+type AnnualRateRow = AnnualRow & { changeRate: number };
 export type AnnualDividendComparison = {
     commonName: string;
     pairs: Array<{ securityId: string; label: string }>;
@@ -49,7 +51,7 @@ export function FinancialAnnualMetadata({ count, dividendComparison, yearEndOnly
 
 type AnnualTableProps = {
     rows: AnnualRow[]; label: string; formatValue: (value: BusinessValue) => string; formatDetailValue: (value: BusinessValue) => string;
-    yearEndOnly?: boolean; layout?: 'ratio' | 'per-share' | 'marketcap'; dividendComparison?: DividendComparison; financialMetric?: FinancialMetric;
+    yearEndOnly?: boolean; layout?: 'ratio' | 'per-share' | 'marketcap' | 'closing-price'; dividendComparison?: DividendComparison; financialMetric?: FinancialMetric;
 };
 
 function AnnualRecordValue({ label, value, exact, reason }: { label: string; value: string; exact?: string; reason?: string }) {
@@ -67,73 +69,133 @@ function exactSignedAmount(value: BusinessValue, unit: string) {
 const changeClass = (rate: number | undefined) => rate != null && Number.isFinite(rate)
     ? rate > 0 ? 'market-up' : rate < 0 ? 'market-down' : 'text-muted-foreground' : 'text-muted-foreground';
 
+function AnnualChangeSummary({ comparisons, highest, lowest }: {
+    comparisons: AnnualRateRow[]; highest: AnnualRateRow | null; lowest: AnnualRateRow | null;
+}) {
+    const { mean } = summarizeBusinessWindow(comparisons.map(({ date, changeRate }) => ({ date, value: changeRate })));
+    const extremes = [
+        ['최대 상승', highest],
+        ['최대 하락', lowest],
+    ] as const;
+    return <dl className={cn(styles.annualStatistics, styles.annualChangeStatistics)} aria-label="전년 대비 변화율 요약">
+        {extremes.map(([term, row]) => <div key={term}>
+            <dt>{term}</dt>
+            <dd>{row ? <>
+                <span className={changeClass(row.changeRate)}>{formatInvestorAmount(row.changeRate, '%', true)}</span>
+                <span className={styles.annualChangeYear}> ({row.date.slice(0, 4)}년{row.yearToDate && ' 연중'})</span>
+            </> : '없음'}</dd>
+        </div>)}
+        <div><dt>평균 변화율</dt><dd>{formatInvestorAmount(mean, '%', true)}</dd></div>
+    </dl>;
+}
+
 function FinancialAnnualTable({ rows, label, formatValue, formatDetailValue, yearEndOnly, financialMetric, dividendComparison: comparison }: AnnualTableProps & { financialMetric: FinancialMetric }) {
+    const olderRowsId = useId();
+    const [showOlderRows, setShowOlderRows] = useState(false);
+    const hasAnnualHighlights = financialMetric === 'bps' || financialMetric === 'dps' || financialMetric === 'div';
+    const recentCount = 5;
+    const hasOlderRows = hasAnnualHighlights && rows.length > recentCount;
     const dividendComparison = hasAnnualDividendGaps(comparison) ? comparison : undefined;
     const summary = summarizeBusinessWindow(rows);
-    const rates = rows.flatMap(row => row.changeRate != null && Number.isFinite(row.changeRate) ? [row.changeRate] : []);
-    const rising = rates.filter(rate => rate > 0).length;
-    const falling = rates.filter(rate => rate < 0).length;
+    const comparisons = rows.filter((row): row is AnnualRateRow => row.changeRate != null && Number.isFinite(row.changeRate));
+    const rising = comparisons.filter(row => row.changeRate > 0);
+    const falling = comparisons.filter(row => row.changeRate < 0);
+    const highest = rising.reduce<AnnualRateRow | null>((best, row) => !best || row.changeRate > best.changeRate ? row : best, null);
+    const lowest = falling.reduce<AnnualRateRow | null>((best, row) => !best || row.changeRate < best.changeRate ? row : best, null);
+    const hasDistinctValues = hasAnnualHighlights && compareBusinessValues(summary.max, summary.min) === 1;
+    const highlightMetric = financialMetric === 'div' ? '수익률' : financialMetric.toUpperCase();
+    const toggleOlderRows = (event: MouseEvent<HTMLButtonElement>) => {
+        const button = event.currentTarget;
+        setShowOlderRows(!showOlderRows);
+        if (showOlderRows) requestAnimationFrame(() => {
+            if (button.isConnected && button.getBoundingClientRect().top < 0) {
+                button.scrollIntoView({ block: 'center', behavior: 'instant' });
+            }
+        });
+    };
     const statistics = [
-        ['평균', formatValue(summary.mean)], ['최저', formatValue(summary.min)], ['최고', formatValue(summary.max)], ['상승 · 하락 연도', `${rising}년 · ${falling}년`],
+        ['평균', formatValue(summary.mean)], ['최저', formatValue(summary.min)], ['최고', formatValue(summary.max)], ['상승 · 하락 연도', `${rising.length}년 · ${falling.length}년`],
     ];
-    const statisticsList = <dl className={cn(styles.annualStatistics, financialMetric === 'pbr' && styles.statisticsAbove)} aria-label="표에 표시한 관측의 통계">
-        {statistics.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}
-    </dl>;
-    return <div className="detail-annual-data">
-        {financialMetric === 'pbr' && statisticsList}
+    const statisticsList = <>
+        {hasOlderRows && <p className={styles.annualStatisticsBasis}>전체 {rows.length}개 연도 기준</p>}
+        <dl className={styles.annualStatistics} aria-label={hasAnnualHighlights ? `전체 ${yearEndOnly ? '연말' : '연도별'} 기록 통계` : '표에 표시한 관측의 통계'}>
+            {statistics.map(([term, value]) => <div key={term}><dt>{term}</dt><dd>{value}</dd></div>)}
+        </dl>
+        {comparisons.length > 0 && <AnnualChangeSummary comparisons={comparisons} highest={highest} lowest={lowest} />}
+    </>;
+    const annualRecords = rows.map(row => {
+        const year = row.date.slice(0, 4);
+        const difference = row.comparisonReason === 'non_positive_previous' ? row.difference : undefined;
+        const unit = annualDifferenceUnit[financialMetric];
+        const change = difference ?? row.changeRate;
+        const changeUnit = difference != null ? unit : '%';
+        const exactChange = exactSignedAmount(change ?? null, changeUnit);
+        const exactPerShareDifference = difference != null && (financialMetric === 'eps' || financialMetric === 'bps');
+        const changeValue = exactPerShareDifference ? exactChange : formatInvestorAmount(change, changeUnit, true);
+        const reason = row.comparisonReason === 'non_positive_previous'
+            ? '전년 값이 0 이하라 변화율을 계산할 수 없어 값 차이를 표시합니다.'
+            : row.comparisonReason ? comparisonReasons[row.comparisonReason] : undefined;
+        const valueRecord = hasDistinctValues && (compareBusinessValues(row.value, summary.max) === 0 ? `최고 ${highlightMetric}`
+            : compareBusinessValues(row.value, summary.min) === 0 ? `최저 ${highlightMetric}` : null);
+        const changeRecord = hasAnnualHighlights && (highest && row.changeRate === highest.changeRate ? '최대 상승'
+            : lowest && row.changeRate === lowest.changeRate ? '최대 하락' : null);
+        return <tr key={row.date}>
+            <th scope="row">{year}{!yearEndOnly && row.yearToDate && <span className={styles.annualYearToDate}>연중</span>}
+                <time className={styles.inlineObservationDate} dateTime={row.date}>{row.date}</time>
+            </th>
+            <td className={styles.annualMetricValue}><AnnualRecordValue label={`${year}년 ${label}`}
+                value={formatValue(row.value)} exact={formatDetailValue(row.value).replace(/^-/, '−')}
+                reason={row.value == null ? (yearEndOnly ? '마지막 12월 관측일의 값이 미제공입니다.' : '관측값 미제공') : undefined} />
+                {valueRecord && <small className={styles.annualHighlight}>{valueRecord}</small>}
+                {row.observedCount != null && <small className={styles.annualCoverage}>
+                    {row.observedCount}{row.targetCount != null && `/${row.targetCount}`}개 관측
+                </small>}
+            </td>
+            <td className={changeClass(compareBusinessValues(change ?? null, 0) ?? undefined)}>
+                {reason ? <AnnualRecordValue label={`${year}년 ${difference != null ? '전년 값 차이' : '전년 대비'}`}
+                    value={changeValue} exact={exactChange} reason={reason} />
+                    : <span title={changeValue === exactChange ? undefined : exactChange}>{changeValue}</span>}
+                {changeRecord && <small className={styles.annualHighlight}>{changeRecord}</small>}
+            </td>
+            {dividendComparison && <td data-annual-dividend-difference>
+                <dl className={styles.dividendDifferences}>
+                    {dividendComparison.pairs.map(({ securityId, label: preferredName }) => {
+                        const gap = dividendComparison.byDate[row.date]?.[securityId] ?? null;
+                        return <div key={securityId} data-security-id={securityId}>
+                            <dt className={dividendComparison.pairs.length === 1 ? 'sr-only' : styles.preferredName}>{preferredName}</dt>
+                            <dd>{gap == null ? <><span aria-hidden="true">—</span><span className="sr-only">같은 날 비교값 없음</span></>
+                                : <AnnualRecordValue label={`${year}년 ${preferredName} − ${dividendComparison.commonName}`}
+                                    value={formatInvestorAmount(gap, dividendComparison.unit, true)}
+                                    exact={exactSignedAmount(gap, dividendComparison.unit)} />}</dd>
+                        </div>;
+                    })}
+                </dl>
+            </td>}
+            <td className={styles.observationDateColumn}><time dateTime={row.date}>{row.date}</time></td>
+        </tr>;
+    });
+
+    return <div className={cn('detail-annual-data', styles.responsiveAnnualRecords)}>
+        {financialMetric === 'pbr' && <div className={styles.statisticsAbove}>{statisticsList}</div>}
         <table className={cn(styles.annualTable, dividendComparison && styles.withDividendComparison)}>
             <caption className="sr-only">{yearEndOnly ? '연말' : '연도별'} {label} 및 전년 대비 변화율·값 차이</caption>
             <thead><tr>
-                <th scope="col">연도 / 관측일</th>
+                <th scope="col">연도<span className={styles.inlineObservationDate}> / 관측일</span></th>
                 <th scope="col">{label}</th>
                 <th scope="col">전년 대비</th>
                 {dividendComparison && <th scope="col">우선주 − 보통주 <small>{dividendComparison.unit}</small></th>}
+                <th scope="col" className={styles.observationDateColumn}>관측일</th>
             </tr></thead>
-            <tbody>{rows.map(row => {
-                const year = row.date.slice(0, 4);
-                const difference = row.comparisonReason === 'non_positive_previous' ? row.difference : undefined;
-                const unit = annualDifferenceUnit[financialMetric];
-                const change = difference ?? row.changeRate;
-                const changeUnit = difference != null ? unit : '%';
-                const exactChange = exactSignedAmount(change ?? null, changeUnit);
-                const exactPerShareDifference = difference != null && (financialMetric === 'eps' || financialMetric === 'bps');
-                const changeValue = exactPerShareDifference ? exactChange : formatInvestorAmount(change, changeUnit, true);
-                const reason = row.comparisonReason === 'non_positive_previous'
-                    ? '전년 값이 0 이하라 변화율을 계산할 수 없어 값 차이를 표시합니다.'
-                    : row.comparisonReason ? comparisonReasons[row.comparisonReason] : undefined;
-                return <tr key={row.date}>
-                    <th scope="row">{year}{!yearEndOnly && row.yearToDate && <span className={styles.annualYearToDate}>연중</span>}
-                        <time dateTime={row.date}>{row.date}</time>
-                    </th>
-                    <td className={styles.annualMetricValue}><AnnualRecordValue label={`${year}년 ${label}`}
-                        value={formatValue(row.value)} exact={formatDetailValue(row.value).replace(/^-/, '−')}
-                        reason={row.value == null ? (yearEndOnly ? '마지막 12월 관측일의 값이 미제공입니다.' : '관측값 미제공') : undefined} />
-                        {row.observedCount != null && <small className={styles.annualCoverage}>
-                            {row.observedCount}{row.targetCount != null && `/${row.targetCount}`}개 관측
-                        </small>}
-                    </td>
-                    <td className={changeClass(compareBusinessValues(change ?? null, 0) ?? undefined)}>
-                        {reason ? <AnnualRecordValue label={`${year}년 ${difference != null ? '전년 값 차이' : '전년 대비'}`}
-                            value={changeValue} exact={exactChange} reason={reason} />
-                            : <span title={changeValue === exactChange ? undefined : exactChange}>{changeValue}</span>}
-                    </td>
-                    {dividendComparison && <td data-annual-dividend-difference>
-                        <dl className={styles.dividendDifferences}>
-                            {dividendComparison.pairs.map(({ securityId, label: preferredName }) => {
-                                const gap = dividendComparison.byDate[row.date]?.[securityId] ?? null;
-                                return <div key={securityId} data-security-id={securityId}>
-                                    <dt className={dividendComparison.pairs.length === 1 ? 'sr-only' : styles.preferredName}>{preferredName}</dt>
-                                    <dd>{gap == null ? <><span aria-hidden="true">—</span><span className="sr-only">같은 날 비교값 없음</span></>
-                                        : <AnnualRecordValue label={`${year}년 ${preferredName} − ${dividendComparison.commonName}`}
-                                            value={formatInvestorAmount(gap, dividendComparison.unit, true)}
-                                            exact={exactSignedAmount(gap, dividendComparison.unit)} />}</dd>
-                                </div>;
-                            })}
-                        </dl>
-                    </td>}
-                </tr>;
-            })}</tbody>
+            <tbody>{hasOlderRows ? annualRecords.slice(0, recentCount) : annualRecords}</tbody>
+            {hasOlderRows && <tbody id={olderRowsId} className={cn(styles.olderAnnualRows, !showOlderRows && styles.collapsedAnnualRows)}>
+                {annualRecords.slice(recentCount)}
+            </tbody>}
         </table>
+        {hasOlderRows && <button className={styles.annualRecordsToggle} type="button" aria-controls={olderRowsId} aria-expanded={showOlderRows}
+            onClick={toggleOlderRows}>
+            {showOlderRows ? '최근 5개 연도만 보기' : `${rows.length - recentCount}개 연도 더 보기`}
+            <ChevronDown size={16} aria-hidden="true" />
+        </button>}
         {financialMetric !== 'pbr' && statisticsList}
     </div>;
 }
@@ -141,47 +203,71 @@ function FinancialAnnualTable({ rows, label, formatValue, formatDetailValue, yea
 export function DetailAnnualTable(props: AnnualTableProps) {
     const { rows, label, yearEndOnly, financialMetric, layout } = props;
     if (!rows.length) return <p className="border-y border-border py-8 text-sm text-muted-foreground">{yearEndOnly ? '연말 기준' : '연도별'} {label} 데이터가 없습니다.</p>;
-    if (layout === 'marketcap') return <MarketcapAnnualTable {...props} />;
+    if (layout === 'marketcap' || layout === 'closing-price') return <WonAnnualTable {...props} />;
     return financialMetric ? <FinancialAnnualTable {...props} financialMetric={financialMetric} /> : <StandardAnnualTable {...props} />;
 }
 
-function MarketcapAnnualTable({ rows, label, formatValue, formatDetailValue }: AnnualTableProps) {
-    const company = label === '등록 종목 합계';
-    return <div className="detail-annual-data">
-        <table className={cn(styles.annualTable, styles.marketcapTable)}>
+function WonAnnualTable({ rows, label, formatValue, formatDetailValue, layout }: AnnualTableProps) {
+    const closingPrice = layout === 'closing-price';
+    const company = layout === 'marketcap' && label === '등록 종목 합계';
+    return <div className={cn('detail-annual-data', styles.responsiveAnnualRecords)}>
+        <table className={cn(styles.annualTable, styles.wonAnnualTable)}>
             <caption className="sr-only">연도별 {label} 및 전년 대비 변화율
                 {company && ' · 각 관측일에 값이 있는 등록 종목을 합산합니다.'}</caption>
             <thead><tr>
-                <th scope="col">연도 / 관측일</th><th scope="col">{label}</th><th scope="col">전년 대비</th>
+                <th scope="col">연도<span className={styles.inlineObservationDate}> / 관측일</span></th>
+                <th scope="col">{label}</th><th scope="col">전년 대비</th>
+                <th scope="col" className={styles.observationDateColumn}>관측일</th>
             </tr></thead>
             <tbody>{rows.map(row => {
                 const year = row.date.slice(0, 4);
-                const value = formatValue(row.value);
                 const exact = formatDetailValue(row.value);
+                const value = closingPrice ? exact : formatValue(row.value);
                 const rate = row.changeRate != null && Number.isFinite(row.changeRate) ? row.changeRate : null;
                 const rateLabel = rate == null ? '—' : `${rate > 0 ? '+' : ''}${rate.toFixed(1)}%`;
                 const reason = row.comparisonReason ? comparisonReasons[row.comparisonReason] : undefined;
                 const coverage = company && row.observedCount != null
                     ? `${row.observedCount}${row.targetCount != null ? `/${row.targetCount}` : ''}개 관측${row.targetCount != null &&
                         row.observedCount > 0 && row.observedCount < row.targetCount ? ' · 일부' : ''}` : null;
+                const coverageLabel = coverage && <small className={styles.annualCoverage}>{coverage}</small>;
                 return <tr key={row.date}>
                     <th scope="row">{year}{row.yearToDate && <span className={styles.annualYearToDate}>연중</span>}
-                        <time dateTime={row.date}>{row.date}</time>
+                        <time className={styles.inlineObservationDate} dateTime={row.date}>{row.date}</time>
                     </th>
                     <td className={styles.annualMetricValue}>
-                        {value === exact ? value : <details className={styles.exactMarketcap}>
-                            <summary>{value}</summary><small>정확 금액 <strong>{exact}</strong></small>
+                        {value === exact ? <>{value}{coverageLabel}</> : <details className={styles.exactMarketcap}>
+                            <summary><span>{value}</span>{coverageLabel}</summary>
+                            <small>정확 금액 <strong>{exact}</strong></small>
                         </details>}
-                        {coverage && <small className={styles.annualCoverage}>{coverage}</small>}
                     </td>
                     <td className={changeClass(row.changeRate)}>
                         {reason ? <AnnualRecordValue label={`${year}년 전년 대비`} value={rateLabel}
                             reason={row.difference == null ? reason : `${reason} 값 차이 ${exactSignedAmount(row.difference, '원')}`} /> : rateLabel}
                     </td>
+                    <td className={styles.observationDateColumn}><time dateTime={row.date}>{row.date}</time></td>
                 </tr>;
             })}</tbody>
         </table>
+        {closingPrice && <div className="mt-5"><AnnualValueStatistics rows={rows} formatValue={formatValue} /></div>}
     </div>;
+}
+
+function AnnualValueStatistics({ rows, formatValue, yearEndOnly, summaryAbove }: Pick<AnnualTableProps, 'rows' | 'formatValue' | 'yearEndOnly'> & {
+    summaryAbove?: boolean;
+}) {
+    const summary = summarizeBusinessWindow(rows);
+    const rates = rows.filter((row): row is AnnualRateRow => row.changeRate != null && Number.isFinite(row.changeRate));
+    const counts = ['상승 · 하락 연도', `${rates.filter(row => row.changeRate > 0).length}년 · ${rates.filter(row => row.changeRate < 0).length}년`];
+    const terms = summaryAbove
+        ? [['평균', summary.mean], ['최저', summary.min], ['최고', summary.max]] as const
+        : [[yearEndOnly ? '연말 평균' : '연도별 평균', summary.mean], [yearEndOnly ? '연말 최고' : '연도별 최고', summary.max],
+            [yearEndOnly ? '연말 최저' : '연도별 최저', summary.min]] as const;
+    return <dl className={summaryAbove ? styles.statistics : 'grid grid-cols-2 gap-4 border-b border-border pb-5 text-sm sm:grid-cols-4'}>
+        {[...terms.map(([term, value]) => [term, formatValue(value)]), counts].map(([term, value]) => <div key={term}>
+            <dt className={cn('text-xs text-muted-foreground', !summaryAbove && 'mb-2')}>{term}</dt>
+            <dd className="font-medium tabular-nums">{value}</dd>
+        </div>)}
+    </dl>;
 }
 
 function StandardAnnualTable({ rows, label, formatValue, formatDetailValue, yearEndOnly = false, layout }: AnnualTableProps) {
@@ -196,22 +282,7 @@ function StandardAnnualTable({ rows, label, formatValue, formatDetailValue, year
     const changeLabel = (rate: number | undefined) => rate != null && Number.isFinite(rate)
         ? `${rate > 0 ? '+' : ''}${rate.toFixed(1)}%` : '—';
     const differenceLabel = (difference: string) => `${compareBusinessValues(difference, 0) === 1 ? '+' : ''}${formatDetailValue(difference)}`;
-    let statistics: ReactNode = null;
-    if (!perShare) {
-        const summary = summarizeBusinessWindow(rows);
-        const rates = rows.filter(row => row.changeRate != null && Number.isFinite(row.changeRate));
-        const counts = ['상승 · 하락 연도', `${rates.filter(row => row.changeRate! > 0).length}년 · ${rates.filter(row => row.changeRate! < 0).length}년`];
-        const terms = summaryAbove
-            ? [['평균', summary.mean], ['최저', summary.min], ['최고', summary.max]] as const
-            : [[yearEndOnly ? '연말 평균' : '연도별 평균', summary.mean], [yearEndOnly ? '연말 최고' : '연도별 최고', summary.max],
-                [yearEndOnly ? '연말 최저' : '연도별 최저', summary.min]] as const;
-        statistics = <dl className={summaryAbove ? styles.statistics : 'grid grid-cols-2 gap-4 border-b border-border pb-5 text-sm sm:grid-cols-4'}>
-            {[...terms.map(([term, value]) => [term, formatValue(value)]), counts].map(([term, value]) => <div key={term}>
-                <dt className={cn('text-xs text-muted-foreground', !summaryAbove && 'mb-2')}>{term}</dt>
-                <dd className="font-medium tabular-nums">{value}</dd>
-            </div>)}
-        </dl>;
-    }
+    const statistics = !perShare && <AnnualValueStatistics rows={rows} formatValue={formatValue} yearEndOnly={yearEndOnly} summaryAbove={summaryAbove} />;
     const comparisonDateLabel = compact ? '관측일' : '기준일';
     const yearToDateLabel = compact ? '연중' : '연중(YTD)';
     return <div className={cn('detail-annual-data', compact ? styles.compact : 'space-y-5', perShare && styles.perShare)}>

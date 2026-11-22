@@ -18,18 +18,28 @@ const base = {
   history:rows([['2026-09-30','80'], ['2026-10-05','100'], ['2026-10-08','999']]),
 };
 
-async function render(snapshot = base, search = {}, { company = false, basic = false, metric = 'marketcap' } = {}) {
+async function render(snapshot = base, search = {}, { company = false, metric = 'marketcap' } = {}) {
   const fixture = pageLoader(snapshot);
   const element = company ? await fixture.pages.RestoredCompanyDetail({ code:'company', search })
-    : await fixture.pages.RestoredSecurityDetail({ code:'preferred', metric, search, basic });
+    : await fixture.pages.RestoredSecurityDetail({ code:'preferred', metric, search });
   const html = renderToStaticMarkup(element);
   const { window } = new JSDOM(html);
   try {
     const overview = window.document.querySelector('#current-overview');
     const indicators = window.document.querySelector('#indicators');
-    const periods = Object.fromEntries([...indicators?.querySelectorAll('dl > div') ?? []].map(row => [
-      row.querySelector('dt').textContent, [...row.querySelectorAll('dd')].map(cell => cell.textContent),
-    ]));
+    const periods = Object.fromEntries([...indicators?.querySelectorAll('.marketcapPeriodStats tbody tr') ?? []].map(row => {
+      const [period, mean] = row.cells;
+      const dates = [...period.querySelectorAll('time')].map(time => time.dateTime);
+      const summary = period.querySelector('small:last-child').textContent;
+      const basis = (company ? snapshot.company : snapshot.security)?.publication?.asOf;
+      const end = dates[1] ?? (period.querySelector('small').textContent.endsWith('부터') ? basis : dates[0]);
+      return [period.firstChild.textContent + ' 평균', [
+        mean.firstChild.textContent,
+        dates.length ? `${dates[0]} ~ ${end} · ${summary.replace(' 관측', '')}` : summary,
+      ]];
+    }));
+    const facts = [...window.document.querySelectorAll('aside dl > div')];
+    const railValue = label => facts.find(row => row.querySelector('dt')?.textContent === label)?.querySelector('dd');
     return {
       html, fixture, periods,
       current:overview?.textContent,
@@ -37,7 +47,8 @@ async function render(snapshot = base, search = {}, { company = false, basic = f
         ?? overview?.querySelector('.marketcapValues dd[data-emphasis]')?.firstChild?.textContent,
       statistics:indicators?.textContent,
       comparison:window.document.querySelector('#current-overview .comparisonStrip [data-prior-observation], .investor-overview > p, #chart-analysis .marketcapComparison')?.textContent ?? '',
-      quote:[...overview?.querySelectorAll('dl > div') ?? []].find(row => row.querySelector('dt')?.textContent === '전일 대비')?.querySelector('dd').textContent,
+      quote:railValue('주가 전일 대비')?.firstChild?.textContent,
+      price:railValue('종가')?.querySelector('a')?.textContent,
     };
   } finally { window.close(); }
 }
@@ -61,7 +72,7 @@ test('official value and its date stay together and later raw history never beco
 test('period statistics include real zero and negatives and absent records remain missing', async () => {
   const mixed = await render({...base,history:rows([['2026-10-01','0'],['2026-10-02','-20'],['2026-10-03',null],['2026-10-04','20']])});
   assert.equal(mixed.periods['12개월 평균'][0],'0원');
-  assert.match(mixed.statistics,/최저\s*-20원/);
+  assert.match(mixed.statistics,/최저\s*−20원/);
   assert.match(mixed.statistics,/2026-10-01 ~ 2026-10-04 · 실제 관측 3개/);
 
   const zeros = await render({...base,history:rows([['2026-10-01','0'],['2026-10-02','0']])});
@@ -129,35 +140,35 @@ test('company period means disclose partial sums and share the custom window wit
   assert.equal(chart.end,'2024-10-01');
 });
 
-test('an end-only custom range gives the standalone marketcap chart the same raw observations as the statistics', async () => {
+test('an end-only custom range gives the integrated marketcap chart the same raw observations as the statistics', async () => {
   const snapshot = {...base,history:rows([['2024-10-01','100'],['2026-10-08','200']])};
   const normal = await render(snapshot);
-  assert.equal(normal.fixture.historyCharts[0].selectedStart,undefined);
-  assert.deepEqual(normal.fixture.historyCharts[0].rows.map(row => row.date),['2024-10-01','2026-10-08']);
+  assert.equal(normal.fixture.charts[0].start,undefined);
+  assert.deepEqual(normal.fixture.charts[0].unified.rows.map(row => row.date),['2024-10-01','2026-10-08']);
   const custom = await render(snapshot,{end:'2026-10-08'});
-  assert.equal(custom.fixture.historyCharts[0].selectedStart,undefined);
-  assert.equal(custom.fixture.historyCharts[0].selectedEnd,'2026-10-08');
-  assert.deepEqual(custom.fixture.historyCharts[0].rows.map(row => row.date),['2024-10-01','2026-10-08']);
+  assert.equal(custom.fixture.charts[0].start,undefined);
+  assert.equal(custom.fixture.charts[0].end,'2026-10-08');
+  assert.deepEqual(custom.fixture.charts[0].unified.rows.map(row => row.date),['2024-10-01','2026-10-08']);
   assert.equal(custom.periods['3년 평균'][1],'2024-10-01 ~ 2026-10-08 · 2개');
 });
 
 test('the security quote uses a stored rate only from the matching published price record, including zero and missing rate', async () => {
-  for (const [price, rate, expected] of [['36000',2.13,'+2.13%'],['0',0,'0%'],['36000',-1.23,'-1.23%'],['36000',null,'—'],['36000',Infinity,'—']]) {
+  for (const [price, rate, expected] of [['36000',2.13,'+2.13%'],['0',0,'0%'],['36000',-1.23,'-1.23%'],['36000',null,undefined],['36000',Infinity,undefined]]) {
     const result = await render({
       ...base, security:{...security,price,publication:{asOf:'2026-10-09'}},
       priceHistory:[{date:'2026-10-08',close:price,rate},{date:'2025-01-01',close:'39300',rate:7}],
-    },{},{basic:true});
+    });
     assert.equal(result.quote,expected);
     assert.match(result.current,/2026-10-08/);
     assert.doesNotMatch(result.html,/NaN|Infinity|-8\.3|-8\.4/);
   }
-  const mismatch = await render({...base,priceHistory:[{date:'2026-10-08',close:'999',rate:8}]},{},{basic:true});
-  assert.equal(mismatch.primary,'36,000원');
-  assert.equal(mismatch.quote,'—');
+  const mismatch = await render({...base,priceHistory:[{date:'2026-10-08',close:'999',rate:8}]});
+  assert.equal(mismatch.price,'36,000원');
+  assert.equal(mismatch.quote,undefined);
 });
 
 test('the selected security quote remains independent from company constituent prices and the company aggregate', async () => {
-  const selected = await render(base,{},{basic:true});
+  const selected = await render(base);
   assert.equal(selected.quote,'+2.13%');
   const company = { companyId:'company', companyName:'Test', companyKorName:'테스트', state:'published', publication,
     totalMarketcap:'500', totalMarketcapDate:'2026-10-07', securities:[] };

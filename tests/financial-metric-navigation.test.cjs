@@ -11,55 +11,75 @@ const company = { companyId: 'company', routeCode: 'KOSPI.005930', state: 'publi
 const range = { start: '2026-09-01', end: '2026-10-01', periodId: 'common-listing-period' };
 const documentFor = (Component, props) => new JSDOM(renderToStaticMarkup(React.createElement(Component, props)));
 
-test('one marketcap menu follows the current entity while overview and price retain their own routes', () => {
+test('one marketcap menu follows the current entity and overview retains its own route', () => {
   const load = loader();
   const { detailNavGroups } = load('components/detail-investor-records.tsx');
   const { DetailInvestorNavigation } = load('components/detail-investor-navigation.tsx');
   for (const [companyPage, basic, security, current] of [
     [true, true, common, '기업 개요'],
     [true, false, common, '시가총액'],
-    [false, true, preferred, '주가·거래'],
     [false, false, preferred, '시가총액'],
   ]) {
     const groups = detailNavGroups({ company, security, companyPage, basic, metric: 'marketcap', scope: range });
-    const dom = documentFor(DetailInvestorNavigation, { groups, name: '삼성전자', metricLabel: current });
+    const dom = documentFor(DetailInvestorNavigation, { groups, name: '삼성전자' });
     try {
       const links = [...dom.window.document.querySelectorAll('nav a')];
-      assert.deepEqual(links.slice(0, 3).map(link => link.textContent), ['기업 개요', '시가총액', '주가·거래']);
+      assert.deepEqual(links.slice(0, 2).map(link => link.textContent), ['기업 개요', '시가총액']);
+      assert.ok(links.every(link => link.textContent !== '주가·거래'));
       assert.equal(links.filter(link => link.textContent === '시가총액').length, 1);
       assert.deepEqual(links.filter(link => link.getAttribute('aria-current') === 'page').map(link => link.textContent), [current]);
-      const [overview, cap, price] = links.map(link => new URL(link.getAttribute('href'), 'https://example.test'));
+      const [overview, cap] = links.map(link => new URL(link.getAttribute('href'), 'https://example.test'));
       assert.equal(overview.pathname, '/company/KOSPI.005930');
       assert.equal(cap.pathname, companyPage ? '/company/KOSPI.005930/marketcap' : `/security/${security.routeCode}/marketcap`);
-      assert.equal(price.pathname, `/security/${security.routeCode}`);
-      assert.equal(links[2].getAttribute('aria-label'), companyPage ? '주가·거래 · 삼성전자 · 005930' : null);
       assert.equal(cap.searchParams.get('period'), companyPage ? null : range.periodId);
-      assert.equal(price.searchParams.get('period'), companyPage ? null : range.periodId);
     } finally { dom.window.close(); }
   }
 });
 
-test('the detail menu keeps company marketcap usable without a representative and filters unavailable stock metrics', () => {
-  const { detailNavGroups } = loader()('components/detail-investor-records.tsx');
-  const options = { company, basic: true, metric: 'marketcap', scope: range };
-  const companyMenu = detailNavGroups({ ...options, companyPage: true, security: null }).flat();
-  assert.deepEqual(companyMenu.map(item => item.label), ['기업 개요', '시가총액']);
-  const stockMenu = detailNavGroups({
-    ...options, companyPage: false, security: { ...preferred, availableMetrics: ['dps'] },
-  }).flat();
-  assert.deepEqual(stockMenu.map(item => item.label), ['기업 개요', '주가·거래', '주당배당금']);
+test('the detail menu keeps every metric in order and leaves unavailable items out of keyboard navigation', () => {
+  const load = loader();
+  const { detailNavGroups } = load('components/detail-investor-records.tsx');
+  const { DetailInvestorNavigation } = load('components/detail-investor-navigation.tsx');
+  const labels = ['기업 개요', '시가총액', 'PER', 'PBR', 'EPS', 'BPS', '주당배당금', '배당수익률'];
+  for (const [companyPage, security, enabled] of [
+    [false, common, labels],
+    [false, preferred, ['기업 개요', '시가총액', '주당배당금', '배당수익률']],
+    [false, { ...preferred, availableMetrics: ['dps'] }, ['기업 개요', '시가총액', '주당배당금']],
+    [true, null, ['기업 개요', '시가총액']],
+  ]) {
+    const groups = detailNavGroups({ company, security, companyPage, basic: false, metric: 'dps', scope: range });
+    const dom = documentFor(DetailInvestorNavigation, { groups });
+    try {
+      const items = [...dom.window.document.querySelectorAll('nav .metricItem')];
+      assert.deepEqual(items.map(item => item.textContent), labels);
+      assert.deepEqual(items.filter(item => item.hasAttribute('href')).map(item => item.textContent), enabled);
+      for (const item of items.filter(item => !enabled.includes(item.textContent))) {
+        assert.equal(item.getAttribute('role'), 'link');
+        assert.equal(item.getAttribute('aria-disabled'), 'true');
+        assert.equal(item.tabIndex, -1);
+        assert.equal(dom.window.document.getElementById(item.getAttribute('aria-describedby')).textContent,
+          '이 종목은 해당 지표를 제공하지 않아요');
+      }
+      assert.equal(dom.window.document.querySelector('nav [aria-current="page"]').textContent, companyPage ? '시가총액' : '주당배당금');
+    } finally { dom.window.close(); }
+  }
 });
 
 test('marketcap target links retain the reading chapter and remember the return location', () => {
   const sections = [{ id: 'chart-analysis', label: '추이' }, { id: 'annual-data', label: '연도별 기록' }];
-  const load = loader({ '@/components/page-navigation': {
-    getReadingSection: targets => targets.find(target => target.id === 'annual-data')?.id,
-  } });
-  const { DetailSwitchLink } = load('components/detail-investor-navigation.tsx');
   const aggregate = '/company/KOSPI.005930/marketcap';
   const stock = '/security/KOSPI.005935/marketcap';
   const origin = 'https://example.test';
   const assigned = [];
+  const load = loader({
+    '@/components/page-navigation': { getReadingSection: targets => targets.find(target => target.id === 'annual-data')?.id },
+    react: { ...React, useSyncExternalStore: (_subscribe, snapshot) => snapshot() },
+    'next/navigation': { useRouter: () => ({ push(href, options) {
+      assert.equal(options.scroll, !href.includes('#'));
+      assigned.push(origin + href);
+    } }) },
+  });
+  const { DetailSwitchLink } = load('components/detail-investor-navigation.tsx');
   const visits = [];
   const history = { state: { otherState: true }, replaceState(next) { this.state = next; } };
   const location = { href: origin + aggregate, assign: href => assigned.push(href) };
@@ -78,8 +98,8 @@ test('marketcap target links retain the reading chapter and remember the return 
       props.onClick({
         button: 0, detail: 0, preventDefault: () => { prevented = true; },
         currentTarget: {
-          href: origin + href,
-          closest: selector => surface === 'mobile' && selector === '[data-detail-cap-mobile]' ? disclosure
+          href: origin + props.href,
+          closest: selector => surface === 'header' && selector === '[data-detail-cap-title]' ? disclosure
             : surface === 'summary' && selector === '[data-detail-cap-summary]' ? {} : null,
         },
         ...modifiers,
@@ -92,17 +112,17 @@ test('marketcap target links retain the reading chapter and remember the return 
     assert.deepEqual(history.state.detailPeerReturn, { source: aggregate, scrollTop: 870, focusSecurityId: 'preferred', surface: 'rail' });
     assert.equal(history.state.otherState, true);
 
-    location.href = origin + stock + '#annual-data';
-    assert.deepEqual(click(aggregate, 'company:company', sections, 'mobile'), { prevented: true, open: false });
-    assert.equal(assigned.at(-1), origin + aggregate + '#annual-data');
-    assert.equal(history.state.detailPeerReturn.surface, 'mobile');
-    assert.equal(history.state.detailPeerReturn.source, stock + '#annual-data');
-    assert.equal(click(aggregate, 'company:company', sections, 'mobile', { metaKey: true }).prevented, false);
+    location.href = origin + stock + '?capRange=1Y&priceRange=5Y#annual-data';
+    assert.deepEqual(click(aggregate, 'company:company', sections, 'header'), { prevented: true, open: false });
+    assert.equal(assigned.at(-1), origin + aggregate + '?capRange=1Y&priceRange=5Y#annual-data');
+    assert.equal(history.state.detailPeerReturn.surface, 'header');
+    assert.equal(history.state.detailPeerReturn.source, stock + '?capRange=1Y&priceRange=5Y#annual-data');
+    assert.equal(click(aggregate, 'company:company', sections, 'header', { metaKey: true }).prevented, false);
     assert.equal(assigned.length, 2);
 
     // A full card opens its destination from the summary even when returning from an old fragment.
     click(aggregate, 'company:company', [], 'summary');
-    assert.equal(assigned.at(-1), origin + aggregate);
+    assert.equal(assigned.at(-1), origin + aggregate + '?capRange=1Y&priceRange=5Y');
     assert.equal(history.state.detailPeerReturn.surface, 'summary');
   } finally {
     for (const [key, descriptor] of Object.entries(previous)) {
@@ -145,7 +165,7 @@ for (const [metric, unit] of metrics) {
     const dom = documentFor(DetailInvestorNavigation, { groups });
     try {
       const links = [...dom.window.document.querySelectorAll('a')];
-      assert.equal(links.length, 9);
+      assert.equal(links.length, 8);
       const selected = links.filter(link => link.getAttribute('aria-current') === 'page');
       assert.equal(selected.length, 1);
       assert.equal(new URL(selected[0].href, 'https://example.test').pathname, `/security/${common.routeCode}/${metric}`);

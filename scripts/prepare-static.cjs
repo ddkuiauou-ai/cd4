@@ -252,13 +252,13 @@ async function prepare() {
     routes.push({path:`/${base}/1/`,kind:'page'});
     for(let page=1;page<=pages;page++)routes.push({path:`/${base}/${page===1?'':`${page}/`}`,kind:'page'});
   }
-  for(const code of securityCodes)for(const segment of ['',...metrics])routes.push({path:`/security/${encodeURIComponent(code)}/${segment?`${segment}/`:''}`,kind:'page'});
+  for(const code of securityCodes)for(const segment of metrics)routes.push({path:`/security/${encodeURIComponent(code)}/${segment}/`,kind:'page'});
   for(const code of companyCodes)for(const segment of ['','marketcap'])routes.push({path:`/company/${encodeURIComponent(code)}/${segment?`${segment}/`:''}`,kind:'page'});
   const canonical=new Set(routes.map(row=>row.path)),aliases=[];
   for(const [kind,map,chosen]of [['security',securityAliases,selected],['company',companyAliases,selectedCompanies]])for(const [alias,id]of Object.entries(map)){
     if(!chosen.has(id)||alias.includes('/')||alias.includes('\\')||alias==='.'||alias==='..')continue;
     const code=(kind==='security'?secRoutes:coRoutes).get(id)||id;if(alias===code)continue;
-    for(const segment of kind==='security'?['',...metrics]:['','marketcap']){
+    for(const segment of kind==='security'?metrics:['','marketcap']){
       const suffix=segment?`${segment}/`:'';const from=`/${kind}/${encodeURIComponent(alias)}/${suffix}`;
       if(!canonical.has(from))aliases.push({path:from,target:`/${kind}/${encodeURIComponent(code)}/${suffix}`});
     }

@@ -30,6 +30,7 @@ function createBusinessPageLoader(overrides = {}) {
     "next/server": { connection: async () => {} },
     "next/navigation": {
       usePathname: () => "/",
+      useRouter: () => ({ push() {} }),
       notFound: () => { throw new Error("NOT_FOUND"); },
       redirect: (href) => { throw new Error(`REDIRECT:${href}`); },
     },

@@ -19,6 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ReferenceDot,
 } from "recharts";
 
 import { getMarketcapSeriesLabel, getMarketcapSelectionColor, isMarketcapSeriesSelected, type MarketcapSeries } from "@/lib/chart-selection";
@@ -187,7 +188,7 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
         <LineChart
           data={safeData}
           accessibilityLayer
-          margin={{ top: 8, right: 12, left: 8, bottom: 10 }}
+          margin={{ top: registeredHistory?.annotation ? 22 : 8, right: 12, left: 8, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={!registeredHistory} />
           <XAxis
@@ -251,10 +252,14 @@ function ChartMarketcap({ data, format, formatTooltip, selectedType = "시가총
                 strokeDasharray={getStrokePattern(key)}
                 dot={safeData.length === 1}
                 activeDot={getActiveDotProps(key, index)}
+                connectNulls={false}
                 isAnimationActive={registeredHistory ? false : undefined}
               />
             );
           })}
+          {registeredHistory?.annotation && <ReferenceDot x={registeredHistory.annotation.date} y={registeredHistory.annotation.plot}
+            r={4} stroke="var(--brand-ink)" fill="var(--background)" ifOverflow="visible"
+            label={{ value: registeredHistory.annotation.label, position: 'left', fill: 'var(--foreground)', fontSize: 12 }} />}
         </LineChart>
       </ResponsiveContainer>
     </div>

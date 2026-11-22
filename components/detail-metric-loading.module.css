@@ -16,7 +16,6 @@
   --loading-title-line: calc(clamp(1.5rem, 4.5vw, 2.15rem) * 1.2);
 }
 
-.mobileNav,
 .inlineOutline {
   align-items: center;
   min-block-size: 45px;
@@ -28,11 +27,11 @@
 .outlineLine {
   display: flex;
   align-items: center;
-  min-block-size: 40px;
+  min-block-size: var(--detail-metric-row-height, 40px);
   padding-inline: 8px;
 }
 
-.outlineLine { min-block-size: 36px; }
+.outlineLine { min-block-size: var(--detail-outline-row-height, 36px); }
 
 .breadcrumb { min-block-size: 21px; }
 .identityMeta { min-block-size: 1.125rem; }
@@ -62,6 +61,13 @@
 }
 
 .title > .bar { block-size: calc(var(--loading-title-line) * 0.66); }
+.metricTitle { display: none; }
+
+@media (max-width: 767px) {
+  .title { display: flex; align-items: center; }
+  .title > .bar { max-inline-size: 8rem; }
+  .metricTitle { display: grid; align-items: center; min-block-size: 44px; padding-inline: 6px; }
+}
 
 .actions {
   flex: none;
@@ -78,32 +84,31 @@
 
 .headline {
   align-items: end;
-  grid-template-rows: 1.22rem max(46px, calc(clamp(40px, 7.7vw, 54px) * 1.08));
+  grid-template-rows: 1.22rem max(46px, calc(var(--detail-headline-size) * 1.08));
 }
 
 .headline > :nth-child(-n + 2) { align-self: center; }
 .amount { block-size: 69%; max-inline-size: 10rem; }
 .rank { block-size: 43%; max-inline-size: 5rem; }
 
+.headline[data-compact-summary][data-ranked] {
+  grid-template-columns: minmax(0, 1fr) min(35%, 8rem);
+}
+
+.headline[data-compact-summary] > :nth-child(even) {
+  justify-self: end;
+}
+
+.headline[data-compact-summary] > .rank {
+  block-size: 60%;
+}
+
 .comparisonStrip { min-block-size: 1.22rem; align-items: center; }
 .supportTitle { display: flex; align-items: center; min-block-size: 1.5rem; }
 
-.valuationTable tr:first-child {
-  background: color-mix(in srgb, var(--background) 92%, var(--muted-foreground) 8%);
-}
-.valuationTable td { block-size: 3rem; padding: 0.5rem; border-block-end: 0; }
-.valuationTable td + td > .bar { margin-inline-start: auto; }
-.valuationTable tr:first-child td { block-size: 3.25rem; }
-.valuationTable tr:last-child td { block-size: 3.75rem; }
-.cellDetail { block-size: 0.5rem; margin-block-start: 0.375rem; }
-.related :is(dt, dd),
-.relatedAmount,
-.closeChange { align-content: center; }
-.related dt { min-block-size: 1.21875rem; }
-.related dd,
-.relatedAmount { min-block-size: 1.5rem; }
-.closeChange { min-block-size: 1.125rem; }
-.closeChange .bar { block-size: 0.5rem; }
+.calculationResult { display: grid; justify-items: end; gap: 0.375rem; }
+.valuationQuoteChange { margin-block-start: 0.375rem; min-block-size: 1.05rem; }
+.valuationQuoteChange .bar { block-size: 0.625rem; }
 
 .split { min-block-size: 44px; margin-block-end: 0.5rem; }
 .sectionTitle { block-size: clamp(0.875rem, 2.1vw, 1.125rem); margin-block: 0.25rem; }

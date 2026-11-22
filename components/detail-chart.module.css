@@ -56,6 +56,43 @@
 
 .range span { display: inline-block; }
 .caption { margin-top: 4px; }
+
+.yieldDistribution {
+  inline-size: 100%;
+  margin-block: 8px;
+  table-layout: fixed;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.yieldDistribution :is(th, td) { padding-block: 5px; }
+.yieldDistribution th:first-child { inline-size: 7.25rem; padding-inline-end: 8px; text-align: start; }
+.yieldDistribution thead { border-block-end: 1px solid var(--border); color: var(--muted-foreground); font-size: 12px; }
+.yieldDistribution thead th { font-weight: 600; }
+.yieldDistribution thead th:last-child { text-align: end; }
+.yieldDistribution tbody th { font-weight: 500; overflow-wrap: anywhere; }
+.yieldDistribution tbody td { font-weight: 600; }
+.yieldDistributionCount { display: grid; grid-template-columns: minmax(0, 1fr) 7ch; align-items: center; gap: 8px; text-align: end; }
+.yieldDistributionTrack { display: block; block-size: 9px; background: var(--muted); }
+.yieldDistributionTrack > span { display: block; block-size: 100%; min-inline-size: 1px; background: var(--chart-2); }
+
+.epsChartKey,
+.epsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+.epsChartKey { justify-content: space-between; }
+.epsChartKey .axisUnit { position: static; }
+.epsLegend { color: var(--muted-foreground); font-size: 12px; line-height: 1.5; }
+.epsLegend li { display: flex; align-items: center; gap: 5px; }
+.epsLegend li::before { content: ''; inline-size: 8px; block-size: 8px; background: var(--eps-value-color); }
+.epsLegend .epsZero::before { block-size: 2px; }
+.epsProfit { --eps-value-color: var(--market-up); }
+.epsLoss { --eps-value-color: var(--market-down); }
+.epsZero { --eps-value-color: var(--chart-3); }
+.epsBar { fill: var(--eps-value-color); }
+
 .yearEndLatest {
   display: flex;
   flex-wrap: wrap;

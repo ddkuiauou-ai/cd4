@@ -8,10 +8,16 @@ const { loader } = require('./helpers/detail-presentation-loader.cjs');
 
 const { DetailRecordInfo } = loader()('components/detail-record-info.tsx');
 
-test('annual help hydrates, remains hoverable beyond the table and dismisses pinned help', async () => {
+test('record and unavailable metric help hydrate and dismiss for the intended interaction', async () => {
   const content = h('div', { style: { overflow: 'hidden' } },
     h(DetailRecordInfo, { label: '관측 기준', text: '그해의 마지막 관측' }),
     h(DetailRecordInfo, { label: '2026년 전년 대비 0.00% 설명', text: '두 값이 모두 0원입니다.' }, '0.00%'),
+    h('div', { role: 'dialog' },
+      h(DetailRecordInfo, { asChild: true, dismissOnDialogTap: true, label: 'PER', text: '이 종목은 해당 지표를 제공하지 않아요' },
+        h('span', { role: 'link', 'aria-disabled': 'true' }, 'PER')),
+      h('a', { href: '#price', id: 'nearby' }, '주가·거래'),
+      h('div', { id: 'menu-blank' }),
+    ),
   );
   const dom = new JSDOM(`<!doctype html><main>${renderToString(content)}</main><button id="outside">밖</button>`);
   const { window } = dom;
@@ -21,6 +27,7 @@ test('annual help hydrates, remains hoverable beyond the table and dismisses pin
   Object.assign(globalThis, globals);
   const rootNode = document.querySelector('main');
   const [header, value] = rootNode.querySelectorAll('button');
+  const unavailable = rootNode.querySelector('[aria-disabled="true"]');
   const note = () => document.body.querySelector('.note');
   const matches = window.Element.prototype.matches;
   window.Element.prototype.matches = function (selector) {
@@ -103,6 +110,49 @@ test('annual help hydrates, remains hoverable beyond the table and dismisses pin
     await act(() => value.click());
     assert.equal(note().textContent, '두 값이 모두 0원입니다.');
     await act(() => pointer(document.querySelector('#outside'), 'pointerdown', 'touch'));
+    assert.equal(note(), null);
+
+    await act(() => pointer(unavailable, 'pointerover'));
+    assert.equal(note().textContent, '이 종목은 해당 지표를 제공하지 않아요');
+    await act(() => pointer(unavailable, 'pointerout'));
+    await act(() => new Promise(resolve => setTimeout(resolve, 170)));
+    assert.equal(note(), null);
+    await act(() => pointer(unavailable, 'pointerover', 'touch'));
+    assert.equal(note(), null);
+    await act(() => unavailable.click());
+    assert.equal(note().textContent, '이 종목은 해당 지표를 제공하지 않아요');
+    assert.equal(unavailable.hasAttribute('href'), false);
+    assert.equal(unavailable.tabIndex, -1);
+    await act(() => unavailable.click());
+    assert.equal(note(), null);
+
+    const blank = rootNode.querySelector('#menu-blank');
+    const nearby = rootNode.querySelector('#nearby');
+    document.elementFromPoint = () => blank;
+    await act(() => unavailable.click());
+    await act(() => document.querySelector('#outside').click());
+    assert.equal(unavailable.getAttribute('aria-expanded'), 'true');
+    await act(() => pointer(blank, 'pointerdown', 'touch'));
+    assert.equal(unavailable.getAttribute('aria-expanded'), 'true');
+    await act(() => pointer(blank, 'pointercancel', 'touch'));
+    assert.equal(unavailable.getAttribute('aria-expanded'), 'true');
+    await act(() => blank.click());
+    assert.equal(unavailable.getAttribute('aria-expanded'), 'false');
+    assert.equal(note(), null);
+
+    await act(() => unavailable.click());
+    await act(() => pointer(nearby, 'pointerdown', 'touch'));
+    const click = new window.MouseEvent('click', { bubbles: true, cancelable: true });
+    await act(() => nearby.dispatchEvent(click));
+    assert.equal(click.defaultPrevented, true);
+    assert.equal(note(), null);
+
+    document.elementFromPoint = () => nearby;
+    await act(() => unavailable.click());
+    await act(() => pointer(nearby, 'pointerdown', 'touch'));
+    const linkClick = new window.MouseEvent('click', { bubbles: true, cancelable: true });
+    await act(() => nearby.dispatchEvent(linkClick));
+    assert.equal(linkClick.defaultPrevented, false);
     assert.equal(note(), null);
     assert.equal(documentListeners, 0);
   } finally {

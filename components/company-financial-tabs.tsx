@@ -24,7 +24,7 @@ export function CompanyFinancialTabs({ secCode, security, company, className, pe
         : security ? securityPath(security) : secCode ? `/security/${encodeURIComponent(secCode)}` : null;
     const items = companyContext
         ? [{key: 'basic', label: '기업 개요'}, {key: 'marketcap', label: '시가총액'}]
-        : [metricItems[0], {key: 'basic', label: '주가·거래'}, ...metricItems.slice(1)];
+        : metricItems;
     return <nav aria-label={companyContext ? '기업 상세 페이지' : '종목 상세 페이지'}
         data-active-tab={companyContext ? pathname === `${base}/marketcap` ? 'marketcap' : 'info' : undefined}
         className={cn('detail-metric-nav', companyContext && 'detail-company-nav', className)}>

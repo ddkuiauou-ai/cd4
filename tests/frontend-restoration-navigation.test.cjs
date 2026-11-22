@@ -83,9 +83,9 @@ test('recent basic and company visits retain their view while unique legacy iden
     const base = { ...identity, secCode: 'id', lastPath: '/security/id' };
     recent.addRecentlyViewedSecurity(base, 'marketcap', '0');
     recent.migrateRecentSecurityIdentities([identity]);
-    assert.equal(recent.getRecentSecurityPath(recent.getRecentlyViewedSecurities()[0]), '/security/KOSPI.005930');
+    assert.equal(recent.getRecentSecurityPath(recent.getRecentlyViewedSecurities()[0]), '/security/KOSPI.005930/marketcap#price-history');
     recent.addRecentlyViewedSecurity({ ...base, lastPath: '/security/KOSPI.005930' }, 'marketcap', '0');
-    assert.equal(recent.getRecentSecurityPath(recent.getRecentlyViewedSecurities()[0]), '/security/KOSPI.005930');
+    assert.equal(recent.getRecentSecurityPath(recent.getRecentlyViewedSecurities()[0]), '/security/KOSPI.005930/marketcap#price-history');
     recent.addRecentlyViewedSecurity({ ...base, lastPath: '/company/company' }, 'marketcap', '0');
     recent.migrateRecentSecurityIdentities([identity]);
     assert.equal(recent.getRecentSecurityPath(recent.getRecentlyViewedSecurities()[0]), '/company/KOSPI.005930');

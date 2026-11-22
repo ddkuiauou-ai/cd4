@@ -161,6 +161,26 @@ for (const filename of ["chart-company-marketcap.tsx", "chart-marketcap.tsx"]) {
   });
 }
 
+test("compact marketcap composition keeps the donut and percentages without the stacked bar", async () => {
+  await withChartEnvironment(async ({ container, render, load }) => {
+    const Chart = load(path.join(root, "components/chart-pie-marketcap.tsx")).default;
+    const data = [
+      { securityId: "common", ticker: "005930", name: "삼성전자", type: "보통주", value: 9078, percentage: 90.78 },
+      { securityId: "preferred", ticker: "005935", name: "삼성전자우", type: "우선주", value: 922, percentage: 9.22 },
+    ];
+    const CompactChart = ({ data }) => React.createElement(Chart, { data, compact: true });
+    await render(CompactChart, data);
+    assert.equal(container.querySelectorAll(".recharts-pie-sector").length, 2);
+    assert.equal(container.querySelector(".recharts-bar"), null);
+    const legend = container.querySelector('[aria-label="시가총액 구성 종목"]').textContent;
+    assert.match(legend, /보통주 · 00593090\.78%/);
+    assert.match(legend, /우선주 · 0059359\.22%/);
+
+    await render(Chart, data);
+    assert.equal(container.querySelectorAll(".recharts-bar").length, 2);
+  });
+});
+
 test("company chart renders the axis break at finite coordinates using the Recharts 3 chart context", async () => {
   await withChartEnvironment(async ({ container, render, load }) => {
     const Chart = load(path.join(root, "components/chart-company-marketcap.tsx")).default;
@@ -243,6 +263,17 @@ test('registered cap charts show exact registered values, coverage and missing o
     await render(Chart,{type:'detailed',selectedSecurityId:'preferred',start:'2026-10-08',end:'2026-10-08'});
     assert.equal(container.querySelector('svg.recharts-surface'),null);
     assert.match(container.querySelector('[data-history-state="sparse"]').textContent,/2026-10-08.*9,007,199,254,740,993원/);
+
+    const unified = { rows: [], selectedLabel: '기업우' };
+    await render(Chart,{selectedSecurityId:'preferred',unified});
+    assert.equal(container.querySelectorAll('.recharts-line').length,3);
+    assert.match(container.querySelector('.recharts-surface').textContent,/기업우 0원/);
+    assert.equal(container.querySelector('.recharts-line-curve[stroke-width="3"]').getAttribute('stroke'),'var(--market-down)');
+    await React.act(async()=>[...container.querySelectorAll('button')].find(button=>button.textContent==='최근 3개월').click());
+    await flushFrames();
+    assert.equal(new URL(window.location.href).searchParams.get('capRange'),'3M');
+    await move('ArrowLeft');await move('ArrowLeft');await move('ArrowLeft');
+    assert.match(container.querySelector('.recharts-tooltip-wrapper').textContent,/부분 관측.*등록 종목 부분합9,007,199,254,740,994원.*우선주 · 000002미관측/);
   });
 });
 
@@ -259,6 +290,23 @@ test("DPS growth chart keeps horizontal grid lines and dividend-first legend wit
       Array.from(container.querySelectorAll(".recharts-legend-item-text"), (element) => element.textContent),
       ["주당배당금 (DPS)", "직전 제공 기록 대비 (%)"],
     );
+  });
+});
+
+for (const metric of ["bps", "dps"]) test(`${metric} distribution displays the median and mean of the same provided observations`, async () => {
+  await withChartEnvironment(async ({ container, render, load }) => {
+    const { DetailFinancialAnalysis } = load(path.join(root, "components/restored-detail-charts.tsx"));
+    const Chart = ({ data }) => React.createElement(DetailFinancialAnalysis, { rows: data, metric, name: "종목", kind: "distribution" });
+    await render(Chart, [
+      { date: "2026-10-01", value: "-4" },
+      { date: "2026-10-02", value: "0" },
+      { date: "2026-10-03", value: "12" },
+      { date: "2026-10-04", value: "20" },
+      { date: "2026-10-05", value: "999", state: "source_missing" },
+    ]);
+    assert.ok(container.querySelector("svg.recharts-surface"));
+    assert.match(container.textContent, /평균 7원 · 중앙값 6원/);
+    assert.match(container.querySelector("figcaption").textContent, /실제 제공 4개/);
   });
 });
 
@@ -379,26 +427,38 @@ test('dense ratio charts keep the isolated and final observations while ordinary
   });
 });
 
-test('EPS axis labels are won amounts and the yearly tooltip identifies an average rather than the last day', async () => {
+test('EPS bars distinguish a profit, loss, zero and a gap while keeping exact tooltip values', async () => {
   await withChartEnvironment(async ({container, render, load, flushFrames}) => {
     const {DetailHistoryChart} = load(path.join(root,'components/detail-history-chart.tsx'));
     const EPS = ({data}) => React.createElement(DetailHistoryChart, {rows:data, metric:'eps', unit:'원', label:'EPS'});
-    await render(EPS,[{date:'2025-10-01',value:'-2200.32'}, {date:'2025-10-31',value:'0'},
+    await render(EPS,[{date:'2025-09-30',value:'-3300'}, {date:'2025-10-01',value:'-2200.32'}, {date:'2025-10-31',value:'0'},
       {date:'2026-02-27',value:'12000.2'}, {date:'2026-10-08',value:'8400.42'}]);
     const currencyTicks = [...container.querySelectorAll('text[orientation="left"]')].map(node=>node.textContent);
     assert.ok(currencyTicks.includes('0') && currencyTicks.some(label=>/^\d{1,3},\d{3}$/.test(label)));
-    assert.match(container.querySelector('figcaption').textContent,/각 월의 마지막 제공값 · 3개 \/ 원천 관측 4개/);
+    assert.match(container.querySelector('figcaption').textContent,/각 월의 마지막 제공값 · 4개 \/ 원천 관측 5개/);
+    assert.equal(container.querySelectorAll('.epsBar.epsProfit').length, 2);
+    assert.equal(container.querySelectorAll('.epsBar.epsLoss').length, 1);
+    assert.equal(container.querySelectorAll('.epsBar.epsZero').length, 1);
+    const chart=container.querySelector('.recharts-wrapper');
+    const move=async key=>{
+      await React.act(async()=>chart.dispatchEvent(new window.KeyboardEvent('keydown',{key,bubbles:true})));
+      await flushFrames();
+    };
+    const tooltip = () => container.querySelector('.recharts-tooltip-wrapper');
+    for(let index=0;index<14;index++) await move('ArrowLeft');
+    assert.match(tooltip().textContent,/2025-09-30EPS −3,300원적자/);
+    await move('ArrowRight');
+    assert.match(tooltip().textContent,/2025-10-31EPS 0원손익분기점/);
+    await move('ArrowRight');
+    assert.match(tooltip().textContent,/2025\.11EPS 미제공/);
     const yearly = [...container.querySelectorAll('button')].find(button=>button.textContent==='연간');
     await React.act(async()=>yearly.click());
     await flushFrames();
-    const chart=container.querySelector('.recharts-wrapper');
-    for(let index=0;index<3;index++) {
-      await React.act(async()=>chart.dispatchEvent(new window.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true})));
-      await flushFrames();
-    }
-    const tooltip = container.querySelector('.recharts-tooltip-wrapper');
-    assert.match(tooltip.textContent,/2026년EPS 10,200원평균에 포함된 제공 관측 2개/);
-    assert.equal(tooltip.querySelector('strong').title,'10,200.31원');
+    for(let index=0;index<3;index++) await move('ArrowRight');
+    assert.match(tooltip().textContent,/2026년EPS 10,200원흑자평균에 포함된 제공 관측 2개/);
+    assert.equal(tooltip().querySelector('strong').title,'10,200.31원');
+    await render(EPS,[{date:'2026-10-08',value:'0'}]);
+    assert.ok(container.querySelector('.epsBar.epsZero'));
   });
 });
 

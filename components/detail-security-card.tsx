@@ -17,14 +17,14 @@ function SecurityCardFrame({ id, selected, identity, children }: {
   </div>;
 }
 
-export function DetailSecurityCard({ candidate, name, description, selectable, renderTarget, children }: {
+export function DetailSecurityCard({ candidate, name, description, headerEnd, selectable, renderTarget, children }: {
   candidate?: DetailSwitchCandidate; name: ReactNode; description: ReactNode; selectable: boolean;
-  renderTarget?: SecurityCardTarget; children: ReactNode;
+  headerEnd?: ReactNode; renderTarget?: SecurityCardTarget; children: ReactNode;
 }) {
   const selected = selectable && candidate?.selected;
   const identity = <>
     <span className={styles.cardIdentity}><strong>{name}</strong>{description && <small>{description}</small>}</span>
-    <SecuritySelectionCheck selected={selected} />
+    {headerEnd ?? <SecuritySelectionCheck selected={selected} />}
   </>;
   return <SecurityCardFrame id={candidate?.securityId} selected={selected} identity={selectable && candidate?.href && renderTarget
     ? renderTarget(candidate, identity, styles.cardSelect)

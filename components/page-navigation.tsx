@@ -28,11 +28,14 @@ export function getReadingSection(targets: HTMLElement[], offset?: number) {
     return clampedHash ?? lastReached ?? current;
 }
 
-export function PageNavigation({ sections, offset, onNavigate, className, label = '페이지 목차' }: {
-    sections: PageSection[]; offset?: number; collapsible?: boolean; onNavigate?: () => void; className?: string; label?: string;
+export function PageNavigation({ sections, offset, onNavigate, className, currentIndicator, trackReading = true, readingMedia, label = '페이지 목차' }: {
+    sections: PageSection[]; offset?: number; collapsible?: boolean; onNavigate?: () => void; className?: string;
+    currentIndicator?: ReactNode; trackReading?: boolean; readingMedia?: string; label?: string;
 }) {
     const [active, setActive] = useState(sections[0]?.id ?? null);
     useEffect(() => {
+        if (!trackReading) return;
+        const media = readingMedia ? window.matchMedia(readingMedia) : null;
         let frame = 0;
         const header = document.querySelector<HTMLElement>('[data-site-header]');
         const detailHeader = document.querySelector<HTMLElement>('[data-detail-header]');
@@ -42,10 +45,11 @@ export function PageNavigation({ sections, offset, onNavigate, className, label 
         });
         const update = () => {
             frame = 0;
+            if (media?.matches === false) return;
             const next = getReadingSection(targets, offset) ?? sections[0]?.id ?? null;
             setActive(previous => previous === next ? previous : next);
         };
-        const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+        const schedule = () => { if (!frame && media?.matches !== false) frame = requestAnimationFrame(update); };
         update();
         const observer = new ResizeObserver(schedule);
         if (header) observer.observe(header);
@@ -55,6 +59,7 @@ export function PageNavigation({ sections, offset, onNavigate, className, label 
         window.addEventListener('resize', schedule);
         window.addEventListener('hashchange', schedule);
         window.addEventListener('popstate', schedule);
+        media?.addEventListener('change', schedule);
         return () => {
             observer.disconnect();
             cancelAnimationFrame(frame);
@@ -62,15 +67,16 @@ export function PageNavigation({ sections, offset, onNavigate, className, label 
             window.removeEventListener('resize', schedule);
             window.removeEventListener('hashchange', schedule);
             window.removeEventListener('popstate', schedule);
+            media?.removeEventListener('change', schedule);
         };
-    }, [sections, offset]);
+    }, [sections, offset, trackReading, readingMedia]);
     return <nav aria-label={label} className={className ?? 'space-y-1'}>
         {sections.map(section => <a key={section.id} href={`#${section.id}`} onClick={event => {
             if (!event.defaultPrevented && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) onNavigate?.();
         }} aria-current={active === section.id ? 'location' : undefined}
             className={cn('block min-h-10 border-l py-2 pl-3 text-sm transition-colors',
                 active === section.id ? 'border-primary font-semibold text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
-            {section.label}
+            {section.label}{active === section.id && currentIndicator}
         </a>)}
     </nav>;
 }

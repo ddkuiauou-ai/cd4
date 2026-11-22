@@ -10,8 +10,85 @@
   font: inherit;
 }
 
+.focusedContent:has(> .compactMetricHeader) {
+  /* A height change must not scroll the header back across its pin threshold. */
+  overflow-anchor: none;
+}
+
+.compactMetricHeader :is(.shareActions, .historyAction) button svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+  stroke-width: 1.5;
+}
+
+.compactMetricHeader[data-pinned] {
+  padding-block: 0.125rem;
+}
+
+.focusedContent .compactMetricHeader[data-pinned] h1 {
+  font-size: clamp(1.125rem, 3vw, 1.25rem);
+}
+
+.compactMetricHeader[data-pinned] :global([data-detail-header-row]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+}
+
+.compactMetricHeader[data-pinned] :global([data-detail-header-actions]),
+.compactMetricHeader[data-pinned] .shareActions {
+  gap: 0.25rem;
+}
+
+/* Keep the CSV fill visible when it moves between the button and its inset surface. */
+.compactMetricHeader .historyAction button,
+.compactMetricHeader[data-pinned] .shareActions button {
+  transition-property: none;
+}
+
+.compactMetricHeader[data-pinned] :is(.shareActions, .historyAction) button {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border-color: transparent;
+  font-size: 0.75rem;
+}
+
+.compactMetricHeader[data-pinned] :is(.shareActions, .historyAction) button:not(:disabled):hover {
+  --metric-action-background: var(--accent);
+
+  background: transparent;
+}
+
+.compactMetricHeader[data-pinned] :is(.shareActions, .historyAction) button::before {
+  position: absolute;
+  inset: 0.375rem 0.125rem;
+  z-index: -1;
+  border: 1px solid var(--metric-action-border, transparent);
+  border-radius: 0.25rem;
+  background: var(--metric-action-background, transparent);
+  content: '';
+  pointer-events: none;
+}
+
+.compactMetricHeader[data-pinned] .shareActions button + button {
+  --metric-action-border: var(--input);
+}
+
+.compactMetricHeader[data-pinned] .historyAction button {
+  --metric-action-background: var(--primary);
+  --metric-action-border: var(--selected-border);
+}
+
+.compactMetricHeader[data-pinned] .historyAction button:not(:disabled):hover {
+  --metric-action-background: color-mix(in srgb, var(--primary) 85%, var(--background));
+}
+
 .summaryHero {
-  padding: 1.125rem clamp(0.75rem, 4vw, 1.5rem) 1.25rem;
+  --detail-headline-size: clamp(40px, 7.7vw, 54px);
+  --summary-hero-padding: 1.125rem clamp(0.75rem, 4vw, 1.5rem) 1.25rem;
+
+  padding: var(--summary-hero-padding);
   border-radius: 0.5rem;
   background: color-mix(in srgb, var(--background) 92%, var(--brand-ink) 8%);
 }
@@ -40,7 +117,7 @@
 }
 
 .summaryHero .headlineAmount {
-  --detail-primary-font-size: clamp(40px, 7.7vw, 54px);
+  --detail-primary-font-size: var(--detail-headline-size);
 }
 
 .multipleHeadlineAmount {
@@ -53,6 +130,21 @@
   font-size: 20px;
   font-weight: 500;
   letter-spacing: normal;
+}
+
+.marketcapHero {
+  container-type: inline-size;
+  margin-block-end: 1rem;
+}
+
+.marketcapHero .headlineAmount {
+  --detail-primary-font-size: clamp(1.625rem, 7cqi, var(--detail-headline-size));
+
+  word-break: keep-all;
+}
+
+.marketcapHero .marketcapUnit {
+  font-size: 0.48em;
 }
 
 :global(.investor-detail) .financialContent:global(.detail-content) :is(h2, h3) {
@@ -127,6 +219,30 @@
   font-size: 0.8125rem;
 }
 
+.headlineRow[data-compact-summary][data-ranked] {
+  grid-template-columns: minmax(0, 1fr) fit-content(50%);
+}
+
+.headlineRow[data-compact-summary] .rankColumn {
+  text-align: end;
+}
+
+.headlineRow[data-compact-summary] .headlineRank {
+  padding-block-start: max(0px, calc(44px - 1.08em));
+  font-size: calc(var(--detail-headline-size) * 0.85);
+  line-height: 1.08;
+}
+
+.headlineRow[data-compact-summary] .rankUnit {
+  color: var(--foreground);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.headlineRow[data-compact-summary] .headlineRank[data-rank='1'] strong { color: var(--rank-first); }
+.headlineRow[data-compact-summary] .headlineRank[data-rank='2'] strong { color: var(--rank-second); }
+.headlineRow[data-compact-summary] .headlineRank[data-rank='3'] strong { color: var(--rank-third); }
+
 .comparisonStrip {
   display: flex;
   flex-wrap: wrap;
@@ -156,34 +272,10 @@
   min-inline-size: 0;
 }
 
-.relatedSummary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.relatedSummary dt,
-.relatedSummary small {
-  color: var(--muted-foreground);
-  font-size: 0.8125rem;
-}
-
-.relatedSummary dd {
-  display: grid;
-  justify-items: start;
-  gap: 0.125rem;
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.relatedSummary dd > a {
-  font-weight: 650;
-}
-
-.financialContent .valuationSupport .relatedSummary .quoteChange {
-  justify-content: flex-start;
+.valuationPeriod {
+  min-inline-size: 0;
+  padding-block-start: 0.625rem;
+  border-block-start: 1px solid var(--border);
 }
 
 .valuationSupport h2 {
@@ -191,23 +283,111 @@
   font-size: 1rem;
 }
 
-.valuationSupport .support :global(.investor-table :is(th, td)) {
-  border-block-end: 0;
-  padding: 0.5rem;
-  white-space: normal;
+.valuationHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-block-end: 0.625rem;
+}
+
+.valuationSupport .valuationHeading h2 { margin: 0; }
+
+/* Center the full info target beside the title without making the heading taller. */
+.valuationHelp {
+  display: grid;
+  grid-template-rows: 0;
+  align-items: center;
+}
+
+.valuationPeriods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 0.875rem;
+}
+
+.valuationSupport .valuationPeriod h3,
+.dividendGap h4 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+}
+
+.valuationPeriod :is(time, .valuationPeriodMissing),
+.metricCalculation :is(time, dt, .calculationOperator) {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.metricCalculation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metricCalculation[data-calculation] {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.55fr);
+}
+
+.metricCalculation :is(dl, dd) { margin: 0; }
+
+.calculationInputs > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 0.375rem;
+  padding-block: 0.25rem;
+}
+
+.metricCalculation[data-calculation]:not([data-product]) .calculationInputs > :first-child {
+  border-block-end: 1px solid var(--muted-foreground);
+}
+
+.multiplicationSign {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.metricCalculation dd {
+  min-inline-size: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
   overflow-wrap: anywhere;
 }
 
-.valuationSupport .support :global(.investor-table thead) {
-  background: color-mix(in srgb, var(--background) 92%, var(--muted-foreground) 8%);
+.calculationInputs dd { text-align: end; }
+.calculationInputs dd > small { display: block; }
+.calculationInputs dd > small time { font-size: 0.75rem; }
+
+:is(.calculationInputs, .calculationResult) a {
+  color: var(--brand-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.valuationSupport .support :global(.investor-table thead th) {
-  font-weight: 550;
+.valuationPeriod .calculationOperator { font-size: 1.125rem; white-space: nowrap; }
+.calculationEstimate {
+  margin: 0.375rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-align: end;
+}
+.calculationResult { text-align: end; }
+.calculationResult dd {
+  color: var(--brand-ink);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
 }
 
-.valuationSupport .support :global(.investor-table small) {
-  word-break: keep-all;
+.financialContent .valuationSupport .valuationPeriod .quoteChange {
+  justify-content: flex-start;
+  margin-block-start: 0.375rem;
+  font-size: 0.75rem;
 }
 
 .financialContent .quoteChange {
@@ -255,16 +435,22 @@
   color: var(--market-down);
 }
 
-.support {
-  min-inline-size: 0;
-}
-
-.support :global(.investor-table) {
-  min-inline-size: 0;
-}
-
 .marketcapContent :global(#current-overview) {
   scroll-margin-block-start: var(--detail-anchor-offset, 9rem);
+}
+
+.marketcapContent :global(#marketcap-breakdown) {
+  margin-block-start: 0.75rem;
+  padding-block-start: 0.75rem;
+}
+
+.marketcapContent .compositionHierarchy :global(#marketcap-breakdown) {
+  margin-block-start: 1.25rem;
+  padding-block: 1rem 0;
+}
+
+.marketcapContent .compositionHierarchy :global(#marketcap-breakdown .investor-record-heading) {
+  margin-block-end: 0.75rem;
 }
 
 .marketcapContent :global(.investor-record-heading h2) {
@@ -273,10 +459,20 @@
   font-weight: 700;
 }
 
-.marketcapComposition {
+.marketcapPeriodStats :global(.investor-table small),
+.periodMarketcapAmount {
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.marketcapComposition,
+.marketcapBreakdown {
   --composition-common: #326991;
   --composition-preferred: #9c7960;
   --composition-other: var(--chart-3);
+}
+
+.marketcapComposition {
   --composition-gap: 0.625rem;
   --composition-padding: clamp(0.625rem, 1.6vw, 1.0625rem);
 
@@ -284,9 +480,130 @@
   container-type: inline-size;
 }
 
-:global(.dark) .marketcapComposition {
+:global(.dark) :is(.marketcapComposition, .marketcapBreakdown) {
   --composition-common: #89badb;
   --composition-preferred: #dbac8e;
+}
+
+.marketcapBreakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem 1.5rem;
+}
+
+.compositionFigure {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.compositionFigure figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.compositionFigure time {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.marketcapBreakdown > :global(.detail-price-gap) {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.marketcapBreakdown > :global(.detail-price-gap) h3 {
+  margin-block-end: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.priceGapPeriods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-block-start: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceGapPeriod {
+  min-inline-size: 0;
+}
+
+.priceGapPeriod + .priceGapPeriod {
+  padding-inline-start: 0.75rem;
+  border-inline-start: 1px solid var(--border);
+}
+
+.priceGapPeriod h4,
+.priceGapPeriod dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 0.375rem;
+}
+
+.priceGapPeriod h4 {
+  margin-block-end: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.priceGapPeriod time,
+.priceGapPeriod dt,
+.priceGapChange {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.priceGapPeriod dl {
+  margin-block: 0 0.3125rem;
+  font-size: 0.8125rem;
+}
+
+.priceGapPeriod dd {
+  margin: 0;
+}
+
+.priceGapPeriod > strong {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  word-break: keep-all;
+}
+
+.priceGapChange {
+  margin-block-start: 0.75rem;
+  padding-block-start: 0.5rem;
+  border-block-start: 1px solid var(--border);
+  font-size: 0.8125rem;
+}
+
+.priceGapChange strong {
+  color: var(--foreground);
+}
+
+.marketcapBreakdown > :only-child:is(.compositionFigure, :global(.detail-price-gap)) {
+  grid-column: 1 / -1;
+}
+
+.compositionFigure:only-child {
+  max-inline-size: 32rem;
+}
+
+@container (width < 34rem) {
+  .marketcapBreakdown {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .marketcapComposition .securityCards {
@@ -317,6 +634,346 @@
 .marketcapComposition .marketcapValues dd[data-emphasis] {
   font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
   font-weight: 700;
+}
+
+.compositionHierarchy {
+  --branch-edge: 0.95rem;
+  --branch-joint: 1.65rem;
+}
+
+.compositionAggregate {
+  padding: 0;
+  overflow: clip;
+}
+
+.compositionAggregateContent {
+  padding: var(--summary-hero-padding);
+}
+
+.compositionAggregate .headlineAmount {
+  --detail-primary-font-size: clamp(1.5rem, 6.8cqi, var(--detail-headline-size));
+
+  word-break: keep-all;
+}
+
+.compositionAggregate .headlineAmount .marketcapUnit {
+  font-size: 0.48em;
+}
+
+.compositionAggregate .headlineRank {
+  justify-self: end;
+}
+
+.compositionAggregate .reference {
+  font-size: 0.8125rem;
+}
+
+.compositionAggregate .reference small,
+.compositionSelection small,
+.compositionSelection .reference {
+  font-size: 0.75rem;
+}
+
+.compositionIdentity,
+.compositionAmounts {
+  display: grid;
+  min-inline-size: 0;
+  gap: 0.125rem;
+  color: var(--foreground);
+}
+
+.compositionAggregateLink > span {
+  min-inline-size: 0;
+}
+
+.compositionLabel {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.compositionChoice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.compositionCurrent {
+  color: var(--brand-ink);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.compositionHierarchy .selectedCheck {
+  display: none;
+}
+
+.compositionCombinedHeading,
+.compositionAmountHeadings,
+.compositionFactHeadings,
+.compositionIdentity small,
+.compositionAmounts small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.compositionRankLink {
+  color: var(--brand-ink);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+a.compositionAggregateLink:hover .compositionLabel > span:first-child,
+.compositionMember:has(.compositionMemberLink:hover) .compositionChoice > strong {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.compositionBranches {
+  margin-block-start: 0.75rem;
+  padding-block-end: 0.25rem;
+  border-block-start: 1px solid var(--border);
+}
+
+.compositionBranchHeading,
+.compositionBranch {
+  position: relative;
+  padding-inline-start: calc(var(--branch-joint) + 0.375rem);
+}
+
+.compositionBranchHeading {
+  padding-block: 0.625rem 0.2rem;
+  font-size: 0.8125rem;
+}
+
+.compositionHeadingIdentity {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  padding-inline-end: 0.5rem;
+}
+
+.compositionAmountHeadings,
+.compositionFactHeadings {
+  display: none;
+}
+
+.compositionBranchHeading::before,
+.compositionBranch::before,
+.compositionBranch::after {
+  position: absolute;
+  inset-inline-start: var(--branch-edge);
+  background: var(--border);
+  pointer-events: none;
+  content: '';
+}
+
+.compositionBranchHeading::before,
+.compositionBranch::before {
+  inset-block: 0;
+  inline-size: 1px;
+}
+
+.compositionBranch:last-child::before {
+  block-size: 1.5rem;
+}
+
+.compositionBranch::after {
+  inset-block-start: 1.5rem;
+  inline-size: calc(var(--branch-joint) - var(--branch-edge));
+  block-size: 1px;
+}
+
+.compositionBranch > .portionSwatch {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 1.5rem;
+  inset-inline-start: var(--branch-joint);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.compositionMember {
+  position: relative;
+  min-inline-size: 0;
+  border-inline-start: 2px solid transparent;
+}
+
+.compositionMemberLink {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: start;
+  gap: 0.125rem 0.5rem;
+  min-block-size: 2.75rem;
+  padding: 0.3125rem 0.5rem 0;
+}
+
+.compositionMemberLink::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
+.compositionMember[data-selected] {
+  border-inline-start-color: var(--selected-border);
+  background: var(--muted);
+}
+
+.compositionAmounts {
+  justify-items: end;
+  text-align: end;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.compositionSelection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.9rem;
+  padding: 0.25rem 0.5rem 0.375rem;
+  font-size: 0.75rem;
+}
+
+.compositionSelection a {
+  position: relative;
+}
+
+@container (max-width: 24rem) {
+  .compositionAggregate .headlineRow[data-compact-summary] .headlineRank {
+    font-size: 1.5rem;
+    padding-block-start: 0;
+    min-block-size: 2rem;
+  }
+
+  .compositionAggregate .headlineRow[data-compact-summary] .rankUnit {
+    font-size: 0.875rem;
+  }
+}
+
+.compositionSelection > p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+@container (min-width: 39rem) {
+  .compositionBranches {
+    --composition-facts-width: clamp(13.5rem, 38cqi, 19rem);
+  }
+
+  .compositionBranchHeading,
+  .compositionMember {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--composition-facts-width);
+  }
+
+  .compositionBranchHeading {
+    align-items: baseline;
+  }
+
+  .compositionMember {
+    align-items: start;
+  }
+
+  .compositionHeadingIdentity,
+  .compositionMemberLink {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 48%);
+    column-gap: 0.75rem;
+    padding-inline: 0.5rem;
+  }
+
+  .compositionMemberLink {
+    padding-block: 0.5rem;
+  }
+
+  .compositionIdentity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.125rem 0.5rem;
+    overflow-wrap: anywhere;
+  }
+
+  .compositionIdentity .compositionChoice {
+    display: contents;
+  }
+
+  .compositionHierarchy .compositionCurrent {
+    display: none;
+  }
+
+  .compositionHierarchy .selectedCheck {
+    display: inline-flex;
+  }
+
+  .compositionAggregateLink .selectedCheck {
+    align-self: center;
+  }
+
+  .compositionIdentity .selectedCheck {
+    margin-inline-start: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .compositionCombinedHeading {
+    display: none;
+  }
+
+  .compositionAmountHeadings,
+  .compositionAmounts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(4rem, 9cqi, 6rem);
+    align-items: baseline;
+    column-gap: 0.75rem;
+    text-align: end;
+  }
+
+  .compositionFactHeadings,
+  .compositionSelection {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 0.25rem 0.75rem;
+    padding-inline: clamp(1.125rem, 4cqi, 2.75rem) 0.5rem;
+    text-align: end;
+  }
+
+  .compositionSelection {
+    padding-block: 0.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .compositionFactLabel {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .compositionSelection > .reference:nth-child(-n + 2) {
+    display: grid;
+    justify-items: end;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .compositionSelection > .reference:nth-child(-n + 2) a {
+    font-size: 0.875rem;
+    font-weight: 650;
+  }
+
+  .compositionSelection > :nth-child(n + 3) {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
 }
 
 .marketcapUnit {
@@ -399,6 +1056,10 @@ a.aggregateCard:hover .aggregateValue strong {
   background: var(--muted);
 }
 
+.compositionAggregate > .portionTrack {
+  block-size: 0.375rem;
+}
+
 .portionTrack > span {
   min-inline-size: 0;
 }
@@ -464,36 +1125,16 @@ a.aggregateCard:hover .aggregateValue strong {
   font-size: 0.75rem;
 }
 
-.marketcapFacts {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.875rem;
-  padding-block-start: 0.5rem;
-  color: var(--muted-foreground);
-  font-size: 0.8125rem;
-}
-
-.marketcapFacts :is(strong, b) {
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-.marketcapFacts a {
+.marketcapQuote a {
   color: var(--brand-ink);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.marketcapFacts time {
-  margin-inline-start: 0.375rem;
+.marketcapQuote time {
   font-size: 0.75rem;
-}
-
-.separateStockCap {
-  flex-basis: 100%;
 }
 
 .marketcapComparison:not(:empty) {
@@ -526,11 +1167,13 @@ a.aggregateCard:hover .aggregateValue strong {
   font-size: 0.6875rem;
 }
 
-.marketcapComposition[data-compact] .selectedCheck {
+.marketcapComposition[data-compact] .selectedCheck,
+.compositionHierarchy .selectedCheck {
   inline-size: 0.625rem;
 }
 
-.marketcapComposition[data-compact] .selectedCheck svg {
+.marketcapComposition[data-compact] .selectedCheck svg,
+.compositionHierarchy .selectedCheck svg {
   inline-size: 100%;
   block-size: auto;
 }
@@ -600,6 +1243,22 @@ a.aggregateCard:hover .aggregateValue strong {
 }
 
 @media (max-width: 767px) {
+  .mobileMetricHeader :global([data-detail-header-row]),
+  .mobileMetricHeader.compactMetricHeader[data-pinned] :global([data-detail-header-row]) {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .mobileMetricHeader :global([data-detail-title-group]) {
+    flex: 1 1 max-content;
+    gap: 0.25rem;
+  }
+
+  .mobileMetricHeader :global([data-detail-header-actions]) {
+    margin-inline-start: auto;
+  }
+
   .focusedContent :global(.investor-breadcrumb) {
     display: none;
   }
@@ -621,6 +1280,10 @@ a.aggregateCard:hover .aggregateValue strong {
   .shareActions [data-share-label] {
     display: none;
   }
+}
+
+@media (max-width: 360px) {
+  .mobileMetricHeader :global([data-detail-title-group]) { flex-basis: 100%; }
 }
 
 .switchLinks {
@@ -666,6 +1329,11 @@ a.aggregateCard:hover .aggregateValue strong {
 
 .dividendComparison {
   margin-block: 1rem 0;
+}
+
+.dividendComparison[data-divider] {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 0.9375rem;
 }
 
 .securityCards {
@@ -751,7 +1419,7 @@ a.aggregateCard:hover .aggregateValue strong {
 
 .cardIdentity small,
 .values small,
-.difference small {
+.dividendGap small {
   display: block;
   color: var(--muted-foreground);
   font-size: 0.75rem;
@@ -763,6 +1431,24 @@ a.aggregateCard:hover .aggregateValue strong {
   flex: none;
   inline-size: 1rem;
   color: var(--brand-ink);
+}
+
+.dividendCardRank {
+  flex: none;
+  color: var(--brand-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.dividendCardRank time {
+  display: block;
+  margin-block-start: 0.125rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 400;
 }
 
 .values {
@@ -789,7 +1475,7 @@ a.aggregateCard:hover .aggregateValue strong {
 }
 
 .values dt,
-.difference dt {
+.dividendGap dt {
   color: var(--muted-foreground);
   font-size: 0.75rem;
   line-height: 1.25;
@@ -798,7 +1484,7 @@ a.aggregateCard:hover .aggregateValue strong {
 }
 
 .values dd,
-.difference dd {
+.dividendGap dd {
   min-inline-size: 0;
   margin: 0;
   font-size: clamp(0.75rem, 1.28vw, 0.875rem);
@@ -821,39 +1507,61 @@ a.aggregateCard:hover .aggregateValue strong {
   text-underline-offset: 0.2em;
 }
 
-.difference {
-  display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-  align-items: center;
-  gap: 0.375rem 1rem;
-  margin-block-start: 0.5625rem;
-  padding-block: 0.5rem;
-  border-block: 1px solid var(--border);
+.dividendGap {
+  min-inline-size: 0;
+  margin-block-start: 0.875rem;
 }
 
-.difference h3 {
-  margin: 0;
+.dividendGap h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.625rem;
+  margin: 0 0 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.difference dl {
+.dividendGap dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.25rem 0.5rem;
   margin: 0;
 }
 
-.difference dd {
+.dividendGap dd {
+  margin-block-start: 0.25rem;
   font-weight: 600;
   text-align: start;
 }
 
-@media (max-width: 499px) {
-  .difference {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.dividendGap dd span,
+.dividendGap > h3 small {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.dividendGap .valuationPeriod > small {
+  margin-block-start: 0.5rem;
+}
+
+.dividendGapChange {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-block: 0.75rem 0;
+  padding-block-start: 0.5rem;
+  border-block-start: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dividendGapChange strong {
+  color: var(--foreground);
+  font-weight: 650;
 }
 
 .nearbyRanks {

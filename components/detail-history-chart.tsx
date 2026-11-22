@@ -101,7 +101,7 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
   }
 
   const chartSummary = summarizeBusinessWindow(chartRows);
-  const barMetric = metric === 'bps' || metric === 'dps';
+  const barMetric = metric === 'bps' || metric === 'dps' || metric === 'eps';
   const zero = { date: chartRows[0]?.date || '2000-01-01', value: 0 };
   const domainRows = [
     ...chartRows,
@@ -200,7 +200,14 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
         <li><span aria-hidden="true" />직전 제공 기록 대비 변화율 (%)</li>
       </ul>}
       <div className={styles.chartArea} role="group" aria-label={`${label} 차트. 좌우 방향키로 관측값을 확인할 수 있습니다.`}>
-        {!hasDividendGrowth && <p className={styles.axisUnit}>단위 {unit}{marketcapMonthly && ' · 월별 마지막 관측'}</p>}
+        {metric === 'eps' ? <div className={styles.epsChartKey}>
+          <p className={styles.axisUnit}>단위 {unit}</p>
+          <ul className={styles.epsLegend} aria-label="EPS 막대 범례">
+            <li className={styles.epsProfit}>흑자</li>
+            <li className={styles.epsLoss}>적자</li>
+            <li className={styles.epsZero}>0원</li>
+          </ul>
+        </div> : !hasDividendGrowth && <p className={styles.axisUnit}>단위 {unit}{marketcapMonthly && ' · 월별 마지막 관측'}</p>}
         <ChartWhenVisible fallback={capitalization || simpleSelection || usePlotSkeleton ? <DetailChartSkeleton variant={capitalization ? 'marketcap' : 'plot'} label={label + ' 차트'} plotOnly />
           : <div className={styles.placeholder}>차트 준비 중…</div>}>
           <DetailTrendPlot data={data} label={label} unit={unit} metric={metric} axisUnit={axisUnit} minimum={projection.min} maximum={projection.max} singlePoint={chartSummary.count === 1} showMovingAverages={Boolean(movingAverages)} showDividendGrowth={hasDividendGrowth} />
@@ -213,7 +220,7 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
         {caption}
         {chartSummary.count === 1 && lastPlotted && <span className="block">
           {lastPlotted !== lastYearEnd && <>{lastPlotted.date} · {simpleSelection ? formatInvestorAmount(lastPlotted.value, unit) : formatBusinessValue(lastPlotted.value) + unit} · </>}
-          추이를 그릴 이력이 부족해 점으로 표시합니다.
+          {metric === 'eps' ? '비교할 관측값이 하나뿐입니다.' : '추이를 그릴 이력이 부족해 점으로 표시합니다.'}
         </span>}
       </figcaption>
     </figure> : <div className={styles.empty} role="status">

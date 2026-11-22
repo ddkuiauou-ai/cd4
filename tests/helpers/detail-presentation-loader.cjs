@@ -13,10 +13,10 @@ function loader(stubs = {}) {
     const mod = new Module(file); cache.set(file, mod); mod.paths = Module._nodeModulePaths(path.dirname(file));
     mod.require = name => {
       const resolvedName = name.startsWith('.') ? '@/' + path.relative(root,path.resolve(path.dirname(file),name)) : name;
+      if (name === 'next/navigation') return {notFound:()=>{throw Error('not-found')},usePathname:()=>'/security/security-id/per',useRouter:()=>({push(){}}),...stubs[name]};
       if (resolvedName in stubs) return stubs[resolvedName];
       if (name.endsWith('.module.css')) return {__esModule:true,default:new Proxy({},{get:(_,key)=>String(key)})};
       if (name === 'next/link') return ({children,prefetch,onNavigate,...props}) => { void prefetch; void onNavigate; return React.createElement('a',props,children); };
-      if (name === 'next/navigation') return {notFound:()=>{throw Error('not-found')},usePathname:()=>'/security/security-id/per'};
       const local = resolvedName.startsWith('@/') ? path.join(root,resolvedName.slice(2)) : null;
       if (!local) return require(name);
       const found = [local,local+'.ts',local+'.tsx'].find(file=>fs.existsSync(file)&&fs.statSync(file).isFile());
@@ -41,7 +41,7 @@ function pageLoader(snapshot){
     '@/components/interactive-chart-section':{InteractiveChartSection:props=>{charts.push(props);return null}},
     '@/components/detail-history-chart':{DetailHistoryChart:props=>{historyCharts.push(props);return null}},
     '@/components/restored-detail-charts':{...named(['DetailFinancialAnalysis','DetailPriceHistory','DetailAnnualHistory','DividendComparisonChart']),ChartWhenVisible:({children})=>children},
-    '@/components/CsvDownloadButton':{CsvDownloadButton:props=>{downloaded=props;return React.createElement('button',null,props.label)}},
+    '@/components/CsvDownloadButton':{CsvDownloadButton:props=>{if (props.buttonText !== '주가 CSV') downloaded=props;return React.createElement('button',null,props.label)}},
     '@/components/share-button':{__esModule:true,default:empty},
   };
   return {pages:loader(stubs)('components/restored-detail-page.tsx'),calls:()=>calls,csv:()=>downloaded,charts,historyCharts};

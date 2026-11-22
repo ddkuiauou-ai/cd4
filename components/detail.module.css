@@ -242,7 +242,6 @@
   color: var(--muted-foreground);
 }
 
-.detail :global(.investor-amounts),
 .detail :global(.investor-overview),
 .detail :global(.investor-stock-scope) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; min-width: 0; }
 .detail :global(.investor-overview) { padding-block: 6px 16px; gap: 10px; }
@@ -260,14 +259,9 @@
 .detail :global(.investor-content a:focus-visible),
 .detail :global(.investor-content summary:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 2px; }
 
-.detail :global(.investor-primary) { flex: 1 1 150px; min-width: 0; }
-.detail :global(.investor-amounts dt),
 .detail :global(.investor-muted),
 .detail :global(.investor-publication dt) { color: var(--muted-foreground); font-size: 12px; line-height: 1.55; }
-.detail :global(.investor-amounts dd) { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.detail :global(.investor-amounts dd.investor-muted) { font-size: 12px; font-weight: 400; }
 
-.detail :global(.investor-amounts dd.investor-primary-value),
 .detail :global(.investor-primary-value) {
   display: block;
   color: var(--foreground);
@@ -298,7 +292,6 @@
 }
 .detail :global(.investor-stock-selection a[aria-current="page"]) { background: var(--selected); border-color: var(--selected-border); font-weight: 650; }
 .detail :global(.investor-stock-scope) { margin-top: 12px; justify-content: space-between; gap: 6px 14px; }
-.detail :global(.investor-stock-selection + .investor-amounts) { margin-top: 9px; }
 .detail :global(.investor-dividend-overview) { min-width: 0; }
 
 .detail :global(.investor-record) { min-width: 0; border-top: 1px solid var(--border); margin-top: 16px; padding-block: 24px 18px; }
@@ -316,7 +309,6 @@
 .detail :global(.investor-record-heading a),
 .detail :global(.investor-record-actions a),
 .detail :global(.investor-table a),
-.detail :global(.investor-amounts a),
 .detail :global(.investor-unavailable a) { color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }
 .detail :global(.investor-record-heading a),
 .detail :global(.investor-record-actions a) { display: inline-flex; align-items: center; min-height: 40px; font-size: 13px; }
@@ -354,12 +346,6 @@
 }
 .detail :global(.investor-investment-links a strong) { color: var(--brand-ink); }
 .detail :global(.investor-investment-links a:hover strong) { text-decoration: underline; text-underline-offset: 3px; }
-
-.detail :global(.investor-period-stats) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(134px, 100%), 1fr)); gap: 10px; }
-.detail :global(.investor-period-stats > div) { min-width: 0; border-bottom: 1px solid var(--border); padding: 8px 4px; }
-.detail :global(.investor-period-stats dt) { font-size: 13px; color: var(--muted-foreground); }
-.detail :global(.investor-period-stats dd:first-of-type) { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.detail :global(.investor-period-stats + p) { margin-top: 10px; }
 
 .detail :global(.investor-disclosure) { margin-top: 12px; border-block-start: 1px solid var(--border); font-size: 13px; }
 .detail :global(.investor-disclosure summary) { min-height: 44px; cursor: pointer; align-content: center; }

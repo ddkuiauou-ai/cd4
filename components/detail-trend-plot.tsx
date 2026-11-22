@@ -1,7 +1,7 @@
 'use client';
 
 import { formatInvestorAmount, formatInvestorNumber, usesInvestorPrecision } from '@/lib/investor-number';
-import { Area, Bar, CartesianGrid, ComposedChart, getNiceTickValues, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type DotItemDotProps } from 'recharts';
+import { Area, Bar, CartesianGrid, ComposedChart, getNiceTickValues, Line, Rectangle, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type BarShapeProps, type DotItemDotProps } from 'recharts';
 import { businessChartAxisValue, compareBusinessValues, formatBusinessValue, formatCompactBusinessValue, projectBusinessChartRows, type BusinessValue } from '@/lib/business-analysis';
 import { marketcapDateAxis } from '@/lib/chart-selection';
 import type { DetailAnnualRow, DetailMetric, DetailObservation } from '@/lib/detail-presentation';
@@ -67,6 +67,14 @@ function calendarDateTicks(dates: readonly string[], axisUnit: 'month' | 'year')
   });
 }
 
+function EpsBar({ x, y, width, height, payload }: BarShapeProps) {
+  const row = payload as DetailPlotRow | undefined;
+  if (row?.barRange == null) return null;
+  const sign = compareBusinessValues(row.value, 0);
+  const style = sign === 1 ? styles.epsProfit : sign === -1 ? styles.epsLoss : styles.epsZero;
+  return <Rectangle x={x} y={y} width={width} height={height} className={`${styles.epsBar} ${style}`} />;
+}
+
 export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, maximum, singlePoint, showMovingAverages, showDividendGrowth }: {
   data: DetailPlotRow[];
   label: string;
@@ -79,9 +87,10 @@ export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, 
   showMovingAverages: boolean;
   showDividendGrowth: boolean;
 }) {
+  const eps = metric === 'eps';
   const yearEnd = metric === 'bps' && axisUnit === 'year';
   const capitalization = metric === 'marketcap' && !showMovingAverages;
-  const currency = metric === 'eps' || metric === 'dps' || yearEnd;
+  const currency = eps || metric === 'dps' || yearEnd;
   const financial = currency || capitalization || metric === 'per' || metric === 'pbr' || metric === 'div';
   const tick = { fill: 'var(--muted-foreground)', fontSize: financial ? 12 : 11 };
   const precision = usesInvestorPrecision(metric);
@@ -93,7 +102,8 @@ export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, 
   const formatTick = (value: BusinessValue) => capitalization ? formatMarketcapAxisTick(value)
     : precision ? formatInvestorNumber(value, unit) : currency && Math.abs(Number(value)) < 1_000_000 ? formatBusinessValue(value) : formatCompactBusinessValue(value);
   const valueAxis = financial ? readableAxis(minimum, maximum, formatTick) : undefined;
-  const useTrendDots = financial && !yearEnd && metric !== 'dps';
+  const zeroLine = eps ? data.find(row => row.barRange != null)?.barRange?.[0] : valueAxis?.zero;
+  const useTrendDots = financial && !eps && !yearEnd && metric !== 'dps';
   const lastObservedIndex = useTrendDots ? data.findLastIndex(row => row.plot != null) : -1;
   const sparse = useTrendDots && data.filter(row => row.plot != null).length <= 12;
   const trendDot = ({ index, cx, cy }: DotItemDotProps) => {
@@ -115,7 +125,7 @@ export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, 
           domain={valueAxis?.domain ?? normalizedDomain}
           ticks={valueAxis ? [...valueAxis.marks.keys()] : normalizedTicks}
         />
-        {valueAxis?.zero != null && <ReferenceLine y={valueAxis.zero} stroke="var(--input)" />}
+        {zeroLine != null && <ReferenceLine y={zeroLine} stroke={eps ? 'var(--muted-foreground)' : 'var(--input)'} />}
         <Tooltip filterNull={!financial} content={({ active, payload }) => {
           const row = payload?.[0]?.payload as DetailPlotRow | undefined;
           if (!active || !row) return null;
@@ -123,9 +133,11 @@ export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, 
             : financial && axisUnit === 'month' && row.plot == null ? dateLabel(row.date) : row.date;
           const annualRate = row.yearEndComparison?.changeRate;
           const annualDifference = row.yearEndComparison?.difference;
+          const epsSign = eps && row.plot != null ? compareBusinessValues(row.value, 0) : null;
           return <div role={financial ? 'status' : undefined} className="max-w-[min(18rem,calc(100vw-3rem))] rounded-md border border-border bg-popover p-3 text-sm shadow-md">
             <p className="mb-2 text-xs text-muted-foreground">{heading}</p>
             <p>{label} <strong className="tabular-nums" title={precision && row.value != null ? `${formatBusinessValue(row.value)}${unit}` : undefined}>{row.plot == null && financial ? '미제공' : valueText(row.value)}</strong></p>
+            {epsSign != null && <p className="text-xs text-muted-foreground">{epsSign > 0 ? '흑자' : epsSign < 0 ? '적자' : '손익분기점'}</p>}
             {yearEnd && row.plot != null && (annualRate != null && Number.isFinite(annualRate)
               ? <p>전년 대비 {annualRate > 0 ? '+' : ''}{formatInvestorAmount(annualRate, '%')}</p>
               : annualDifference != null && <p>전년 대비 차이 {compareBusinessValues(annualDifference, 0) === 1 ? '+' : ''}{valueText(annualDifference)}</p>)}
@@ -143,7 +155,8 @@ export function DetailTrendPlot({ data, label, unit, metric, axisUnit, minimum, 
           </div>;
         }} />
         {showDividendGrowth && <YAxis yAxisId="growth" width={45} orientation="right" tick={tick} tickFormatter={value => formatInvestorAmount(value, '%')} />}
-        {singlePoint ? <Line type="linear" dataKey="plot" stroke="var(--chart-2)" dot={{ r: 4 }} isAnimationActive={false} />
+        {eps ? <Bar dataKey="barRange" shape={EpsBar} name={label} minPointSize={2} maxBarSize={28} isAnimationActive={false} />
+          : singlePoint ? <Line type="linear" dataKey="plot" stroke="var(--chart-2)" dot={{ r: 4 }} isAnimationActive={false} />
           : metric === 'bps' || metric === 'dps' ? <Bar dataKey="barRange" fill="var(--chart-2)" name={label} minPointSize={2} isAnimationActive={false} />
             : (metric === 'per' || metric === 'pbr') ? <Area type="linear" dataKey="plot" stroke="var(--chart-2)" strokeWidth={2} fill="var(--chart-2)" fillOpacity={0.08} dot={trendDot} baseValue={valueAxis?.zero ?? undefined} connectNulls={false} isAnimationActive={false} />
               : <Line type="linear" dataKey="plot" stroke="var(--chart-2)" strokeWidth={2} dot={useTrendDots ? trendDot : metric !== 'marketcap' ? { r: 2 } : data.length < 25} connectNulls={false} isAnimationActive={false} />}

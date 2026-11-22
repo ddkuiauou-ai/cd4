@@ -69,13 +69,12 @@ function rootMetadata() {
 }
 
 test("all actual security routes identify the security and retain their unique legacy canonical and branded OG", async () => {
-  for (const metric of ["", "marketcap", "per", "pbr", "eps", "bps", "div", "dps"]) {
+  for (const metric of ["marketcap", "per", "pbr", "eps", "bps", "div", "dps"]) {
     const { load, calls } = metadataFixture();
-    const page = load(`app/security/[secCode]/${metric || "(basic)"}/page.tsx`);
+    const page = load(`app/security/[secCode]/${metric}/page.tsx`);
     const metadata = await page.generateMetadata(pageProps("stable-security", { start: "2020-01-01", end: "2026-10-02" }));
-    assertGraph(metadata, `${origin}/security/KOSPI.005930${metric ? `/${metric}` : ""}/`);
+    assertGraph(metadata, `${origin}/security/KOSPI.005930/${metric}/`);
     assert.match(metadata.title, /삼성전자/);
-    if (!metric) assert.match(metadata.title, /주가·거래/);
     assert.equal(calls.length, 2, "metadata reads identity and alias uniqueness, never financial results");
     assert.deepEqual(Object.keys(calls[0].columns).sort(), ["companyId", "exchange", "korName", "name", "securityId", "ticker"]);
     assert.doesNotMatch(metadata.description, /2020-01-01|2026-10-02/, "selected source windows cannot pretend to be an official metadata date");

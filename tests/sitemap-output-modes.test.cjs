@@ -21,11 +21,11 @@ const CORE_PATHS = [
   "/marketcaps/3", "/marketcaps/4",
 ];
 const SECURITY_PATHS = [
-  "/security/KOSPI.005930", "/security/KOSPI.005930/marketcap",
+  "/security/KOSPI.005930/marketcap",
   "/security/KOSPI.005930/per", "/security/KOSPI.005930/pbr",
   "/security/KOSPI.005930/bps", "/security/KOSPI.005930/eps",
   "/security/KOSPI.005930/div", "/security/KOSPI.005930/dps",
-  "/security/KOSDAQ.0001A0", "/security/KOSDAQ.0001A0/marketcap",
+  "/security/KOSDAQ.0001A0/marketcap",
   "/security/KOSDAQ.0001A0/per", "/security/KOSDAQ.0001A0/pbr",
   "/security/KOSDAQ.0001A0/bps", "/security/KOSDAQ.0001A0/eps",
   "/security/KOSDAQ.0001A0/div", "/security/KOSDAQ.0001A0/dps",
@@ -52,7 +52,7 @@ function setup(t, mode) {
 function loadRoutes(large = false) {
   const calls = { security: [], company: [], securityCodes: [], companyCodes: [] };
   const securities = large
-    ? Array.from({ length: 626 }, (_, index) => `KOSPI.${String(index + 1).padStart(6, "0")}`)
+    ? Array.from({ length: 715 }, (_, index) => `KOSPI.${String(index + 1).padStart(6, "0")}`)
     : ["KOSPI.005930", "KOSDAQ.0001A0", "KOSPI.005930"];
   const companies = large
     ? Array.from({ length: 2501 }, (_, index) => `KOSPI.${String(index + 1).padStart(6, "0")}`)
@@ -153,10 +153,8 @@ for (const mode of [
     setup(t, mode.value);
     const loaded = loadRoutes(true);
     const finalSecurityPaths = [
-      "/security/KOSPI.000626", "/security/KOSPI.000626/marketcap",
-      "/security/KOSPI.000626/per", "/security/KOSPI.000626/pbr",
-      "/security/KOSPI.000626/bps", "/security/KOSPI.000626/eps",
-      "/security/KOSPI.000626/div", "/security/KOSPI.000626/dps",
+      "/security/KOSPI.000715/pbr", "/security/KOSPI.000715/bps", "/security/KOSPI.000715/eps",
+      "/security/KOSPI.000715/div", "/security/KOSPI.000715/dps",
     ];
     for (const [segment, paths] of [
       ["securities-1", finalSecurityPaths],

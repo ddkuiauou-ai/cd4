@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {lifecycleTimeline,type SecurityListingPeriod,type SecurityLifecycleEvent} from '@/lib/security-lifecycle';
 import type {DetailSearch} from './detail-surface';
+import { MarketcapRangeLink } from './marketcap-chart-range';
 
 export function SecurityLifecycle({periods,events,selected,route,search}: {
   periods:readonly SecurityListingPeriod[];events:readonly SecurityLifecycleEvent[];
@@ -9,20 +10,22 @@ export function SecurityLifecycle({periods,events,selected,route,search}: {
   if (!periods.length && !events.length) return null;
   const ordered=[...periods].sort((a,b)=>a.listingDate.localeCompare(b.listingDate));
   const timeline=lifecycleTimeline(periods,events);
+  const marketcap = route.endsWith('/marketcap');
+  const PeriodLink = marketcap ? MarketcapRangeLink : Link;
   const href=(periodId:string)=>{
     const params=new URLSearchParams();
     for(const [key,value] of Object.entries(search)) if(key!=='period'&&value!=null) params.set(key,Array.isArray(value)?value[0]:value);
-    params.set('period',periodId);return `${route}?${params}`;
+    params.set('period',periodId);return `${route}?${params}${marketcap ? '#listing-history' : ''}`;
   };
   return <section aria-label="상장 기간과 이름·시장 변경 이력" className="my-5 rounded-md border border-border p-4">
     <h2 className="text-base font-semibold">상장 기간 · 이름·시장 변경</h2>
     <p className="mt-1 text-xs text-muted-foreground">지표와 차트는 선택한 상장 기간 안의 자료만 표시합니다.</p>
     <nav aria-label="상장 기간 선택" className="mt-3 flex flex-wrap gap-2">
-      {ordered.map((period,index)=><Link key={period.periodId} prefetch={false} href={href(period.periodId)}
+      {ordered.map((period,index)=><PeriodLink key={period.periodId} prefetch={false} href={href(period.periodId)}
         aria-current={period.periodId===selected?.periodId?'page':undefined}
         className={`min-h-10 rounded border px-3 py-2 text-sm ${period.periodId===selected?.periodId?'border-primary bg-muted font-semibold':'border-border'}`}>
         {index+1}차 상장{period.displayName ? ` (${period.displayName})` : ''}{period.displayExchange ? ` · ${period.displayExchange}` : ''} · {period.listingDate} ~ {period.delistingDate || '현재'}
-      </Link>)}
+      </PeriodLink>)}
     </nav>
     <details className="mt-4 text-sm"><summary className="cursor-pointer font-medium">전체 연혁 보기</summary>
       <ol className="mt-3 space-y-3 border-l border-border pl-4">{timeline.map(item=><li key={item.id}>

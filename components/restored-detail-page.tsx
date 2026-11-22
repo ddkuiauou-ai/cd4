@@ -19,7 +19,7 @@ const detailValueFields = ['price', ...detailMetricOrder].flatMap(metric =>
 const compactValues = (row: object) => Object.fromEntries(detailValueFields.flatMap(field =>
   Object.hasOwn(row, field) ? [[field, (row as Record<string, unknown>)[field]]] : []));
 
-/** Retain only current comparison values, identities and the matching official quote. */
+/** Retain comparison values, identities and the matching official quote. */
 export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProps {
   const { security, company, metric } = props;
   const price = security?.state === 'published' && security.priceState === 'provided' ? security.price : null;
@@ -54,6 +54,9 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
       securityId: member.securityId, routeCode: member.routeCode, name: member.name, korName: member.korName,
       ticker: member.ticker, type: member.type, exchange: member.exchange, ...compactValues(member),
       state: member.state, availableMetrics: member.availableMetrics, dividendHistory: member.dividendHistory,
+      dividendReference: member.dividendReference, dpsRanking: member.dpsRanking,
+      marketcapReferencePrices: member.marketcapReferencePrices,
+      marketcapRanking: member.marketcapRanking,
       prices: member.prices?.slice(0, 1).map(row => ({close: row.close, rate: row.rate, date: row.date})),
     })),
     neighbors: props.neighbors.map(row => ({securityId: row.securityId, companyId: row.companyId, routeCode: row.routeCode,
@@ -65,9 +68,8 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
 async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'company', id: string) {
   if (process.env.NEXT_OUTPUT_MODE?.toLowerCase() !== 'export') return kind === 'company' ? <CompanyDetailClient {...props} /> : <DetailSurface {...props} />;
   const clientKey = `${kind}:${id}:${props.metric}`;
-  const selectablePeriod = kind === 'security' && (props.security?.listingPeriods?.length ?? 0) > 1;
-  if (process.env.STATIC_DETAIL_INLINE === '1') return props.basic && !selectablePeriod
-    ? kind === 'company' ? <CompanyDetailClient {...props} /> : <DetailSurface {...props} />
+  if (process.env.STATIC_DETAIL_INLINE === '1') return kind === 'company' && props.basic
+    ? <CompanyDetailClient {...props} />
     : <StaticDetailClient key={clientKey} initial={props} />;
   const compact = compactDetailProps(props);
   const initial = {...compact, initialAnalysis: prepareDetailAnalysis(props)};
@@ -77,13 +79,13 @@ async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'compa
   return <StaticDetailClient key={clientKey} initial={initial} assets={assets} />;
 }
 
-export async function RestoredSecurityDetail({ code, metric = 'marketcap', basic = false, search = {} }: { code: string; metric?: DetailMetric; basic?: boolean; search?: DetailSearch }) {
+export async function RestoredSecurityDetail({ code, metric = 'marketcap', search = {} }: { code: string; metric?: DetailMetric; search?: DetailSearch }) {
   const periodId=Array.isArray(search.period)?search.period[0]:search.period;
-  const data = periodId ? await getSecurityDetailSnapshot(code,basic?'marketcap':metric,undefined,undefined,periodId) : await getSecurityDetailSnapshot(code,basic?'marketcap':metric);
+  const data = periodId ? await getSecurityDetailSnapshot(code,metric,undefined,undefined,periodId) : await getSecurityDetailSnapshot(code,metric);
   if (!data) notFound();
   return renderDetail({security: data.security, company: data.company, companySecs: data.companySecs, ranking: data.ranking,
-    neighbors: asRows(data.neighbors), history: basic ? [] : detailObservations(asRows(data.history), metric),
-    sourceHistory: asRows(data.history), prices: asRows(data.priceHistory), metric, basic, search}, 'security', data.security.securityId);
+    neighbors: asRows(data.neighbors), history: detailObservations(asRows(data.history), metric),
+    sourceHistory: asRows(data.history), prices: asRows(data.priceHistory), metric, basic: false, search}, 'security', data.security.securityId);
 }
 
 export async function RestoredCompanyDetail({ code, basic = false, search = {} }: { code: string; basic?: boolean; search?: DetailSearch }) {

@@ -6,14 +6,15 @@ const { createBusinessPageLoader } = require('./helpers/business-page-loader.cjs
 
 async function withRecentPanel(options, run) {
   const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'http://localhost/' });
-  const focusCalls = [], openListeners = new Set(), outsideListeners = new Set(), escapeListeners = new Set();
+  const focusCalls = [], toggleRequests = new Set(), toggleListeners = new Set(), outsideListeners = new Set(), escapeListeners = new Set();
   const nativeFocus = dom.window.HTMLElement.prototype.focus;
   dom.window.HTMLElement.prototype.focus = function (settings) {
     focusCalls.push({ element: this, settings });
     return nativeFocus.call(this, settings);
   };
   for (const [target, type, listeners] of [
-    [dom.window, 'app:open-recent', openListeners],
+    [dom.window, 'app:toggle-recent', toggleRequests],
+    [dom.window.document, 'toggle', toggleListeners],
     [dom.window.document, 'click', outsideListeners],
     [dom.window.document, 'keydown', escapeListeners],
   ]) {
@@ -52,23 +53,28 @@ async function withRecentPanel(options, run) {
     const render = async ({ showTriggers = true } = {}) => {
       const contents = React.createElement(React.Fragment, null,
         React.createElement(RecentPanel),
-        showTriggers && React.createElement(RecentPanelTrigger, { className: 'rail-trigger' }, '전체 기록 보기'),
+        showTriggers && React.createElement('section', { 'data-recent-preview': true },
+          React.createElement(RecentPanelTrigger, { className: 'rail-trigger' }, '전체 기록 보기')),
         showTriggers && React.createElement(RecentPanelTrigger, { className: 'footer-trigger' }, '최근 본 종목'),
         React.createElement('button', { type: 'button', className: 'outside' }, '다른 작업'));
       await React.act(async () => root.render(options.strict ? React.createElement(React.StrictMode, null, contents) : contents));
     };
     await render();
+    const afterToggle = action => React.act(async () => {
+      action();
+      await new Promise(resolve => dom.window.setTimeout(resolve, 0));
+    });
     await run({
-      document, focusCalls, openListeners, outsideListeners, escapeListeners, render,
+      document, focusCalls, toggleRequests, toggleListeners, outsideListeners, escapeListeners, render,
       panel: () => document.querySelector('details'),
       summary: () => document.querySelector('summary'),
       content: () => document.querySelector('.recent-panel-content'),
       rail: () => document.querySelector('.rail-trigger'),
       footer: () => document.querySelector('.footer-trigger'),
       outside: () => document.querySelector('.outside'),
-      click: element => React.act(async () => element.click()),
-      escape: element => React.act(async () => element.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))),
-      dispatchOpen: () => window.dispatchEvent(new Event('app:open-recent')),
+      click: element => afterToggle(() => element.click()),
+      escape: element => afterToggle(() => element.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))),
+      dispatchToggle: () => window.dispatchEvent(new Event('app:toggle-recent')),
       unmount: async () => { await React.act(async () => root.unmount()); root = null; },
     });
   } finally {
@@ -83,31 +89,62 @@ async function withRecentPanel(options, run) {
 
 test('external recent triggers remain open after the same click and focus the first history link without scrolling', async () => withRecentPanel({}, async context => {
   assert.equal(context.panel().open, false);
+  assert.equal(context.rail().getAttribute('aria-controls'), context.content().id);
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'false');
+  context.content().scrollTop = 200;
   await context.click(context.rail());
   assert.equal(context.panel().open, true);
+  assert.ok(context.panel().hasAttribute('data-opened-from-preview'));
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'true');
+  assert.equal(context.footer().getAttribute('aria-expanded'), 'true');
+  assert.equal(context.content().scrollTop, 0);
   assert.equal(document.activeElement, context.content().querySelector('a'));
   assert.deepEqual(context.focusCalls.map(({ settings }) => settings), [{ preventScroll: true }, { preventScroll: true }]);
   await context.escape(document.activeElement);
   assert.equal(context.panel().open, false);
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'false');
   assert.equal(document.activeElement, context.rail());
 
   await context.click(context.footer());
   assert.equal(context.panel().open, true);
   await context.click(context.rail());
-  assert.equal(context.panel().open, true, 'A second external trigger reopens after capture-phase dismissal');
-  await context.escape(document.activeElement);
+  assert.equal(context.panel().open, false);
   assert.equal(document.activeElement, context.rail());
+  for (const expanded of [true, false, true, false]) {
+    await context.click(context.rail());
+    assert.equal(context.panel().open, expanded);
+    assert.equal(context.rail().getAttribute('aria-expanded'), String(expanded));
+  }
 }));
 
 test('the header summary keeps native toggling and Escape returns to that summary', async () => withRecentPanel({}, async context => {
   await context.click(context.summary());
   assert.equal(context.panel().open, true);
+  assert.ok(!context.panel().hasAttribute('data-opened-from-preview'));
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'true');
   await context.escape(context.summary());
   assert.equal(context.panel().open, false);
   assert.equal(document.activeElement, context.summary());
   await context.click(context.summary());
   await context.click(context.summary());
   assert.equal(context.panel().open, false);
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'false');
+}));
+
+test('the header panel keeps clear of a visible rail trigger and releases the height limit when closed', async () => withRecentPanel({}, async context => {
+  const property = '--recent-panel-available-height';
+  context.content().getBoundingClientRect = () => ({ left: 920, right: 1280, top: 65, bottom: 800 });
+  context.rail().getBoundingClientRect = () => ({ left: 1050, right: 1280, top: 365, height: 44 });
+  await context.click(context.rail());
+  assert.equal(context.content().style.getPropertyValue(property), '292px');
+  await context.click(context.rail());
+  assert.equal(context.content().style.getPropertyValue(property), '');
+  await context.click(context.summary());
+  assert.equal(context.content().style.getPropertyValue(property), '292px');
+  await context.click(context.rail());
+  context.rail().getBoundingClientRect = () => ({ left: 0, right: 0, top: 0, height: 0 });
+  await context.click(context.summary());
+  assert.equal(context.content().style.getPropertyValue(property), '');
 }));
 
 test('empty history has a focusable fallback and Escape returns to its external opener', async () => withRecentPanel({ empty: true }, async context => {
@@ -124,6 +161,7 @@ test('outside clicks and history navigation close without stealing the destinati
   context.outside().focus();
   await context.click(context.outside());
   assert.equal(context.panel().open, false);
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'false');
   assert.equal(document.activeElement, context.outside());
 
   await context.click(context.rail());
@@ -132,6 +170,7 @@ test('outside clicks and history navigation close without stealing the destinati
   document.addEventListener('click', event => { prevented = event.defaultPrevented; }, { once: true });
   await context.click(link);
   assert.equal(context.panel().open, false);
+  assert.equal(context.rail().getAttribute('aria-expanded'), 'false');
   assert.equal(prevented, false);
   assert.equal(document.activeElement, link, 'Closing for navigation does not force focus back to the opener');
 }));
@@ -166,15 +205,17 @@ test('Escape still closes after clearing history removes the focused control', a
   assert.equal(document.activeElement, context.footer());
 }));
 
-test('StrictMode and unmount leave no duplicate external-open or outside-click listeners', async () => withRecentPanel({ strict: true }, async context => {
-  assert.equal(context.openListeners.size, 1);
+test('StrictMode and unmount leave no duplicate panel listeners', async () => withRecentPanel({ strict: true }, async context => {
+  assert.equal(context.toggleRequests.size, 1);
+  assert.equal(context.toggleListeners.size, 2);
   assert.equal(context.outsideListeners.size, 1);
   assert.equal(context.escapeListeners.size, 1);
   const panel = context.panel();
   await context.unmount();
-  assert.equal(context.openListeners.size, 0);
+  assert.equal(context.toggleRequests.size, 0);
+  assert.equal(context.toggleListeners.size, 0);
   assert.equal(context.outsideListeners.size, 0);
   assert.equal(context.escapeListeners.size, 0);
-  context.dispatchOpen();
+  context.dispatchToggle();
   assert.equal(panel.open, false);
 }));

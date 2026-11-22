@@ -2,12 +2,13 @@ import { isStaticBuild, getStaticSecurityDetail, getStaticCompanyDetail } from '
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, gt, inArray, lt } from "drizzle-orm";
 import { filterListingRows, isolateListingValues, listingContains, selectListingPeriod } from "../security-lifecycle";
-import { availableDetailMetrics, financialDetailMetrics } from '../detail-metric-availability';
+import { marketcapPriceReferenceWindow } from '../detail-comparison';
+import { availableDetailMetrics, dividendReferenceDate, financialDetailMetrics } from '../detail-metric-availability';
 import { businessDate, toDataDTO } from "./dto";
 import { readCompanyAggregatedMarketcap, getCompanyMarketcapRankingFilter, representativeSecurityOrder } from "./company";
 import { readCompanySecurities, readSecurityByCode } from "./security";
-import { historyRange, readDetailDividendHistory, readDetailFinancialAvailability, readMetricsHistory, readRouteCodes } from "./history";
-import { readSecurityMetricDetailRanking, readSecurityMetricNeighbors } from "./security-ranking-detail";
+import { historyRange, readDetailDividendHistory, readDetailDividendReferences, readDetailFinancialAvailability, readMetricsHistory, readPriceHistory, readRouteCodes } from "./history";
+import { readSecurityMemberRanks, readSecurityMetricDetailRanking, readSecurityMetricNeighbors } from "./security-ranking-detail";
 import { COMPANY_PUBLICATION_KEY, isCurrentResult, readPublication, readSnapshot, SECURITY_PUBLICATION_KEY, type ReadDatabase } from "./publication";
 
 export type DetailMetric = schema.MetricType | "price" | "shares";
@@ -27,9 +28,10 @@ async function readDetailAvailability(tx: ReadDatabase, security: Awaited<Return
   const all = new Map(selections.map(selection => [selection.securityId, selection]));
   if (security) all.set(security.securityId, { securityId: security.securityId, period: security.selectedPeriod,
     cutoff: security.historicalPeriod ? undefined : cutoff });
-  const [financial, dividends] = await Promise.all([
+  const [financial, dividends, ranks] = await Promise.all([
     readDetailFinancialAvailability(tx, [...all.values()]),
     metric === 'div' || metric === 'dps' ? readDetailDividendHistory(tx, selections) : undefined,
+    metric === 'marketcap' || metric === 'dps' ? readSecurityMemberRanks(tx, selections.map(({ securityId }) => securityId), metric) : [],
   ]);
   const available = (row: NonNullable<typeof security> | typeof members[number]) => {
     const selection = all.get(row.securityId);
@@ -41,11 +43,21 @@ async function readDetailAvailability(tx: ReadDatabase, security: Awaited<Return
   const companySecs = members.map(member => {
     const period = all.get(member.securityId)?.period;
     const safe = isolateListingValues(member, period ?? null, false);
+    const rank = ranks.find(row => row.securityId === member.securityId);
+    const memberRanking = rank?.rank != null && listingContains(period, rank.date)
+      && (!rank.valueObservedAt || listingContains(period, rank.valueObservedAt)) ? { rank: rank.rank, date: rank.date } : undefined;
     return { ...safe, availableMetrics: available(safe),
       state: isCurrentResult(safe, publication) && listingContains(period, cutoff) ? 'published' as const : 'unpublished' as const,
+      ...(memberRanking && (metric === 'dps' ? { dpsRanking: memberRanking } : { marketcapRanking: memberRanking })),
       ...(dividends ? { dividendHistory: dividends.get(member.securityId) ?? [] } : {}) };
   });
-  return { companySecs, security: security ? { ...security, availableMetrics: available(security),
+  const reference = metric === 'marketcap' ? marketcapPriceReferenceWindow(companySecs) : null;
+  const referencePrices = reference ? await readPriceHistory(tx, reference.securityIds, reference.start, reference.end) : [];
+  return { companySecs: companySecs.map(member => ({ ...member,
+    marketcapReferencePrices: reference?.securityIds.includes(member.securityId)
+      ? referencePrices.filter(row => row.securityId === member.securityId).map(({ date, close }) => ({ date, close }))
+      : undefined })),
+    security: security ? { ...security, availableMetrics: available(security),
     historyCutoff: security.historicalPeriod ? undefined : cutoff } : null };
 }
 
@@ -69,8 +81,13 @@ function getLiveSecurityDetailSnapshot(code: string, metric: DetailMetric = "mar
       : metric === "marketcap" || metric === "shares" ? inWindow(security.marketcaps, start, end)
       : start && historyEnd && start > historyEnd ? []
       : await readMetricsHistory(tx, security.securityId, start, historyEnd, security.selectedPeriod ?? undefined);
-    return { security: detail.security!, company, companySecs: detail.companySecs, ranking, neighbors,
-      history:filterListingRows<{date:string}>(history,security.selectedPeriod), priceHistory };
+    const listingHistory = filterListingRows<{date:string}>(history,security.selectedPeriod);
+    const referenceDay = detail.companySecs.length > 1 && (metric === 'dps' || metric === 'div')
+      ? dividendReferenceDate(listingHistory, metric, security[`${metric}Date`]) : null;
+    const references = referenceDay
+      ? await readDetailDividendReferences(tx, detail.companySecs.map(member => member.securityId), referenceDay) : null;
+    const companySecs = detail.companySecs.map(member => ({ ...member, dividendReference: references?.get(member.securityId) }));
+    return { security: detail.security!, company, companySecs, ranking, neighbors, history: listingHistory, priceHistory };
   });
 }
 

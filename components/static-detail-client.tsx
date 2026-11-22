@@ -77,7 +77,7 @@ export function StaticDetailClient({initial, assets}: {initial: DetailSurfacePro
     <Surface {...initial} security={security} company={historicalPeriod?null:company}
       companySecs={historicalPeriod?[]:initial.companySecs} ranking={historicalPeriod?null:initial.ranking} neighbors={historicalPeriod?[]:initial.neighbors}
       history={initial.companyPage?history:withinSelected(history)}
-      prices={initial.companyPage?loaded?.prices ?? initial.prices:withinSelected(loaded?.prices ?? initial.prices)}
+      prices={withinSelected(loaded?.prices ?? initial.prices)}
       sourceHistory={initial.companyPage?loaded?.sourceHistory ?? initial.sourceHistory:withinSelected(loaded?.sourceHistory ?? initial.sourceHistory)} search={search}
       initialAnalysis={samePeriod && sameRange ? initial.initialAnalysis : undefined}
       initialSnapshotAnalysis={samePeriod ? initial.initialAnalysis : undefined}

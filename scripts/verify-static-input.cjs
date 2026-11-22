@@ -36,9 +36,9 @@ function firstDifference(actual, expected, at = '$') {
 }
 function routeInventory(manifest, rankingManifests) {
   const rankingPages = rankingManifests.reduce((total, row) => total + 1 + Math.max(1, ...Object.values(row.scopes).map(scope => scope.totalPages)), 0);
-  const expectedPages = 2 + manifest.securityCodes.length * 8 + manifest.companyCodes.length * 2 + rankingPages;
+  const expectedPages = 2 + manifest.securityCodes.length * 7 + manifest.companyCodes.length * 2 + rankingPages;
   return { expectedPages, actualPages: manifest.routes.length,
-    fullPlannedPages: manifest.extraction ? 2 + manifest.extraction.sourceSecurities * 8 + manifest.extraction.sourceCompanies * 2 + rankingPages : null };
+    fullPlannedPages: manifest.extraction ? 2 + manifest.extraction.sourceSecurities * 7 + manifest.extraction.sourceCompanies * 2 + rankingPages : null };
 }
 
 async function verifyStaticInput() {

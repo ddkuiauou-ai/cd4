@@ -17,6 +17,9 @@
 .growthLegend { min-block-size: 18px; }
 .growthLegend span { display: block; inline-size: 72px; block-size: 7px; background: var(--placeholder-ink); }
 .growthLegend span + span { inline-size: 134px; }
+.epsChartKey { display: flex; justify-content: space-between; align-items: center; min-block-size: 18px; }
+.epsChartKey span { display: block; inline-size: 32px; block-size: 7px; background: var(--placeholder-ink); }
+.epsChartKey span + span { inline-size: 104px; }
 .controls span,
 .yearEndResult span,
 .comparison span,
@@ -136,12 +139,19 @@
   justify-self: end;
 }
 
-.annual[data-marketcap-scope] :is(.annualHeader, .annualRow) { grid-template-columns: 31fr 45fr 24fr; }
-.annual[data-marketcap-scope] .annualRow { align-items: start; border-block-end: 1px solid var(--border); }
-.annual[data-marketcap-scope='company'] .annualRow { min-block-size: 67px; }
+.responsiveAnnual { container: annual-records / inline-size; }
+.responsiveAnnual :is(.annualHeader, .annualRow) { grid-template-columns: 31fr 45fr 24fr; }
+.responsiveAnnual .annualRow { min-block-size: 44px; align-items: center; padding-block: 7px; }
+.annual :is(.annualHeader, .annualRow) > .annualDate { display: none; }
 .annualValues { display: grid; justify-items: end; gap: 5px; }
 .annual .annualRow > .annualValues > span:first-child { inline-size: min(85%, 8rem); margin-block-end: 0; }
-.annualValues > span:nth-child(2) { inline-size: min(95%, 9rem); block-size: 7px; }
-.annualValues > span:nth-child(3) { inline-size: min(62%, 4rem); }
+.annualValues > span:nth-child(2) { inline-size: min(62%, 4rem); block-size: 7px; }
+
+@container annual-records (min-width: 600px) {
+  .responsiveAnnual :is(.annualHeader, .annualRow) { grid-template-columns: 24fr 28fr 24fr 24fr; }
+  .annual :is(.annualHeader, .annualRow) > .annualDate { display: block; }
+  .annual .inlineAnnualDate { display: none; }
+  .annual .annualRow > div:first-child span:first-child { margin-block-end: 0; }
+}
 
 @media (max-width: 480px) { .annualRow { min-block-size: 60px; } }

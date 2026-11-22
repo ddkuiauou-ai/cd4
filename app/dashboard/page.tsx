@@ -78,7 +78,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </section>
         </>}
     </div>
-    <aside className="context-rail dashboard-rail" data-full-recent-rail><RecentSecuritiesSidebar /><section className={styles.basis}><h2>조회 기준</h2><dl><div><dt>시가총액 공개 기준일</dt><dd>{snapshot.publication?.asOf ?? "미공개"}</dd></div><div><dt>가격 관측일</dt><dd>{priceDate ?? "정보 없음"}</dd></div></dl><p>회사 순위는 공개된 합산 결과입니다. 대표 보통주의 가격이 없어도 순위 대상은 유지됩니다.</p>{snapshot.publication && <details><summary>자료 공개 정보</summary><p>자료 갱신 번호 {snapshot.publication.revision} · 대상 {snapshot.publication.scopeKey === "krx-all" ? "KRX 전체" : snapshot.publication.scopeKey}</p></details>}</section></aside>
+    <aside className="context-rail dashboard-rail"><RecentSecuritiesSidebar variant="preview" /><section className={styles.basis}><h2>조회 기준</h2><dl><div><dt>시가총액 공개 기준일</dt><dd>{snapshot.publication?.asOf ?? "미공개"}</dd></div><div><dt>가격 관측일</dt><dd>{priceDate ?? "정보 없음"}</dd></div></dl><p>회사 순위는 공개된 합산 결과입니다. 대표 보통주의 가격이 없어도 순위 대상은 유지됩니다.</p>{snapshot.publication && <details><summary>자료 공개 정보</summary><p>자료 갱신 번호 {snapshot.publication.revision} · 대상 {snapshot.publication.scopeKey === "krx-all" ? "KRX 전체" : snapshot.publication.scopeKey}</p></details>}</section></aside>
   </div>;
   return isStaticBuild() ? <Suspense fallback={body}><StaticRevisionBoundary revision={revision ?? null}>{body}</StaticRevisionBoundary></Suspense> : body;
 }

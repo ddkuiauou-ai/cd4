@@ -5,6 +5,14 @@ export const marketcapPeriods = [['3M', '최근 3개월'], ['1Y', '1년'], ['5Y'
 export const marketcapPeriodMonths: Record<string, number> = { '3M': 3, '1Y': 12, '5Y': 60 };
 export const isMarketcapMonthly = (period: string) => period === '1Y' || period === '5Y';
 
+export function copyMarketcapChartRanges(source: URL, target: URL) {
+  for (const key of ['capRange', 'priceRange']) {
+    const value = source.searchParams.get(key);
+    if (value && marketcapPeriods.some(([id]) => id === value)) target.searchParams.set(key, value);
+    else target.searchParams.delete(key);
+  }
+}
+
 export function lastMonthlyObservations(rows: readonly DetailObservation[]) {
   const months = new Map<string, DetailObservation>();
   for (const row of rows) {

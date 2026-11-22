@@ -44,6 +44,18 @@ export function roundBusinessValue(value: BusinessValue, places: number): string
   return parsed ? divide(parsed.coefficient, 10n ** BigInt(parsed.scale), places) : null;
 }
 
+export function businessRatio(numerator: BusinessValue, denominator: BusinessValue, places: number, multiplier: 1 | 100 = 1): string | null {
+  const a = decimal(numerator), b = decimal(denominator);
+  if (!a || !b || a.coefficient < 0n || b.coefficient <= 0n) return null;
+  return divide(a.coefficient * BigInt(multiplier) * 10n ** BigInt(b.scale), b.coefficient * 10n ** BigInt(a.scale), places);
+}
+
+export function businessPercentageOf(amount: BusinessValue, percent: BusinessValue): string | null {
+  const base = decimal(amount), rate = decimal(percent);
+  if (!base || !rate) return null;
+  return decimalString(base.coefficient * rate.coefficient, base.scale + rate.scale + 2);
+}
+
 export function compareBusinessValues(left: BusinessValue, right: BusinessValue): number | null {
   const a = decimal(left), b = decimal(right);
   if (!a || !b) return null;
@@ -57,6 +69,18 @@ export function addBusinessValues(values: readonly BusinessValue[]): string | nu
   if (!parsed.length) return null;
   const scale = Math.max(...parsed.map(value => value.scale));
   return decimalString(parsed.reduce((sum, value) => sum + value.coefficient * 10n ** BigInt(scale - value.scale), 0n), scale);
+}
+
+export function medianBusinessValues(values: readonly BusinessValue[]): string | null {
+  const parsed = values.flatMap(value => { const result = decimal(value); return result ? [result] : []; });
+  if (!parsed.length) return null;
+  const scale = parsed.reduce((largest, value) => Math.max(largest, value.scale), 0);
+  const ordered = parsed.map(value => value.coefficient * 10n ** BigInt(scale - value.scale))
+    .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  const middle = Math.floor(ordered.length / 2);
+  return ordered.length % 2
+    ? decimalString(ordered[middle], scale)
+    : decimalString((ordered[middle - 1] + ordered[middle]) * 5n, scale + 1);
 }
 
 export function businessChangePercent(previous: BusinessValue, current: BusinessValue): string | null {
@@ -157,6 +181,24 @@ function provided(rows: BusinessObservation[]) {
     const value = decimal(row.value);
     return value ? [{ ...row, parsed: value }] : [];
   });
+}
+
+export function dividendYieldDistribution(rows: BusinessObservation[]) {
+  const observations = provided(selectBusinessWindow(rows));
+  const byDay = new Map(observations.map(row => [row.date, row.parsed]));
+  const dayCounts = new Map<bigint, number>();
+  for (const { coefficient, scale } of byDay.values()) {
+    const doubled = coefficient * 2n;
+    const divisor = 10n ** BigInt(scale);
+    // Floor the doubled yield so each 0.5 percentage point bin includes only its lower boundary.
+    const index = doubled / divisor - (doubled < 0n && doubled % divisor !== 0n ? 1n : 0n);
+    dayCounts.set(index, (dayCounts.get(index) ?? 0) + 1);
+  }
+
+  const bins = [...dayCounts].sort(([a], [b]) => a < b ? -1 : 1).map(([index, days]) => ({
+    lower: decimalString(index * 5n, 1), upper: decimalString((index + 1n) * 5n, 1), days,
+  }));
+  return { bins, days: byDay.size, start: observations[0]?.date, end: observations.at(-1)?.date };
 }
 
 export function summarizeBusinessWindow(rows: BusinessObservation[]) {

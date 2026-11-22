@@ -1,7 +1,7 @@
 import type { getSecurityByCode } from '@/lib/data/security';
 import type { CompanyMarketcapAggregated } from '@/lib/data/company';
 import type { ResultFieldState } from '@/db/schema-postgres';
-import type { DividendObservation } from '@/lib/detail-metric-availability';
+import type { DividendObservation, DividendReference } from '@/lib/detail-metric-availability';
 import type { DetailMetric } from '@/lib/detail-presentation';
 
 type SecurityDTO = NonNullable<Awaited<ReturnType<typeof getSecurityByCode>>>;
@@ -23,6 +23,10 @@ export interface DetailSecurityRow extends DetailSecurityFields {
     state?: 'published' | 'unpublished';
     availableMetrics?: DetailMetric[];
     dividendHistory?: DividendObservation[];
+    dividendReference?: DividendReference | null;
+    dpsRanking?: { rank: number; date: string | null };
+    marketcapReferencePrices?: Array<{ date: string; close: number | string | null }>;
+    marketcapRanking?: { rank: number; date: string | null };
     prices?: Array<{ close: number | string | null; rate?: number | null; date?: Date | string | null }>;
 }
 export type DetailCorporation = Pick<CompanyMarketcapAggregated['company'], 'name' | 'korName' | 'logo' | 'industry' | 'establishedDate' | 'homepage'>;

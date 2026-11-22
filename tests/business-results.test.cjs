@@ -108,7 +108,8 @@ test('unpublished restored details hide unaccepted master values and retain navi
   const result = await renderDetail(detailFixture({ state: 'unpublished', publication: null, per: '999', perState: 'provided', perLastProvided: '999' }), 'per');
   assert.doesNotMatch(result.text, /999/);
   assert.match(result.text, /PER/);
-  assert.match(result.html, /href="\/security\/KOSPI\.005930"/);
+  assert.match(result.html, /기업·종목 지표 이동/);
+  assert.doesNotMatch(result.html, /href="\/security\/KOSPI\.005930"/);
   assert.doesNotMatch(result.html, /href="\/security\/KOSPI\.005930\/pbr/);
 });
 

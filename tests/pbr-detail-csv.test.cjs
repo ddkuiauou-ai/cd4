@@ -67,7 +67,12 @@ test("actual PBR detail keeps a supplied PBR independent from missing BPS and it
   assert.equal(snapshot.security.routeCode, "KOSPI.005930");
   assert.ok(document.querySelector('a[href="/security/KOSPI.005930/pbr"][aria-current="page"]'));
   assert.ok(document.querySelector('a[href="/security/KOSPI.005930/per"]'), "the fixture supplies a current PER of zero");
-  assert.match(document.querySelector("#current-overview tbody tr").cells[2].textContent, /^—$/);
+  const [current, previous] = document.querySelectorAll("#current-overview .valuationPeriod");
+  const inputs = [...current.querySelectorAll(".calculationInputs dd")].map(cell => cell.textContent);
+  assert.deepEqual(inputs, ["—", "—"]);
+  assert.equal(current.querySelector(".calculationResult dd").textContent, "2배");
+  assert.equal(current.querySelector("[data-calculation]"), null);
+  assert.match(previous.textContent, /비교할 관측값이 없습니다/);
   assert.deepEqual(calls, [["historical-security", "pbr"]]);
   assert.deepEqual(state.transactions, [{ isolationLevel: "repeatable read", accessMode: "read only" }]);
   assert.match(csv, /^date,pbr,bps,state\r?\n2026-10-02,2,,provided/);

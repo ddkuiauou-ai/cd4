@@ -3,6 +3,7 @@
 import { useState, type MouseEvent } from "react";
 import { Download, FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { hasCompanyRankingCsvChanges, readRankingCsvMetadata, readRankingCsvResponseMetadata, serializeCsvRows, type RankingCsvExpectedRow } from "@/lib/csv/ranking";
 import type { StaticCsvSource } from "@/lib/static-build/types";
@@ -32,6 +33,7 @@ export interface CsvDownloadButtonProps {
   label?: string;
   buttonText?: string;
   compact?: boolean;
+  historyFeedback?: "inline" | "toast";
   scope?: RankingDownloadScope;
   metric?: RankingDownloadMetric;
   // A page's reference date is not a guarantee that all company rows share it.
@@ -45,7 +47,8 @@ export interface CsvDownloadButtonProps {
 }
 
 export function CsvDownloadButton({
-  data, filename = "data.csv", className, label = "CSV 다운로드", buttonText, compact = false, scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
+  data, filename = "data.csv", className, label = "CSV 다운로드", buttonText, compact = false, historyFeedback = "inline",
+  scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
   revision, scopeKey = "krx-all", refreshHref, staticSource,
 }: CsvDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -105,13 +108,20 @@ export function CsvDownloadButton({
 
   const handleHistoryDownload = () => {
     if (!data?.length) return;
-    setHasError(false);
+    let description: string;
+    let failed = false;
     try {
       downloadCSV(serializeCsvRows(data), filename);
-      setMessage(`다운로드 시작 · 전체 ${data.length.toLocaleString("ko-KR")}행`);
+      description = `다운로드 시작 · 전체 ${data.length.toLocaleString("ko-KR")}행`;
     } catch {
-      setHasError(true);
-      setMessage("CSV를 내려받지 못했어요. 다시 눌러 시도해 주세요.");
+      failed = true;
+      description = "CSV를 내려받지 못했어요. 다시 눌러 시도해 주세요.";
+    }
+    if (historyFeedback === "toast") {
+      toast({ description, variant: failed ? "destructive" : undefined });
+    } else {
+      setHasError(failed);
+      setMessage(description);
     }
   };
 

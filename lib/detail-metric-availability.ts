@@ -1,10 +1,12 @@
 import { earlierDate, sourceValue, type DetailMetric } from './detail-presentation';
 import { listingContains, type SecurityListingPeriod } from './security-lifecycle';
+import { compareBusinessValues, isBusinessDay, type BusinessValue } from './business-analysis';
 
 export const detailMetricOrder = ['marketcap', 'per', 'pbr', 'eps', 'bps', 'dps', 'div'] as const satisfies readonly DetailMetric[];
 export const financialDetailMetrics = ['per', 'pbr', 'eps', 'bps', 'div', 'dps'] as const;
 type FinancialDetailMetric = typeof financialDetailMetrics[number];
 export type DividendObservation = { date: string; div: string | null; dps: string | null };
+export type DividendReference = { date: string; dps: BusinessValue; div: BusinessValue; price: BusinessValue };
 
 export function availableDetailMetrics(row: object, observed: Iterable<DetailMetric>, period?: SecurityListingPeriod | null, cutoff?: string) {
   const fields = row as Record<string, unknown>;
@@ -18,6 +20,31 @@ export function availableDetailMetrics(row: object, observed: Iterable<DetailMet
 export function financialMetricProvided(row: Record<string, unknown>, metric: FinancialDetailMetric) {
   const state = row[`${metric}State`];
   return (state == null || state === 'provided') && sourceValue(row[metric]) != null;
+}
+
+export function dividendReferenceDate(rows: readonly Record<string, unknown>[], metric: 'dps' | 'div', currentDate?: string | null) {
+  if (!currentDate || !isBusinessDay(currentDate)) return null;
+  const target = earlierDate(currentDate, 12);
+  let latest: string | null = null;
+  for (const row of rows) {
+    if (typeof row.date === 'string' && isBusinessDay(row.date) && row.date <= target && (!latest || row.date > latest)
+      && financialMetricProvided(row, metric) && compareBusinessValues(sourceValue(row[metric]), 0) != null) latest = row.date;
+  }
+  return latest;
+}
+
+export function readDividendReference(
+  date: string, period: SecurityListingPeriod | null | undefined, metrics: readonly Record<string, unknown>[], prices: readonly Record<string, unknown>[],
+): DividendReference | null {
+  if (!listingContains(period, date)) return null;
+  const metricRows = metrics.filter(row => row.date === date);
+  const priceRows = prices.filter(row => row.date === date);
+  const metric = metricRows.length === 1 ? metricRows[0] : null;
+  return { date,
+    dps: metric && financialMetricProvided(metric, 'dps') ? sourceValue(metric.dps) : null,
+    div: metric && financialMetricProvided(metric, 'div') ? sourceValue(metric.div) : null,
+    price: priceRows.length === 1 ? sourceValue(priceRows[0].close) : null,
+  };
 }
 
 /** A month can supply distinct dates for DPS and DIV. Keep each original date. */

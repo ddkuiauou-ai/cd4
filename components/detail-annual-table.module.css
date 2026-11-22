@@ -40,7 +40,7 @@
 .annualTable thead small { display: block; font-size: 11px; font-weight: 400; }
 .annualTable th:first-child { width: 31%; text-align: start; }
 .withDividendComparison th:first-child { width: 26%; }
-.withDividendComparison thead th:last-child { width: 27%; }
+.withDividendComparison thead th:nth-child(4) { width: 27%; }
 .annualTable tbody :is(th, td) { padding-block: 13px; }
 .annualTable tbody th { font-weight: 600; }
 .annualTable td:has(button) { padding-block: 0; }
@@ -51,19 +51,61 @@
 .annualYearToDate { margin-inline-start: 4px; }
 .annualMetricValue { font-weight: 650; }
 .annualCoverage { display: block; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.annualHighlight { display: block; margin-block-start: 2px; color: var(--muted-foreground); font-size: 11px; font-weight: 500; }
+.annualTable .olderAnnualRows tr:first-child { border-block-start: 1px solid var(--border); }
+.annualRecordsToggle { display: none; }
+.annualStatisticsBasis { display: none; }
 
-.marketcapTable th:first-child { width: 31%; }
-.marketcapTable th:last-child { width: 24%; }
-.marketcapTable tbody tr { border-block-end: 1px solid var(--border); }
-.marketcapTable tbody :is(th, td) { vertical-align: top; }
-.marketcapTable td:has(details) { padding-block: 0 0.4375rem; }
-.marketcapTable td button { min-block-size: 44px; }
+@media (width < 768px) {
+  .annualTable .collapsedAnnualRows { display: none; }
+  .annualRecordsToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    inline-size: 100%;
+    min-block-size: 44px;
+    border-block: 1px solid var(--border);
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+  }
+  .annualRecordsToggle:hover { background: var(--muted); }
+  .annualRecordsToggle:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+  .annualRecordsToggle[aria-expanded='true'] svg { transform: rotate(180deg); }
+  .annualStatisticsBasis { display: block; margin-block-start: 12px; color: var(--muted-foreground); font-size: 12px; }
+  .annualStatisticsBasis + .annualStatistics { margin-block-start: 4px; }
+}
+
+.responsiveAnnualRecords { container: annual-records / inline-size; }
+.observationDateColumn { display: none; }
+
+@container annual-records (min-width: 600px) {
+  .annualTable th:first-child { inline-size: 24%; }
+  .withDividendComparison th:first-child { inline-size: 18%; }
+  .annualTable .inlineObservationDate { display: none; }
+  .observationDateColumn { display: table-cell; white-space: nowrap; }
+  .annualTable th.observationDateColumn { inline-size: 24%; }
+  .withDividendComparison th.observationDateColumn { inline-size: 18%; }
+  .annualTable .observationDateColumn time { margin-block-start: 0; }
+  .annualTable tbody :is(th, td):not(:has(button)) { padding-block: 9px; }
+}
+
+.wonAnnualTable th:nth-child(3) { width: 24%; }
+.wonAnnualTable tbody :is(th, td) { padding-block: 7px; vertical-align: middle; }
+.wonAnnualTable tr:has(details[open]) :is(th, td) { vertical-align: top; }
+.wonAnnualTable tbody td:has(details, button) { padding-block: 0; }
+.wonAnnualTable td button { min-block-size: 44px; }
 
 .exactMarketcap summary {
   cursor: pointer;
   align-content: center;
   min-block-size: 44px;
   list-style: none;
+}
+
+.exactMarketcap summary > span {
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 0.18em;
@@ -71,7 +113,7 @@
 
 .exactMarketcap summary::-webkit-details-marker { display: none; }
 .exactMarketcap summary:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
-.exactMarketcap small { display: block; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.exactMarketcap > small { display: block; padding-block-end: 7px; color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
 
 .dividendDifferences { display: grid; gap: 3px; }
 .preferredName { color: var(--muted-foreground); font-size: 11px; }
@@ -88,13 +130,16 @@
 }
 .annualStatistics > div { display: flex; gap: 4px; }
 .annualStatistics dd { color: var(--foreground); }
-.statisticsAbove { margin-block: 0 10px; }
+.annualChangeStatistics { margin-block-start: 5px; }
+.annualChangeYear { color: var(--muted-foreground); white-space: nowrap; }
+.statisticsAbove { margin-block-end: 10px; }
+.statisticsAbove > :first-child { margin-block-start: 0; }
 
 @media (max-width: 480px) {
   .annualTable :is(th, td) { padding-inline: 4px 8px; }
   .annualTable { font-size: 12px; }
   .annualTable thead { font-size: 11px; }
-  .withDividendComparison thead th:last-child { width: 28%; }
+  .withDividendComparison thead th:nth-child(4) { width: 28%; }
 }
 
 @media (min-width: 640px) {

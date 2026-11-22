@@ -11,6 +11,15 @@ import { Link as AnimatedLink } from "@/components/animate-ui/icons/link";
 import { Copy as AnimatedCopy } from "@/components/animate-ui/icons/copy";
 import { Check as AnimatedCheck } from "@/components/animate-ui/icons/check";
 import { COMPANY_HEADER_PIN_EVENT } from "@/components/share-events";
+import { copyMarketcapChartRanges } from './detail-chart-observations';
+
+function shareUrl(url: string | undefined, preserveChartRanges: boolean) {
+    if (!preserveChartRanges) return url ?? window.location.href;
+    const current = new URL(window.location.href);
+    const target = new URL(url ?? current.href, current);
+    copyMarketcapChartRanges(current, target);
+    return target.href;
+}
 
 type SharePayload = {
     title?: string;
@@ -25,6 +34,7 @@ export interface ShareButtonProps extends SharePayload {
     copyVariant?: ButtonProps["variant"];
     copySize?: ButtonProps["size"];
     compactActions?: boolean;
+    preserveChartRanges?: boolean;
 }
 
 export function ShareButton({
@@ -36,6 +46,7 @@ export function ShareButton({
     copyVariant,
     copySize,
     compactActions = false,
+    preserveChartRanges = false,
     className,
 }: ShareButtonProps) {
     const { toast } = useToast();
@@ -92,7 +103,7 @@ export function ShareButton({
         setCopyState("idle");
 
         try {
-            const target = resolvedPayload.url ?? window.location.href;
+            const target = shareUrl(resolvedPayload.url, preserveChartRanges);
 
             if (navigator.clipboard?.writeText) {
                 await navigator.clipboard.writeText(target);
@@ -125,7 +136,7 @@ export function ShareButton({
         } finally {
             setIsCopying(false);
         }
-    }, [isCopying, resolvedPayload.url, toast]);
+    }, [isCopying, resolvedPayload.url, preserveChartRanges, toast]);
 
     const handleShare = useCallback(async () => {
         if (isSharing) return;
@@ -141,7 +152,7 @@ export function ShareButton({
             await navigator.share({
                 title: resolvedPayload.title,
                 text: resolvedPayload.text,
-                url: resolvedPayload.url,
+                url: shareUrl(resolvedPayload.url, preserveChartRanges),
             });
         } catch (error) {
             const isAbortError =
@@ -163,7 +174,7 @@ export function ShareButton({
         } finally {
             setIsSharing(false);
         }
-    }, [canNativeShare, handleCopy, isSharing, resolvedPayload.text, resolvedPayload.title, resolvedPayload.url, toast]);
+    }, [canNativeShare, handleCopy, isSharing, resolvedPayload.text, resolvedPayload.title, resolvedPayload.url, preserveChartRanges, toast]);
 
     const resolvedCopyVariant = copyVariant ?? (compactActions || canNativeShare ? "ghost" : variant);
     const actionClass = compactActions ? "relative size-11 shrink-0" : "min-h-10 gap-1.5";

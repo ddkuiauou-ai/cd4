@@ -78,8 +78,6 @@ export async function getSecurityPaths(): Promise<string[]> {
   for (const rawCode of dedupe(codes)) {
     const encodedCode = encodeURIComponent(rawCode);
     const basePath = `/security/${encodedCode}`;
-    paths.push(basePath);
-
     for (const segment of SECURITY_DETAIL_SEGMENTS) {
       paths.push(`${basePath}/${segment}`);
     }

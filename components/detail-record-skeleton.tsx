@@ -28,6 +28,7 @@ export function DetailChartSkeleton({ variant = 'plot', label, height, customRan
           {!customRange && <div className={styles.periodPlaceholders}>{[0, 1, 2, 3].map(period => <span key={period} />)}</div>}
         </div>}
       {yearEnd && <div className={`${chartStyles.yearEndLatest} ${styles.yearEndResult}`}><span /><span /><span /></div>}
+      {variant === 'eps' && !plotOnly && <div className={styles.epsChartKey}><span /><span /></div>}
       {variant === 'dps' && <div className={styles.growthLegend}><span /><span /></div>}
       {variant === 'comparison' && <div className={styles.comparison}>
         <div className={`${chartStyles.caption} ${styles.comparisonCaption}`}><span /></div>
@@ -53,17 +54,17 @@ export function DetailChartSkeleton({ variant = 'plot', label, height, customRan
   </>;
 }
 
-export function DetailAnnualSkeleton({ comparison = false, label, marketcap }: {
-  comparison?: boolean; label?: string; marketcap?: Exclude<MarketcapScope, 'comparison'>;
+export function DetailAnnualSkeleton({ comparison = false, label, marketcap, closingPrice = false }: {
+  comparison?: boolean; label?: string; marketcap?: Exclude<MarketcapScope, 'comparison'>; closingPrice?: boolean;
 }) {
-  if (marketcap) return <>
+  if (marketcap || closingPrice) return <>
     {label && <p className="sr-only" role="status">{label} 준비 중…</p>}
-    <div aria-hidden="true" className={styles.annual} data-marketcap-scope={marketcap}>
-      <div className={styles.annualHeader}><span /><span /><span /></div>
+    <div aria-hidden="true" className={`${styles.annual} ${styles.responsiveAnnual}`} data-marketcap-scope={marketcap}>
+      <div className={styles.annualHeader}><span /><span /><span /><span className={styles.annualDate} /></div>
       {Array.from({ length: 5 }, (_, row) => <div className={styles.annualRow} key={row}>
-        <div><span /><span /></div>
-        <div className={styles.annualValues}><span /><span />{marketcap === 'company' && <span />}</div>
-        <span />
+        <div><span /><span className={styles.inlineAnnualDate} /></div>
+        <div className={styles.annualValues}><span />{marketcap === 'company' && <span />}</div>
+        <span /><span className={styles.annualDate} />
       </div>)}
     </div>
   </>;

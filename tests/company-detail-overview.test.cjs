@@ -42,7 +42,7 @@ test('the constituent table links exact published amounts to their stock and pri
     assert.equal(rows.length, 2);
     assert.equal(rows[0].cells[2].querySelector('a').title, '495,000,000,000,000원');
     assert.equal(rows[0].cells[2].querySelector('a').getAttribute('href'), '/security/KOSPI.005930/marketcap?start=2026-07-01&end=2026-10-08');
-    assert.equal(rows[1].cells[3].querySelector('a').getAttribute('href'), '/security/preferred?start=2026-07-01&end=2026-10-08');
+    assert.equal(rows[1].cells[3].querySelector('a').getAttribute('href'), '/security/preferred/marketcap?start=2026-07-01&end=2026-10-08#price-history');
   });
 });
 

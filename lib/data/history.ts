@@ -3,7 +3,7 @@ import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, lte, sql 
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import type { SecurityListingPeriod } from "../security-lifecycle";
 import type { ReadDatabase } from "./publication";
-import { financialDetailMetrics, monthlyDividendHistory, type DividendObservation } from '../detail-metric-availability';
+import { financialDetailMetrics, monthlyDividendHistory, readDividendReference, type DividendObservation } from '../detail-metric-availability';
 
 export type PriceDTO = DataDTO<typeof schema.price.$inferSelect>;
 export type MarketcapDTO = DataDTO<typeof schema.marketcap.$inferSelect>;
@@ -96,6 +96,21 @@ export async function readMetricsHistory(tx: ReadDatabase, securityId: string, s
     div: sql<string | null>`${schema.bppedd.div}::text`, dps: sql<string | null>`${schema.bppedd.dps}::text`,
   }).from(schema.bppedd).where(and(eq(schema.bppedd.securityId, securityId),
     listingHistoryFilter(schema.bppedd.securityId,schema.bppedd.date,period), from ? gte(schema.bppedd.date, from) : undefined, to ? lte(schema.bppedd.date, to) : undefined)).orderBy(asc(schema.bppedd.date)));
+}
+
+/** Load exact same-day sibling observations without adding daily history to the detail payload. */
+export async function readDetailDividendReferences(tx: ReadDatabase, securityIds: string[], date: string) {
+  const { from } = historyRange(date, date);
+  const table = schema.bppedd;
+  const metrics = await tx.select({
+    securityId: table.securityId, date: table.date, dpsState: table.dpsState, divState: table.divState,
+    dps: sql<string | null>`${table.dps}::text`, div: sql<string | null>`${table.div}::text`,
+  }).from(table).where(and(inArray(table.securityId, securityIds), eq(table.date, from!),
+    listingHistoryFilter(table.securityId, table.date)));
+  const prices = await readPriceHistory(tx, securityIds, date, date);
+  const rows = toDataDTO(metrics);
+  return new Map(securityIds.map(id => [id, readDividendReference(date, null,
+    rows.filter(row => row.securityId === id), prices.filter(row => row.securityId === id))]));
 }
 
 interface DetailHistorySelection {

@@ -1,5 +1,5 @@
 import * as schema from "@/db/schema-postgres";
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt } from "drizzle-orm";
 import { businessDate, toDataDTO } from "./dto";
 import { readRouteCodes } from "./history";
 import { currentRankFilter, currentRankResultFilter, DEFAULT_SCOPE, publicationState, readPublication, readSnapshot, securityRankPublicationKey, type ReadDatabase } from "./publication";
@@ -24,6 +24,18 @@ export const getSecurityMetricDetailRanking = (id: string, metric: schema.Metric
 
 export const getSecurityMetricDetailRank = async (securityId: string, metric: schema.MetricType) =>
   (await getSecurityMetricDetailRanking(securityId, metric)).currentRank;
+
+export async function readSecurityMemberRanks(tx: ReadDatabase, securityIds: string[], metric: schema.MetricType) {
+  if (securityIds.length < 2) return [];
+  const publication = await readPublication(tx, securityRankPublicationKey(metric));
+  if (!publication) return [];
+  const rows = await tx.query.securityRank.findMany({
+    columns: { securityId: true, currentRank: true, valueObservedAt: true },
+    where: and(currentRankFilter(publication), inArray(schema.securityRank.securityId, securityIds)),
+  });
+  const date = businessDate(publication.asOf);
+  return rows.map(row => ({ securityId: row.securityId, rank: row.currentRank, date, valueObservedAt: businessDate(row.valueObservedAt) }));
+}
 
 export async function readSecurityMetricNeighbors(
   tx: ReadDatabase, rank: number, metric: schema.MetricType, rankDate?: string | null, expectedRevision?: string | null,

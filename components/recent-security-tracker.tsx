@@ -8,6 +8,7 @@ interface RecentSecurityTrackerProps {
     securityId?: string;
     routeCode?: string | null;
     lastPath?: string;
+    lastCompanyMarketcap?: number | string | null;
     name: string;
     korName?: string;
     ticker: string;
@@ -25,6 +26,7 @@ export function RecentSecurityTracker({
     securityId,
     routeCode,
     lastPath,
+    lastCompanyMarketcap,
     name,
     korName,
     ticker,
@@ -40,6 +42,7 @@ export function RecentSecurityTracker({
                 securityId,
                 routeCode,
                 lastPath,
+                lastCompanyMarketcap,
                 name,
                 korName,
                 ticker,
@@ -47,7 +50,7 @@ export function RecentSecurityTracker({
             }, metricType, metricValue);
 
         }
-    }, [secCode, securityId, routeCode, lastPath, name, korName, ticker, exchange, metricType, metricValue]);
+    }, [secCode, securityId, routeCode, lastPath, lastCompanyMarketcap, name, korName, ticker, exchange, metricType, metricValue]);
 
     // 아무것도 렌더링하지 않음
     return null;

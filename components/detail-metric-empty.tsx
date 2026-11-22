@@ -39,9 +39,9 @@ export function SecurityMetricEmpty({ secCode, displayName, metricLabel, metricT
             <CompanyFinancialTabs secCode={secCode} className="mt-4" />
             <section className="my-8 border-y border-border py-8">
                 <h2 className="text-lg font-semibold">{metricLabel} 이력 준비 중</h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">이 종목의 {metricLabel} 이력이 아직 등록되지 않았습니다. 다른 지표와 기본 종목 정보는 계속 확인할 수 있습니다.</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">이 종목의 {metricLabel} 이력이 아직 등록되지 않았습니다. 다른 지표와 주가·거래량은 계속 확인할 수 있습니다.</p>
                 <div className="mt-5 flex flex-wrap gap-3">
-                    <Link href={`/security/${secCode}`} className="inline-flex min-h-11 items-center border border-border px-4 text-sm font-medium hover:bg-muted">기본 종목 정보 보기</Link>
+                    <Link href={`/security/${secCode}/marketcap#price-history`} className="inline-flex min-h-11 items-center border border-border px-4 text-sm font-medium hover:bg-muted">주가·거래량 보기</Link>
                     {metricType !== 'marketcap' && <Link href={`/security/${secCode}/marketcap`} className="inline-flex min-h-11 items-center border border-border px-4 text-sm font-medium hover:bg-muted">시가총액 보기</Link>}
                 </div>
             </section>

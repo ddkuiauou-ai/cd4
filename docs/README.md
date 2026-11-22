@@ -6,6 +6,7 @@
 
 - 개발 절차는 [작업 안내](development-guidelines.md), 실행 환경과 명령은 [검증 규칙](rules/verification.md)을 따른다.
 - 제품 범위는 [PRODUCT](../PRODUCT.md), 승인된 화면은 [DESIGN](../DESIGN.md), 화면별 적용 범위는 [brief 색인](../.impeccable/implementation-brief.md)에서 확인한다.
+- 기업·종목 상세는 [화면별 순서·다운로드 범위](../.impeccable/surfaces/components-detail-surface-tsx.md#화면별-기본-펼침)를 먼저 보고, 작업할 영역의 [시가총액](../DESIGN.md#시가총액-상세)·[재무와 배당](../DESIGN.md#재무배당-지표-상세)·[연도별 기록](../DESIGN.md#연도별-기록) 표현을 확인한다.
 - 실패 사례와 최종 기준은 [Learnings](learnings.md)에서 찾는다. 결정이 바뀌면 해당 기준 문서와 이를 가리키는 링크를 맞추고, 이전 결정·검증 결과는 날짜별 기록에 보존한다.
 
 ## 데이터·출력 계약

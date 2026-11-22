@@ -1,5 +1,6 @@
 "use client";
 
+import { Slot } from "@radix-ui/react-slot";
 import { Info } from "lucide-react";
 import { type ReactNode, useCallback, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -13,17 +14,23 @@ export function DetailRecordInfo({
   label,
   text,
   children,
+  asChild = false,
+  dismissOnDialogTap = false,
 }: {
   label: string;
   text: string;
   children?: ReactNode;
+  asChild?: boolean;
+  dismissOnDialogTap?: boolean;
 }) {
   const descriptionId = useId();
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
+  const setTrigger = useCallback((element: HTMLElement | null) => { triggerRef.current = element; }, []);
   const noteRef = useRef<HTMLSpanElement>(null);
   const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [mode, setMode] = useState<OpenMode | null>(null);
   const hasValue = children != null;
+  const Trigger = asChild ? Slot : "button";
 
   const cancelLeave = useCallback(() => {
     clearTimeout(leaveTimer.current);
@@ -77,9 +84,28 @@ export function DetailRecordInfo({
       note.style.top = `${Math.max(top + margin, Math.min(preferredTop, top + height - noteHeight - margin))}px`;
     };
 
-    function onPointerDown(event: PointerEvent) {
-      if (event.target instanceof Node && !trigger?.contains(event.target) && !note?.contains(event.target)) close();
-    }
+    const dialog = dismissOnDialogTap && mode === "pinned" ? trigger.closest<HTMLElement>('[role="dialog"]') : null;
+    let blankTouch = false;
+
+    const onDialogPointerDown = (event: PointerEvent) => {
+      blankTouch = false;
+      if (event.pointerType !== "touch") return;
+      const hit = document.elementFromPoint(event.clientX, event.clientY);
+      blankTouch = hit !== null && dialog?.contains(hit) === true && !hit.closest('a[href], button, [aria-disabled="true"]');
+    };
+
+    const onDialogPointerCancel = () => { blankTouch = false; };
+
+    const onOutsidePress = (event: Event) => {
+      if (blankTouch) {
+        // Mobile browsers can retarget a tap in the dialog's padding to a nearby link.
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        return;
+      }
+      if (event.target instanceof Node && !trigger.contains(event.target) && !note.contains(event.target)) close();
+    };
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") close();
@@ -87,7 +113,11 @@ export function DetailRecordInfo({
 
     position();
     activeInfo = { owner: setMode, mode, close };
-    document.addEventListener("pointerdown", onPointerDown, true);
+    const dismissEvent = dialog ? "click" : "pointerdown";
+    const dismissTarget = dialog ?? document;
+    dialog?.addEventListener("pointerdown", onDialogPointerDown, true);
+    dialog?.addEventListener("pointercancel", onDialogPointerCancel, true);
+    dismissTarget.addEventListener(dismissEvent, onOutsidePress, true);
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", position, { capture: true, passive: true });
     window.addEventListener("resize", position);
@@ -96,21 +126,23 @@ export function DetailRecordInfo({
     return () => {
       cancelLeave();
       if (activeInfo?.owner === setMode) activeInfo = undefined;
-      document.removeEventListener("pointerdown", onPointerDown, true);
+      dialog?.removeEventListener("pointerdown", onDialogPointerDown, true);
+      dialog?.removeEventListener("pointercancel", onDialogPointerCancel, true);
+      dismissTarget.removeEventListener(dismissEvent, onOutsidePress, true);
       document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("scroll", position, true);
       window.removeEventListener("resize", position);
       viewport?.removeEventListener("scroll", position);
       viewport?.removeEventListener("resize", position);
     };
-  }, [cancelLeave, close, mode, text]);
+  }, [cancelLeave, close, dismissOnDialogTap, mode, text]);
 
   return (
     <>
-      <button
-        ref={triggerRef}
-        className={hasValue ? `${styles.trigger} ${styles.withValue}` : styles.trigger}
-        type="button"
+      <Trigger
+        ref={setTrigger}
+        className={asChild ? undefined : hasValue ? `${styles.trigger} ${styles.withValue}` : styles.trigger}
+        type={asChild ? undefined : "button"}
         aria-label={label}
         aria-describedby={descriptionId}
         aria-expanded={mode !== null}
@@ -128,9 +160,8 @@ export function DetailRecordInfo({
           else show("pinned");
         }}
       >
-        {children}
-        <Info aria-hidden="true" />
-      </button>
+        {asChild ? children : <>{children}<Info aria-hidden="true" /></>}
+      </Trigger>
       <span id={descriptionId} hidden>{text}</span>
       {mode !== null && createPortal(
         <span

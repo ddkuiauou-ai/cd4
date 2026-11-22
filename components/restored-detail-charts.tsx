@@ -7,12 +7,13 @@ import { DetailAnnualTable, type AnnualDividendComparison } from './detail-annua
 import { DetailHistoryChart } from './detail-history-chart';
 import { ChartWhenVisible } from './detail-chart-visibility';
 import { DetailChartSkeleton } from './detail-record-skeleton';
-import { chartMonths, lastMonthlyObservations } from './detail-chart-observations';
+import { chartMonths, lastMonthlyObservations, marketcapPeriodMonths } from './detail-chart-observations';
+import { MarketcapRangeControls, useMarketcapChartRange } from './marketcap-chart-range';
 import type { DividendComparisonDifference, DividendComparisonSeries } from './detail-trend-plot';
 import type { DetailSecurityRow } from './detail-types';
 import styles from './detail-chart.module.css';
 import { DETAIL_METRICS, actualCandlesticks, priceMovingAverages, earlierDate, monthlyHeatmap, selectDetailRange, type DetailAnnualRow, type DetailMetric, type DetailObservation } from '@/lib/detail-presentation';
-import { businessChartAxisValue, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, formatCompactBusinessValue, formatMarketcapAmount, isBusinessDay, subtractBusinessValues, summarizeBusinessWindow, type BusinessValue } from '@/lib/business-analysis';
+import { businessChartAxisValue, compareBusinessValues, dividendYieldDistribution, projectBusinessChartRows, formatBusinessValue, formatCompactBusinessValue, formatMarketcapAmount, isBusinessDay, medianBusinessValues, subtractBusinessValues, summarizeBusinessWindow, type BusinessValue } from '@/lib/business-analysis';
 
 export { ChartWhenVisible } from './detail-chart-visibility';
 
@@ -24,10 +25,10 @@ const CandlesWithSkeleton = dynamic(() => import('./chart-candlestick').then(mod
   ssr: false, loading: () => <DetailChartSkeleton variant="price" label="주가 차트" plotOnly />,
 });
 const PERHeatmap = lazy(() => import('./chart-per-heatmap'));
-const BPSHeatmap = lazy(() => import('./chart-bps-heatmap'));
+const BPSHeatmap = dynamic(() => import('./chart-bps-heatmap'));
 const DPSHeatmap = lazy(() => import('./chart-dps-heatmap'));
 const PERDistribution = lazy(() => import('./chart-per-distribution'));
-const BPSDistribution = lazy(() => import('./chart-bps-distribution'));
+const BPSDistribution = dynamic(() => import('./chart-bps-distribution'));
 const DPSDistribution = lazy(() => import('./chart-dps-distribution'));
 const DividendComparisonPlot = lazy(() => import('./detail-trend-plot').then(module => ({ default: module.DividendComparisonPlot })));
 
@@ -37,6 +38,7 @@ type AnalysisMetric = 'per' | 'bps' | 'dps';
 export function DetailFinancialAnalysis({ rows, metric, name, kind, currentValue = null }: {
   rows: DetailObservation[]; metric: DetailMetric; name: string; kind?: AnalysisKind; currentValue?: BusinessValue;
 }) {
+  if (metric === 'div') return kind === 'monthly' ? null : <DividendYieldDistribution rows={rows} />;
   if (metric !== 'per' && metric !== 'bps' && metric !== 'dps') return null;
   if (kind === 'monthly') return <MonthlyRecord rows={rows} metric={metric} name={name} />;
   if (kind === 'distribution') return <DistributionRecord rows={rows} metric={metric} currentValue={currentValue} />;
@@ -52,6 +54,30 @@ export function DetailFinancialAnalysis({ rows, metric, name, kind, currentValue
       <DistributionRecord rows={rows} metric={metric} currentValue={currentValue} />
     </div>
   </div>;
+}
+
+function DividendYieldDistribution({ rows }: { rows: DetailObservation[] }) {
+  const { bins, days, start, end } = dividendYieldDistribution(rows);
+  if (!days) return <p className="border-y border-border py-8 text-sm text-muted-foreground" role="status">선택 기간에 제공된 배당수익률 관측값이 없습니다.</p>;
+
+  const highest = bins.reduce((max, bin) => Math.max(max, bin.days), 0);
+  return <figure className={styles.figure}>
+    <p className={styles.range}>0.5%p 간격 · 시작값 이상, 끝값 미만</p>
+    <table className={styles.yieldDistribution}>
+      <caption className="sr-only">배당수익률 구간별 관측일 수</caption>
+      <thead><tr><th scope="col">배당수익률 구간</th><th scope="col">관측일 수</th></tr></thead>
+      <tbody>{bins.map(({ lower, upper, days: binDays }) => <tr key={lower}>
+        <th scope="row">{formatInvestorAmount(lower, '%')} ~ {formatInvestorAmount(upper, '%')}</th>
+        <td><div className={styles.yieldDistributionCount}>
+          <span className={styles.yieldDistributionTrack} aria-hidden="true">
+            <span style={{ inlineSize: `${binDays / highest * 100}%` }} />
+          </span>
+          <span>{binDays.toLocaleString('ko-KR')}일</span>
+        </div></td>
+      </tr>)}</tbody>
+    </table>
+    <figcaption className={styles.caption}>{start} ~ {end} · 실제 관측 {days.toLocaleString('ko-KR')}일</figcaption>
+  </figure>;
 }
 
 function MonthlyRecord({ rows, metric, name }: { rows: DetailObservation[]; metric: AnalysisMetric; name: string }) {
@@ -88,7 +114,9 @@ function DistributionRecord({ rows, metric, currentValue }: { rows: DetailObserv
   const coordinate = (value: number) => businessChartAxisValue(projection.min, projection.max, value);
   const formatTooltip = (value: number) => metric === 'bps' ? formatBusinessValue(coordinate(value)) : formatInvestorNumber(coordinate(value), info.unit);
   const formatAxis = (value: number) => metric === 'bps' ? formatCompactBusinessValue(coordinate(value)) : formatTooltip(value);
-  const mean = metric === 'bps' ? `${formatBusinessValue(summary.mean)}${info.unit}` : formatInvestorAmount(summary.mean, info.unit);
+  const formatStatistic = (value: BusinessValue) => metric === 'bps' ? `${formatBusinessValue(value)}${info.unit}` : formatInvestorAmount(value, info.unit);
+  const median = medianBusinessValues(valid.map(row => row.value));
+  const sourceSummary = `평균 ${formatStatistic(summary.mean)} · 중앙값 ${formatStatistic(median)}`;
   const Distribution = metric === 'bps' ? BPSDistribution : metric === 'dps' ? DPSDistribution : PERDistribution;
   const currentAvailable = compareBusinessValues(currentValue, 0) != null;
   const belowCurrent = metric === 'per' && currentAvailable
@@ -103,26 +131,33 @@ function DistributionRecord({ rows, metric, currentValue }: { rows: DetailObserv
       </>}
     </p>}
     <ChartWhenVisible fallback={<DetailChartSkeleton variant="distribution" label="과거 분포 차트" plotOnly />}>
-      <Distribution data={distribution} formatCoordinate={formatAxis} formatDetailCoordinate={formatTooltip} sourceSummary={`평균 ${mean}`} />
+      <Distribution data={distribution} formatCoordinate={formatAxis} formatDetailCoordinate={formatTooltip} sourceSummary={sourceSummary} />
     </ChartWhenVisible>
     <figcaption className={styles.caption}>{summary.start} ~ {summary.end} · 실제 제공 {summary.count.toLocaleString('ko-KR')}개</figcaption>
   </figure>;
 }
 
-export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false }: { rows: Record<string, unknown>[]; start?: string; end?: string; usePlotSkeleton?: boolean }) {
+export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false, marketcapRange }: {
+  rows: Record<string, unknown>[]; start?: string; end?: string; usePlotSkeleton?: boolean; marketcapRange?: { initial?: string };
+}) {
+  const range = useMarketcapChartRange('priceRange', marketcapRange?.initial);
   const latest = end || String(rows.at(-1)?.date || '');
-  const visibleStart = start || (end ? '' : earlierDate(latest, 3));
+  const months = marketcapRange ? marketcapPeriodMonths[range.period] : 3;
+  const visibleStart = start || (end || !months ? '' : earlierDate(latest, months));
+  const controls = marketcapRange && rows.length > 0 && !start && !end && <MarketcapRangeControls label="주가·거래량 차트 범위" {...range} />;
   const candles = actualCandlesticks(rows, visibleStart, latest);
   const visible = candles.filter(row => !row.warmupOnly);
   const closeRows = priceMovingAverages(rows, visibleStart, latest);
   if (visible.length < 2 || closeRows.filter(row => row.value != null).length > visible.length) {
     return <div className="space-y-3">
+      {controls}
       {closeRows.some(row => row.value != null) && <p className="text-xs text-muted-foreground">시가·고가·저가·종가가 충분하지 않아 제공된 종가를 표시합니다.</p>}
       <DetailHistoryChart rows={closeRows} movingAverages={closeRows} label="종가" unit="원" metric="marketcap" usePlotSkeleton={usePlotSkeleton} />
     </div>;
   }
   const PriceChart = usePlotSkeleton ? CandlesWithSkeleton : Candles;
   return <figure className={styles.figure}>
+    {controls}
     <ChartWhenVisible fallback={usePlotSkeleton ? <DetailChartSkeleton variant="price" label="주가 차트" plotOnly /> : <PriceChartPlaceholder />}>
       <PriceChart data={candles} movingAverageValues={closeRows.map(row => ({ time: row.date, average5: row.average5, average10: row.average10 }))} />
     </ChartWhenVisible>
@@ -131,11 +166,12 @@ export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false }
 }
 
 export function DetailAnnualHistory({ rows, label, unit, metric, yearEndOnly = false, dividendComparison }: {
-  rows: DetailAnnualRow[]; label: string; unit: string; metric?: DetailMetric; yearEndOnly?: boolean;
+  rows: DetailAnnualRow[]; label: string; unit: string; metric?: DetailMetric | 'price'; yearEndOnly?: boolean;
   dividendComparison?: AnnualDividendComparison;
 }) {
   const marketcap = metric === 'marketcap';
-  const layout = marketcap ? 'marketcap' : unit === '배' ? 'ratio' : undefined;
+  const closingPrice = metric === 'price';
+  const layout = marketcap ? 'marketcap' : closingPrice ? 'closing-price' : unit === '배' ? 'ratio' : undefined;
   const isPerShare = metric === 'eps' || metric === 'bps';
   const hasDividendComparison = (metric === 'div' || metric === 'dps') && Boolean(dividendComparison?.pairs.length);
   const exact = (value: BusinessValue) => value == null ? '—' : `${formatBusinessValue(value)}${unit}`;
@@ -147,9 +183,9 @@ export function DetailAnnualHistory({ rows, label, unit, metric, yearEndOnly = f
     yearEndOnly={yearEndOnly}
     layout={layout}
     dividendComparison={hasDividendComparison && dividendComparison ? { ...dividendComparison, unit: metric === 'div' ? '%p' : '원' } : undefined}
-    financialMetric={marketcap ? undefined : metric}
+    financialMetric={marketcap || closingPrice ? undefined : metric}
     formatValue={marketcap ? formatMarketcapAmount : isPerShare ? exactWon
-      : usesInvestorPrecision(metric) ? value => formatInvestorAmount(value, unit) : layout ? exact : compact}
+      : usesInvestorPrecision(metric) ? value => formatInvestorAmount(value, unit) : layout === 'ratio' ? exact : compact}
     formatDetailValue={exact}
   />;
 }

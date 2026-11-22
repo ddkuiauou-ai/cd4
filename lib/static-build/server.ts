@@ -1,5 +1,6 @@
 import {filterListingRows,isolateListingValues,listingContains,nameForListingPeriod,selectListingPeriod} from '../security-lifecycle';
-import { availableDetailMetrics, financialDetailMetrics, financialMetricProvided, monthlyDividendHistory } from '../detail-metric-availability';
+import { availableDetailMetrics, dividendReferenceDate, financialDetailMetrics, financialMetricProvided, monthlyDividendHistory, readDividendReference } from '../detail-metric-availability';
+import { marketcapPriceReferenceWindow } from '../detail-comparison';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { readSecurityByCode, readCompanySecurities } from '../data/security';
@@ -197,7 +198,18 @@ function staticMemberDetails(file: SecurityFile) {
   return details;
 }
 
-function staticCompanyMembers(file: CompanyFile | null, includeDividends = false, current?: SecurityFile | null) {
+function staticMemberRank(file: SecurityFile, metric: 'marketcap' | 'dps', period: Period) {
+  const ranking = file.rankings?.[metric]?.ranking;
+  const date = typeof ranking?.rankDate === 'string' ? ranking.rankDate : null;
+  return ranking?.rankingState === 'included' && typeof ranking.currentRank === 'number'
+    && listingContains(period, date)
+    && (ranking.valueObservedAt == null || typeof ranking.valueObservedAt === 'string' && listingContains(period, ranking.valueObservedAt))
+    ? { rank: ranking.currentRank, date } : undefined;
+}
+
+function staticCompanyMembers(file: CompanyFile | null, metric: string, current?: SecurityFile | null, referenceDay?: string | null) {
+  const includeDividends = metric === 'dps' || metric === 'div';
+  const includeDpsRank = metric === 'dps' && (file?.companySecs.length ?? 0) > 1;
   return file?.companySecs.map(member => {
     const id = member.securityId;
     let source = current?.security.securityId === id ? current : null;
@@ -211,8 +223,29 @@ function staticCompanyMembers(file: CompanyFile | null, includeDividends = false
       dividendCache.set(id, dividendHistory);
       if (dividendCache.size > 256) dividendCache.delete(dividendCache.keys().next().value!);
     }
-    return { ...safe, state, availableMetrics, ...(includeDividends ? { dividendHistory } : {}) };
+    const referenceFile = referenceDay ? getSource() : null;
+    const dividendReference = referenceDay && referenceFile
+      ? readDividendReference(referenceDay, period, referenceFile.archive?.metrics ?? referenceFile.metrics,
+        referenceFile.archive?.prices ?? referenceFile.security.prices) : undefined;
+    const dpsRanking = includeDpsRank ? staticMemberRank(getSource(), 'dps', period) : undefined;
+    return { ...safe, state, availableMetrics, ...(includeDividends ? { dividendHistory, dividendReference } : {}),
+      ...(dpsRanking && { dpsRanking }) };
   }) ?? [];
+}
+
+function staticMarketcapMembers(members: ReturnType<typeof staticCompanyMembers>, current?: SecurityFile | null) {
+  const window = marketcapPriceReferenceWindow(members);
+  if (members.length < 2) return members;
+  return members.map(member => {
+    const file = current?.security.securityId === member.securityId ? current
+      : readStaticJson<SecurityFile>(`data/security/${member.securityId}.json`);
+    const { period } = staticMemberDetails(file);
+    const marketcapRanking = staticMemberRank(file, 'marketcap', period);
+    const marketcapReferencePrices = window?.securityIds.includes(member.securityId) ? (file.archive?.prices ?? file.security.prices)
+      .filter(row => row.date >= window.start && row.date <= window.end && listingContains(period, row.date))
+      .map(({ date, close }) => ({ date, close })) : undefined;
+    return { ...member, ...(marketcapRanking && { marketcapRanking }), marketcapReferencePrices };
+  });
 }
 
 function staticSelectedSecurity(file: SecurityFile, selectedPeriod: Period, historicalPeriod: boolean) {
@@ -262,8 +295,13 @@ export function getStaticSecurityDetail<T>(code: string, metric: string, start?:
   const priceHistory=security.prices.toReversed();
   const source = metric === 'price' ? priceHistory : metric === 'marketcap' || metric === 'shares'
     ? security.marketcaps : file.archive?.metrics ?? file.metrics;
-  return { security, company: companyFile?.company ?? null, companySecs: staticCompanyMembers(companyFile, metric === 'div' || metric === 'dps', file),
-    priceHistory, history: filterListingRows<{date:string}>(source,selectedPeriod).filter(row => (!start || row.date >= start) && (!end || row.date <= end) && (!security.historyCutoff || row.date <= security.historyCutoff)),
+  const history = filterListingRows<{date:string}>(source,selectedPeriod).filter(row => (!start || row.date >= start) && (!end || row.date <= end) && (!security.historyCutoff || row.date <= security.historyCutoff));
+  const includeDividends = metric === 'dps' || metric === 'div';
+  const referenceDay = includeDividends && (companyFile?.companySecs.length ?? 0) > 1
+    ? dividendReferenceDate(history, metric, security[`${metric}Date`]) : null;
+  const members = staticCompanyMembers(companyFile, metric, file, referenceDay);
+  return { security, company: companyFile?.company ?? null, companySecs: metric === 'marketcap' ? staticMarketcapMembers(members, file) : members,
+    priceHistory, history,
     ranking, neighbors:ranking?.currentRank != null?staticSecurityNeighbors(file, metric):[] } as T;
 }
 export function getStaticCompanyDetail<T>(code: string, start?: string, end?: string): T | null {
@@ -273,7 +311,8 @@ export function getStaticCompanyDetail<T>(code: string, start?: string, end?: st
   const representativeFile = representative ? readStaticJson<SecurityFile>(`data/security/${representative.securityId}.json`) : null;
   const security = representativeFile ? staticSelectedSecurity(representativeFile, selectListingPeriod(representativeFile.security.listingPeriods ?? []), false) : null;
   const company = file.company;
-  return { company, companySecs: staticCompanyMembers(file, false, representativeFile), security, priceHistory: security?.prices.toReversed() ?? [],
+  const members = staticCompanyMembers(file, 'marketcap', representativeFile);
+  return { company, companySecs: staticMarketcapMembers(members, representativeFile), security, priceHistory: security?.prices.toReversed() ?? [],
     history: company.registeredHistory.filter(row => (!start || row.date >= start) && (!end || row.date <= end)),
     ranking: { currentRank: company.marketcapRank, priorRank: company.marketcapPriorRank,
       rankingState: company.rankingState, exclusionReason: company.exclusionReason, publication: company.publication,

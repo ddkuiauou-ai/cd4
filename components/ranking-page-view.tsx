@@ -86,7 +86,7 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
         </> : <div className={styles.empty} role="status"><h2>이 기준에 해당하는 {entity}이 없습니다</h2><p>공개된 순위 대상은 0개입니다. 전체 순위 CSV는 열 이름만 포함합니다.</p></div>}
       </section>
       <aside className={`context-rail ${bottom.rail}`} aria-label="최근 본 종목 미리보기">
-        <RecentSecuritiesSidebar variant="ranking-preview" />
+        <RecentSecuritiesSidebar variant="preview" />
       </aside>
     </div>
     <section className={bottom.dataBasis} aria-labelledby="ranking-basis-title">
