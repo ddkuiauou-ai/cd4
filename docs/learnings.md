@@ -24,6 +24,8 @@ PER·PBR 분수와 EPS·BPS의 활용 예시는 종가·주당 지표·공개 �
 
 보통주·우선주를 전환하면 상세 지표 메뉴의 항목과 행 높이는 유지하고 제공 범위에 따라 링크 상태를 바꾼다. 비활성 항목은 화면에 남기고 클릭과 탭 이동 대상에서 제외한다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [지표 순서와 비활성화 회귀](../tests/financial-metric-navigation.test.cjs)
 
+기업 상세의 지표 메뉴에서 회사명과 같은 보통주의 반복 표기를 덜어낼 때는 지표 링크의 접근성 이름과 목적 종목을 확인한다. 같은 이름의 종목이 여럿이면 코드를 표시한다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [기업 지표 메뉴 대상 표시 회귀](../tests/financial-metric-navigation.test.cjs)
+
 모바일 지표 메뉴 여백의 탭은 브라우저가 가까운 링크로 전달할 수 있다. 안내가 열려 있으면 실제 터치 위치를 확인해 여백 탭으로 안내만 닫는다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [미제공 안내 회귀](../tests/detail-record-info.test.cjs)
 
 ## L3 — 테스트·시안 승인과 UI 완료를 구분
@@ -46,11 +48,11 @@ BPS 상세의 분포와 히트맵은 스크롤해 두 차트가 실제로 그려
 
 ## L7 — 모바일 지표 메뉴의 줄 수와 선택 항목 노출
 
-좁은 랭킹의 두 줄 메뉴는 한 줄 가로 스크롤로 **대체**됐다. 가려진 선택 항목만 드러내고 페이지 세로 위치를 보존한다. 상세 지표 메뉴에는 별도 기준이 있다. **기준** [랭킹 지표 메뉴](../DESIGN.md#ranking-metric-first) · **근거** [폭별 메뉴 동작 확인](archive/learning-evidence-2026-11-20.md#l7)
+랭킹은 시총 두 보기를 각각 직접 열고, 다른 지표의 제목에는 종목별 순위임을 표시한다. 좁은 메뉴는 한 줄에서 가려진 선택 항목만 가로로 드러내고 페이지 세로 위치를 보존한다. **기준** [랭킹 지표 메뉴](../DESIGN.md#ranking-metric-first) · **근거** [순위 링크와 제목](../tests/ranking-view.test.cjs) · [선택 항목 노출](../tests/market-nav-scroll.test.cjs) · [기존 폭별 검증](archive/learning-evidence-2026-11-20.md#l7)
 
 모바일 상세에서는 스크롤 중에도 지표를 바꿀 수 있도록 고정 제목의 현재 지표를 메뉴 버튼으로 쓴다. 좁은 폭과 긴 제목에서는 제목과 지표를 함께 두고 작업을 다음 줄로 보낸다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [상세 탐색 회귀](../tests/detail-context-navigation.test.cjs)
 
-모바일에서는 본문 목차가 고정 제목 뒤로 지나간 뒤 고정 제목의 ‘목차’를 사용한다. 전환 기준인 본문 목차의 공간을 유지해 경계에서 레이아웃이 움직이지 않도록 한다. 왼쪽 레일만 표시되는 폭에서는 지표 아래에 목차를 두고, 짧은 화면에서도 레일 안에서 모든 항목에 접근할 수 있게 한다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [상세 탐색 회귀](../tests/detail-context-navigation.test.cjs)
+모바일에서는 본문 목차가 고정 제목 뒤로 지나간 뒤 고정 제목의 ‘목차’를 사용한다. 전환 기준인 본문 목차의 공간을 유지해 경계에서 레이아웃이 움직이지 않도록 한다. 왼쪽 레일만 표시되는 폭에서는 지표 아래에 목차를 둔다. 창 높이가 충분하면 행과 그룹 사이를 넓히고, 낮은 창에서는 레일을 스크롤해 마지막 목차까지 접근할 수 있게 한다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [상세 탐색 회귀](../tests/detail-context-navigation.test.cjs) · [레일 간격과 스크롤 높이](../components/detail-investor-navigation.module.css)
 
 ## L8 — 반응형 시안은 중간 폭의 공간 배분부터 확인
 
@@ -66,7 +68,11 @@ BPS 상세의 분포와 히트맵은 스크롤해 두 차트가 실제로 그려
 
 ## L9 — 넘침 검사와 실제 글자 정렬 검사를 구분
 
-좁은 표에서 이름·코드·값을 쌓으면 실제 글자의 시작점과 읽기 순서를 비교한다. 상세 대표값은 빌드된 화면에서 숫자의 자간과 단위의 시작점도 비교한다. **기준** [랭킹 표 정렬](../DESIGN.md#ranking-metric-first) · [상세 대표값과 단위](../DESIGN.md#상세-대표값과-단위) · **근거** [320px 시안의 글자 좌표](archive/ranking-mock-review-2026-11-01.md) · [PER 대표값의 자간과 단위](../components/detail-investor-summary.module.css)
+넓은 표에서는 개별 열 제목의 기준선과 각 제목·데이터의 정렬축을 비교한다. 좁은 표에서 이름·코드·값을 쌓으면 실제 글자의 시작점과 읽기 순서를 비교한다. 상세 대표값은 빌드된 화면에서 숫자의 자간과 단위의 시작점도 비교한다. **기준** [랭킹 표 정렬](../DESIGN.md#ranking-metric-first) · [상세 대표값과 단위](../DESIGN.md#상세-대표값과-단위) · **근거** [공통 순위표 스타일](../components/ranking-view.module.css) · [320px 시안의 글자 좌표](archive/ranking-mock-review-2026-11-01.md) · [PER 대표값의 자간과 단위](../components/detail-investor-summary.module.css)
+
+공통 헤더는 아이콘의 세로 중심과 함께 로고·주 메뉴 사이의 가로 간격, 헤더와 본문의 좌우 기준선을 확인한다. 화면 폭에 따라 검색 라벨과 주 메뉴가 바뀌는 경계 양쪽에서 전체 로고와 조작 영역을 확인한다. **기준** [공통 헤더](../DESIGN.md#global-header) · **근거** [헤더 배치와 폭별 여백](../app/globals.css)
+
+2026-11-23 승인한 여덟 랭킹은 제목에서 공개 기준일을 한 번 표시하고, 행에서 표시값과 단위를 바로 읽게 한다. 긴 지표값과 종가의 읽기 폭을 먼저 확보하고 가용 폭을 주가 추이에 배분한다. 320px의 BPS와 760px의 긴 종가는 실제 브라우저에서 글자 위치와 줄바꿈을 확인한다. **기준** [랭킹 표 배치](../DESIGN.md#ranking-metric-first) · **근거** [순위 표·기준일 회귀](../tests/ranking-view.test.cjs)
 
 PER 상세는 글꼴이 로드된 뒤 위쪽 두 라벨과 아래쪽 두 숫자의 기준선을 각각 대조한다. 일반 순위의 읽는 금색과 상위 3위 식별색을 두 테마에서 확인한다. **기준** [재무·배당 지표 상세](../DESIGN.md#재무배당-지표-상세) · **근거** [PER 요약의 배치와 색상](../components/detail-investor-summary.module.css)
 
@@ -74,15 +80,15 @@ PER 상세는 글꼴이 로드된 뒤 위쪽 두 라벨과 아래쪽 두 숫자�
 
 ## L10 — 작은 차트의 오버레이는 선분·끝점·최소 높이를 함께 확인
 
-종가·등락률 글자가 연결선이나 끝점을 가리면 안전 배치로 전환한다. 글꼴 로딩·폭 변경 뒤에도 선의 가용 높이를 확인한다. **기준** [랭킹 차트 배치](../DESIGN.md#ranking-metric-first) · **근거** [시안 측정](archive/ranking-mock-review-2026-11-01.md) · [제품 브라우저 확인](ranking-responsive-verification-2026-11-02.md#실제-브라우저)
+오버레이는 종가·전일 등락률을 추이선 밖에 두는 배치로 **대체**됐다. 폭이 변할 때 차트 크기만 측정하고 선과 끝점이 같은 좌표를 쓰는지 확인한다. **기준** [랭킹 차트 배치](../DESIGN.md#ranking-metric-first) · **근거** [차트 크기와 끝점 회귀](../tests/ranking-quote-layout.test.cjs) · [이전 오버레이 브라우저 확인](ranking-responsive-verification-2026-11-02.md#실제-브라우저)
 
 ## L11 — 절대 배치한 숫자의 폭은 이전 위치에 의존하지 않게 한다
 
-차트 안 숫자의 고유 폭을 위치와 독립적으로 측정한다. 화면을 줄였다 다시 넓힌 뒤에도 행 높이와 충돌을 확인한다. **기준** [숫자 오버레이](../DESIGN.md#ranking-metric-first) · **근거** [연속 폭 변경 재현](ranking-responsive-verification-2026-11-02.md#구현과-검토)
+숫자 위치를 다시 측정하는 로직은 일반 흐름의 표 배치로 **대체**됐다. 줄였다 넓힐 때 추이만 다시 측정하며 정적 HTML과 브라우저 첫 렌더에서 같은 값을 표시한다. **기준** [랭킹 차트 배치](../DESIGN.md#ranking-metric-first) · **근거** [차트 초기 렌더와 크기 변경 회귀](../tests/ranking-quote-client.test.cjs) · [이전 오버레이 연속 폭 변경 재현](ranking-responsive-verification-2026-11-02.md#구현과-검토)
 
 ## L12 — 모바일 하단 메뉴와 데스크탑 푸터의 역할 중복
 
-랭킹 모바일 하단은 자료 안내와 기존 메뉴로 마무리한다. 데스크탑 전용 목차는 공간과 포커스 대상에서 함께 빠져야 한다. **기준** [랭킹 하단](../DESIGN.md#ranking-footer-and-ending) · **근거** [푸터 적용과 검증 범위](ranking-footer-verification-2026-11-02.md)
+메인·랭킹·상세가 같은 데스크탑 목차를 쓴다. 모바일에서는 푸터가 공간과 포커스 대상에서 함께 빠지고 고정 하단 메뉴로 마무리한다. 상세의 해당 지표 순위 링크는 모바일에서 인접 순위 본문에 남긴다. **기준** [공통 푸터](../DESIGN.md#global-footer) · **근거** [푸터 회귀](../tests/ranking-footer.test.cjs) · [기존 모바일 검증](ranking-footer-verification-2026-11-02.md#실제-브라우저)
 
 ## L13 — 외부 진입으로 열린 최근 패널의 클릭 순서와 포커스 소실
 
@@ -104,6 +110,8 @@ PER 상세는 글꼴이 로드된 뒤 위쪽 두 라벨과 아래쪽 두 숫자�
 
 첫 검색은 목록 준비 뒤 열고 갱신 중에는 직전 목록을 쓴다. 최근 본은 모든 폭의 헤더에서 전체 기록을 연다. 우측 레일은 최신 3개로 시작해 마우스나 키보드로 최대 5개까지 펼친다. 미리보기와 목차 사이의 간격은 꺾쇠의 44px 조작 영역을 포함해 대조한다. 펼친 뒤 ‘전체 기록 보기’를 누르면 헤더 패널을 열고 첫 기록에 초점을 둔다. Escape는 원래 버튼으로 초점을 돌려준다. 각 행에는 실제 지표값과 짧은 지표명을 표시하고 값이 없으면 화면 이름을 쓴다. 한 줄이 좁은 행은 필요한 폭만 X 열에서 빌리고, 포인터나 키보드 초점에 맞춰 X를 겹친다. 터치에서는 X를 계속 표시한다. 개별 삭제를 헤더 기록과 공유한다. 50개가 들어 있어도 헤더의 기존 위치에서 열고, 레일 버튼과 겹칠 때는 스크롤 높이를 조정한다. **기준** [공통 헤더](../DESIGN.md#global-header) · [상세 탐색](../DESIGN.md#detail-navigation) · [검색과 최근 본](../DESIGN.md#search-recent-and-theme) · **근거** [방문 화면별 값 회귀](../tests/recent-securities-context.test.cjs) · [미리보기와 개별 삭제 회귀](../tests/ranking-bottom.test.cjs) · [패널 열기·닫기와 초점 회귀](../tests/recent-panel.test.cjs) · [헤더·검색 검증 범위](archive/learning-evidence-2026-11-20.md#l17)
 
+상세 오른쪽 레일은 최근 본 미리보기를 목차 위에 배치해 재방문 동선을 먼저 드러낸다. 창 높이에 따른 공간 조절은 핵심 지표 여백과 목차 행 간격에 적용한다. **기준** [상세 탐색](../DESIGN.md#detail-navigation) · **근거** [오른쪽 레일의 간격](../components/detail-investor-navigation.module.css)
+
 ## L18 — 공통 검색과 상세 URL의 상장 범위
 
 공통 검색과 오타 추천에는 종목 공개 기준일의 상장 대상을 사용한다. 기존 상세 주소·별칭·사이트맵에는 상폐 종목도 남긴다. **기준** [검색 대상과 헤더 부재 시 기준](security-lifecycle-contract-2026-10-13.md#웹-조회) · [정적 출력](static-export.md#데이터와-화면) · **근거** [검색 회귀](../tests/search-listing-snapshot.test.cjs) · [코드 검색과 과거 CSV 대조](archive/learning-evidence-2026-11-20.md#l18)
@@ -111,3 +119,7 @@ PER 상세는 글꼴이 로드된 뒤 위쪽 두 라벨과 아래쪽 두 숫자�
 ## L19 — 시가총액 요약과 구성 종목
 
 합산과 구성 종목의 관계는 합산 요약 하단의 비중 띠와 이어지는 종목 행으로 읽는다. 도넛 옆에는 비중 숫자를 두고 가격 격차 변화는 두 시점의 종가 아래에 둔다. 합산과 우선주 양쪽에서 행 선택, 개별 순위·종가 링크와 실제 관측일을 확인한다. **기준** [시가총액 상세](../DESIGN.md#시가총액-상세) · **근거** [종목별 링크·선택](../tests/detail-context-navigation.test.cjs) · [도넛·비중 범례](../tests/chart-upgrade.test.cjs) · [가격 격차](../tests/detail-comparison.test.cjs)
+
+## L20 — 전광판과 사이트 테마를 함께 확인
+
+별도 프레임도 사이트 테마가 바뀔 때 배경, 숫자, 구분선과 상승·하락색을 함께 바꾼다. 자동 순환은 마지막 장면에서 첫 장면으로 복귀하는지, 읽는 중 일시 정지와 장면 직접 선택이 함께 동작하는지 확인한다. **기준** [대회장](../DESIGN.md#dashboard-arena) · **근거** [전광판 표현](../components/dashboard-arena.module.css) · [장면 메뉴 회귀](../tests/dashboard-state.test.cjs)

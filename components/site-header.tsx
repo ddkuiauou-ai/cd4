@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { dashboardLabel, siteConfig } from "@/config/site";
 import { CommandMenu } from "@/components/command-menu";
 import { MainNav } from "@/components/main-nav";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -23,7 +24,7 @@ export function SiteHeader() {
 
   return <header ref={ref} data-site-header className="app-header">
     <div className="app-container header-content">
-      <Link prefetch={false} href="/dashboard" className="brand-wordmark" aria-label="천하제일 단타대회 · 메인">
+      <Link prefetch={false} href="/dashboard" className="brand-wordmark" aria-label={`${siteConfig.name} · ${dashboardLabel}`}>
         <span className="brand-first" aria-hidden="true">천하제일</span>
         <Image src="/icon.svg" alt="" width={32} height={32} />
         <span className="brand-last" aria-hidden="true">단타대회</span>

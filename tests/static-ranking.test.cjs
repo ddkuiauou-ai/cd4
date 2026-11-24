@@ -84,7 +84,7 @@ test('static route HTML retains default ranking rows even when a scoped page ext
   const { PublishedRankingPage } = loader.load('components/published-ranking-page.tsx');
   const first = await loader.renderElement(await PublishedRankingPage({ metric: 'per' }));
   assert.match(first.html, /정적종목/);
-  assert.match(first.text, /9,007,199,254,740,993.125/);
+  assert.match(first.text, /9,007,199,254,740,993\.13 배/);
   await assert.doesNotReject(() => PublishedRankingPage({ metric: 'per', page: 3 }));
   await assert.rejects(() => PublishedRankingPage({ metric: 'per', page: 4 }), /NOT_FOUND/);
   assert.equal(connections, 0);
@@ -188,12 +188,13 @@ test('scoped ranking loading and failures keep the real market context and metri
     await React.act(async () => root.render(React.createElement(StaticRankingPage, { initial, manifest: manifest() })));
     const checkContext = () => {
       const context = document.querySelector('.tableToolbar');
-      assert.match(context.querySelector('.targetControl').textContent, /종목별 기준/);
-      assert.match(context.querySelector('.basis').textContent, /시장코스피.*기준 일자정보 없음/);
+      assert.equal(document.querySelector('.ranking-main h1').textContent, '종목별 PER 순위');
+      assert.match(context.querySelector('.basis').textContent, /시장코스피.*기준일정보 없음/);
       const nav = document.querySelector('nav[aria-label="전체 순위 지표"]');
-      assert.equal(nav.querySelectorAll('a').length, 7);
+      assert.equal(nav.querySelectorAll('a').length, 8);
+      assert.equal(nav.querySelector('a[title="종목별 시가총액"]').getAttribute('href'), '/marketcap?scope=kospi');
       assert.equal(nav.querySelector('[aria-current="page"]').textContent, 'PER');
-      assert.equal(nav.compareDocumentPosition(context) & 4, 4);
+      assert.equal(context.compareDocumentPosition(nav) & 4, 4);
       assert.equal(document.querySelector('tbody'), null);
       assert.equal(document.querySelector('a[href^="/ranking-data/"]'), null);
       assert.doesNotMatch(document.body.textContent, /정적종목/);

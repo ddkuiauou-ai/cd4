@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { and, eq, or } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema-postgres";
-import { siteConfig } from "@/config/site";
+import { dashboardLabel, siteConfig } from "@/config/site";
 import { companyPath, securityPath } from './entity-paths';
 import { getEntityRouteInventory } from './entity-route-inventory';
 
@@ -92,4 +92,4 @@ export async function companyMetadata(code: string, marketcapDetail = false): Pr
     companyPath({ ...identity, routeCode: routes.companies.get(identity.companyId) ?? null }, marketcapDetail ? "marketcap" : undefined));
 }
 
-export const dashboardMetadata = businessMetadata("국내 주식 지표 대시보드", "국내 기업의 시가총액과 대표 종목의 주가 흐름을 확인하고 전체 순위를 탐색하세요.", "/dashboard");
+export const dashboardMetadata = businessMetadata(dashboardLabel, "국내 주식의 지표별 상위 종목, 가치·배당 종합 순위와 장 마감 결과를 확인하세요. 기록실에서 기업 시가총액과 전체 지표를 탐색할 수 있습니다.", "/dashboard");

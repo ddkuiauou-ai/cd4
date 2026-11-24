@@ -15,7 +15,7 @@ import { useMarketcapTargetHref } from './marketcap-chart-range';
 import type { DetailSecurityRow } from './detail-types';
 import styles from './detail-investor-navigation.module.css';
 
-export type DetailNavItem = { href?: string; label: string; selected?: boolean; target?: string };
+export type DetailNavItem = { href?: string; label: string; selected?: boolean; target?: { label: string; showInMenu: boolean } };
 export type DetailSectionLink = { id: string; label: string };
 export type DetailSwitchCandidate = {
   securityId: string;
@@ -53,14 +53,14 @@ function fragmentDestination(url: URL) {
 
 function MetricLinks({ groups, onNavigate }: { groups: DetailNavItem[][]; onNavigate?: () => void }) {
   const navigateCompanyTab = useCompanyTabNavigation();
-  const targetGroup = groups.find(group => group.some(item => item.target));
+  const targetGroup = groups.find(group => group.some(item => item.target?.showInMenu));
 
   return groups.map((group, index) => group.length > 0 && (
     <div key={group[0].label} className={styles.metricGroup}>
       {metricGroupNames[index] && <span className={styles.metricGroupName}>{metricGroupNames[index]}</span>}
-      {group === targetGroup && <span className={styles.metricGroupTarget}>{group.find(item => item.target)?.target}</span>}
+      {group === targetGroup && <span className={styles.metricGroupTarget}>{group.find(item => item.target?.showInMenu)?.target?.label}</span>}
       {group.map(({ href, label, selected, target }) => {
-        const accessibleLabel = target ? label + ' · ' + target : undefined;
+        const accessibleLabel = target ? label + ' · ' + target.label : undefined;
         const current = selected ? 'page' : undefined;
         if (!href) return <DetailRecordInfo key={label} asChild dismissOnDialogTap label={accessibleLabel ?? label} text={unavailableMetricNote}>
           <span className={styles.metricItem} role="link" aria-disabled="true" aria-current={current}>

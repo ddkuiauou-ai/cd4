@@ -18,7 +18,10 @@ export function Pager({ basePath, currentPage, totalPages, nextCount, query }: P
   return (
     <nav className={styles.pager} aria-label="순위 목록 페이지">
       {pager.prev && <Link prefetch={false} href={pageURL(pager.prev)} className={styles.pageLink} rel="prev"><ArrowLeft size={15} aria-hidden="true" />이전 페이지</Link>}
-      <span className={styles.pageIndicator} aria-current="page">{currentPage}<span aria-hidden="true"> / </span><span className="sr-only">페이지 / 전체 </span>{totalPages ?? "—"}<span className="sr-only">페이지</span></span>
+      <span className={styles.pageIndicator} aria-current="page">
+        <span aria-hidden="true">{totalPages == null ? `${currentPage} 페이지` : `${currentPage} / ${totalPages} 페이지`}</span>
+        <span className="sr-only">{currentPage}페이지{totalPages != null && `, 전체 ${totalPages}페이지`}</span>
+      </span>
       {pager.next && <Link prefetch={false} href={pageURL(pager.next)} className={styles.pageLink} rel="next">{nextCount != null && nextCount > 0 ? `다음 ${nextCount}개` : "다음 페이지"}<ArrowRight size={15} aria-hidden="true" /></Link>}
     </nav>
   );

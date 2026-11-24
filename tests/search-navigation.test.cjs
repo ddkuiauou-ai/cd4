@@ -124,6 +124,11 @@ function companyLink(row) {
 // duplicate the stock row or become interactive controls inside an option.
 test("one security row exposes its name, code, market and type with separate stock and company links", async () => {
   await withMenu([securityFixture()], async menu => {
+    const dialog = document.querySelector('[role="dialog"]');
+    assert.equal(document.getElementById(dialog.getAttribute("aria-labelledby")).textContent, "기업·종목 검색");
+    assert.ok(document.querySelector('.search-overlay[data-state="open"]'));
+    const queryBar = menu.input().closest(".search-query-bar");
+    assert.ok(queryBar.querySelector('button[aria-label="검색 닫기"]'));
     assert.equal(menu.rows().length, 1);
     const row = menu.rows()[0];
     for (const term of ["삼성전자", "005930", "KOSPI", "보통주"]) assert.ok(row.textContent.includes(term), term);

@@ -1,8 +1,19 @@
 .page { min-width:0; }
-.heading { margin:0 0 28px; }
-.heading h1 { margin:0 0 12px; font-family:var(--font-display),serif; font-size:clamp(30px,3.6vw,48px); line-height:1.3; letter-spacing:-.025em; font-weight:400; font-synthesis:none; }
-.heading>p { color:var(--muted-foreground); font-size:14px; line-height:1.7; margin:0; }
-.dates { display:flex; flex-wrap:wrap; gap:5px 20px; color:var(--muted-foreground); font-size:11px; line-height:1.7; margin-top:14px; font-variant-numeric:tabular-nums; }
+.pageHeading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; padding-block:clamp(20px,2.8vw,40px) 14px; }
+.pageHeading h1 { margin:0; font-family:var(--font-display); font-size:clamp(32px,3.6vw,48px); line-height:1.2; letter-spacing:-.025em; font-weight:400; font-synthesis:none; }
+.pageFacts { display:flex; flex-wrap:wrap; gap:4px 18px; margin:0; font-size:13px; font-variant-numeric:tabular-nums; }
+.pageFacts div { display:flex; align-items:baseline; gap:6px; }
+.pageFacts dt { color:var(--muted-foreground); }
+.pageFacts dd { margin:0; }
+.recordDate { margin:0 0 12px; color:var(--muted-foreground); font-size:13px; }
+.recordsDetails { margin-bottom:20px; }
+.recordsDetails>summary { min-height:44px; padding:13px 0; cursor:pointer; list-style:none; }
+.recordsDetails>summary::-webkit-details-marker { display:none; }
+.recordsSummary { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:4px 16px; }
+.recordsSummary>svg { color:var(--muted-foreground); }
+.recordsDetails[open] .recordsSummary>svg { transform:rotate(180deg); }
+.recordsLabel { font-family:var(--font-display); font-size:22px; font-weight:400; }
+.recordsContents { color:var(--muted-foreground); font-size:13px; }
 .page .panels { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"companies" "metrics" "trends"; gap:32px; }
 .companies { grid-area:companies; min-width:0; }
 .shortcuts { grid-area:metrics; min-width:0; }
@@ -84,9 +95,6 @@
 .trendEmpty { padding:36px 12px; margin:0; font-size:13px; line-height:1.7; color:var(--muted-foreground); border-bottom:1px solid var(--border); }
 .trendHint { font-size:11px; line-height:1.7; color:var(--muted-foreground); margin:14px 0 0; }
 :global(.dark) .companyRow:hover,:global(.dark) .companyRow:focus-within,:global(.dark) .metricLinks>a:hover,:global(.dark) .trendRow:hover { background:var(--record-selection,#342c17); }
-.skeletonHeading { margin-bottom:28px; }
-.skeletonPanel { border-top:1px solid var(--brand-red,#bd2b30); padding-top:16px; }
-.skeletonRow { display:grid; grid-template-columns:40px 1fr 90px; gap:12px; padding:16px 0; border-bottom:1px solid var(--border); }
 @media(min-width:768px) {
   .metricLinks { grid-template-columns:repeat(7,minmax(0,1fr)); }
   .metricLinks>a { min-height:112px; padding:16px 10px; }
@@ -101,8 +109,7 @@
   .page .panels { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-areas:"companies trends" "metrics metrics"; gap:36px 28px; }
 }
 @media(max-width:767px) {
-  .heading h1 { font-size:32px; }
-  .heading>p { font-size:13px; }
+  .pageHeading { flex-direction:column; }
   .sectionHeading h2 { font-size:23px; }
   .page .companyRow { grid-template-columns:44px minmax(0,1fr) 112px; gap:8px; }
   .companyColumns { grid-template-columns:44px minmax(0,1fr) 112px; }

@@ -28,7 +28,7 @@ async function renderBottom(overrides = {}) {
   return new JSDOM(html).window.document;
 }
 
-test('ranking criteria follows the list and rail, keeping publication and price dates distinct', async () => {
+test('ranking criteria follows the list and rail, with the publication date shown once by the title', async () => {
   const document = await renderBottom();
   const listing = document.querySelector('.ranking-shell');
   const basis = document.querySelector('section[aria-labelledby="ranking-basis-title"]');
@@ -38,14 +38,14 @@ test('ranking criteria follows the list and rail, keeping publication and price 
   assert.equal(listing.nextElementSibling, basis);
   assert.equal(document.querySelectorAll('#ranking-basis-title').length, 1);
   assert.equal(listing.querySelector('.context-rail dl'), null, 'The rail must not repeat the data criteria');
-  assert.match(basis.textContent, /보통주와 우선주를 합산/);
-  assert.match(basis.textContent, /대표 보통주 기준/);
-  const dates = Object.fromEntries([...basis.querySelectorAll('.dates>div')].map(entry =>
-    [entry.querySelector('dt').textContent, entry.querySelector('dd').textContent]));
-  assert.deepEqual(dates, { '공개 기준일': '2026.10.08', '가격 관측일': '2026.09.29–2026.10.07' });
-  assert.doesNotMatch(basis.textContent, /2026.10.11/, 'The publication header takes precedence over the fallback');
+  assert.match(basis.firstElementChild.textContent, /보통주·우선주 합산.*대표 보통주 기준/);
+  assert.equal(listing.querySelector('.tableToolbar time').textContent, '2026.10.08');
+  assert.equal(listing.querySelectorAll('time').length, 1);
+  assert.doesNotMatch(basis.textContent, /기준일|관측일/);
   const disclosure = basis.querySelector('details');
   assert.equal(disclosure.open, false);
+  assert.equal(disclosure.querySelector('summary').textContent, '조회 기준 · 자료 공개 정보');
+  assert.doesNotMatch(disclosure.textContent, /대표 보통주 기준/);
   assert.match(disclosure.textContent, /자료 갱신 번호9007199254740993/);
   assert.match(disclosure.textContent, /공개 대상KRX 전체/);
   assert.match(disclosure.textContent, /지표 단위원/);
@@ -55,18 +55,18 @@ test('ranking criteria follows the list and rail, keeping publication and price 
 test('missing observations, unpublished results, empty results and revision feedback keep their meanings', async () => {
   const missing = await renderBottom({ rows: [row(1, null)], publication: null, latestDate: null });
   const basis = missing.querySelector('.dataBasis');
-  assert.match(basis.textContent, /공개 기준일정보 없음/);
-  assert.match(basis.textContent, /가격 관측일정보 없음/);
+  assert.match(missing.querySelector('.tableToolbar .basis').textContent, /기준일정보 없음/);
+  assert.doesNotMatch(basis.textContent, /기준일|관측일/);
   assert.match(basis.textContent, /자료 갱신 번호미공개/);
 
   const unpublished = await renderBottom({ state: 'unpublished', rows: [], publication: null, latestDate: null });
   assert.match(unpublished.querySelector('.empty[role="status"]').textContent, /아직 공개된 순위가 없습니다/);
-  assert.match(unpublished.querySelector('.dates').textContent, /공개 기준일미공개.*가격 관측일정보 없음/);
+  assert.match(unpublished.querySelector('.tableToolbar .basis').textContent, /기준일정보 없음/);
   assert.equal(unpublished.querySelector('a[href^="/ranking-data/"]'), null);
 
   const empty = await renderBottom({ rows: [], totalCount: 0, totalPages: 1 });
   assert.match(empty.querySelector('.empty[role="status"]').textContent, /공개된 순위 대상은 0개/);
-  assert.match(empty.querySelector('.dates').textContent, /공개 기준일2026.10.08.*가격 관측일정보 없음/);
+  assert.equal(empty.querySelector('.tableToolbar time').dateTime, publication.asOf);
 
   const changed = await renderBottom({ revisionChanged: true });
   assert.match(changed.querySelector('.empty[role="status"]').textContent, /자료가 갱신되었습니다/);
@@ -82,12 +82,14 @@ test('each security metric retains its description and identifies the price as t
       rows: [], publication: { ...publication, scopeKey: 'kosdaq-preferred' },
     });
     const basis = document.querySelector('.dataBasis');
-    assert.ok(basis.textContent.includes(definition.description), `${metric}: existing explanation must survive`);
-    assert.match(basis.textContent, /해당 종목 기준/);
-    assert.doesNotMatch(basis.textContent, /대표 보통주 기준|보통주와 우선주를 합산/);
-    assert.match(basis.textContent, /종목별 · 코스닥 우선주/);
-    assert.ok(basis.querySelector('details').textContent.includes(`지표 단위${definition.unit}`));
-    assert.match(basis.querySelector('details').textContent, /공개 대상코스닥 우선주/);
+    const disclosure = basis.firstElementChild;
+    assert.equal(disclosure.tagName, 'DETAILS');
+    assert.equal(disclosure.open, false);
+    assert.ok(disclosure.textContent.includes(definition.description), `${metric}: existing explanation must survive`);
+    assert.match(disclosure.textContent, /해당 종목의 주가 기준/);
+    assert.doesNotMatch(basis.textContent, /대표 보통주 기준|보통주·우선주 합산|종목별 · 코스닥 우선주/);
+    assert.ok(disclosure.textContent.includes(`지표 단위${definition.unit}`));
+    assert.match(disclosure.textContent, /공개 대상코스닥 우선주/);
   }
 });
 

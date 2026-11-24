@@ -141,20 +141,23 @@ export function CommandMenu() {
     <>
       <Button type="button" ref={trigger} variant="ghost" className="header-search-trigger" disabled={loading}
         aria-label={loading ? "기업·종목 검색 준비 중" : needsRetry ? "기업·종목 검색 다시 시도" : "기업·종목 검색 열기"}
+        aria-keyshortcuts={entryState === "ready" ? "Control+K Meta+K /" : undefined}
         aria-haspopup={entryState === "ready" ? "dialog" : undefined} aria-expanded={open}
         onClick={event => openSearch(event.currentTarget)}>
-        <span className="header-icon-slot" aria-hidden="true">
-          <TriggerIcon className={loading ? "search-loading-icon" : undefined} />
+        <span className="header-search-face" aria-hidden="true">
+          <span className="header-icon-slot">
+            <TriggerIcon className={loading ? "search-loading-icon" : undefined} />
+          </span>
+          <span className="header-search-label">{loading ? "준비 중" : needsRetry ? "재시도" : "검색"}</span>
+          {entryState === "ready" && <kbd className="header-search-shortcut">/</kbd>}
         </span>
-        <span className="header-search-short" aria-hidden="true">{loading ? "준비 중" : needsRetry ? "재시도" : "검색"}</span>
-        <span className="header-search-long" aria-hidden="true">{loading ? "검색 준비 중" : needsRetry ? "검색 다시 시도" : "기업·종목 검색"}</span>
       </Button>
       <span role="status" className="sr-only">
         {loading ? "검색 목록을 준비하고 있습니다." : needsRetry ? "검색 목록을 불러오지 못했습니다. 다시 시도할 수 있습니다." : "기업·종목 검색이 준비되었습니다."}
       </span>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="search-dialog flex translate-y-0 flex-col gap-0 overflow-hidden rounded-lg p-0 data-[state=open]:animate-none data-[state=closed]:animate-none"
-          showCloseButton={false} overlayClassName="bg-black/45"
+        <DialogContent className="search-dialog translate-y-0 data-[state=open]:animate-none data-[state=closed]:animate-none"
+          showCloseButton={false} overlayClassName="search-overlay"
           onOpenAutoFocus={event => { event.preventDefault(); input.current?.focus(); }}
           onEscapeKeyDown={event => { if (composing.current || event.isComposing || event.keyCode === 229) event.preventDefault(); }}
           onCloseAutoFocus={event => {
@@ -164,48 +167,48 @@ export function CommandMenu() {
               opener.current.focus({ preventScroll: true });
             }
           }}>
-          <div className="flex shrink-0 items-center justify-between gap-2 pl-3.5 pr-2 pt-1">
-            <DialogTitle className="text-base">기업·종목 검색</DialogTitle>
+          <DialogTitle className="sr-only">기업·종목 검색</DialogTitle>
+          <DialogDescription className="sr-only">종목명, 종목 코드, 초성으로 검색하고 종목 상세나 기업 정보로 이동합니다.</DialogDescription>
+          <div className="search-query-bar">
+            <div className="search-input-row">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <input ref={input} type="text" role="combobox" aria-label="종목 검색"
+                aria-autocomplete="list" aria-haspopup="grid" aria-expanded={open} aria-controls={gridId}
+                aria-describedby={`${countId} ${helpId}`}
+                aria-activedescendant={selectedRow >= 0 ? cellId(selectedRow, selectedColumn) : undefined}
+                autoComplete="off" autoCorrect="off" spellCheck={false}
+                placeholder="종목명 · 코드 · 초성" value={query}
+                onChange={event => {
+                  setQuery(event.target.value);
+                  setSelection(null);
+                  if (grid.current) grid.current.scrollTop = 0;
+                }}
+                onCompositionStart={() => {
+                  composing.current = true;
+                  setIsComposing(true);
+                  setSelection(null);
+                }}
+                onCompositionEnd={event => {
+                  composing.current = false;
+                  setIsComposing(false);
+                  setQuery(event.currentTarget.value);
+                }}
+                onKeyDown={handleInputKeyDown}
+                onBlur={() => setSelection(null)}
+                className="search-input min-w-0 flex-1 self-stretch bg-transparent text-base text-foreground placeholder:text-muted-foreground" />
+            </div>
             <DialogClose asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-11 w-11" aria-label="검색 닫기">
-                <X className="h-4 w-4" aria-hidden="true" />
+              <Button type="button" variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label="검색 닫기">
+                <X className="h-[18px] w-[18px]" aria-hidden="true" />
               </Button>
             </DialogClose>
           </div>
-          <DialogDescription className="sr-only">종목명, 종목 코드, 초성으로 검색하고 종목 상세나 기업 정보로 이동합니다.</DialogDescription>
-          <div className="search-input-row mx-3 flex shrink-0 items-center gap-2 rounded-md border px-3">
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <input ref={input} type="text" role="combobox" aria-label="종목 검색"
-              aria-autocomplete="list" aria-haspopup="grid" aria-expanded={open} aria-controls={gridId}
-              aria-describedby={`${countId} ${helpId}`}
-              aria-activedescendant={selectedRow >= 0 ? cellId(selectedRow, selectedColumn) : undefined}
-              autoComplete="off" autoCorrect="off" spellCheck={false}
-              placeholder="종목명, 코드, 초성으로 검색" value={query}
-              onChange={event => {
-                setQuery(event.target.value);
-                setSelection(null);
-                if (grid.current) grid.current.scrollTop = 0;
-              }}
-              onCompositionStart={() => {
-                composing.current = true;
-                setIsComposing(true);
-                setSelection(null);
-              }}
-              onCompositionEnd={event => {
-                composing.current = false;
-                setIsComposing(false);
-                setQuery(event.currentTarget.value);
-              }}
-              onKeyDown={handleInputKeyDown}
-              onBlur={() => setSelection(null)}
-              className="search-input h-11 min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground" />
-          </div>
           <div className="search-results-body flex min-h-0 flex-col">
-            <div id={countId} role="status" className="shrink-0 px-3 py-2 text-xs text-muted-foreground">
+            <div id={countId} role="status" className="shrink-0 px-3 py-1.5 text-xs text-muted-foreground">
               {isComposing && directResults.total === 0 ? "입력 중…"
                 : isSuggestion ? `일치하는 종목 없음 · 비슷한 이름 ${suggestions.length}개`
                 : results.total > results.items.length
-                  ? `${results.total.toLocaleString()}개 중 상위 ${results.items.length}개 표시 · 더 입력하면 결과를 좁힐 수 있습니다.`
+                  ? `종목 ${results.total.toLocaleString()}개 중 ${results.items.length}개 표시`
                   : `${results.total.toLocaleString()}개 종목`}
               {status === "loading" && <span className="block">검색 목록을 갱신하는 동안 이전 목록을 표시합니다.</span>}
               {status === "error" && <span className="block">최신 검색 목록을 불러오지 못했습니다. 이전 목록을 표시합니다.</span>}
@@ -216,29 +219,29 @@ export function CommandMenu() {
             {/* A grid supports two independent links per result. A listbox option
                 cannot contain an independently operable company action. */}
             <div ref={grid} id={gridId} role="grid" aria-label="종목 검색 결과" aria-colcount={2}
-              className="min-h-0 overflow-y-auto overscroll-contain px-2 pb-2">
+              className="min-h-0 overflow-y-auto overscroll-contain pb-1">
               {results.items.map((item, row) => {
                 const destination = destinations.get(item.securityId)!;
                 return (
                   <div key={item.securityId} role="row" data-security-id={item.securityId}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border">
+                    className="search-result-row grid grid-cols-[minmax(0,1fr)_auto] items-center">
                     <div id={cellId(row, 0)} role="gridcell" aria-selected={selectedRow === row && selectedColumn === 0}
-                      className="min-w-0 rounded-sm aria-selected:bg-accent aria-selected:text-accent-foreground">
+                      className="search-result-cell min-w-0">
                       <Link href={destination.security} prefetch={false} tabIndex={-1}
                         aria-label={`${item.korName} ${item.ticker} ${item.exchange} ${item.type || "기타"} 종목 상세`} onClick={() => setOpen(false)}
-                        className="flex min-h-14 flex-col justify-center gap-0.5 rounded-sm px-2 py-2 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring">
-                        <span className="break-words text-sm font-medium">{item.korName}</span>
+                        className="search-result-link flex min-h-12 flex-col justify-center px-3 py-1.5 focus-visible:outline-ring">
+                        <span className="break-words text-[15px] font-semibold">{item.korName}</span>
                         <span className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
                           <span className="tabular-nums">{item.ticker}</span><span>{item.exchange}</span><span>{item.type || "기타"}</span>
                         </span>
                       </Link>
                     </div>
                     <div id={cellId(row, 1)} role="gridcell" aria-selected={selectedRow === row && selectedColumn === 1}
-                      className="flex items-center rounded-sm aria-selected:bg-accent aria-selected:text-accent-foreground">
+                      className="search-result-cell">
                       {destination.company ? (
                         <Link href={destination.company} prefetch={false} tabIndex={-1}
                           aria-label={`${item.korName} 기업 정보`} onClick={() => setOpen(false)}
-                          className="flex min-h-11 items-center gap-1 rounded-sm px-3 text-xs text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                          className="search-result-link flex min-h-11 items-center gap-1 px-3 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-ring">
                           기업 정보 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                         </Link>
                       ) : <span className="sr-only">연결된 기업 정보 없음</span>}
@@ -251,11 +254,11 @@ export function CommandMenu() {
               <p className="shrink-0 px-4 pb-6 pt-3 text-center text-sm text-muted-foreground">검색 결과 없음.</p>
             ) : null}
           </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t px-3 py-1">
-            <p id={helpId} className="text-xs text-muted-foreground">
+          <div className="flex shrink-0 items-center justify-between gap-x-3 px-2 pt-1">
+            <p id={helpId} className="sr-only text-xs text-muted-foreground sm:not-sr-only">
               {isSuggestion ? "↑↓ 선택 후 Enter · ←→ 종목/기업" : "↑↓ 선택 · ←→ 종목/기업 · Enter 열기"}
             </p>
-            <div className="flex items-center gap-1" role="group" aria-label="테마">
+            <div className="ml-auto flex items-center text-muted-foreground" role="group" aria-label="테마">
               {([{ value: "light", label: "라이트", Icon: SunIcon }, { value: "dark", label: "다크", Icon: MoonIcon },
                 { value: "system", label: "시스템", Icon: LaptopIcon }] as const).map(({ value, label, Icon }) => (
                 <Button key={value} variant="ghost" size="icon" className="h-11 w-11" aria-label={label} aria-pressed={theme === value}

@@ -8,6 +8,7 @@
 - 제품 범위는 [PRODUCT](../PRODUCT.md), 승인된 화면은 [DESIGN](../DESIGN.md), 화면별 적용 범위는 [brief 색인](../.impeccable/implementation-brief.md)에서 확인한다.
 - 기업·종목 상세는 [화면별 순서·다운로드 범위](../.impeccable/surfaces/components-detail-surface-tsx.md#화면별-기본-펼침)를 먼저 보고, 작업할 영역의 [시가총액](../DESIGN.md#시가총액-상세)·[재무와 배당](../DESIGN.md#재무배당-지표-상세)·[연도별 기록](../DESIGN.md#연도별-기록) 표현을 확인한다.
 - 실패 사례와 최종 기준은 [Learnings](learnings.md)에서 찾는다. 결정이 바뀌면 해당 기준 문서와 이를 가리키는 링크를 맞추고, 이전 결정·검증 결과는 날짜별 기록에 보존한다.
+- 브라우저 시안은 `.impeccable/preview/`의 임시 검토 자료다. 실제 적용 기준은 DESIGN과 화면별 brief에서 찾는다. `out/`의 정적 미리보기는 생성 당시의 소스와 동결 자료를 보여준다.
 
 ## 데이터·출력 계약
 
@@ -31,6 +32,7 @@ tem은 별도 프로젝트에서 수집·정정·공식 계산·검증·공개�
 
 | 기록 | 확인 범위 |
 | --- | --- |
+| [2026-11-24 대회장·랭킹·상세 작업 정리](archive/ui-session-2026-11-24.md) | 적용 화면의 소스와 기준, 대체된 시안과 로컬 보관 위치 |
 | [2026-11-20까지의 Learnings 검증 발췌](archive/learning-evidence-2026-11-20.md) | 최근 기록·랭킹·빌드 환경·상장기·검색의 당시 측정과 표본 범위 |
 | [2026-11-02 랭킹·푸터 정리](ranking-cleanup-verification-2026-11-02.md) | 현행 문서·과거 이력 분리, 미사용 코드·중간 시안 제거와 정리 전후 비교 |
 | [2026-11-02 랭킹 하단·푸터](ranking-footer-verification-2026-11-02.md) | 자료 안내·최근 미리보기·반응형 목차와 기존 헤더 패널 진입 |

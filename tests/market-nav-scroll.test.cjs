@@ -6,7 +6,7 @@ const { createBusinessPageLoader } = require('./helpers/business-page-loader.cjs
 
 async function withMarketNav(options, run) {
   const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'http://localhost:3001/' });
-  const layout = { width: 240, scrollWidth: 650, initialScroll: 0, pathname: '/dps', ...options };
+  const layout = { width: 240, scrollWidth: 730, initialScroll: 0, pathname: '/div', ...options };
   const observers = [], writes = [], scrollValues = new WeakMap();
   let verticalScrolls = 0, root;
   const isNav = element => element.getAttribute('aria-label') === '전체 순위 지표';
@@ -75,12 +75,12 @@ async function withMarketNav(options, run) {
 }
 
 test('the active rightmost metric is revealed horizontally without moving the page', async () => withMarketNav({}, async context => {
-  await context.render({ metric: 'dps', scope: 'security' });
+  await context.render({ metric: 'div', scope: 'security' });
   const nav = context.nav();
   const active = nav.querySelector('a[aria-current="page"]');
-  assert.equal(nav.querySelectorAll('a').length, 7);
-  assert.equal(active.textContent, '주당배당금');
-  assert.equal(nav.scrollLeft, 392);
+  assert.equal(nav.querySelectorAll('a').length, 8);
+  assert.equal(active.textContent, '배당수익률');
+  assert.equal(nav.scrollLeft, 482);
   assert.ok(active.getBoundingClientRect().right <= nav.getBoundingClientRect().right - 6);
   assert.equal(context.verticalScrolls(), 0);
 }));
@@ -89,7 +89,7 @@ test('left-hidden selection is revealed while visible metrics and manual scrolli
   await context.render({});
   const nav = context.nav();
   assert.equal(nav.scrollLeft, 0);
-  context.layout.pathname = '/per';
+  context.layout.pathname = '/marketcap';
   const beforeVisibleSelection = context.writes.length;
   await context.render({});
   assert.equal(nav.scrollLeft, 0);
@@ -102,8 +102,8 @@ test('left-hidden selection is revealed while visible metrics and manual scrolli
   assert.equal(context.verticalScrolls(), 0);
 }));
 
-test('overflow after resize reveals the selection and disconnects its observer on unmount', async () => withMarketNav({ width: 700 }, async context => {
-  await context.render({ metric: 'dps', scope: 'security' });
+test('overflow after resize reveals the selection and disconnects its observer on unmount', async () => withMarketNav({ width: 760 }, async context => {
+  await context.render({ metric: 'div', scope: 'security' });
   assert.equal(context.writes.length, 0, 'A navigation bar without overflow needs no scrolling');
   assert.equal(context.observers.length, 1);
   assert.equal(context.observers[0].targets.has(context.nav()), true);
@@ -112,15 +112,15 @@ test('overflow after resize reveals the selection and disconnects its observer o
   assert.equal(context.writes.length, 0, 'A hidden navigation bar with no measured width must not scroll');
   context.layout.width = 240;
   context.observers[0].emit();
-  assert.equal(context.nav().scrollLeft, 392);
+  assert.equal(context.nav().scrollLeft, 482);
   assert.equal(context.verticalScrolls(), 0);
   await context.unmount();
   assert.equal(context.observers[0].disconnected, true);
 }));
 
 test('initial selection reveal also works when ResizeObserver is unavailable', async () => withMarketNav({ observerSupported: false }, async context => {
-  await context.render({ metric: 'dps', scope: 'security' });
-  assert.equal(context.nav().scrollLeft, 392);
+  await context.render({ metric: 'div', scope: 'security' });
+  assert.equal(context.nav().scrollLeft, 482);
   assert.equal(context.observers.length, 0);
   assert.equal(context.verticalScrolls(), 0);
 }));

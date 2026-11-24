@@ -1,3 +1,5 @@
+export const RANKING_METRIC_NAV_ID = "ranking-metric-navigation";
+
 export const metricItems = [
   {key:"marketcap",label:"시가총액",name:"시가총액",href:"/marketcaps"},
   {key:"per",label:"PER",name:"주가수익비율",href:"/per"},

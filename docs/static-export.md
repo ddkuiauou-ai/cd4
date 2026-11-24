@@ -32,6 +32,7 @@ bun run preview:static
 - 순위 CSV는 공개 범위별 정적 명세로 기준일·revision·행 수를 검증한다. 상세 CSV는 화면의 `start/end` 범위와 무관하게 선택 상장기의 전체 제공 이력을 내보내며 `?period=`의 상장기 경계는 유지한다. 일반 `/ranking-data/*.csv` 주소도 유지한다.
 - 해석 가능한 별칭은 정식 URL로 이동하는 작은 HTML을 생성한다. 이동 시 검색 파라미터와 해시를 보존하며, 모호하거나 존재하지 않는 대상은 404다.
 - 정적 추출은 [상장 기간 기준](security-lifecycle-contract-2026-10-13.md#웹-조회)을 적용한 검색 대상 SID를 `.static-build/search-security-ids.json`에 저장한다. 렌더링은 그 SID로 공개 `/search-data.json`을 만든다. 전체 식별자 목록인 `.static-build/identities.json`은 기존 상세 주소·별칭·사이트맵에 사용한다.
+- 대회장은 전체 시장의 동결 순위로 오늘의 장과 가치·배당 종합을 구성한다. ‘1년 전 1위’의 관측 자료는 추출 단계에서 비공개 동결 입력 `data/dashboard-arena-history.json`에 저장한다. 기존 입력에 이 파일이 없거나 대회장 기준일과 다르면 당시 자료 미제공으로 표시한다. [장면별 자료 범위](../.impeccable/surfaces/app-dashboard-page-tsx.md)
 - 공통 헤더는 브라우저에서 활성화된 뒤 유휴 시간에 `/search-data.json`을 먼저 요청한다. 첫 목록은 준비가 끝나야 검색할 수 있다. 5분 캐시 만료 후 갱신할 때는 마지막으로 받은 목록을 사용한다. 최근 본은 공유 검색 데이터를 구독한다. 차트 자료의 진행 중 요청과 완료 결과도 공유한다. [현행 검색 동작](../DESIGN.md#search-recent-and-theme)
 
 일반 `/ranking-data/*.csv` 정적 주소는 이번 빌드의 기본 공개 범위를 제공한다. 화면에서 선택한 `scope`·`revision`의 다운로드 검증은 정적 명세와 해시 파일 주소를 사용한다. 정적 파일 서버는 URL 쿼리로 다른 CSV 본문을 계산하지 않는다.

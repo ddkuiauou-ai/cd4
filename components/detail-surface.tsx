@@ -32,6 +32,7 @@ import { RecentSecurityTracker } from './recent-security-tracker';
 import { CsvDownloadButton } from './CsvDownloadButton';
 import ShareButton from './share-button';
 import styles from './detail-investor-summary.module.css';
+import layoutStyles from './detail.module.css';
 
 export type DetailSearch = Record<string, string | string[] | undefined>;
 type SecuritySnapshot = NonNullable<Awaited<ReturnType<typeof getSecurityDetailSnapshot>>>;
@@ -431,7 +432,7 @@ export function DetailSurface(props: DetailSurfaceProps) {
     });
     if (nearby) {
       order.push(section('nearby-ranks', '가까운 ' + (companyPage ? '기업 시가총액' : label) + ' 순위', nearby,
-        <Link prefetch={false} href={rankingRoute}>전체 순위 보기</Link>));
+        <Link prefetch={false} href={rankingRoute} className={layoutStyles.nearbyRankingLink}>전체 순위 보기</Link>));
     }
   }
   const listingPeriods = security?.listingPeriods ?? [];

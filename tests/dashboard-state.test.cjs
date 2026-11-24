@@ -22,10 +22,11 @@ function snapshot(items = [], overrides = {}) {
   return { state: "published", publication, revisionChanged: false, items, totalCount: items.length,
     totalPages: 1, ...overrides };
 }
-async function renderDashboard(result, searchParams = {}, inspectTrends = false) {
+async function renderDashboard(result, searchParams = {}, inspectTrends = false, arena = null) {
   const calls = []; let trends;
   const loader = createBusinessPageLoader({
     "@/lib/data/company": { getCompanyRankingPage: async (...args) => { calls.push(args); return result; } },
+    "@/lib/data/dashboard-arena": { getDashboardArena: async () => arena },
     "@/lib/data/security": {},
     ...(inspectTrends ? { "@/components/MarketTrends": { default: props => {
       trends = props; return React.createElement("section", null, "관측 데이터 테스트");
@@ -34,6 +35,70 @@ async function renderDashboard(result, searchParams = {}, inspectTrends = false)
   return { ...await loader.renderRoute("app/dashboard/page.tsx", { searchParams }), calls, getTrends: () => trends };
 }
 const documentOf = html => new JSDOM(html).window.document;
+
+test("the live dashboard shows the four arena scenes and keeps the linked market records available", async () => {
+  const { html } = await renderDashboard(snapshot([withPrice(1, "2", "100")]), {}, false, {
+    today: [], past: [{ metric: "pbr", date: "2025-10-02", currentDate: publication.asOf, tiedCount: 2,
+      row: { id: "pbr-1", name: "대표 종목", value: "0.11", href: null, rank: 1, type: "보통주", current: null } }],
+    score: { ready: true, count: 0, scores: [] },
+  });
+  const document = documentOf(html);
+  const heading = document.querySelector(".pageHeading");
+  assert.equal(heading.querySelector("h1").textContent, "대회장");
+  assert.equal(heading.querySelector("time").dateTime, publication.asOf);
+  assert.equal(heading.nextElementSibling.getAttribute("aria-label"), "대회장 전광판");
+  assert.equal(document.querySelectorAll("h1").length, 1);
+  assert.deepEqual([...document.querySelectorAll("[data-arena-scene]")].map(scene => [scene.dataset.arenaScene, scene.hidden]),
+    [["today", false], ["past", true], ["overall", true], ["closing", true]]);
+  const menus = document.querySelectorAll('nav[aria-label="대회장 장면"]');
+  assert.equal(menus.length, 1);
+  const trigger = menus[0].querySelector('[aria-expanded]');
+  assert.equal(trigger.textContent, "오늘의 장");
+  assert.equal(trigger.getAttribute("aria-expanded"), "false");
+  const options = document.getElementById(trigger.getAttribute("aria-controls"));
+  assert.equal(options.hidden, true);
+  assert.deepEqual([...options.querySelectorAll('[aria-controls]')].map(button => document.getElementById(button.getAttribute('aria-controls')).dataset.arenaScene),
+    ["past", "overall", "closing"]);
+  assert.ok(menus[0].parentElement.querySelector('[aria-label="장면 자동 순환 일시 정지"]'));
+  const pbr = document.querySelector('#arena-panel-past article:last-child');
+  assert.match(pbr.querySelector('h3').textContent, /PBR.*2025-10-02.*공동 1위/);
+  assert.deepEqual([...pbr.querySelectorAll('li strong')].map(node => node.textContent), ["대표 종목"]);
+  const records = document.querySelector(".recordsDetails");
+  assert.equal(records.open, false);
+  assert.equal(records.querySelector(".recordsLabel").textContent, "기록실");
+  assert.ok(records.querySelector('a[href^="/ranking-data/companies-marketcap.csv"]'));
+});
+
+test("the historical card picks one tied leader using the exact same-day capitalization", () => {
+  const { historicalRepresentative } = createBusinessPageLoader().load("lib/dashboard-arena.ts");
+  const entry = (ticker, observedMarketcap, name = ticker) => ({ id: ticker, ticker, name, observedMarketcap,
+    href: null, rank: 1, value: "0.11", type: "보통주" });
+  const smaller = entry("000010", "9007199254740992");
+  const larger = entry("000020", "9007199254740993");
+  assert.equal(historicalRepresentative([smaller, larger]).id, larger.id);
+  assert.equal(historicalRepresentative([entry("000001", null), entry("000030", "0")]).id, "000030");
+  assert.equal(historicalRepresentative([entry("000020", "100"), entry("000010", "100")]).id, "000010");
+  assert.equal(historicalRepresentative([{ ...larger, ticker: undefined, name: "나", observedMarketcap: undefined },
+    { ...smaller, ticker: undefined, name: "가", observedMarketcap: undefined }]).id, smaller.id);
+  assert.equal(historicalRepresentative([]), null);
+});
+
+test("arena scoring uses a common eligible set, sums three ranks, and retains ties and zero dividends", () => {
+  const { scoreArena } = createBusinessPageLoader().load("lib/dashboard-arena.ts");
+  const date = publication.asOf;
+  const metricRows = values => Object.entries(values).map(([id, value]) => ({ id, value, name: id, href: null, rank: 1, type: "보통주" }));
+  const ranks = Object.fromEntries(Object.entries({
+    per: { a: "2", b: "3", c: "99", excluded: "0.1" }, pbr: { a: "2", b: "1", c: "9", excluded: "0.1" },
+    div: { a: "5", b: "5", c: "0", excluded: "10" }, eps: { a: "100", b: "20", c: "10", excluded: "0" },
+    bps: { a: "200", b: "30", c: "40", excluded: "10" }, dps: { a: "50", b: "30", c: "0", excluded: "10" },
+  }).map(([metric, values]) => [metric, { date, rows: metricRows(values) }]));
+  const score = scoreArena(ranks, date);
+  assert.equal(score.count, 3);
+  assert.deepEqual(score.scores.map(row => [row.entry.id, row.place, row.total, row.divisions.map(division => division.rank)]),
+    [["a", 1, 4, [1, 2, 1]], ["b", 1, 4, [2, 1, 1]], ["c", 3, 9, [3, 3, 3]]]);
+  assert.equal(score.scores[2].divisions[2].raw, "0");
+  assert.equal(scoreArena({ ...ranks, eps: { ...ranks.eps, date: "2026-10-05" } }, date).ready, false);
+});
 
 test("dashboard restores the four facts, trends, TOP5, and recent sidebar while preserving exact official values", async () => {
   const { html, text, calls } = await renderDashboard(snapshot([companyFixture()]));
@@ -111,7 +176,7 @@ test("a replaced revision offers a dashboard refresh and renders no mixed rankin
 test("records-room entry keeps company exports with TOP5 and gives each of the seven ranking shortcuts its own scope", async () => {
   const { html } = await renderDashboard(snapshot([withPrice(1, "2", "100")]));
   const document = documentOf(html);
-  assert.equal(document.querySelector("h1").textContent, "대회 기록실");
+  assert.equal(document.querySelector("h1").textContent, "대회장");
   const top5 = document.getElementById("dashboard-ranking").closest("section");
   assert.ok(top5.querySelector('a[href^="/ranking-data/companies-marketcap.csv"]'));
   assert.ok(top5.querySelector('a[href="/company/company-1/marketcap"]'));

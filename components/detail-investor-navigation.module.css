@@ -274,12 +274,16 @@ a.metricItem[aria-current='page'] {
   .titleCapLine { inline-size: 12px; }
 }
 
-.rail { --rail-section-gap: 16px; display: none; }
+.rail {
+  --rail-section-gap: clamp(10px, calc(4dvh - 20px), 16px);
+  --detail-outline-row-height: clamp(max(32px, var(--detail-touch-row-min, 0px)), 4.4dvh, 46px);
+  display: none;
+}
 .railRecords { min-height: 0; overflow: auto; scrollbar-width: thin; padding: 1px 3px 5px; }
 .railRecords > section + section { margin-block-start: var(--rail-section-gap); }
 /* The full-height history button already gives the chevron room below the list. */
 .railRecords > [data-recent-preview]:has(> [data-recent-panel-trigger]) + .railOutline {
-  margin-block-start: 8px;
+  margin-block-start: clamp(8px, calc(5dvh - 36px), 20px);
 }
 .railRecords :global(.recent-securities) { padding-inline: 6px; }
 .rail h2 { font-family: inherit; }
@@ -375,7 +379,8 @@ a.railCapOption:hover { background: color-mix(in srgb, var(--background) 65%, tr
 .switchRank { flex: none; margin-inline-end: 2px; color: var(--brand-ink); font-size: 11px; }
 .switchRank time { display: block; color: var(--muted-foreground); font-weight: 400; }
 .facts {
-  padding: 12px 10px;
+  padding-block: clamp(8px, calc(2dvh - 8px), 12px);
+  padding-inline: 10px;
   border-top: 2px solid var(--brand-ink);
   background: color-mix(in srgb, var(--brand-ink) 5%, var(--muted));
 }
@@ -385,7 +390,7 @@ a.railCapOption:hover { background: color-mix(in srgb, var(--background) 65%, tr
   justify-content: space-between;
   align-items: baseline;
   gap: 6px;
-  padding-block: 4px;
+  padding-block: clamp(2px, calc(1dvh - 5px), 4px);
   font-size: 13px;
 }
 .facts dt { min-width: 0; color: var(--muted-foreground); overflow-wrap: anywhere; }
@@ -433,30 +438,33 @@ a.railCapOption:hover { background: color-mix(in srgb, var(--background) 65%, tr
 
 @media (768px <= width < 1280px) {
   .metrics {
-    --detail-metric-row-height: 32px;
-    --detail-outline-row-height: 30px;
+    --detail-metric-row-height: clamp(max(32px, var(--detail-touch-row-min, 0px)), 4dvh, 44px);
+    --detail-outline-row-height: clamp(max(30px, var(--detail-touch-row-min, 0px)), 3.75dvh, 42px);
+    --detail-metric-group-gap: clamp(6px, calc(3dvh - 18px), 12px);
 
     padding-block: 6px;
   }
 
-  .metrics .metricOwner { margin-block-end: 6px; }
-  .metrics .metricGroup:nth-child(n+3) { margin-block-start: 6px; }
+  .metrics .metricOwner { margin-block-end: var(--detail-metric-group-gap); }
+  .metrics .metricGroup:nth-child(n+3) { margin-block-start: var(--detail-metric-group-gap); }
   .metrics .metricGroupName { padding-block: 2px; }
   .metrics .metricGroupTarget { padding-block-end: 2px; }
   .metrics .metricItem, .leftOutline .outlineLinks a { padding-block: 3px; }
 
-  .leftOutline { display: block; margin-block-start: 8px; padding-block-start: 6px; }
+  .leftOutline {
+    display: block;
+    margin-block-start: clamp(8px, calc(8dvh - 56px), 32px);
+    padding-block-start: var(--detail-metric-group-gap);
+  }
   .leftOutline h2 { margin-block-end: 4px; }
 
   @media (pointer: coarse) {
-    .metrics {
-      --detail-metric-row-height: 36px;
-      --detail-outline-row-height: 36px;
-    }
+    .metrics { --detail-touch-row-min: 36px; }
   }
 }
 
 @media (min-width: 1280px) {
+  .metrics { --detail-metric-row-height: clamp(40px, 4.5dvh, 48px); }
   .titleCapSwitch { display: none; }
   .titleCapStatus { display: inline-flex; }
   .rail {
@@ -469,5 +477,8 @@ a.railCapOption:hover { background: color-mix(in srgb, var(--background) 65%, tr
     max-height: calc(100dvh - var(--app-header-height) - 24px);
     align-self: start;
     padding-block: 8px 1px;
+  }
+  @media (pointer: coarse) {
+    .rail { --detail-touch-row-min: 36px; }
   }
 }

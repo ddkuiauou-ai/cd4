@@ -1,5 +1,7 @@
 # 랭킹 하단·푸터 적용 검증 — 2026-11-02
 
+> 2026-11-02의 랭킹 전용 푸터와 당시 최근 본 미리보기 검증이다. 현재는 [공통 푸터](../DESIGN.md#global-footer)와 [최근 본 미리보기](../DESIGN.md#search-recent-and-theme)를 사용한다.
+
 ## 적용 범위
 
 사용자가 승인한 `ranking-directory-footer.html` 시안을 `/`와 기업 합산·모든 종목 지표 순위 및 후속 페이지에 적용했다. market layout만 AppShell의 새 footer 슬롯을 선택한다. 상세·대시보드는 기존 SiteFooter와 레일 구성을 유지한다. 기존 작업 트리의 변경을 보존했으며 배포·DB 쓰기는 수행하지 않았다.

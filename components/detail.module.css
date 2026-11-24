@@ -312,6 +312,9 @@
 .detail :global(.investor-unavailable a) { color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; }
 .detail :global(.investor-record-heading a),
 .detail :global(.investor-record-actions a) { display: inline-flex; align-items: center; min-height: 40px; font-size: 13px; }
+@media (min-width: 768px) {
+  .detail :global(.investor-record-heading) .nearbyRankingLink { display: none; }
+}
 
 .detail :global(.investor-table) {
   width: 100%;

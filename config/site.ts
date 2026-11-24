@@ -10,3 +10,5 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
+
+export const dashboardLabel = "대회장";

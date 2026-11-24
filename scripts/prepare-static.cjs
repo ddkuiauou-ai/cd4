@@ -28,6 +28,7 @@ const { securityRouteCodes, companyRouteCodes } = require('../lib/entity-paths.t
 const { getWholeRankingExport } = require('../lib/data/ranking-export.ts');
 const { serializeRankingCsv, readRankingCsvMetadata } = require('../lib/csv/ranking.ts');
 const { createPreparedRankings } = require('../lib/static-build/ranking-snapshots.ts');
+const { ARENA_HISTORY_FILE, readArenaHistory } = require('../lib/data/dashboard-arena.ts');
 
 function writeJson(relative, value) {
   const file = path.join(work, relative); fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -66,6 +67,7 @@ async function prepare() {
   }));
   const publications = new Map(raw.publications.map(row => [row.publicationKey, row]));
   const secPub = publications.get(SECURITY_PUBLICATION_KEY) ?? null, coPub = publications.get('company_marketcap/krx-all') ?? null;
+  if (coPub) writeJson(ARENA_HISTORY_FILE, await readSnapshot(tx => readArenaHistory(tx, businessDate(coPub.asOf))));
   const secRoutes = securityRouteCodes(raw.securities), coRoutes = companyRouteCodes(raw.securities);
   const secById = new Map(raw.securities.map(row => [row.securityId, row]));
   const coById = new Map(raw.companies.map(row => [row.companyId, row]));

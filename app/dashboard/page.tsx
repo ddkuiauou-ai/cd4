@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { dashboardLabel } from "@/config/site";
 import { readPageSearch } from "@/lib/static-page-search";
 import { isStaticBuild, getStaticRankingManifest } from "@/lib/static-build/server";
 import { StaticRevisionBoundary } from "@/components/static-revision-boundary";
@@ -9,7 +10,9 @@ import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar"
 import { RankingValue } from "@/components/ranking-row-parts";
 import { RankingPosition } from "@/components/ranking-position";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
+import { DashboardArena } from "@/components/dashboard-arena";
 import { getCompanyRankingPage } from "@/lib/data/company";
+import { getDashboardArena } from "@/lib/data/dashboard-arena";
 import { compareVolumes, createRankingRows, formatRankingRate, getPriceDateRange, type RankingRow, type RankingSearch } from "@/lib/ranking-view";
 import { dashboardMetadata } from "@/lib/business-metadata";
 import { formatBusinessValue } from "@/lib/business-analysis";
@@ -35,17 +38,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const revision = snapshot.publication?.revision;
   const rankingHref = `/marketcaps${revision ? `?revision=${encodeURIComponent(revision)}` : ""}`;
   const usable = snapshot.state === "published" && !snapshot.revisionChanged;
+  const date = snapshot.publication?.asOf;
+  const market = snapshot.publication && snapshot.publication.scopeKey !== "krx-all" ? snapshot.publication.scopeKey : "코스피 · 코스닥 전체";
+  const arena = usable && date && rows.length ? await getDashboardArena(date) : null;
   const manifest = isStaticBuild() ? await getStaticRankingManifest("marketcap", "company") : undefined;
-  const body = <div className={cn("dashboard-shell", styles.page)}>
+  const records = <div className={cn("dashboard-shell", styles.page)}>
     <div className="dashboard-content">
-      <header className={styles.heading}>
-        <h1>대회 기록실</h1>
-        <p>기업의 규모와 대표 보통주의 흐름을 살펴보세요.</p>
-        <div className={styles.dates}><span>시장 · {snapshot.publication?.scopeKey === "krx-all" || !snapshot.publication ? "코스피 · 코스닥 전체" : snapshot.publication.scopeKey}</span><span>시가총액 공개 기준일 · {snapshot.publication?.asOf ?? "미공개"}</span><span>가격 관측일 · {priceDate ?? "정보 없음"}</span></div>
-      </header>
-      {snapshot.revisionChanged ? <div className="empty-state" role="status"><h2 className="section-heading">자료가 갱신되었습니다</h2><p className="data-note mt-2">최신 자료에서 대시보드를 다시 확인해 주세요.</p><Link prefetch={false} href="/dashboard" className="inline-block mt-5 underline underline-offset-4">최신 자료 보기</Link></div>
+      {snapshot.revisionChanged ? <div className="empty-state" role="status"><h2 className="section-heading">자료가 갱신되었습니다</h2><p className="data-note mt-2">최신 자료로 대회장을 다시 열어 주세요.</p><Link prefetch={false} href="/dashboard" className="inline-block mt-5 underline underline-offset-4">최신 자료 보기</Link></div>
         : !usable ? <div className="empty-state" role="status"><h2 className="section-heading">아직 공개된 회사 순위가 없습니다</h2><p className="data-note mt-2">검색에서 종목 정보와 다른 지표를 확인할 수 있습니다.</p><Link prefetch={false} href="/" className="inline-block mt-5 underline underline-offset-4">랭킹으로 이동 →</Link></div>
         : <>
+          {priceDate && <p className={styles.recordDate}>가격 관측일 · {priceDate}</p>}
           {!rows.length && <p className="empty-state data-note" role="status">공개된 순위 대상은 0개입니다. 전체 순위 CSV는 열 이름만 포함합니다.</p>}
           <div className={styles.panels}>
             <section className={styles.companies} aria-labelledby="dashboard-ranking">
@@ -80,5 +82,27 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     </div>
     <aside className="context-rail dashboard-rail"><RecentSecuritiesSidebar variant="preview" /><section className={styles.basis}><h2>조회 기준</h2><dl><div><dt>시가총액 공개 기준일</dt><dd>{snapshot.publication?.asOf ?? "미공개"}</dd></div><div><dt>가격 관측일</dt><dd>{priceDate ?? "정보 없음"}</dd></div></dl><p>회사 순위는 공개된 합산 결과입니다. 대표 보통주의 가격이 없어도 순위 대상은 유지됩니다.</p>{snapshot.publication && <details><summary>자료 공개 정보</summary><p>자료 갱신 번호 {snapshot.publication.revision} · 대상 {snapshot.publication.scopeKey === "krx-all" ? "KRX 전체" : snapshot.publication.scopeKey}</p></details>}</section></aside>
   </div>;
+  const body = <>
+    <header className={styles.pageHeading}>
+      <h1>{dashboardLabel}</h1>
+      <dl className={styles.pageFacts}>
+        <div><dt>시장</dt><dd>{market}</dd></div>
+        <div><dt>기준일</dt><dd>{date ? <time dateTime={date}>{date.replaceAll("-", ".")}</time> : "미공개"}</dd></div>
+      </dl>
+    </header>
+    {arena && date ? <>
+      <DashboardArena data={arena} companyRows={rows} date={date} />
+      <details className={styles.recordsDetails}>
+        <summary>
+          <span className={styles.recordsSummary}>
+            <span className={styles.recordsLabel}>기록실</span>
+            <span className={styles.recordsContents}>기업 시가총액 · 전체 지표 · CSV</span>
+            <ChevronDown size={18} aria-hidden="true" />
+          </span>
+        </summary>
+        {records}
+      </details>
+    </> : records}
+  </>;
   return isStaticBuild() ? <Suspense fallback={body}><StaticRevisionBoundary revision={revision ?? null}>{body}</StaticRevisionBoundary></Suspense> : body;
 }

@@ -60,7 +60,17 @@ export function detailNavGroups({ company, security, companyPage, basic, metric,
   company: DetailCompanyView | null; security: ScopedSecurity | null; companyPage: boolean; basic: boolean; metric: DetailMetric; scope: Scope;
 }): DetailNavItem[][] {
   const { periodId, ...range } = scope;
-  const target = companyPage && security ? securityName(security) + (security.ticker ? ' · ' + security.ticker : '') : undefined;
+  let target: DetailNavItem['target'];
+  if (companyPage && security) {
+    const stockName = securityName(security);
+    const companyName = company?.companyKorName || company?.companyName;
+    const hasSameNameMember = company?.securities.some(member =>
+      member.securityId !== security.securityId && securityName(member) === stockName) ?? false;
+    target = {
+      label: security.ticker ? stockName + ' · ' + security.ticker : stockName,
+      showInMenu: security.type !== '보통주' || stockName !== companyName || hasSameNameMember,
+    };
+  }
   const item = (key: DetailMetric): DetailNavItem => ({
     label: detailMetricLabel(key),
     href: security && (key === 'marketcap' || metricAvailable(security, key))

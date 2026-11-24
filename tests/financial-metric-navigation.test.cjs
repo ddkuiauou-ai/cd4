@@ -65,6 +65,29 @@ test('the detail menu keeps every metric in order and leaves unavailable items o
   }
 });
 
+test('the company menu omits a repeated common-stock label and retains the destination on each link', () => {
+  const load = loader();
+  const { detailNavGroups } = load('components/detail-investor-records.tsx');
+  const { DetailInvestorNavigation } = load('components/detail-investor-navigation.tsx');
+  for (const [security, sibling, showTarget] of [
+    [common, preferred, false],
+    [{ ...common, korName: '다른 상장명' }, preferred, true],
+    [preferred, common, true],
+    [common, { ...preferred, korName: common.korName }, true],
+  ]) {
+    const groups = detailNavGroups({ company: { ...company, companyKorName: '삼성전자', securities: [security, sibling] }, security,
+      companyPage: true, basic: false, metric: 'marketcap', scope: range });
+    const dom = documentFor(DetailInvestorNavigation, { groups, name: '삼성전자' });
+    try {
+      const doc = dom.window.document;
+      const destination = `${security.korName} · ${security.ticker}`;
+      assert.equal(doc.querySelector('.metricGroupTarget')?.textContent, showTarget ? destination : undefined);
+      const link = doc.querySelector(`nav a[aria-label="배당수익률 · ${destination}"]`);
+      assert.equal(new URL(link.href, 'https://example.test').pathname, `/security/${security.routeCode}/div`);
+    } finally { dom.window.close(); }
+  }
+});
+
 test('marketcap target links retain the reading chapter and remember the return location', () => {
   const sections = [{ id: 'chart-analysis', label: '추이' }, { id: 'annual-data', label: '연도별 기록' }];
   const aggregate = '/company/KOSPI.005930/marketcap';

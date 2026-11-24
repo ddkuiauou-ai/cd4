@@ -126,12 +126,12 @@ test('restored ranking distinguishes completed zero, unpublished and replaced re
   }
 });
 
-test('restored ranking preserves exact values, fallback identities and CSV revision', async () => {
+test('restored ranking formats large values and preserves fallback identities and CSV revision', async () => {
   const snapshot = { items: [{ securityId: 'historical-security', routeCode: null, korName: '예시', currentRank: 1, priorRank: 2, value: '9007199254740993', valueObservedAt: '2026-10-02', prices: [] }], state: 'published', publication, totalCount: 21, totalPages: 2, revisionChanged: false };
   const boundary = createBusinessPageLoader({ '@/lib/data/security': { getSecurityRanksPage: async () => snapshot } });
   const { PublishedRankingPage } = boundary.load('components/published-ranking-page.tsx');
   const { html } = await boundary.renderElement(await PublishedRankingPage({ metric: 'marketcap' }));
-  assert.ok(html.includes('9,007,199,254,740,993'));
+  assert.match(html, /9,007\.2<span[^>]*>조<\/span>/);
   assert.ok(html.includes('/security/historical-security/marketcap'));
   assert.ok(html.includes('revision=3'));
   assert.ok(html.includes('/ranking-data/securities-marketcap.csv'));

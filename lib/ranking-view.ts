@@ -7,12 +7,19 @@ export type RankingSearch = Record<string, string | string[] | undefined>;
 export interface RankingPublication { asOf: string; revision: string; scopeKey: string; calculationId: string; publishedAt: string }
 export type RankingAmount = number | string | null;
 
-export const RANKING_METRICS: Record<RankingMetric, { label: string; title: string; unit: string; description: string }> = {
+export const RANKING_METRICS: Record<RankingMetric, {
+  label: string;
+  title: string;
+  unit: string;
+  description: string;
+  columnLabel?: string;
+  sortHint?: string;
+}> = {
   marketcap: { label: "시가총액", title: "시가총액 순위", unit: "원", description: "시가총액은 발행주식수와 주가를 곱한 값입니다." },
-  per: { label: "PER", title: "PER 순위", unit: "배", description: "PER은 주가를 주당순이익으로 나눈 값입니다. 순위는 지표의 크기와 투자 수익을 구분해서 읽어 주세요." },
-  pbr: { label: "PBR", title: "PBR 순위", unit: "배", description: "PBR은 주가를 주당순자산으로 나눈 값입니다." },
-  eps: { label: "EPS", title: "EPS 순위", unit: "원", description: "EPS는 주당순이익입니다." },
-  bps: { label: "BPS", title: "BPS 순위", unit: "원", description: "BPS는 주당순자산입니다." },
+  per: { label: "PER", title: "PER 순위", columnLabel: "주가수익비율(PER)", sortHint: "낮은 배수부터", unit: "배", description: "PER은 주가를 주당순이익으로 나눈 값입니다. 순위는 지표의 크기와 투자 수익을 구분해서 읽어 주세요." },
+  pbr: { label: "PBR", title: "PBR 순위", columnLabel: "주가순자산비율(PBR)", sortHint: "낮은 배수부터", unit: "배", description: "PBR은 주가를 주당순자산으로 나눈 값입니다." },
+  eps: { label: "EPS", title: "EPS 순위", columnLabel: "주당순이익(EPS)", unit: "원", description: "EPS는 주당순이익입니다." },
+  bps: { label: "BPS", title: "BPS 순위", columnLabel: "주당순자산(BPS)", unit: "원", description: "BPS는 주당순자산입니다." },
   div: { label: "배당수익률", title: "배당수익률 순위", unit: "%", description: "배당수익률은 주가에 대한 주당배당금의 비율입니다." },
   dps: { label: "주당배당금", title: "주당배당금 순위", unit: "원", description: "주당배당금은 한 주에 지급하는 배당금입니다." },
 };
@@ -152,11 +159,6 @@ export function compareVolumes(a: RankingAmount, b: RankingAmount): number {
 
 export function formatRankingRate(rate: number | null): string {
   return rate == null ? "—" : `${rate > 0 ? "+" : ""}${rate.toFixed(2)}%`;
-}
-
-export function getRankingPriceDate(rows: readonly RankingRow[]): string | null {
-  const dates = rows.flatMap(row => row.priceDate ? [row.priceDate] : []).sort();
-  return dates[dates.length - 1] ?? null;
 }
 
 export function rankMovement(current: number | null | undefined, prior: number | null | undefined) {

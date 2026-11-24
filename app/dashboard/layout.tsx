@@ -1,13 +1,10 @@
-import { LayoutWrapper } from "@/components/layout-wrapper";
+import type { ReactNode } from "react";
+import { AppShell } from "@/components/app-shell";
 
-interface DashboardLayoutProps {
-    children: React.ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-    return (
-        <LayoutWrapper showMarketNav={false}>
-            {children}
-        </LayoutWrapper>
-    );
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <AppShell>
+      <div className="app-container">{children}</div>
+    </AppShell>
+  );
 }

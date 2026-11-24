@@ -108,6 +108,15 @@
         ],
         "createdAt": "2026-10-23T18:06:12.020Z",
         "reason": "Agent: The flagged detail-fold wrapper delegates inset to its summary child, which has padding-block:10px and min-height:44px. The detector ignores that child padding; existing desktop/mobile captures and finish review confirm readable spacing."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "components/ranking-view.module.css"
+        ],
+        "createdAt": "2026-11-22T19:21:20.969Z",
+        "reason": "Agent review: the 4px radius belongs to the market-cap group surface. Separate ranking links use a 3px bottom border for the approved gold current-page underline."
       }
     ]
   }

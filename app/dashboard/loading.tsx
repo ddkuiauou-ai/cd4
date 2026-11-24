@@ -1,16 +1,25 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import styles from "@/components/dashboard.module.css";
+import { dashboardLabel } from "@/config/site";
+import styles from "@/components/dashboard-arena.module.css";
+import pageStyles from "@/components/dashboard.module.css";
 
 export default function DashboardLoading() {
   return (
-    <section className={`dashboard-content ${styles.page}`} aria-busy="true">
-      <p role="status" className="sr-only">대시보드 데이터를 불러오는 중입니다.</p>
-      <div className={styles.skeletonHeading} aria-hidden="true"><Skeleton className="h-10 w-56" /><Skeleton className="h-4 w-72 max-w-full mt-4" /></div>
-      <div className={styles.panels} aria-hidden="true">
-        <div className={`${styles.companies} ${styles.skeletonPanel}`}><Skeleton className="h-7 w-60 max-w-full mb-6" />{Array.from({length:5},(_,index)=><div key={index} className={styles.skeletonRow}><Skeleton className="h-10" /><Skeleton className="h-10" /><Skeleton className="h-10" /></div>)}</div>
-        <div className={`${styles.trendsArea} ${styles.skeletonPanel}`}><Skeleton className="h-7 w-52 max-w-full mb-6" /><Skeleton className="h-10 w-full" />{Array.from({length:5},(_,index)=><div key={index} className={styles.skeletonRow}><Skeleton className="h-10" /><Skeleton className="h-10" /><Skeleton className="h-10" /></div>)}</div>
-        <div className={`${styles.shortcuts} ${styles.skeletonPanel}`}><Skeleton className="h-7 w-60 max-w-full mb-4" /><Skeleton className="h-24 w-full" /></div>
+    <>
+      <header className={pageStyles.pageHeading}><h1>{dashboardLabel}</h1></header>
+      <p role="status" className="sr-only">대회장 데이터를 불러오는 중입니다.</p>
+      <div className={styles.arena} aria-hidden="true">
+        <div className={`${styles.controls} ${styles.loadingMenu}`}><span /></div>
+        <div className={`${styles.frame} ${styles.loadingFrame}`}>
+          <div className={styles.stage}>
+            <div className={styles.scene}>
+              <div className={styles.todayGrid}>
+                {Array.from({ length: 8 }, (_, index) => <div key={index} className={`${styles.event} ${styles.loadingEvent}`}><span /><span /><span /></div>)}
+              </div>
+            </div>
+          </div>
+          <div className={styles.arenaFoot}><span /></div>
+        </div>
       </div>
-    </section>
+    </>
   );
 }
