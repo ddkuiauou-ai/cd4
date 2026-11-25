@@ -9,7 +9,7 @@ const home = fs.mkdtempSync(path.join(os.tmpdir(), 'cd-r2-test-'));
 process.env.STATIC_RELEASE_HOME = home;
 test.after(() => fs.rmSync(home, { recursive: true, force: true }));
 const { RUNS, markReleaseRun } = require('../scripts/clean-static-release.cjs');
-const { deploy, compareActive, seoulCalendar } = require('../scripts/deploy-static-r2.cjs');
+const { deploy, compareActive, seoulCalendar, smokeRelease } = require('../scripts/deploy-static-r2.cjs');
 const { r2Config, createR2Client } = require('../scripts/static-r2-client.cjs');
 
 const commit = '1'.repeat(40);
@@ -217,4 +217,58 @@ test('first full can reuse only the explicitly verified canonical snapshot and d
   assert.equal(calls[0].input, input);
   assert.equal(calls[0].day, day);
   await assert.rejects(exec(), /first full publication/);
+});
+
+test('smoke compares only active Samsung and dated CSV, keeping anonymous confirmation separate', async () => {
+  const day = '2026-10-08';
+  const fixtures = {
+    'security/KOSPI.005930/per/index.html': { body: '<p>삼성전자 PER</p>', type: 'text/html; charset=utf-8' },
+    [`downloads/market/${day}.csv`]: { body: '\uFEFF기준일,종목코드\n2026-10-08,005930', type: 'text/csv; charset=utf-8' },
+  };
+  const objects = Object.entries(fixtures).map(([key, { body, type }]) => ({
+    key, sha256: createHash('sha256').update(body).digest('hex'), bytes: Buffer.byteLength(body), headers: { 'content-type': type },
+  }));
+  const inventory = { version: 1, activeKeys: Object.keys(fixtures), objects };
+  const descriptor = { version: 1, run: 'release-smoke', commit, day, inventory, releaseId: signature(inventory) };
+  const candidateId = signature(descriptor);
+  const pointer = { version: 1, current: { commit, day, releaseId: descriptor.releaseId, candidateId } };
+  const requests = [];
+  let changed = false;
+  const api = createR2Client({ ...config, endpoint: new URL('https://storage.example.test'), accessKey: 'fake-id', secret: 'fake-token' }, {
+    request: async (url, options) => {
+      assert.equal(options.method, 'GET');
+      assert.ok(options.headers.authorization);
+      requests.push(url.pathname);
+      if (url.pathname.endsWith('/' + stateFile)) return Response.json(pointer, { headers: { etag: '"pointer"' } });
+      if (url.pathname.endsWith('/' + candidateId + '.json')) return Response.json(descriptor, { headers: { etag: '"descriptor"' } });
+      const fixture = fixtures[url.pathname.slice('/public-test/'.length)];
+      return new Response(changed && fixture.type.startsWith('text/html') ? 'different' : fixture.body,
+        { headers: { 'content-type': fixture.type } });
+    },
+  });
+  const signed = await smokeRelease(api, config, () => assert.fail('anonymous origin was not configured'));
+  assert.equal(signed.bucket.verified, true);
+  assert.match(signed.publicOrigin.skipped, /not configured/);
+  assert.equal(requests.length, 4);
+  assert.deepEqual(requests.slice(2).sort(), Object.keys(fixtures).map(key => '/public-test/' + key).sort());
+
+  const anonymous = await smokeRelease(api, { ...config, publicOriginConfigured: true }, async (url, options) => {
+    assert.equal(options.credentials, 'omit');
+    assert.equal(options.redirect, 'manual');
+    assert.equal(options.headers, undefined);
+    if (url.pathname === '/security/KOSPI.005930/per/') return new Response('private challenge', { status: 403 });
+    const csv = fixtures[url.pathname.slice(1)];
+    return new Response(csv.body, { headers: { 'content-type': csv.type } });
+  });
+  assert.equal(anonymous.bucket.verified, true);
+  assert.equal(anonymous.publicOrigin.verified, false);
+  assert.equal(anonymous.publicOrigin.objects.samsungPer.http, 403);
+  assert.equal(anonymous.publicOrigin.objects.marketCsv.sha256Matches, true);
+  assert.doesNotMatch(JSON.stringify(anonymous), /private challenge|삼성전자|fake-token/);
+
+  changed = true;
+  const mismatch = await smokeRelease(api, config);
+  assert.equal(mismatch.bucket.objects.samsungPer.sha256Matches, false);
+  assert.equal(mismatch.bucket.objects.samsungPer.contentTypeMatches, true);
+  assert.equal(mismatch.bucket.verified, false);
 });

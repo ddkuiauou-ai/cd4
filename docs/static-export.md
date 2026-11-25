@@ -48,6 +48,7 @@ bun run clean:release --dry-run
 - 공개 키는 공유 자원 → 자료 → 문서 → 사이트맵 → 철회 순서로 적용한다. 비공개 `cd-release/current.json`은 조건부 쓰기로 완료 상태를 한 번에 선택한다. 공개 버킷에서 여러 키가 적용되는 동안 문서와 사이트맵은 순서대로 전환된다. 중단되면 `resume`을 실행해 같은 후보에서 마지막 성공 묶음부터 재시도한다. 성공 포인터 저장 후 로컬 상태가 남아 있으면 같은 명령으로 맞춘다.
 - 현장 실행은 `STATIC_RELEASE_HOME`과 위 환경을 지정한 후 `bun run deploy:r2 --mode status`, `--mode full`, `--mode verify`, `--mode promote --candidate-id <ID>`, `--mode resume`을 사용한다. `verify`에는 마지막 성공 커밋을 체크아웃한다. 후보와 인벤토리는 비공개 버킷과 전용 러너에 저장한다.
 - 처음 `full`을 실행할 때 같은 커밋과 업무일로 검수한 완전 동결본을 재사용할 수 있다. 수동 실행의 `frozen_input`에는 러너의 절대 경로를, `frozen_day`와 `frozen_commit`에는 검수에 사용한 날짜와 커밋을 지정한다. CLI의 대응 인자는 `--input`, `--day`, `--input-commit`이다. 빌드는 새 HTML과 후보 인벤토리를 생성한다.
+- 배포 뒤 수동 `smoke`로 마지막 완료 릴리스의 삼성전자 PER HTML과 해당 업무일의 시장 CSV를 검증한다. 서명된 R2 읽기의 SHA-256·Content-Type 대조 결과를 표시한다. 저장소 변수 `R2_PUBLIC_ORIGIN`을 지정하면 공개 문서 경로와 CSV도 익명 HTTPS로 읽어 별도 결과를 기록한다. 변수가 비어 있으면 공개 주소 검사를 생략한다.
 - 평일 갱신의 업무일은 실제 최신 공개 헤더가 결정한다. 휴장일 또는 수집 대기 중 공개 헤더가 직전 성공과 같으면 그대로 유지한다. 중단 작업은 `resume`으로 완료하고, 일별 기준선을 건너뛴 관측이나 정정은 전체 실행에서 다시 동결한다.
 
 ## 기존 전체 정적 출력과 확인

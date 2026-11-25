@@ -6,7 +6,7 @@ on:
       mode:
         description: Release operation
         type: choice
-        options: [status, provision, full, daily, verify, promote, resume]
+        options: [status, provision, full, daily, verify, promote, resume, smoke]
         default: status
       candidate_id:
         description: Reviewed candidate ID for promote

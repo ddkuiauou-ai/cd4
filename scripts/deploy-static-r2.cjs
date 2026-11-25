@@ -5,7 +5,7 @@ const { execFileSync } = require('node:child_process');
 const { ROOT, STAGE, readJson, readManifest, relativeFile, sha256 } = require('./static-tools.cjs');
 const { acquireStoreLock, jsonHash, operationPhase, planRelease, publishRelease, readRelease, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
-const { createR2Client, r2Config } = require('./static-r2-client.cjs');
+const { createR2Client, r2Config, compareObjectResponse } = require('./static-r2-client.cjs');
 const { buildRelease } = require('./build-static-release.cjs');
 
 const CURRENT = 'cd-release/current.json';
@@ -88,6 +88,39 @@ async function checkActiveInventory(client, config, active) {
   if (descriptor.releaseId !== active.releaseId || descriptor.commit !== active.commit || descriptor.day !== active.day) {
     throw new Error('R2 active inventory differs from its success pointer');
   }
+  return descriptor.inventory;
+}
+
+async function smokeRelease(client, config, request = fetch) {
+  const { value: { current } } = await getState(client, config);
+  if (!current) throw new Error('No completed release to verify');
+  const inventory = await checkActiveInventory(client, config, current);
+  const active = new Set(inventory.activeKeys ?? inventory.objects.map(object => object.key));
+  const objects = new Map(inventory.objects.map(object => [object.key, object]));
+  const paths = {
+    samsungPer: '/security/KOSPI.005930/per/',
+    marketCsv: `/downloads/market/${current.day}.csv`,
+  };
+  const targets = Object.entries(paths).map(([label, url]) => {
+    const key = url.slice(1) + (url.endsWith('/') ? 'index.html' : '');
+    return { label, url, object: active.has(key) ? objects.get(key) : undefined };
+  });
+  async function compare(read) {
+    const checks = await Promise.all(targets.map(async ({ label, url, object }) => {
+      if (!object) return [label, { result: 'missing-active-key' }];
+      try { return [label, await read(object, url)]; }
+      catch { return [label, { result: 'request-failed' }]; }
+    }));
+    return { verified: checks.every(([, result]) => result.sha256Matches && result.contentTypeMatches),
+      objects: Object.fromEntries(checks) };
+  }
+  const bucket = await compare(object => client.verifyObject(config.publicBucket, object));
+  const publicOrigin = config.publicOriginConfigured
+    ? await compare(async (object, url) => compareObjectResponse(await request(new URL(url, config.origin), {
+      credentials: 'omit', redirect: 'manual', cache: 'no-cache', signal: AbortSignal.timeout(30_000),
+    }), object))
+    : { verified: false, skipped: 'R2_PUBLIC_ORIGIN is not configured' };
+  return { mode: 'smoke', day: current.day, bucket, publicOrigin };
 }
 
 async function register(client, config, descriptor) {
@@ -174,6 +207,7 @@ function adoptLocal(store, descriptor) {
 
 async function deploy(options, { client, config, build = buildRelease } = {}) {
   const { mode, store, candidateId, retireLegacy, commit, concurrency = 24, day, input, inputCommit } = options;
+  if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
   if (mode === 'status') {
     const probes = await Promise.allSettled(roles.map(role => client.probeBucket(config[role + 'Bucket'])));
@@ -301,8 +335,8 @@ if (require.main === module) {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
       input: { type: 'string' }, 'input-commit': { type: 'string' },
       'candidate-id': { type: 'string' }, 'retire-legacy': { type: 'boolean' }, 'first-saturday': { type: 'boolean' } } });
-    if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision'].includes(values.mode)) {
-      throw new Error('Choose --mode full, daily, verify, promote, resume, status or provision');
+    if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision', 'smoke'].includes(values.mode)) {
+      throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
     }
     if (values.input && (values.mode !== 'full' || !path.isAbsolute(values.input) || !values['input-commit'] || !values.day)) {
       throw new Error('--input requires an absolute path, --mode full, --input-commit and --day');
@@ -329,6 +363,9 @@ if (require.main === module) {
       if (!result.readable) process.exitCode = 1;
     } else if (values.mode === 'provision') {
       console.log(JSON.stringify(result));
+    } else if (values.mode === 'smoke') {
+      console.log(JSON.stringify(result));
+      if (!result.bucket.verified || (config.publicOriginConfigured && !result.publicOrigin.verified)) process.exitCode = 1;
     } else {
       githubSummary(result);
       console.log(JSON.stringify(result));
@@ -337,4 +374,4 @@ if (require.main === module) {
   }).catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { seoulCalendar, compareActive, batches, plannedCounts, executePending, legacyRetirements, deploy };
+module.exports = { seoulCalendar, compareActive, batches, plannedCounts, executePending, legacyRetirements, deploy, smokeRelease };

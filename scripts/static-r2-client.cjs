@@ -16,6 +16,23 @@ const s3Code = body => {
   return s3Codes.has(code) ? code : undefined;
 };
 
+async function compareObjectResponse(response, expected) {
+  const mime = value => (value ?? '').toLowerCase().split(';').map(part => part.trim()).join(';');
+  const contentTypeMatches = mime(response.headers.get('content-type')) === mime(expected.headers['content-type']);
+  if (response.status !== 200) {
+    await response.body?.cancel();
+    return { http: response.status, sha256Matches: false, contentTypeMatches };
+  }
+  const digest = createHash('sha256');
+  let bytes = 0;
+  for await (const chunk of response.body ?? []) {
+    bytes += chunk.length;
+    if (bytes > expected.bytes) break;
+    digest.update(chunk);
+  }
+  return { http: response.status, sha256Matches: bytes === expected.bytes && digest.digest('hex') === expected.sha256, contentTypeMatches };
+}
+
 function r2Config(env = process.env) {
   const endpoint = new URL(env.R2_ENDPOINT_URL || `https://${env.R2_ACCOUNT_ID || 'missing'}.r2.cloudflarestorage.com`);
   const publicBucket = env.R2_BUCKET_NAME;
@@ -35,7 +52,8 @@ function r2Config(env = process.env) {
   if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
     throw new Error('R2_PUBLIC_ORIGIN must be an HTTPS origin');
   }
-  return { endpoint, publicBucket, stateBucket, accessKey, secret, token: explicit ? undefined : env.AWS_SESSION_TOKEN, origin };
+  return { endpoint, publicBucket, stateBucket, accessKey, secret, token: explicit ? undefined : env.AWS_SESSION_TOKEN, origin,
+    publicOriginConfigured: Boolean(env.R2_PUBLIC_ORIGIN) };
 }
 
 function createR2Client(config, { request = fetch, now = () => new Date(), pause = sleep } = {}) {
@@ -82,6 +100,10 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     }
     if (!response.ok || !response.headers.get('etag')) throw new Error('R2 private object could not be read');
     return { value: await response.json(), etag: response.headers.get('etag') };
+  }
+
+  async function verifyObject(bucket, object) {
+    return compareObjectResponse(await call('GET', bucket, object.key, { diagnostic: true }), object);
   }
 
   async function listBucketStatus(bucket) {
@@ -169,7 +191,7 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     } while (continuation);
   }
 
-  return { checkBucket, probeBucket, prepareBucket, getJson, putJson, putObject, deleteKeys, listKeys };
+  return { checkBucket, probeBucket, prepareBucket, getJson, verifyObject, putJson, putObject, deleteKeys, listKeys };
 }
 
-module.exports = { createR2Client, r2Config };
+module.exports = { createR2Client, r2Config, compareObjectResponse };
