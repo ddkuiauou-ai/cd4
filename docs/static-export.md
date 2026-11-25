@@ -38,10 +38,12 @@ bun run clean:release --dry-run
 
 - 최초 공개, 코드 교체 및 과거 정정은 수동 `full`을 선택한다. 전체 후보의 활성 키를 올린다. 일별 실행은 직전 성공 인벤토리와 비교한 변경 키를 올린다. 월간 결과가 같으면 공개 PUT은 0건이다. 차이가 있으면 `promote`에 검수한 후보 ID를 입력한다. 승격 시 최초 비교의 기준 릴리스와 실행 ID가 여전히 활성 상태여야 한다.
 - 기존 종목·회사 별칭 HTML 정리는 `full`의 `retire_legacy` 옵션으로 실행한다. 새 사이트에는 대표 경로만 게시하고 내부 식별자·검색 대응표는 유지한다. 대상 버킷의 관리 대상 종목·회사 문서 키와 성공 인벤토리에 기록된 키만 개별 묶음으로 철회한다. 과거 날짜 CSV와 직전 릴리스의 해시 자원은 유지한다.
-- Cloudflare에서 공개 버킷과 별도 비공개 상태 버킷을 준비하고 두 버킷에 접근할 S3 토큰을 설정한다. 상태 버킷의 공개 주소와 커스텀 도메인은 비활성 상태로 둔다. 기존 GitHub 시크릿 `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`를 사용한다. 상태 버킷 기본 이름은 공개 버킷명에 `-state`를 붙인 값이며 `R2_STATE_BUCKET_NAME`으로 설정할 수 있다. 첫 공개 전 수동 `status`에서 두 버킷의 읽기 접근과 완료·중단 상태를 확인한다. `R2_ENDPOINT_URL`은 선택 사항이고, 공개 주소 기본값은 `https://www.chundan.xyz`다. [R2 S3 조건부 쓰기 안내](https://developers.cloudflare.com/r2/api/s3/conditional-operations/)
+- 공개 버킷과 별도 비공개 상태 버킷에 접근할 S3 토큰을 설정한다. 상태 버킷의 공개 주소와 커스텀 도메인은 비활성 상태로 둔다. 기존 GitHub 시크릿 `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`를 사용한다. 공개 버킷 이름은 GitHub 변수 `R2_PUBLIC_BUCKET_NAME`을 먼저 사용한다. 상태 버킷 기본 이름은 공개 버킷명에 `-state`를 붙인 값이며 `R2_STATE_BUCKET_NAME`으로 설정할 수 있다. `R2_ENDPOINT_URL`은 선택 사항이고, 공개 주소 기본값은 `https://www.chundan.xyz`다.
+- 첫 공개 전 수동 `status`로 두 버킷의 HEAD와 `ListObjectsV2(max-keys=1)`를 확인한다. 출력에는 역할별 HTTP 상태와 알려진 S3 오류 코드가 기록된다. 목록 응답이 `NoSuchBucket`을 반환하면 계정·관할·설정된 이름을 확인한 후 수동 `provision`을 실행할 수 있다. 이 작업은 미존재가 확인된 설정 버킷만 생성한 뒤 목록 접근을 다시 확인한다. 생성 권한이 없으면 Cloudflare에서 관리자가 상태 버킷을 준비하고 토큰의 권한 범위를 확인한다. [Cloudflare R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/)
 - GitHub 변수 `CD_R2_RELEASE_HOME`으로 체크아웃 외부의 전용 절대 디렉터리를 지정한다. 기본값은 러너의 `$HOME/.local/state/cd4-r2`다. 동결 자료, 컴파일 캐시, 검수 후보와 로컬 객체를 같은 러너에 유지한다. 전체 빌드 및 월간 비교에는 직전 자료와 새 전체 후보를 함께 둘 디스크가 필요하다.
 - 공개 키는 공유 자원 → 자료 → 문서 → 사이트맵 → 철회 순서로 적용한다. 비공개 `cd-release/current.json`은 조건부 쓰기로 완료 상태를 한 번에 선택한다. 공개 버킷에서 여러 키가 적용되는 동안 문서와 사이트맵은 순서대로 전환된다. 중단되면 `resume`을 실행해 같은 후보에서 마지막 성공 묶음부터 재시도한다. 성공 포인터 저장 후 로컬 상태가 남아 있으면 같은 명령으로 맞춘다.
 - 현장 실행은 `STATIC_RELEASE_HOME`과 위 환경을 지정한 후 `bun run deploy:r2 --mode status`, `--mode full`, `--mode verify`, `--mode promote --candidate-id <ID>`, `--mode resume`을 사용한다. `verify`에는 마지막 성공 커밋을 체크아웃한다. 후보와 인벤토리는 비공개 버킷과 전용 러너에 저장한다.
+- 처음 `full`을 실행할 때 같은 커밋과 업무일로 검수한 완전 동결본을 재사용할 수 있다. 수동 실행의 `frozen_input`에는 러너의 절대 경로를, `frozen_day`와 `frozen_commit`에는 검수에 사용한 날짜와 커밋을 지정한다. CLI의 대응 인자는 `--input`, `--day`, `--input-commit`이다. 빌드는 새 HTML과 후보 인벤토리를 생성한다.
 - 평일 갱신의 업무일은 실제 최신 공개 헤더가 결정한다. 휴장일 또는 수집 대기 중 공개 헤더가 직전 성공과 같으면 그대로 유지한다. 중단 작업은 `resume`으로 완료하고, 일별 기준선을 건너뛴 관측이나 정정은 전체 실행에서 다시 동결한다.
 
 ## 기존 전체 정적 출력과 확인

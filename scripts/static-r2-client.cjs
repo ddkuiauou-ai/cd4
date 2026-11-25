@@ -8,6 +8,13 @@ const hmac = (key, value) => createHmac('sha256', key).update(value).digest();
 const encode = value => encodeURIComponent(value).replace(/[!'()*]/g, character => '%' + character.charCodeAt(0).toString(16).toUpperCase());
 const escape = value => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character]);
 const unescape = value => value.replace(/&(amp|lt|gt|quot|apos);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" })[entity]);
+const s3Codes = new Set(['AccessDenied', 'InvalidAccessKeyId', 'SignatureDoesNotMatch', 'InvalidToken', 'ExpiredToken',
+  'AuthorizationHeaderMalformed', 'NoSuchBucket', 'NoSuchKey', 'InvalidBucketName', 'BucketAlreadyExists',
+  'BucketAlreadyOwnedByYou', 'InvalidLocationConstraint', 'SlowDown', 'ServiceUnavailable']);
+const s3Code = body => {
+  const code = body.match(/<(?:\w+:)?Code>([A-Za-z]+)<\/(?:\w+:)?Code>/)?.[1];
+  return s3Codes.has(code) ? code : undefined;
+};
 
 function r2Config(env = process.env) {
   const endpoint = new URL(env.R2_ENDPOINT_URL || `https://${env.R2_ACCOUNT_ID || 'missing'}.r2.cloudflarestorage.com`);
@@ -20,19 +27,20 @@ function r2Config(env = process.env) {
   if (![publicBucket, stateBucket].every(name => /^[a-z\d][a-z\d-]{1,61}[a-z\d]$/.test(name ?? '')) || publicBucket === stateBucket) {
     throw new Error('Configure distinct R2_BUCKET_NAME and private R2_STATE_BUCKET_NAME');
   }
-  const accessKey = env.AWS_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID;
-  const secret = env.AWS_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY;
+  const explicit = Boolean(env.R2_ACCESS_KEY_ID || env.R2_SECRET_ACCESS_KEY);
+  const accessKey = explicit ? env.R2_ACCESS_KEY_ID : env.AWS_ACCESS_KEY_ID;
+  const secret = explicit ? env.R2_SECRET_ACCESS_KEY : env.AWS_SECRET_ACCESS_KEY;
   if (!accessKey || !secret) throw new Error('Configure R2 S3 access credentials');
   const origin = new URL(env.R2_PUBLIC_ORIGIN || siteOrigin);
   if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
     throw new Error('R2_PUBLIC_ORIGIN must be an HTTPS origin');
   }
-  return { endpoint, publicBucket, stateBucket, accessKey, secret, token: env.AWS_SESSION_TOKEN, origin };
+  return { endpoint, publicBucket, stateBucket, accessKey, secret, token: explicit ? undefined : env.AWS_SESSION_TOKEN, origin };
 }
 
 function createR2Client(config, { request = fetch, now = () => new Date(), pause = sleep } = {}) {
   const { endpoint, accessKey, secret, token } = config;
-  async function call(method, bucket, key = '', { query = {}, headers = {}, body, file, sha256, bytes } = {}) {
+  async function call(method, bucket, key = '', { query = {}, headers = {}, body, file, sha256, bytes, diagnostic = false } = {}) {
     const pathname = '/' + [bucket, ...key.split('/')].map(encode).join('/').replace(/\/$/, '');
     const search = Object.entries(query).map(([name, value]) => [encode(name), encode(value)])
       .sort(([a], [b]) => a < b ? -1 : Number(a > b)).map(pair => pair.join('=')).join('&');
@@ -57,6 +65,7 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
           signal: AbortSignal.timeout(120_000) });
         if (response.ok || response.status === 404 || response.status === 412) return response;
         status = response.status;
+        if (diagnostic && ((status !== 429 && status < 500) || attempt === 3)) return response;
         await response.body?.cancel();
         if (status !== 429 && status < 500) break;
       } catch { status = 'transport'; }
@@ -67,15 +76,55 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
 
   async function getJson(bucket, key) {
     const response = await call('GET', bucket, key);
-    if (response.status === 404) { await response.body?.cancel(); return null; }
+    if (response.status === 404) {
+      if (s3Code(await response.text()) === 'NoSuchKey') return null;
+      throw new Error('R2 private object read returned an unconfirmed absence');
+    }
     if (!response.ok || !response.headers.get('etag')) throw new Error('R2 private object could not be read');
     return { value: await response.json(), etag: response.headers.get('etag') };
   }
 
+  async function listBucketStatus(bucket) {
+    const response = await call('GET', bucket, '', { query: { 'list-type': '2', 'max-keys': '1' }, diagnostic: true });
+    const body = await response.text();
+    return { readable: response.ok && /<(?:\w+:)?ListBucketResult(?:\s|>)/.test(body), http: response.status, code: s3Code(body) };
+  }
+
+  function bucketError(operation, { http, code }) {
+    return new Error(`R2 ${operation} failed (HTTP ${http}${code ? ', ' + code : ''})`);
+  }
+
   async function checkBucket(bucket) {
-    const response = await call('HEAD', bucket);
-    await response.body?.cancel();
-    if (!response.ok) throw new Error(`R2 bucket read preflight failed (${response.status})`);
+    const result = await listBucketStatus(bucket);
+    if (!result.readable) throw bucketError('ListObjectsV2', result);
+  }
+
+  async function probeBucket(bucket) {
+    const [head, list] = await Promise.allSettled([
+      call('HEAD', bucket, '', { diagnostic: true }).then(async response => {
+        await response.body?.cancel();
+        return response.status;
+      }),
+      listBucketStatus(bucket),
+    ]);
+    return {
+      ...(head.status === 'fulfilled' ? { headHttp: head.value } : { headTransportFailed: true }),
+      ...(list.status === 'fulfilled' ? { listHttp: list.value.http, listCode: list.value.code } : { listTransportFailed: true }),
+      readable: list.status === 'fulfilled' && list.value.readable,
+    };
+  }
+
+  async function prepareBucket(bucket) {
+    const before = await listBucketStatus(bucket);
+    if (before.readable) return { status: 'existing' };
+    if (before.http !== 404 || before.code !== 'NoSuchBucket') throw bucketError('ListObjectsV2', before);
+    const response = await call('PUT', bucket, '', { body: '', diagnostic: true });
+    const code = s3Code(await response.text());
+    if (!response.ok && !(response.status === 409 && code === 'BucketAlreadyOwnedByYou')) {
+      throw bucketError('CreateBucket', { http: response.status, code });
+    }
+    await checkBucket(bucket);
+    return { status: response.ok ? 'created' : 'existing' };
   }
 
   async function putJson(bucket, key, value, etag = null) {
@@ -120,7 +169,7 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     } while (continuation);
   }
 
-  return { checkBucket, getJson, putJson, putObject, deleteKeys, listKeys };
+  return { checkBucket, probeBucket, prepareBucket, getJson, putJson, putObject, deleteKeys, listKeys };
 }
 
 module.exports = { createR2Client, r2Config };

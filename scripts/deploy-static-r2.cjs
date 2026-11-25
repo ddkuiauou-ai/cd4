@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { execFileSync } = require('node:child_process');
-const { ROOT, STAGE, readJson, relativeFile, sha256 } = require('./static-tools.cjs');
+const { ROOT, STAGE, readJson, readManifest, relativeFile, sha256 } = require('./static-tools.cjs');
 const { acquireStoreLock, jsonHash, operationPhase, planRelease, publishRelease, readRelease, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
 const { createR2Client, r2Config } = require('./static-r2-client.cjs');
@@ -173,16 +173,28 @@ function adoptLocal(store, descriptor) {
 }
 
 async function deploy(options, { client, config, build = buildRelease } = {}) {
-  const { mode, store, candidateId, retireLegacy, commit, concurrency = 24, day } = options;
+  const { mode, store, candidateId, retireLegacy, commit, concurrency = 24, day, input, inputCommit } = options;
   const roles = ['public', 'state'];
+  if (mode === 'status') {
+    const probes = await Promise.allSettled(roles.map(role => client.probeBucket(config[role + 'Bucket'])));
+    const buckets = Object.fromEntries(probes.map((result, index) => [roles[index], result.status === 'fulfilled'
+      ? result.value : { readable: false, transportFailed: true }]));
+    if (probes.some(result => result.status !== 'fulfilled' || !result.value.readable)) return { mode, buckets, readable: false };
+    const entry = await getState(client, config);
+    await checkActiveInventory(client, config, entry.value.current);
+    return { mode, ...entry.value, buckets, readable: true };
+  }
+  if (mode === 'provision') {
+    const unlock = acquireStoreLock(store, 'r2-operation');
+    try {
+      const stateBucket = await client.prepareBucket(config.stateBucket);
+      const publicBucket = await client.prepareBucket(config.publicBucket);
+      return { mode, buckets: { public: publicBucket.status, state: stateBucket.status } };
+    } finally { unlock(); }
+  }
   const checks = await Promise.allSettled(roles.map(role => client.checkBucket(config[role + 'Bucket'])));
   const faults = checks.flatMap((result, index) => result.status === 'rejected' ? [roles[index] + ': ' + result.reason.message] : []);
   if (faults.length) throw new Error('R2 bucket preflight failed (' + faults.join(', ') + ')');
-  if (mode === 'status') {
-    const entry = await getState(client, config);
-    await checkActiveInventory(client, config, entry.value.current);
-    return { mode, ...entry.value, publicReadable: true, stateReadable: true };
-  }
   const unlock = acquireStoreLock(store, 'r2-operation');
   try {
     let entry = await getState(client, config);
@@ -194,6 +206,9 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
       return { mode, releaseId: entry.value.current.releaseId, ...plannedCounts([]) };
     }
     const base = entry.value.current?.releaseId ?? null;
+    if (input && (mode !== 'full' || base || inputCommit !== commit || !daySyntax.test(day))) {
+      throw new Error('Frozen input requires first full publication, the verified checkout commit and an explicit business day');
+    }
     const local = readRelease(store);
     if ((local?.releaseId ?? null) !== base) throw new Error('Runner baseline differs from R2; run resume on the persistent runner');
     await checkActiveInventory(client, config, entry.value.current);
@@ -210,7 +225,17 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
         return { mode, requiresFull: true, reason: 'The checked-out commit differs from the last successful release.', ...plannedCounts([]) };
       }
       const targetDay = mode === 'verify' ? entry.value.current.day : day;
-      const report = await build({ store, daily: mode === 'daily', candidateOnly: true, clean: mode === 'verify',
+      if (input) {
+        const manifest = readManifest({ filename: path.join(input, 'manifest.json') });
+        if (!manifest.separatedCompanyAssets || !manifest.historyPacks || !digest.test(manifest.sourceIndexDigest)
+          || manifest.referenceDate !== targetDay || manifest.marketCsv?.date !== targetDay
+          || manifest.sample.selection !== 'full') throw new Error('Frozen input is not a complete canonical release for the requested day');
+        const { digest: sourceDigest, ...index } = readJson(path.join(input, 'source-index.json'));
+        if (sourceDigest !== manifest.sourceIndexDigest || jsonHash(index) !== sourceDigest) {
+          throw new Error('Frozen input source index does not match its manifest');
+        }
+      }
+      const report = await build({ store, input, daily: mode === 'daily', candidateOnly: true, clean: mode === 'verify',
         independent: mode === 'verify', day: targetDay });
       if (report.requiresFull) return { mode, requiresFull: true, reason: report.reason, ...plannedCounts([]) };
       if (report.unchanged) return { mode, releaseId: base, ...plannedCounts([]) };
@@ -274,8 +299,14 @@ function githubSummary(report) {
 if (require.main === module) {
   Promise.resolve().then(async () => {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
+      input: { type: 'string' }, 'input-commit': { type: 'string' },
       'candidate-id': { type: 'string' }, 'retire-legacy': { type: 'boolean' }, 'first-saturday': { type: 'boolean' } } });
-    if (!['full', 'daily', 'verify', 'promote', 'resume', 'status'].includes(values.mode)) throw new Error('Choose --mode full, daily, verify, promote, resume or status');
+    if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision'].includes(values.mode)) {
+      throw new Error('Choose --mode full, daily, verify, promote, resume, status or provision');
+    }
+    if (values.input && (values.mode !== 'full' || !path.isAbsolute(values.input) || !values['input-commit'] || !values.day)) {
+      throw new Error('--input requires an absolute path, --mode full, --input-commit and --day');
+    }
     if (values['retire-legacy'] && values.mode !== 'full') throw new Error('Legacy HTML retirement requires --mode full');
     if (values['first-saturday'] && !seoulCalendar().firstSaturday) return;
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
@@ -287,13 +318,17 @@ if (require.main === module) {
     if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64) throw new Error('R2_PUT_CONCURRENCY must be between 1 and 64');
     const result = await deploy({ mode: values.mode, store: path.resolve(values.store ?? path.join(STAGE, 'r2-local-release')),
       commit, concurrency, candidateId: values['candidate-id'], retireLegacy: values['retire-legacy'],
-      day: values.day }, { client, config });
-    if (values.mode === 'status' && process.env.GITHUB_OUTPUT) {
+      day: values.day, input: values.input, inputCommit: values['input-commit'] }, { client, config });
+    if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n`);
     }
     if (values.mode === 'status') {
-      console.log(JSON.stringify({ mode: 'status', publicBucket: 'readable', stateBucket: 'readable',
-        activeRelease: Boolean(result.current), interruptedRelease: Boolean(result.pending), publicOrigin: config.origin.href }));
+      console.log(JSON.stringify({ mode: 'status', buckets: result.buckets,
+        ...(result.readable ? { activeRelease: Boolean(result.current), interruptedRelease: Boolean(result.pending) } : {}),
+        publicOrigin: config.origin.href }));
+      if (!result.readable) process.exitCode = 1;
+    } else if (values.mode === 'provision') {
+      console.log(JSON.stringify(result));
     } else {
       githubSummary(result);
       console.log(JSON.stringify(result));
