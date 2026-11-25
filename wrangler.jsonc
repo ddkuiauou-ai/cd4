@@ -1,0 +1,9 @@
+{
+  "name": "cd4",
+  "main": "workers/r2-site.mjs",
+  "compatibility_date": "2026-11-25",
+  "workers_dev": true,
+  "r2_buckets": [
+    { "binding": "CD_STATIC", "bucket_name": "cd-static" }
+  ]
+}

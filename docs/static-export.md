@@ -32,6 +32,8 @@ bun run clean:release --dry-run
 
 ## R2 운영
 
+도메인을 정하기 전에는 [CD Worker](../workers/r2-site.mjs)의 `workers.dev` 주소로 접속할 수 있다. 이 Worker는 공개 자료 버킷 `cd-static`에서 `/security/KOSPI.005930/per/`를 `security/KOSPI.005930/per/index.html`로 조회하고 JSON과 CSV는 요청한 키 그대로 제공한다. Cloudflare에 연결된 `cd4` 프로젝트가 [Wrangler 설정](../wrangler.jsonc)을 배포한다. 임시 호스트에서 실제로 확인한 주소를 Actions 변수 `R2_PUBLIC_ORIGIN`에 등록한다.
+
 검색 대표 도메인은 [사이트 주소](../config/site-origin.cjs)에서 한 번 설정한다. 도메인 교체 시 새 주소를 R2에 연결하고 전체 배포하면 HTML의 canonical, 사이트맵, robots.txt, 공유 이미지와 홈의 구조화 데이터에 반영된다. 임시 R2 공개 호스트는 `R2_PUBLIC_ORIGIN`으로 별도 지정할 수 있다. 디렉터리 주소를 서비스하는 도메인에서는 `/`로 끝나는 요청 경로 뒤에 `index.html`을 붙이는 내부 재작성 규칙을 적용한다. 예를 들어 `/security/KOSPI.005930/per/`의 객체 키는 `security/KOSPI.005930/per/index.html`이다. [Cloudflare URL 재작성](https://developers.cloudflare.com/rules/transform/url-rewrite/)
 
 [Publish CD to R2](../.github/workflows/deploy-r2.yml)는 신뢰된 `main`에서만 Mac self-hosted runner로 실행한다. 평일 서울 17:30에 당일 갱신을 실행하고, 첫 토요일 서울 09:00에 마지막 성공 기준일과 커밋으로 PostgreSQL을 독립 전체 조회·빌드한다. 월간 검증은 마지막 릴리스의 활성 파일 바이트와 응답 헤더를 대조한다. 차이가 있으면 검수 후보 ID와 변경 규모를 실행 요약에 기록한다.
