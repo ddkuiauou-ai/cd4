@@ -1,0 +1,10 @@
+.navigation {
+  position: fixed;
+  z-index: 60;
+  inset-block-start: calc(var(--app-header-layout-height, 52px) + 4px);
+  inset-inline-end: 1rem;
+  max-inline-size: calc(100% - 2rem);
+  padding: 0.375rem 0.625rem;
+  background: var(--background);
+  pointer-events: none;
+}

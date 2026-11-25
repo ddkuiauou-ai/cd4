@@ -1,5 +1,5 @@
 import type { DetailMetric } from './detail-presentation';
-import type { StaticDetailAssets } from './static-detail-contract';
+import type { StaticDetailAssets, YearlyHistory } from './static-detail-contract';
 
 export type StaticDataRow = Record<string, unknown>;
 const inFlight = new Map<string, Promise<StaticDataRow[]>>();
@@ -69,19 +69,41 @@ export function combineStaticMetricRows(primary: StaticDataRow[], dependency: St
   });
 }
 
-export async function loadStaticDetailData(assets: StaticDetailAssets, metric: DetailMetric, companyPage = false) {
-  const sourceUrl = companyPage ? assets.companyHistory : metric === 'marketcap' ? assets.marketcap : assets.metrics?.[metric];
-  if (!sourceUrl) throw new Error('이 페이지의 이력 자료가 없습니다.');
-  const dependency = metric === 'per' ? 'eps' : metric === 'pbr' ? 'bps' : null;
-  const [source, prices, companyHistory, dependencyRows] = await Promise.all([
-    loadStaticRows(sourceUrl),
-    assets.prices ? loadStaticRows(assets.prices) : Promise.resolve([]),
-    metric === 'marketcap' && assets.companyHistory ? loadStaticRows(assets.companyHistory) : Promise.resolve([]),
-    dependency && assets.metrics?.[dependency] ? loadStaticRows(assets.metrics[dependency]!) : Promise.resolve([]),
+export type HistoryWindow = { start?: string; end?: string };
+
+export async function loadYearlyHistory({ archive, current, archiveDates, currentDates, currentStart }: YearlyHistory,
+  { start, end }: HistoryWindow = {}) {
+  if (start && end && start > end) return [];
+  const intersects = (dates: [string, string]) => (!start || start <= dates[1]) && (!end || end >= dates[0]);
+  const [priorYears, thisYear] = await Promise.all([
+    archive && (archiveDates ? intersects(archiveDates) : !currentStart || !start || start < currentStart) ? loadStaticRows(archive) : [],
+    current && (currentDates ? intersects(currentDates) : !currentStart || !end || end >= currentStart) ? loadStaticRows(current) : [],
   ]);
-  return {
-    sourceHistory: dependency ? combineStaticMetricRows(source, dependencyRows, dependency) : source,
-    prices,
-    companyHistory,
-  };
+  return [...priorYears, ...thisYear];
+}
+
+export function loadStaticHistory(url?: string, packs?: YearlyHistory, window?: HistoryWindow) {
+  return packs ? loadYearlyHistory(packs, window) : url ? loadStaticRows(url) : Promise.resolve([]);
+}
+
+export async function loadStaticDetailData(assets: StaticDetailAssets, metric: DetailMetric, companyPage = false,
+  includePrices = true, window?: HistoryWindow, { includeCompany = true, includeDependency = true } = {}) {
+  if (assets.perHistory && metric === 'per' && !companyPage) {
+    const [sourceHistory, prices] = await Promise.all([loadYearlyHistory(assets.perHistory.metric, window), includePrices ? loadYearlyHistory(assets.perHistory.prices, window) : []]);
+    return { sourceHistory, prices, companyHistory: [] as StaticDataRow[] };
+  }
+  const sourceUrl = companyPage ? assets.companyHistory : metric === 'marketcap' ? assets.marketcap : assets.metrics?.[metric];
+  const yearly = assets.yearly;
+  const sourcePacks = companyPage ? yearly?.companyHistory : metric === 'marketcap' ? yearly?.marketcap : yearly?.metrics?.[metric];
+  if (!sourceUrl && !sourcePacks) throw new Error('이 페이지의 이력 자료가 없습니다.');
+  const dependency = includeDependency && !sourcePacks?.pair ? metric === 'per' ? 'eps' : metric === 'pbr' ? 'bps' : null : null;
+  const [source, prices, companyHistory, dependencyRows] = await Promise.all([
+    loadStaticHistory(sourceUrl, sourcePacks, window),
+    includePrices ? loadStaticHistory(assets.prices, yearly?.prices, window) : [],
+    includeCompany && metric === 'marketcap' ? loadStaticHistory(assets.companyHistory, yearly?.companyHistory, window) : [],
+    dependency ? loadStaticHistory(assets.metrics?.[dependency], yearly?.metrics?.[dependency], window) : [],
+  ]);
+  const sourceHistory = sourcePacks?.pair ? source.filter(row => row[metric + 'Present'] === true)
+    : dependency ? combineStaticMetricRows(source, dependencyRows, dependency) : source;
+  return { sourceHistory, prices, companyHistory };
 }

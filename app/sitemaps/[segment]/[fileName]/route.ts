@@ -9,8 +9,7 @@ ${entries
   .map(
     ({ url, lastModified }) =>
       `  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastModified.toISOString()}</lastmod>
+    <loc>${url}</loc>${lastModified ? `\n    <lastmod>${lastModified.toISOString()}</lastmod>` : ''}
   </url>`
   )
   .join("\n")}
@@ -74,10 +73,11 @@ export async function GET(
     notFound();
   }
 
-  const origin = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export"
+  const staticOutput = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export";
+  const origin = staticOutput
     ? siteConfig.url
     : new URL(request.url).origin;
-  const urls = withBaseUrl(entries, new Date(), origin);
+  const urls = withBaseUrl(entries, staticOutput ? undefined : new Date(), origin);
   const xml = buildSitemap(urls);
 
   return new NextResponse(xml, {

@@ -19,6 +19,15 @@ test('unique legacy aliases survive while reused codes resolve to distinct stabl
   assert.equal(paths.securityPath({ ...identities[3], routeCode: securities.get('new') }, 'eps'), '/security/new/eps');
 });
 
+test('a company with only preferred stock has a market-and-ticker URL', () => {
+  const { load } = createBusinessPageLoader();
+  const { companyRouteCodes, companyPath } = load('lib/entity-paths.ts');
+  const codes = companyRouteCodes([
+    { securityId: 'preferred', companyId: 'preferred-only', type: '우선주', exchange: 'KOSPI', ticker: '000687' },
+  ]);
+  assert.equal(companyPath({ companyId: 'preferred-only', routeCode: codes.get('preferred-only') }), '/company/KOSPI.000687');
+});
+
 test('display rounding never changes exact integers and zero/negative values stay visible', () => {
   const { load } = createBusinessPageLoader();
   const values = load('lib/business-analysis.ts');

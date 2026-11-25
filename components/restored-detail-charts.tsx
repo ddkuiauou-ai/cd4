@@ -6,6 +6,7 @@ import { lazy } from 'react';
 import { DetailAnnualTable, type AnnualDividendComparison } from './detail-annual-table';
 import { DetailHistoryChart } from './detail-history-chart';
 import { ChartWhenVisible } from './detail-chart-visibility';
+import { StaticTrendLine } from './static-detail-trend';
 import { DetailChartSkeleton } from './detail-record-skeleton';
 import { chartMonths, lastMonthlyObservations, marketcapPeriodMonths } from './detail-chart-observations';
 import { MarketcapRangeControls, useMarketcapChartRange } from './marketcap-chart-range';
@@ -137,8 +138,8 @@ function DistributionRecord({ rows, metric, currentValue }: { rows: DetailObserv
   </figure>;
 }
 
-export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false, marketcapRange }: {
-  rows: Record<string, unknown>[]; start?: string; end?: string; usePlotSkeleton?: boolean; marketcapRange?: { initial?: string };
+export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false, marketcapRange, staticPreview = false }: {
+  rows: Record<string, unknown>[]; start?: string; end?: string; usePlotSkeleton?: boolean; marketcapRange?: { initial?: string }; staticPreview?: boolean;
 }) {
   const range = useMarketcapChartRange('priceRange', marketcapRange?.initial);
   const latest = end || String(rows.at(-1)?.date || '');
@@ -158,7 +159,8 @@ export function DetailPriceHistory({ rows, start, end, usePlotSkeleton = false, 
   const PriceChart = usePlotSkeleton ? CandlesWithSkeleton : Candles;
   return <figure className={styles.figure}>
     {controls}
-    <ChartWhenVisible fallback={usePlotSkeleton ? <DetailChartSkeleton variant="price" label="주가 차트" plotOnly /> : <PriceChartPlaceholder />}>
+    <ChartWhenVisible fallback={staticPreview ? <StaticTrendLine label="종가" points={projectBusinessChartRows(closeRows).rows} />
+      : usePlotSkeleton ? <DetailChartSkeleton variant="price" label="주가 차트" plotOnly /> : <PriceChartPlaceholder />}>
       <PriceChart data={candles} movingAverageValues={closeRows.map(row => ({ time: row.date, average5: row.average5, average10: row.average10 }))} />
     </ChartWhenVisible>
     <figcaption className={styles.caption}>실제 거래 범위 {visible[0].time} ~ {visible.at(-1)!.time} · {visible.length.toLocaleString('ko-KR')}개 기록 · 5·10거래일 이동평균</figcaption>

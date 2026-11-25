@@ -5,7 +5,7 @@ import { formatNumber } from "@/lib/utils";
 import { TrendingDown, TrendingUp, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 
 interface MarketData {
     name: string;  // e.g. "KOSPI", "KOSDAQ", etc.

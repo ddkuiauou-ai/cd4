@@ -3,11 +3,16 @@ import { availableDetailMetrics, dividendReferenceDate, financialDetailMetrics, 
 import { marketcapPriceReferenceWindow } from '../detail-comparison';
 import fs from 'node:fs';
 import path from 'node:path';
+import { readPrivateHistory, type PrivateHistoryParts } from './private-history';
+import { readPrivateJsonText } from './read-private-json';
 import type { readSecurityByCode, readCompanySecurities } from '../data/security';
 import type { readMetricsHistory } from '../data/history';
 import type { CompanyMarketcapAggregated } from '../data/company';
-import type { StaticDetailAssets } from '../static-detail-contract';
+import type { DetailMetric } from '../detail-presentation';
+import type { StaticDetailAssets, YearlyHistory } from '../static-detail-contract';
 import type { StaticRankingManifest } from './types';
+import type { MarketCsvMetadata } from '../csv/market';
+import { getScopedRankingParams } from '../ranking-page-address';
 
 export function isStaticBuild() {
   return process.env.NEXT_OUTPUT_MODE?.toLowerCase() === 'export' && process.env.STATIC_PREPARING !== '1';
@@ -18,7 +23,11 @@ export type StaticIdentity = {
   routeCode: string | null; companyRouteCode: string | null;
 };
 export type StaticManifest = {
+  historyPacks?: boolean;
+  separatedCompanyAssets?: boolean;
+  perPilot?: { securityId: string; history: NonNullable<StaticDetailAssets['perHistory']> };
   version: 1; snapshotId: string; generatedAt: string;
+  marketCsv?: MarketCsvMetadata;
   sample: { enabled: boolean; selection?: string; securities: number; companies: number };
   routes: { path: string; kind: 'page' }[]; aliases: { path: string; target: string }[];
   securityCodes: string[]; companyCodes: string[];
@@ -32,6 +41,7 @@ export type StaticManifest = {
 type SecurityFile = {
   security: NonNullable<Awaited<ReturnType<typeof readSecurityByCode>>>;
   metrics: Awaited<ReturnType<typeof readMetricsHistory>>;
+  historyParts?: PrivateHistoryParts;
   archive?: {prices:SecurityFile['security']['prices'];marketcaps:SecurityFile['security']['marketcaps'];metrics:SecurityFile['metrics']};
   assets: StaticDetailAssets;
   rankings: Record<string, { ranking: Record<string, unknown>; neighbors: Record<string, unknown>[] }>;
@@ -49,6 +59,9 @@ const memberCache = new Map<string, { period: Period; state: 'published' | 'unpu
 const dividendCache = new Map<string, ReturnType<typeof monthlyDividendHistory>>();
 let cachedBytes = 0;
 let manifestMemo: StaticManifest | undefined;
+let historyPackMemo: Record<string, YearlyHistory> | undefined;
+let companyAssetsMemo: Record<string, StaticDetailAssets> | undefined;
+const pairedMetric: Partial<Record<DetailMetric, DetailMetric>> = { per: 'eps', eps: 'per', pbr: 'bps', bps: 'pbr', div: 'dps', dps: 'div' };
 let cachedGeneration: string | undefined;
 export function staticInputDirectory() {
   return path.resolve(process.env.STATIC_SNAPSHOT_DIR || '.static-build');
@@ -58,7 +71,7 @@ function refreshStaticCache() {
   const stat = fs.statSync(path.join(directory, 'manifest.json'), { bigint: true });
   const generation = `${directory}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
   if (generation !== cachedGeneration) {
-    cache.clear(); cachedBytes = 0; manifestMemo = undefined; cachedGeneration = generation;
+    cache.clear(); cachedBytes = 0; manifestMemo = undefined; historyPackMemo = undefined; companyAssetsMemo = undefined; cachedGeneration = generation;
     detailAssetCache.clear(); memberCache.clear(); dividendCache.clear(); neighborValueCache.clear();
   }
 }
@@ -67,9 +80,19 @@ export function readStaticJson<T>(relative: string): T {
   const filename = path.join(staticInputDirectory(), relative);
   const cached = cache.get(filename);
   if (cached) { cache.delete(filename); cache.set(filename, cached); return cached.value as T; }
-  const source = fs.readFileSync(filename, 'utf8');
+  const source = /^data\/(security|company)\//.test(relative)
+    ? readPrivateJsonText(filename)
+    : fs.readFileSync(filename, 'utf8');
   const value: unknown = JSON.parse(source);
-  const bytes = Buffer.byteLength(source);
+  let bytes = Buffer.byteLength(source);
+  if (relative.startsWith('data/security/')) {
+    const file = value as SecurityFile;
+    if (file.historyParts) {
+      const { prices, marketcaps, metrics } = readPrivateHistory(staticInputDirectory(), file.historyParts);
+      file.archive = { prices, marketcaps, metrics } as SecurityFile['archive'];
+      bytes += prices.length * 250 + marketcaps.length * 200 + metrics.length * 250;
+    }
+  }
   if (bytes <= 16 * 1024 * 1024) {
     while (cachedBytes + bytes > 16 * 1024 * 1024 && cache.size) {
       const key = cache.keys().next().value!;
@@ -114,15 +137,29 @@ export function resolveStaticCompany(code: string) {
   return id ? readStaticJson<{ companyId: string; name: string; korName: string | null }[]>(
     'companies.json').find(row => row.companyId === id) ?? null : null;
 }
-export function getStaticRouteParams(kind: 'security' | 'company') {
-  return getStaticManifest()[kind === 'security' ? 'securityCodes' : 'companyCodes'].map(secCode => ({ secCode }));
+let releaseSelection: Set<string> | undefined;
+function selectReleaseParams<Parameter>(all: Parameter[], address: (parameter: Parameter) => string) {
+  const file = process.env.STATIC_RELEASE_PARAMS;
+  if (!file) return all;
+  releaseSelection ??= new Set<string>(JSON.parse(fs.readFileSync(file, 'utf8')));
+  const selected = all.filter(parameter => releaseSelection!.has(address(parameter)));
+  // The installed export requires a parameter for each compiled dynamic template.
+  return selected.length ? selected : all.slice(0, 1);
+}
+
+export function getStaticRouteParams(kind: 'security' | 'company', segment = '') {
+  const params = getStaticManifest()[kind === 'security' ? 'securityCodes' : 'companyCodes'].map(secCode => ({ secCode }));
+  return selectReleaseParams(params, ({ secCode }) => `/${kind}/${encodeURIComponent(secCode)}/${segment ? segment + '/' : ''}`);
 }
 export function getStaticRankingManifest(metric: string, scope: 'security' | 'company'): StaticRankingManifest {
   return readStaticJson<StaticRankingManifest>(`rankings/${scope}-${metric}.json`);
 }
 export function getStaticRankingParams(metric: string, scope: 'security' | 'company') {
-  const max = Math.max(1, ...Object.values(getStaticRankingManifest(metric, scope).scopes).map(row => row.totalPages));
-  return Array.from({ length: max }, (_, index) => ({ page: String(index + 1) }));
+  const manifest = getStaticRankingManifest(metric, scope);
+  const max = Math.max(1, ...Object.values(manifest.scopes).map(row => row.totalPages));
+  const params = Array.from({ length: max }, (_, index) => ({ page: String(index + 1) }));
+  if (scope === 'security') params.push(...getScopedRankingParams(manifest));
+  return selectReleaseParams(params, ({ page }) => `/${scope === 'company' ? 'marketcaps' : metric}/${page}/`);
 }
 export function getStaticRankingPage<T>(metric: string, scope: 'security' | 'company', page: number, scopeKey = 'krx-all', expectedRevision?: string | null, descending = false): T {
   const scopes = getStaticRankingManifest(metric, scope).scopes;
@@ -152,10 +189,37 @@ export function getStaticRankingCsv(scope: 'security' | 'company', metric: strin
   return { body: fs.readFileSync(path.join(staticInputDirectory(), 'assets', entry.csv.url), 'utf8'), status: 200,
     headers: readStaticJson<Record<string, string>>(`rankings/${scope}-${metric}-headers.json`) };
 }
-export function getStaticDetailAssets(kind: 'security' | 'company', id: string): StaticDetailAssets | null {
-  if (kind === 'company') return readStaticJson<CompanyFile>(`data/company/${id}.json`).assets;
+export function getStaticDetailAssets(kind: 'security' | 'company', id: string, metric?: DetailMetric): StaticDetailAssets | null {
   refreshStaticCache();
-  return detailAssetCache.get(id) ?? securityDetailAssets(readStaticJson<SecurityFile>(`data/security/${id}.json`));
+  const assets = kind === 'company' ? readStaticJson<CompanyFile>(`data/company/${id}.json`).assets
+    : detailAssetCache.get(id) ?? securityDetailAssets(readStaticJson<SecurityFile>(`data/security/${id}.json`));
+  if (!metric || !getStaticManifest().historyPacks) return assets;
+  if (assets.yearly) return { historyCutoff: assets.historyCutoff, listingMetricAvailability: assets.listingMetricAvailability,
+    yearly: { prices: assets.yearly.prices, marketcap: metric === 'marketcap' ? assets.yearly.marketcap : undefined,
+      companyHistory: metric === 'marketcap' ? assets.yearly.companyHistory : undefined, metrics: { [metric]: assets.yearly.metrics?.[metric] } } };
+
+  historyPackMemo ??= readStaticJson<Record<string, YearlyHistory>>('history-packs.json');
+  const packs = historyPackMemo;
+  const paired = pairedMetric[metric];
+  const primaryUrl = assets.metrics?.[metric];
+  const pairedUrl = paired && assets.metrics?.[paired];
+  const pair = primaryUrl && pairedUrl ? packs[[primaryUrl, pairedUrl].sort().join('|')] : undefined;
+  const primary = pair ?? (primaryUrl ? packs[primaryUrl] : undefined);
+  const dependency = !pair && pairedUrl ? packs[pairedUrl] : undefined;
+  const marketcapUrl = metric === 'marketcap' ? assets.marketcap : undefined;
+  const companyUrl = metric === 'marketcap' ? assets.companyHistory : undefined;
+  const marketcap = marketcapUrl ? packs[marketcapUrl] : undefined;
+  const companyHistory = companyUrl ? packs[companyUrl] : undefined;
+  const prices = assets.prices ? packs[assets.prices] : undefined;
+  return {
+    prices: prices ? undefined : assets.prices,
+    marketcap: marketcap ? undefined : marketcapUrl,
+    companyHistory: companyHistory ? undefined : companyUrl,
+    metrics: { [metric]: primary ? undefined : primaryUrl, ...(paired && !pair && !dependency ? { [paired]: pairedUrl } : {}) },
+    historyCutoff: assets.historyCutoff,
+    listingMetricAvailability: assets.listingMetricAvailability,
+    yearly: { prices, marketcap, companyHistory, metrics: { [metric]: primary, ...(paired && dependency ? { [paired]: dependency } : {}) } },
+  };
 }
 function securityDetailAssets(file: SecurityFile) {
   const cached = detailAssetCache.get(file.security.securityId);
@@ -163,7 +227,15 @@ function securityDetailAssets(file: SecurityFile) {
   const cutoff = securityHistoryCutoff(file);
   const periods = file.security.listingPeriods ?? [];
   const latest = selectListingPeriod(periods);
-  const assets = { ...file.assets, historyCutoff: cutoff,
+  const manifest = getStaticManifest();
+  const pilot = manifest.perPilot;
+  if (manifest.separatedCompanyAssets) companyAssetsMemo ??= readStaticJson<Record<string, StaticDetailAssets>>('company-assets.json');
+  const company = file.security.companyId ? companyAssetsMemo?.[file.security.companyId] : undefined;
+  const assets = { ...file.assets,
+    yearly: file.assets.yearly ? { ...file.assets.yearly, companyHistory: company?.yearly?.companyHistory } : undefined,
+    companyHistory: file.assets.companyHistory ?? company?.companyHistory,
+    memberMarketcaps: file.assets.memberMarketcaps ?? company?.memberMarketcaps,
+    memberPrices: file.assets.memberPrices ?? company?.memberPrices, ...(pilot?.securityId === file.security.securityId ? { perHistory: pilot.history } : {}), historyCutoff: cutoff,
     listingMetricAvailability: periods.length > 1 ? periods.map(period => ({ periodId: period.periodId,
       metrics: staticAvailability(file, period, period.periodId === latest?.periodId ? cutoff : undefined,
         period.periodId !== latest?.periodId) })) : undefined };

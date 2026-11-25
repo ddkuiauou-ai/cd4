@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, Home, ListOrdered, Menu, Search } from "lucide-react";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";

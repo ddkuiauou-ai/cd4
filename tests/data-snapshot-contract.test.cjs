@@ -125,16 +125,51 @@ test('company rows survive absent common stock; representative prefers active co
   assert.equal(result.items[0].routeCode, 'KOSPI.000003');
   state.securities.push({ ...state.securities.at(-1), securityId: 'reused-alias', companyId: 'outside-company' });
   result = await data.getCompanyRankingPage(1);
-  assert.equal(result.items[0].routeCode, null);
+  assert.equal(result.items[0].representativeSecurity.securityId, 'active-common');
+  assert.equal(result.items[0].representativeSecurity.routeCode, null);
+  assert.equal(result.items[0].routeCode, 'KOSPI.000001');
   state.securities.forEach(row => { row.type = '우선주'; });
   result = await data.getCompanyRankingPage(1);
   assert.equal(result.items.length, 1);
   assert.equal(result.items[0].marketcap, '9007199254740993');
   assert.equal(result.items[0].representativeSecurity, null);
+  assert.equal(result.items[0].routeCode, 'KOSPI.000000');
   assert.deepEqual(result.items[0].prices, []);
   const snapshot = await load('lib/data/detail-snapshot.ts').getCompanyDetailSnapshot('company-1');
   assert.equal(snapshot.security, null);
   assert.equal(snapshot.company.company.industry, '제조업');
   assert.equal(snapshot.company.company.homepage, 'https://example.com');
   assert.equal(snapshot.company.company.establishedDate, '1980-01-01');
+});
+
+test('preferred-only companies use the market code in live detail, ranking and neighbors without a second lookup', async () => {
+  const { state, load } = fixture();
+  const preferred = { ...state.securities[0], securityId: 'security-preferred', companyId: 'company-preferred',
+    type: '우선주', ticker: '000005', delistingDate: null };
+  state.securities.push(preferred);
+  state.companies.push({ ...state.companies[0], companyId: preferred.companyId, marketcapRank: 2 });
+  const company = load('lib/data/company.ts');
+  const detail = load('lib/data/detail-snapshot.ts');
+  const ranking = await company.getCompanyRankingPage(1);
+  const row = ranking.items.find(item => item.companyId === preferred.companyId);
+  assert.equal(row.routeCode, 'KOSPI.000005');
+  assert.equal(row.representativeSecurity, null);
+  assert.deepEqual(row.prices, []);
+
+  const get = await detail.getCompanyDetailSnapshot('KOSPI.000005');
+  assert.equal(get.company.routeCode, 'KOSPI.000005');
+  assert.equal(get.security, null);
+  assert.deepEqual(get.priceHistory, []);
+  const other = await detail.getCompanyDetailSnapshot('company-1');
+  assert.equal(other.neighbors.find(item => item.companyId === preferred.companyId).routeCode, 'KOSPI.000005');
+  const nearby = await company.getCompanyMarketCapPageData(1);
+  assert.equal(nearby.find(item => item.companyId === preferred.companyId).routeCode, 'KOSPI.000005');
+
+  let identityQueries = 0;
+  const tx = { query: { security: { findMany: async () => { identityQueries++; return state.securities; } } } };
+  const { readRouteCodes, readCompanyRouteCodes } = load('lib/data/history.ts');
+  const [securityCodes, companyCodes] = await Promise.all([readRouteCodes(tx), readCompanyRouteCodes(tx), readCompanyRouteCodes(tx)]);
+  assert.equal(securityCodes.get(preferred.securityId), 'KOSPI.000005');
+  assert.equal(companyCodes.get(preferred.companyId), 'KOSPI.000005');
+  assert.equal(identityQueries, 1);
 });

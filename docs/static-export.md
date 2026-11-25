@@ -4,9 +4,49 @@
 
 2026-10-09의 전체 빌드와 검증은 완료했다. 실제 페이지·파일 수, 종류별 용량, 단계 시간, 병렬 처리 비교와 브라우저 전송량은 [검증·성능 보고서](static-export-verification-2026-10-09.md)와 [상세 JSON](static-export-verification-2026-10-09.json)에 기록했다.
 
-## 전체 빌드와 확인
+## 로컬 R2 후보
 
-외부에서 프리징한 PostgreSQL 데이터를 기존 `.env` 연결 설정으로 읽는다. 입력 추출은 읽기 전용이며 DB에 값을 쓰지 않는다.
+장 마감 후 `bun run build:release`로 전체 후보를 빌드하고 검증된 객체를 로컬 저장소에 게시한다. 최초 빌드 이후에는 `bun run build:release:daily`를 사용한다. 두 명령은 기본적으로 DB에서 입력을 동결한다. 같은 동결 입력을 사용하려면 `--input <동결 입력 경로>`를 지정한다.
+
+릴리스 실행기는 저장소에 고정된 Node와 pnpm을 `PATH`, 설치된 pnpm 도구, NVM에서 찾는다. `bun run build:release:daily --version`으로 선택한 버전을 확인한다. 도구를 다른 위치에 설치한 호스트는 해당 실행 파일 디렉터리를 `PATH`에 추가한다.
+
+```sh
+bun run build:release --input .static-build/release-input --candidate-only
+bun run publish:local --candidate "$CD_RELEASE_OUTPUT" --dry-run --report .static-build/key-plan.json
+bun run preview:release --port 4173 --request-log .static-build/release-requests.jsonl
+bun run publish:local --rollback
+bun run clean:release --dry-run
+```
+
+기본 객체 저장소는 `.static-build/local-release`이고 별도 검수 저장소는 모든 명령에 `--store <경로>`로 지정한다. `--candidate-only`는 생성한 후보와 작업 계획을 보존한다. 빌드가 출력한 `.static-build/release-builds/.../out` 경로를 `CD_RELEASE_OUTPUT`에 넣고 대상 키를 확인한다. `publish:local`에서 `--dry-run`을 빼면 후보를 로컬 저장소에서 활성화한다. 저장소의 `current.json`은 활성 릴리스를 선택하고, `builds/<릴리스 ID>.json`에는 다음 빌드에서 사용할 동결 입력과 경로 해시를 보존한다.
+
+빌드를 시작할 때 선택된 릴리스가 이미 교체되었으면 후보를 다시 만든다. 전체 후보를 의도적으로 다른 기준 위에 게시하려면 `publish:local --replace-base`를 사용한다. `build:release --clean`은 격리 컴파일 캐시를 비우고 전체 결과를 대조할 때 사용한다.
+
+- 일별 빌드는 직전 성공 동결 입력과 새 공개일의 원천 가격·시총·재무/배당 및 공식 공개 자료를 사용한다. 이미 처리한 공개는 그대로 유지한다. 과거 정정, 공개 계약 또는 기준선이 달라졌으면 수동 전체 빌드를 실행한다.
+- 선택된 HTML 경로는 일반 Next 빌드의 정적 파라미터로 생성한다. 코드와 입력이 동일하면 빌드와 게시를 생략한다. 객체 인벤토리는 바이트 SHA-256과 응답 헤더를 비교하고, 변경 계획은 공유 파일·자료·HTML·사이트맵 순서로 작성한다.
+- `putKeys`와 `putBytes`는 응답 헤더만 바뀐 객체도 포함한 예정 PUT 건수와 본문 바이트다. `deleteKeys`는 철회할 키 수다. `objectWrites`와 `bytesWritten`은 중복을 제외한 로컬 객체 기록이다.
+- 로컬 미리보기는 현재 릴리스의 객체 목록만 읽는다. 문서 경로의 끝 슬래시는 `index.html`로 해석하고 CSV·JSON·스크립트는 파일 키로 조회한다. 공개 `ads.txt`와 `robots.txt`를 유지한다. Next 탐색용 RSC와 로컬 릴리스 메타데이터는 후보 객체에서 제외한다.
+- 현재와 직전 성공 릴리스의 객체를 보관한다. 이전 날짜의 시장 CSV를 이어서 제공하고, 바로 전 HTML이 참조하던 해시 파일은 다음 전환 동안 유지한다. 롤백은 이전 HTML·CSV·사이트맵을 복구하고, 철회된 릴리스의 해시 파일은 캐시에서 이미 열린 문서를 위해 보관한다.
+- 성공 후 소유 표시가 있는 빌드 실행의 불필요한 생성 입력과 출력만 정리한다. 활성·직전 릴리스의 참조, 승인 대기 후보, 최신 실패 확인 자료를 보존한다. `bun run clean:release --dry-run`의 결과로 정리 범위를 확인할 수 있다.
+- 로컬 작업 계획의 순서와 헤더는 R2 객체 게시를 모의한다. 실제 커스텀 도메인에서는 HTML과 JSON에 Cache Rules의 캐시 적격성을 설정해야 한다. MIME·Cache-Control은 게시 요청의 R2 객체 메타데이터에 기록한다. [Cloudflare R2 캐시 안내](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)
+
+## R2 운영
+
+검색 대표 도메인은 [사이트 주소](../config/site-origin.cjs)에서 한 번 설정한다. 도메인 교체 시 새 주소를 R2에 연결하고 전체 배포하면 HTML의 canonical, 사이트맵, robots.txt, 공유 이미지와 홈의 구조화 데이터에 반영된다. 임시 R2 공개 호스트는 `R2_PUBLIC_ORIGIN`으로 별도 지정할 수 있다. 디렉터리 주소를 서비스하는 도메인에서는 `/`로 끝나는 요청 경로 뒤에 `index.html`을 붙이는 내부 재작성 규칙을 적용한다. 예를 들어 `/security/KOSPI.005930/per/`의 객체 키는 `security/KOSPI.005930/per/index.html`이다. [Cloudflare URL 재작성](https://developers.cloudflare.com/rules/transform/url-rewrite/)
+
+[Publish CD to R2](../.github/workflows/deploy-r2.yml)는 신뢰된 `main`에서만 Mac self-hosted runner로 실행한다. 평일 서울 17:30에 당일 갱신을 실행하고, 첫 토요일 서울 09:00에 마지막 성공 기준일과 커밋으로 PostgreSQL을 독립 전체 조회·빌드한다. 월간 검증은 마지막 릴리스의 활성 파일 바이트와 응답 헤더를 대조한다. 차이가 있으면 검수 후보 ID와 변경 규모를 실행 요약에 기록한다.
+
+- 최초 공개, 코드 교체 및 과거 정정은 수동 `full`을 선택한다. 전체 후보의 활성 키를 올린다. 일별 실행은 직전 성공 인벤토리와 비교한 변경 키를 올린다. 월간 결과가 같으면 공개 PUT은 0건이다. 차이가 있으면 `promote`에 검수한 후보 ID를 입력한다. 승격 시 최초 비교의 기준 릴리스와 실행 ID가 여전히 활성 상태여야 한다.
+- 기존 종목·회사 별칭 HTML 정리는 `full`의 `retire_legacy` 옵션으로 실행한다. 새 사이트에는 대표 경로만 게시하고 내부 식별자·검색 대응표는 유지한다. 대상 버킷의 관리 대상 종목·회사 문서 키와 성공 인벤토리에 기록된 키만 개별 묶음으로 철회한다. 과거 날짜 CSV와 직전 릴리스의 해시 자원은 유지한다.
+- Cloudflare에서 공개 버킷과 별도 비공개 상태 버킷을 준비하고 두 버킷에 접근할 S3 토큰을 설정한다. 상태 버킷의 공개 주소와 커스텀 도메인은 비활성 상태로 둔다. 기존 GitHub 시크릿 `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`를 사용한다. 상태 버킷 기본 이름은 공개 버킷명에 `-state`를 붙인 값이며 `R2_STATE_BUCKET_NAME`으로 설정할 수 있다. 첫 공개 전 수동 `status`에서 두 버킷의 읽기 접근과 완료·중단 상태를 확인한다. `R2_ENDPOINT_URL`은 선택 사항이고, 공개 주소 기본값은 `https://www.chundan.xyz`다. [R2 S3 조건부 쓰기 안내](https://developers.cloudflare.com/r2/api/s3/conditional-operations/)
+- GitHub 변수 `CD_R2_RELEASE_HOME`으로 체크아웃 외부의 전용 절대 디렉터리를 지정한다. 기본값은 러너의 `$HOME/.local/state/cd4-r2`다. 동결 자료, 컴파일 캐시, 검수 후보와 로컬 객체를 같은 러너에 유지한다. 전체 빌드 및 월간 비교에는 직전 자료와 새 전체 후보를 함께 둘 디스크가 필요하다.
+- 공개 키는 공유 자원 → 자료 → 문서 → 사이트맵 → 철회 순서로 적용한다. 비공개 `cd-release/current.json`은 조건부 쓰기로 완료 상태를 한 번에 선택한다. 공개 버킷에서 여러 키가 적용되는 동안 문서와 사이트맵은 순서대로 전환된다. 중단되면 `resume`을 실행해 같은 후보에서 마지막 성공 묶음부터 재시도한다. 성공 포인터 저장 후 로컬 상태가 남아 있으면 같은 명령으로 맞춘다.
+- 현장 실행은 `STATIC_RELEASE_HOME`과 위 환경을 지정한 후 `bun run deploy:r2 --mode status`, `--mode full`, `--mode verify`, `--mode promote --candidate-id <ID>`, `--mode resume`을 사용한다. `verify`에는 마지막 성공 커밋을 체크아웃한다. 후보와 인벤토리는 비공개 버킷과 전용 러너에 저장한다.
+- 평일 갱신의 업무일은 실제 최신 공개 헤더가 결정한다. 휴장일 또는 수집 대기 중 공개 헤더가 직전 성공과 같으면 그대로 유지한다. 중단 작업은 `resume`으로 완료하고, 일별 기준선을 건너뛴 관측이나 정정은 전체 실행에서 다시 동결한다.
+
+## 기존 전체 정적 출력과 확인
+
+기존 `.env` 연결 설정으로 PostgreSQL 데이터를 읽는다. 식별자·공개 결과·원천 이력·대회장·CSV를 한 번의 읽기 전용 REPEATABLE READ 트랜잭션으로 동결한다. 트랜잭션이 성공하면 입력 manifest가 완성된다.
 
 ```sh
 bun run build:static
@@ -18,7 +58,7 @@ bun run preview:static
 
 전체 출력은 25,000개 이상의 파일을 포함하므로, 사용자가 업로드할 때는 Netlify CLI의 폴더 배포나 파일 digest 방식이 적합하다. Netlify API의 ZIP 추출에는 [25,000개 파일 제한](https://docs.netlify.com/api-and-cli-guides/api-guides/get-started-with-api/)이 있다. 전체 배포 파일 수에는 제한이 없지만 [디렉터리당 54,000개 파일 제한](https://docs.netlify.com/deploy/deploy-overview/)이 있어 정적 출력 검증에서 함께 확인한다.
 
-`build:static`은 입력 추출 → 독립 작업 폴더에서 Next 컴파일·타입 검사·전체 페이지 생성 → 공유 JSON·CSV·별칭·헤더 조립 → 파일 전수 검사·로컬 HTTP 검사를 실행한다. 성공한 결과만 `out/`으로 교체하며 조립·검증이 실패하면 이전 출력으로 되돌린다. 전체 명령은 표본 입력을 거절한다.
+`build:static`은 입력 추출 → 독립 작업 폴더에서 Next 컴파일·타입 검사·전체 페이지 생성 → 공유 JSON·CSV·헤더 조립 → 파일 전수 검사·로컬 HTTP 검사를 실행한다. 성공한 결과만 `out/`으로 교체하며 조립·검증이 실패하면 이전 출력으로 되돌린다. 전체 명령은 표본 입력을 거절한다.
 
 입력과 보고서는 `.static-build/`에 저장한다. `.static-build/workspace/.next`는 정적 빌드 전용 컴파일 캐시다. 루트의 개발·서버용 `.next`와 분리되어 있다. 입력 파일은 공개 출력에 복사하지 않는다.
 
@@ -30,8 +70,9 @@ bun run preview:static
 - 내용 해시가 붙은 JSON·CSV·JS·CSS는 장기 캐시하고, HTML·검색·사이트맵·일반 CSV 주소는 재검증한다. Next 탐색용 RSC `.txt`에는 `text/x-component`를 지정한다. 헤더는 [Netlify `_headers` 규칙](https://docs.netlify.com/manage/routing/headers/)에 맞춰 결과물에 생성한다.
 - `start/end`, `scope`, `revision`, `period`는 브라우저에서 기존 규칙으로 해석한다. 초기 HTML의 기본 내용을 보존하는 작은 클라이언트 경계를 사용한다. 뒤로가기와 새로고침도 URL을 기준으로 복원한다.
 - 순위 CSV는 공개 범위별 정적 명세로 기준일·revision·행 수를 검증한다. 상세 CSV는 화면의 `start/end` 범위와 무관하게 선택 상장기의 전체 제공 이력을 내보내며 `?period=`의 상장기 경계는 유지한다. 일반 `/ranking-data/*.csv` 주소도 유지한다.
-- 해석 가능한 별칭은 정식 URL로 이동하는 작은 HTML을 생성한다. 이동 시 검색 파라미터와 해시를 보존하며, 모호하거나 존재하지 않는 대상은 404다.
-- 정적 추출은 [상장 기간 기준](security-lifecycle-contract-2026-10-13.md#웹-조회)을 적용한 검색 대상 SID를 `.static-build/search-security-ids.json`에 저장한다. 렌더링은 그 SID로 공개 `/search-data.json`을 만든다. 전체 식별자 목록인 `.static-build/identities.json`은 기존 상세 주소·별칭·사이트맵에 사용한다.
+- 시장 일별 CSV는 종목 공개 기준일의 상장 종목 전체를 `/downloads/market/YYYY-MM-DD.csv`로 제공한다. 원시 시가·고가·저가·종가·거래량은 당일 관측만 담는다. 종목 공식값과 종목 순위는 각자의 관측일과 공개 상태를 함께 기록하며, 이전 순위는 현재 순위 칸에 넣지 않는다. 공개 헤더가 있고 대상 종목이 없으면 열 이름만 내려받는다.
+- 종목마다 시장과 종목코드로 지표별 대표 HTML을 생성한다. 기업 주소는 보통주의 시장·코드를 우선하고, 우선주만 있는 기업은 해당 종목의 시장·코드를 사용한다. 내부 링크, canonical과 사이트맵이 같은 주소를 가리킨다. 코드 단독·회사명·내부 ID 별칭의 HTML 생성 건수는 0이다.
+- 정적 추출은 [상장 기간 기준](security-lifecycle-contract-2026-10-13.md#웹-조회)을 적용한 검색 대상 SID를 `.static-build/search-security-ids.json`에 저장한다. 렌더링은 그 SID로 공개 `/search-data.json`을 만든다. 전체 식별자 목록인 `.static-build/identities.json`은 상폐 종목을 포함한 대표 주소와 사이트맵에 사용한다. [크롤링 규칙](../app/robots.ts)은 공개 JavaScript, CSS와 JSON을 허용한다.
 - 대회장은 전체 시장의 동결 순위로 오늘의 장과 가치·배당 종합을 구성한다. ‘1년 전 1위’의 관측 자료는 추출 단계에서 비공개 동결 입력 `data/dashboard-arena-history.json`에 저장한다. 기존 입력에 이 파일이 없거나 대회장 기준일과 다르면 당시 자료 미제공으로 표시한다. [장면별 자료 범위](../.impeccable/surfaces/app-dashboard-page-tsx.md)
 - 공통 헤더는 브라우저에서 활성화된 뒤 유휴 시간에 `/search-data.json`을 먼저 요청한다. 첫 목록은 준비가 끝나야 검색할 수 있다. 5분 캐시 만료 후 갱신할 때는 마지막으로 받은 목록을 사용한다. 최근 본은 공유 검색 데이터를 구독한다. 차트 자료의 진행 중 요청과 완료 결과도 공유한다. [현행 검색 동작](../DESIGN.md#search-recent-and-theme)
 

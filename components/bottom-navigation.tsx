@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { usePathname } from "next/navigation";
 import { Home, ListOrdered, LoaderCircle, RotateCw, Search } from "lucide-react";
 import { dashboardLabel } from "@/config/site";

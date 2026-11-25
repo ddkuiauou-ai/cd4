@@ -2,7 +2,7 @@ export interface SecurityRouteIdentity {
   securityId: string;
   exchange?: string | null;
   ticker?: string | null;
-  /** null explicitly means the legacy alias is ambiguous. */
+  /** null means the exchange and ticker do not uniquely identify this security. */
   routeCode?: string | null;
 }
 
@@ -25,7 +25,7 @@ export function companyPath(identity: CompanyRouteIdentity, metric?: string): st
   return `/company/${encodeURIComponent(identity.routeCode || identity.companyId)}${metric ? `/${metric}` : ''}`;
 }
 
-/** Decide aliases from the complete identity inventory, never a ranking page subset. */
+/** A public market code must identify a single security across the full inventory. */
 export function securityRouteCodes(identities: readonly SecurityRouteIdentity[]): Map<string, string | null> {
   const counts = new Map<string, number>();
   for (const identity of identities) {
@@ -43,7 +43,7 @@ export function securityRouteCodes(identities: readonly SecurityRouteIdentity[])
 export function companyRouteCodes(
   identities: readonly (SecurityRouteIdentity & { companyId: string | null; type?: string | null; delistingDate?: Date | string | null })[],
 ): Map<string, string | null> {
-  const aliases = securityRouteCodes(identities);
+  const marketCodes = securityRouteCodes(identities);
   const result = new Map<string, string | null>();
   const sorted = [...identities].sort((a, b) =>
     Number(b.type === '보통주') - Number(a.type === '보통주')
@@ -52,9 +52,9 @@ export function companyRouteCodes(
     || (a.ticker ?? '').localeCompare(b.ticker ?? '')
     || a.securityId.localeCompare(b.securityId));
   for (const identity of sorted) {
-    if (identity.type === '보통주' && identity.companyId && !result.has(identity.companyId)) {
-      result.set(identity.companyId, aliases.get(identity.securityId) ?? null);
-    }
+    if (!identity.companyId || result.get(identity.companyId)) continue;
+    // Prefer common stock for the URL. A company with only preferred stock still has a market code.
+    result.set(identity.companyId, marketCodes.get(identity.securityId) ?? null);
   }
   return result;
 }

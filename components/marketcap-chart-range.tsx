@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import { useSyncExternalStore, type ComponentProps } from 'react';
 import { copyMarketcapChartRanges, marketcapPeriods } from './detail-chart-observations';
 import styles from './detail-chart.module.css';

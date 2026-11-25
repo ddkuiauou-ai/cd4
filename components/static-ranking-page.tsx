@@ -1,5 +1,7 @@
 "use client";
 
+import { SiteDocumentLink } from "@/components/site-document-link";
+import { scopedRankingPagePath } from "@/lib/ranking-page-address";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createRankingRows } from "@/lib/ranking-view";
@@ -7,13 +9,17 @@ import { selectStaticRanking, validateStaticRankingSnapshot } from "@/lib/static
 import type { StaticRankingManifest, StaticRankingSnapshot } from "@/lib/static-build/types";
 import { RankingPageView, type RankingPageViewProps } from "./ranking-page-view";
 
-export function StaticRankingPage({ initial, manifest }: { initial: RankingPageViewProps; manifest: StaticRankingManifest }) {
+export function StaticRankingPage({ initial, manifest, documentScope }: {
+  initial: RankingPageViewProps; manifest: StaticRankingManifest; documentScope?: string;
+}) {
   const query = useSearchParams();
-  const selected = selectStaticRanking(manifest, new URLSearchParams(query.toString()), initial.currentPage);
+  const params = new URLSearchParams(query.toString());
+  if (documentScope) params.set("scope", documentScope);
+  const selected = selectStaticRanking(manifest, params, initial.currentPage);
   const [loaded, setLoaded] = useState<{ url: string; snapshot: StaticRankingSnapshot } | null>(null);
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const defaultScope = selected.scopeKey === "krx-all";
-  const url = !defaultScope ? selected.url : undefined;
+  const sameDocumentScope = selected.scopeKey === (documentScope ?? "krx-all");
+  const url = !sameDocumentScope ? selected.url : undefined;
 
   useEffect(() => {
     if (!url) return;
@@ -32,8 +38,8 @@ export function StaticRankingPage({ initial, manifest }: { initial: RankingPageV
     state: selected.scope?.state ?? "unpublished", revisionChanged: selected.revisionChanged,
     staticCsvSource: selected.scope?.csv ?? undefined };
   if (selected.revisionChanged || !selected.scope || selected.scope.state === "unpublished") return <RankingPageView {...empty} />;
-  if (selected.outOfRange) return <RankingPageView {...empty} feedback={{ title: "순위 페이지를 찾을 수 없습니다", description: "현재 조회 범위의 첫 페이지에서 다시 확인해 주세요.", action: <a className="inline-block mt-4 underline underline-offset-4" href={`${initial.basePath}?scope=${encodeURIComponent(selected.scopeKey)}`}>첫 페이지로 이동</a> }} />;
-  if (defaultScope) return <RankingPageView {...initial} />;
+  if (selected.outOfRange) return <RankingPageView {...empty} feedback={{ title: "순위 페이지를 찾을 수 없습니다", description: "현재 조회 범위의 첫 페이지에서 다시 확인해 주세요.", action: <SiteDocumentLink className="inline-block mt-4 underline underline-offset-4" href={scopedRankingPagePath(initial.basePath, selected.scopeKey, 1)}>첫 페이지로 이동</SiteDocumentLink> }} />;
+  if (sameDocumentScope) return <RankingPageView {...initial} />;
   if (url && failedUrl === url && loaded?.url !== url) return <RankingPageView {...empty} feedback={{ title: "순위 자료를 불러오지 못했습니다", description: "조회 범위는 유지했습니다. 다시 시도해 주세요.", alert: true, action: <button className="inline-block mt-4 underline underline-offset-4" onClick={() => window.location.reload()}>다시 시도</button> }} />;
   if (!url) return <RankingPageView {...empty} feedback={{ title: "이 순위 페이지의 자료를 찾을 수 없습니다.", alert: true }} />;
   if (loaded?.url !== url) return <RankingPageView {...empty} feedback={{ title: "순위 자료를 불러오고 있어요.", description: "선택한 조회 범위의 공개 자료를 확인하고 있습니다.", busy: true }} />;

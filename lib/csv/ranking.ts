@@ -27,6 +27,7 @@ export interface RankingExportSnapshot {
   rankDate: string | null;
   referenceDate: string | null;
   generatedAt: string;
+  timestampSource?: "publication";
   totalCount: number;
   rows: RankingExportRow[];
   state?: "published" | "unpublished";
@@ -46,6 +47,14 @@ export const RANKING_CSV_COLUMNS = [
   "현재 순위", "이전 순위", "순위 변화", "기업 ID", "종목 ID", "이름", "종목코드",
   "거래소", "종목 구분", "지표 값", "지표 기준일", "대상 범위", "결과 revision", "계산 ID",
 ] as const;
+
+const publishedTimeColumn = "자료 공개 시각";
+const generatedTimeColumn = RANKING_CSV_COLUMNS[5];
+const publishedCsvColumns = RANKING_CSV_COLUMNS.map((name, index) => index === 5 ? publishedTimeColumn : name);
+function matchingRankingCsvHeader(headers: string[] | undefined): headers is string[] {
+  return !!headers && headers.length === RANKING_CSV_COLUMNS.length
+    && RANKING_CSV_COLUMNS.every((field, index) => headers[index] === field || index === 5 && headers[index] === publishedTimeColumn);
+}
 
 export function csvDate(value: Date | string | null | undefined): string | null {
   return businessDate(value);
@@ -75,6 +84,8 @@ export function serializeRankingCsv(snapshot: RankingExportSnapshot): string {
   if (snapshot.totalCount !== snapshot.rows.length) {
     throw new Error("내려받을 순위 데이터가 없거나 행 개수가 일치하지 않습니다.");
   }
+  const time = snapshot.timestampSource === "publication" ? publishedTimeColumn : generatedTimeColumn;
+  const columns = snapshot.timestampSource === "publication" ? publishedCsvColumns : RANKING_CSV_COLUMNS;
   const rows = snapshot.rows.map((row) => ({
     "범위": snapshot.scope,
     "지표": snapshot.metric,
@@ -82,7 +93,7 @@ export function serializeRankingCsv(snapshot: RankingExportSnapshot): string {
     // Company tables contain current values with potentially different row dates.
     "표시 참고 기준일": snapshot.referenceDate,
     "순위 기준일": snapshot.rankDate,
-    "파일 산출 시각": snapshot.generatedAt,
+    [time]: snapshot.generatedAt,
     "전체 행 수": snapshot.totalCount,
     "현재 순위": row.currentRank,
     "이전 순위": row.priorRank,
@@ -102,10 +113,10 @@ export function serializeRankingCsv(snapshot: RankingExportSnapshot): string {
     "결과 revision": snapshot.revision ?? null,
     "계산 ID": snapshot.calculationId ?? null,
   }));
-  return "\uFEFF" + (rows.length ? serializeCsvRows(rows, RANKING_CSV_COLUMNS) : RANKING_CSV_COLUMNS.map(escapeCsvValue).join(","));
+  return "\uFEFF" + (rows.length ? serializeCsvRows(rows, columns) : columns.map(escapeCsvValue).join(","));
 }
 
-function parseCsvRecords(csv: string): string[][] {
+export function parseCsvRecords(csv: string): string[][] {
   const records: string[][] = [];
   let record: string[] = [];
   let field = "";
@@ -166,7 +177,7 @@ export interface RankingCsvExpectedRow {
 // row's date as a shared snapshot date. This also works on later ranking pages.
 export function hasCompanyRankingCsvChanges(csv: string, expectedRows: readonly RankingCsvExpectedRow[]): boolean {
   const [headers, ...rows] = parseCsvRecords(csv);
-  if (!headers || headers.join("\u0000") !== RANKING_CSV_COLUMNS.join("\u0000")) {
+  if (!matchingRankingCsvHeader(headers)) {
     throw new Error("전체 순위 CSV 형식이 올바르지 않습니다.");
   }
   const exported = new Map(rows.map(row => [row[10], row]));
@@ -182,7 +193,7 @@ export function hasCompanyRankingCsvChanges(csv: string, expectedRows: readonly 
 // from the CSV itself and reject HTML/error responses or incomplete files.
 export function readRankingCsvMetadata(csv: string, emptyBasis?: Omit<RankingCsvMetadata, "filename">): RankingCsvMetadata {
   const [headers, ...rows] = parseCsvRecords(csv);
-  if (!headers || headers.join("\u0000") !== RANKING_CSV_COLUMNS.join("\u0000")) {
+  if (!matchingRankingCsvHeader(headers)) {
     throw new Error("전체 순위 CSV 형식이 올바르지 않습니다.");
   }
   if (!rows.length) {
@@ -222,7 +233,7 @@ export function readRankingCsvResponseMetadata(csv: string, headers: Pick<Header
     scopeKey: headers.get("X-Ranking-Scope-Key") ?? "",
     referenceDate: headers.get("X-Ranking-Reference-Date"),
     rankDate: headers.get("X-Ranking-Reference-Date"),
-    generatedAt: headers.get("X-Ranking-Generated-At") ?? "",
+    generatedAt: headers.get("X-Ranking-Published-At") ?? headers.get("X-Ranking-Generated-At") ?? "",
     totalCount: headers.get("X-Ranking-Row-Count") === null ? -1 : Number(headers.get("X-Ranking-Row-Count")),
     revision: headers.get("X-Ranking-Revision"),
     calculationId: headers.get("X-Ranking-Calculation-Id"),

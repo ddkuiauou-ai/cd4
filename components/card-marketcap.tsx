@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { ChevronRight } from "lucide-react";
 import { formatNumber, cn } from "@/lib/utils";
 import type { DetailSecurityRow } from './detail-types';

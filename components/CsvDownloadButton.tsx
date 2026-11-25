@@ -28,6 +28,7 @@ function downloadCSV(csvString: string, filename: string) {
 
 export interface CsvDownloadButtonProps {
   data?: readonly Record<string, unknown>[];
+  loadData?: () => Promise<readonly Record<string, unknown>[]>;
   filename?: string;
   className?: string;
   label?: string;
@@ -47,7 +48,7 @@ export interface CsvDownloadButtonProps {
 }
 
 export function CsvDownloadButton({
-  data, filename = "data.csv", className, label = "CSV 다운로드", buttonText, compact = false, historyFeedback = "inline",
+  data, loadData, filename = "data.csv", className, label = "CSV 다운로드", buttonText, compact = false, historyFeedback = "inline",
   scope, metric, expectedDate, expectedCompanyRows, expectedTotalCount,
   revision, scopeKey = "krx-all", refreshHref, staticSource,
 }: CsvDownloadButtonProps) {
@@ -106,16 +107,21 @@ export function CsvDownloadButton({
     }
   };
 
-  const handleHistoryDownload = () => {
-    if (!data?.length) return;
+  const handleHistoryDownload = async () => {
+    if (isDownloading || (!data?.length && !loadData)) return;
+    if (loadData) setIsDownloading(true);
     let description: string;
     let failed = false;
     try {
-      downloadCSV(serializeCsvRows(data), filename);
-      description = `다운로드 시작 · 전체 ${data.length.toLocaleString("ko-KR")}행`;
+      const records = data ?? await loadData?.();
+      if (!records?.length) throw new Error("내려받을 이력이 없습니다.");
+      downloadCSV(serializeCsvRows(records), filename);
+      description = `다운로드 시작 · 전체 ${records.length.toLocaleString("ko-KR")}행`;
     } catch {
       failed = true;
       description = "CSV를 내려받지 못했어요. 다시 눌러 시도해 주세요.";
+    } finally {
+      if (loadData) setIsDownloading(false);
     }
     if (historyFeedback === "toast") {
       toast({ description, variant: failed ? "destructive" : undefined });
@@ -144,14 +150,16 @@ export function CsvDownloadButton({
         <Button
           type="button"
           onClick={handleHistoryDownload}
-          disabled={!data?.length}
+          disabled={isDownloading || (!data?.length && !loadData)}
+          aria-busy={isDownloading || undefined}
           variant="outline"
           size="sm"
           aria-label={buttonText || compact ? label : undefined}
           title={compact ? label : undefined}
           className={cn(compact ? "min-h-11 gap-1.5 px-2.5 [--detail-history-action-min-height:44px]" : "min-h-10", className)}
         >
-          <HistoryIcon aria-hidden="true" className={cn("size-4", !compact && "mr-2")} />
+          {isDownloading ? <Loader2 aria-hidden="true" className={cn("size-4 animate-spin motion-reduce:animate-none", !compact && "mr-2")} />
+            : <HistoryIcon aria-hidden="true" className={cn("size-4", !compact && "mr-2")} />}
           {buttonText ?? label}
         </Button>
       )}

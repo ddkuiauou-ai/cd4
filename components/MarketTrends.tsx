@@ -1,6 +1,6 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";

@@ -4,7 +4,7 @@
 
 - Next.js 구현 전 설치된 `node_modules/next/dist/docs/`에서 해당 버전의 Server and Client Components, Route Handlers 또는 Static Exports 가이드를 읽는다.
 - page/layout의 데이터 조회·metadata·SEO는 서버에 두고, 브라우저 상태와 이벤트를 쓰는 부분에 Client Component를 적용한다. 조회는 [lib/data](../../lib/data), DB 연결은 [db/index.ts](../../db/index.ts)를 따른다.
-- 페이지·Route Handler의 실제 URL·쿼리·응답을 기준으로 공개 링크와 종목코드의 선행 0을 보존한다. 공통 검색·상세 별칭·사이트맵의 대상 범위는 [정적 출력 계약](../static-export.md#데이터와-화면)을 따른다.
+- 페이지·Route Handler의 실제 URL·쿼리·응답을 기준으로 공개 링크와 종목코드의 선행 0을 보존한다. 공통 검색·상세 대표 주소·사이트맵의 대상 범위는 [정적 출력 계약](../static-export.md#데이터와-화면)을 따른다.
 - 서버 캐시는 [캐시 정책](../../lib/data/cache-policy.ts)과 [공개 헤더 조회 계약](data-temporal.md#보존할-저장조회-계약)을 따른다. 화면에서 로딩·미공개·정상 0건·오류를 구분하고 조회 실패가 빈 결과로 캐시되지 않게 한다.
 
 ## 출력 모드

@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import { siteConfig } from "@/config/site";
 import { getSitemapChunks } from "@/lib/sitemap/utils";
 
-const buildSitemapIndex = (urls: Array<{ loc: string; lastmod: string }>) => `<?xml version="1.0" encoding="UTF-8"?>
+const buildSitemapIndex = (urls: Array<{ loc: string; lastmod?: string }>) => `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
     ({ loc, lastmod }) =>
       `  <sitemap>
-    <loc>${loc}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
   </sitemap>`
   )
   .join("\n")}
@@ -18,14 +17,14 @@ ${urls
 export const revalidate = false;
 
 export async function GET(request: Request) {
-  const origin = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export"
+  const staticOutput = process.env.NEXT_OUTPUT_MODE?.toLowerCase() === "export";
+  const origin = staticOutput
     ? siteConfig.url
     : new URL(request.url).origin;
-  const now = new Date();
-  const lastmod = now.toISOString();
+  const lastmod = staticOutput ? undefined : new Date().toISOString();
   const chunks = await getSitemapChunks();
 
-  const entries: Array<{ loc: string; lastmod: string }> = [];
+  const entries: Array<{ loc: string; lastmod?: string }> = [];
 
   chunks.core.forEach((_, index) => {
     entries.push({

@@ -306,7 +306,7 @@ test('PER displays the fraction only when dated source and visible inputs explai
       assert.equal(Boolean(current.querySelector('.calculationOperator')),matched);
       assert.equal(previous.hasAttribute('data-calculation'),true);
       assert.equal(previous.querySelector('.calculationResult dd').textContent,'17.98배');
-      assert.ok(current.querySelector('a[href$="/KOSPI.005930"]'));
+      assert.ok(current.querySelector('a[href="/security/KOSPI.005930/marketcap/#price-history"]'));
     } finally {view.close();}
   }
 });

@@ -127,10 +127,10 @@ export async function getSitemapChunks() {
 
 export const withBaseUrl = (
   paths: string[],
-  lastModified: Date,
+  lastModified: Date | undefined,
   baseUrl: string = siteConfig.url
 ) =>
   paths.map((path) => ({
-    url: `${baseUrl}${path}`,
+    url: `${baseUrl}${path.endsWith("/") ? path : path + "/"}`,
     lastModified,
   }));

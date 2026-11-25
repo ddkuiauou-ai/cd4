@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { SiteDocumentLink as Link, siteDocumentHref, usesStaticDocuments } from "@/components/site-document-link";
 import { useRouter } from "next/navigation";
 import { LaptopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
@@ -131,7 +131,9 @@ export function CommandMenu() {
       const item = results.items[Math.max(0, selectedRow)];
       const destination = destinations.get(item.securityId)!;
       setOpen(false);
-      router.push(selectedColumn === 1 ? destination.company! : destination.security);
+      const href = selectedColumn === 1 ? destination.company! : destination.security;
+      if (usesStaticDocuments) window.location.assign(siteDocumentHref(href));
+      else router.push(href);
     } else if (event.key === "Home" || event.key === "End") {
       setSelection(null);
     }

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { usePathname } from "next/navigation";
 import { dashboardLabel } from "@/config/site";
 import { isRankingPath } from "@/lib/metric-navigation";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 
 interface SecurityMetricEmptyProps {
   secCode: string;

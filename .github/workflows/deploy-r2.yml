@@ -1,87 +1,140 @@
-name: Build and Deploy to R2
+name: Publish CD to R2
 
 on:
-  # push:
-  #   branches:
-  #     - main
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Release operation
+        type: choice
+        options: [status, full, verify, promote, resume]
+        default: status
+      candidate_id:
+        description: Reviewed candidate ID for promote
+        type: string
+      retire_legacy:
+        description: Retire obsolete security/company HTML during a full release
+        type: boolean
+        default: false
+  schedule:
+    # 17:30 Asia/Seoul on weekdays and 09:00 Asia/Seoul on Saturday.
+    - cron: '30 8 * * 1-5'
+    - cron: '0 0 * * 6'
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: cd-r2-production
+  cancel-in-progress: false
 
 jobs:
-  build_and_deploy:
-    runs-on: self-hosted
-    timeout-minutes: 120
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, X64]
+    timeout-minutes: 300
     env:
-      NEXT_TELEMETRY_DISABLED: "1"
-      # Self-hosted: 10 CPU cores, use more memory and parallel workers
-      NODE_OPTIONS: "--max-old-space-size=12288"
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: '--max-old-space-size=12288'
+      STATIC_RELEASE_HOME: ${{ vars.CD_R2_RELEASE_HOME }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_STATE_BUCKET_NAME: ${{ vars.R2_STATE_BUCKET_NAME }}
+      R2_ENDPOINT_URL: ${{ vars.R2_ENDPOINT_URL }}
+      R2_PUBLIC_ORIGIN: ${{ vars.R2_PUBLIC_ORIGIN }}
 
     steps:
-      - name: Checkout repository
+      - name: Choose operation and persistent runner directory
+        id: task
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          OPERATION: ${{ inputs.mode }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          RETIRE_LEGACY: ${{ inputs.retire_legacy }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$EVENT" = schedule ]]; then
+            if [[ "$CRON" = '0 0 * * 6' ]]; then
+              [[ "$(TZ=Asia/Seoul date +%u)" = 6 ]] && (( 10#$(TZ=Asia/Seoul date +%d) <= 7 )) || exit 0
+              OPERATION=verify
+            else
+              OPERATION=daily
+            fi
+          fi
+          release_home="${STATIC_RELEASE_HOME:-$HOME/.local/state/cd4-r2}"
+          [[ "$release_home" = /* && "$release_home" != / ]] || exit 1
+          mkdir -p -- "$release_home"
+          release_home="$(cd "$release_home" && pwd -P)"
+          case "$release_home/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
+          printf 'STATIC_RELEASE_HOME=%s\n' "$release_home" >> "$GITHUB_ENV"
+          printf 'mode=%s\n' "$OPERATION" >> "$GITHUB_OUTPUT"
+          if [[ "$OPERATION" = promote ]]; then
+            [[ "$CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]] || exit 1
+            printf 'candidate=%s\n' "$CANDIDATE_ID" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "$OPERATION" = full && "$RETIRE_LEGACY" = true ]]; then
+            printf 'retire=true\n' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout trusted branch
+        if: steps.task.outputs.mode != ''
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        if: steps.task.outputs.mode != ''
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
+        if: steps.task.outputs.mode != ''
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
+          node-version-file: .nvmrc
+          cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install pinned dependencies
+        if: steps.task.outputs.mode != ''
+        run: pnpm install --prod=false --frozen-lockfile
 
-      - name: Restore Turbopack compiler cache
-        uses: actions/cache@v4
-        with:
-          # Restore compiler artifacts only; financial Data Cache is excluded.
-          path: .next/cache/turbopack
-          key: ${{ runner.os }}-${{ runner.arch }}-node22-turbopack-export-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-node22-turbopack-export-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}-
+      - name: Resolve last successful release
+        if: steps.task.outputs.mode == 'verify'
+        id: state
+        run: node scripts/deploy-static-r2.cjs --mode status
 
-      - name: Remove SSR sitemap routes
-        run: rm -rf app/sitemap.xml app/sitemaps
-
-      - name: Build Next.js
+      - name: Pin independent verification to published code
+        if: steps.task.outputs.mode == 'verify'
+        shell: bash
         env:
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          NEXT_OUTPUT_MODE: export
-        run: pnpm run build
-
-      - name: Generate sitemap
-        if: success()
-        env:
-          NEXT_OUTPUT_MODE: export
-        run: pnpm run sitemap
-
-      - name: Upload to R2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: apac
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          RELEASE_COMMIT: ${{ steps.state.outputs.release_commit }}
         run: |
-          # Configure AWS CLI for high-speed parallel uploads
-          aws configure set default.s3.max_concurrent_requests 100
-          aws configure set default.s3.max_queue_size 10000
-          aws configure set default.s3.multipart_threshold 64MB
-          aws configure set default.s3.multipart_chunksize 16MB
-          aws configure set default.s3.max_bandwidth 200MB/s
+          set -euo pipefail
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+          git checkout --detach "$RELEASE_COMMIT"
+          pnpm install --prod=false --frozen-lockfile
 
-          # Upload
-          aws s3 sync ./out s3://${{ env.R2_BUCKET_NAME }}/ \
-            --endpoint-url https://${{ env.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com \
-            --delete \
-            --no-progress \
-            --only-show-errors
+      - name: Build, verify or promote the release
+        if: steps.task.outputs.mode != ''
+        shell: bash
+        env:
+          MODE: ${{ steps.task.outputs.mode }}
+          CANDIDATE_ID: ${{ steps.task.outputs.candidate }}
+          RETIRE_LEGACY: ${{ steps.task.outputs.retire }}
+        run: |
+          set -euo pipefail
+          args=(--mode "$MODE")
+          if [[ -n "$CANDIDATE_ID" ]]; then args+=(--candidate-id "$CANDIDATE_ID"); fi
+          if [[ "$RETIRE_LEGACY" = true ]]; then args+=(--retire-legacy); fi
+          node scripts/deploy-static-r2.cjs "${args[@]}"

@@ -6,6 +6,20 @@ const { createElement } = require('react');
 const { JSDOM } = require('jsdom');
 const { loader, renderToStaticMarkup } = require('./helpers/detail-presentation-loader.cjs');
 
+test('the seven loading marks use the complete header logo and announce their label once', () => {
+  const { RecordLoading } = loader()('components/record-loading.tsx');
+  const label = '선택한 기간의 관측을 불러오는 중…';
+  const { window } = new JSDOM(renderToStaticMarkup(createElement(RecordLoading, { label })));
+  try {
+    const statuses = window.document.querySelectorAll('[role="status"]');
+    assert.equal(statuses.length, 1);
+    assert.equal(statuses[0].textContent, label);
+    const marks = [...statuses[0].querySelectorAll('[aria-hidden="true"] img')];
+    assert.deepEqual(marks.map(mark => mark.getAttribute('src')), Array(7).fill('/icon.svg'));
+    assert.ok(marks.every(mark => mark.getAttribute('alt') === ''));
+  } finally { window.close(); }
+});
+
 test('metric route fallbacks reserve their summary and first chart with one accessible status', () => {
   const load = loader();
   for (const [metric, label, chart] of [

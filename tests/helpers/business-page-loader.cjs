@@ -26,6 +26,7 @@ function createBusinessPageLoader(overrides = {}) {
   const boundaries = {
     "server-only": {},
     "@/db": { db: {} },
+    "@/lib/data/market-csv": { getMarketCsvMetadata: async () => null },
     "next/link": { default: ({ href, children, prefetch, ...props }) => { void prefetch; return React.createElement("a", { href, ...props }, children); } },
     "next/server": { connection: async () => {} },
     "next/navigation": {

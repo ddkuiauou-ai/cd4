@@ -2,6 +2,7 @@
 import { lazy, useMemo, useState, type ReactNode } from 'react';
 import type { DetailCompanyData, DetailSecurityRow } from './detail-types';
 import { ChartWhenVisible } from './detail-chart-visibility';
+import { StaticTrendLine } from './static-detail-trend';
 import { DetailChartSkeleton } from './detail-record-skeleton';
 import { DetailCompanyHistoryObservation } from './detail-company-history-observation';
 import { createMarketcapSeries, marketcapDateAxis, type MarketcapChartPoint } from '@/lib/chart-selection';
@@ -29,7 +30,7 @@ export type RegisteredMarketcapDisplay = {
 export function InteractiveChartSection({ companyMarketcapData, type, selectedSecurityId, selectedType = '시가총액 구성', start, end, unified }: {
   companyMarketcapData: DetailCompanyData; companySecs: DetailSecurityRow[]; type: 'summary' | 'detailed';
   selectedSecurityId?: string; selectedType?: string; selectedTicker?: string; onTickerChange?: (value: string) => void; start?: string; end?: string;
-  unified?: { rows: DetailObservation[]; selectedLabel: string; initialRange?: string };
+  unified?: { rows: DetailObservation[]; selectedLabel: string; initialRange?: string; staticPreview?: boolean };
 }) {
   const [legacyPeriod, setPeriod] = useState('5Y');
   const range = useMarketcapChartRange('capRange', unified?.initialRange);
@@ -111,7 +112,9 @@ export function InteractiveChartSection({ companyMarketcapData, type, selectedSe
     {domain.min == null ? <p className={styles.empty} role="status">표시할 시가총액 관측이 없습니다.</p> : <figure className={styles.figure}>
       <p className={styles.caption}>단위 원{monthly && ' · 월별 마지막 관측'}{!single && ' · 등록 종목 합계는 날짜별 관측값의 합계'}</p>
       <div role="group" aria-label="등록 시가총액 차트. 좌우 방향키로 관측값을 확인할 수 있습니다.">
-        <ChartWhenVisible fallback={<DetailChartSkeleton variant="marketcap" marketcapScope={summary ? 'company' : 'comparison'} label="시가총액 차트" plotOnly />}>
+        <ChartWhenVisible fallback={unified?.staticPreview && lastActive >= 0
+          ? <StaticTrendLine label={unified.selectedLabel + ' 시가총액'} points={points.map(point => ({ plot: typeof point[activeKey] === 'number' ? Number(point[activeKey]) : null }))} />
+          : <DetailChartSkeleton variant="marketcap" marketcapScope={summary ? 'company' : 'comparison'} label="시가총액 차트" plotOnly />}>
           <Chart data={points} format="formatNumber" formatTooltip="formatNumberTooltip" series={plottedSeries} selectedSecurityId={activeSecurityId}
             selectedType={single ? '시가총액 구성' : selectedType} totalLabel={totalSeriesLabel} registeredHistory={registeredHistory}
             axisFormat={value => formatCompactBusinessValue(businessChartAxisValue(domain.min, domain.max, value))} />

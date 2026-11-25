@@ -1,11 +1,11 @@
-import Link from "next/link";
+import { SiteDocumentLink as RankingDocumentLink } from "./site-document-link";
 import { ArrowDown, ArrowUp, ChevronRight } from "lucide-react";
 import { exactRankingValue, formatRankingRate, formatRankingValue, rankMovement, RANKING_METRICS, type RankingRow } from "@/lib/ranking-view";
 import styles from "./ranking-view.module.css";
 
 export function RankingName({ row }: { row: RankingRow }) {
   const contents = <><span className={styles.identity}><span className={styles.name}>{row.name}</span><span className={styles.code}>{row.scope === "security" && row.stockType && <span>{row.stockType} · </span>}<span>{row.ticker || "대표 종목 없음"}</span>{row.exchange && <span> · {row.exchange}</span>}</span></span>{row.href && <ChevronRight size={17} aria-hidden="true" className={styles.rowArrow} />}</>;
-  return row.href ? <Link href={row.href} prefetch={false} className={styles.nameLink} title={`${row.name} ${row.scope === "company" ? "기업 합산 " : ""}${RANKING_METRICS[row.metric].label} 상세 보기`}>{contents}</Link> : <div className={styles.nameLink}>{contents}</div>;
+  return row.href ? <RankingDocumentLink href={row.href} className={styles.nameLink} title={`${row.name} ${row.scope === "company" ? "기업 합산 " : ""}${RANKING_METRICS[row.metric].label} 상세 보기`}>{contents}</RankingDocumentLink> : <div className={styles.nameLink}>{contents}</div>;
 }
 
 function RankingCompleteness({ status }: { status: RankingRow["completeness"] }) {

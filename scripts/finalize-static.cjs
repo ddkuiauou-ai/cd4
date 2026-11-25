@@ -7,13 +7,15 @@ function escapeHtml(value) {
   return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 }
 
-function aliasHtml(target) {
+function aliasHtml(target, defaultHash = '') {
   const literal = JSON.stringify(target).replace(/</g, '\\u003c');
   const escaped = escapeHtml(target);
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><link rel="canonical" href="${escaped}"><script>location.replace(${literal}+location.search+location.hash)</script><meta http-equiv="refresh" content="0;url=${escaped}"><title>페이지 이동</title></head><body><a href="${escaped}">페이지 이동</a></body></html>\n`;
+  const fallback = escapeHtml(target + defaultHash);
+  const hash = defaultHash ? `(location.hash||${JSON.stringify(defaultHash)})` : 'location.hash';
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex,follow"><link rel="canonical" href="${escaped}"><script>location.replace(${literal}+location.search+${hash})</script><meta http-equiv="refresh" content="0;url=${fallback}"><title>페이지 이동</title></head><body><a href="${fallback}">페이지 이동</a></body></html>\n`;
 }
 
-function cacheHeaders(output) {
+function cacheHeaders(output, marketCsv) {
   const mutable = new Set(['/', `/${MARKER}`]);
   for (const entry of fs.readdirSync(output, { withFileTypes: true })) {
     if (['static-data', '_next', '_headers'].includes(entry.name)) continue;
@@ -32,6 +34,10 @@ function cacheHeaders(output) {
     ...[...rscPatterns].sort().flatMap(pattern => [pattern, '  Content-Type: text/x-component; charset=utf-8']),
     '/ranking-data/*.csv', '  Content-Type: text/csv; charset=utf-8', '  Content-Disposition: attachment',
     '/static-data/ranking/*.csv', '  Content-Type: text/csv; charset=utf-8', '  Content-Disposition: attachment', '',
+    ...(marketCsv ? [marketCsv.url, '  Content-Type: text/csv; charset=utf-8',
+      `  Content-Disposition: attachment; filename="market-${marketCsv.date}.csv"`,
+      '  Cache-Control: public, max-age=0, must-revalidate',
+      `  X-Market-Reference-Date: ${marketCsv.date}`, `  X-Market-Row-Count: ${marketCsv.rowCount}`, ''] : []),
   ].join('\n');
 }
 
@@ -50,6 +56,7 @@ function recordEmittedFiles({ output = OUT, manifest, inventoryDirectory = path.
 function finalize({ allowSample = false, output = OUT, manifestPath, stagedAssets = path.join(STAGE, 'assets'), inventoryDirectory } = {}) {
   const manifest = readManifest({ allowSample, filename: manifestPath });
   if (!fs.existsSync(path.join(output, 'index.html'))) throw new Error('Static export has not created out/index.html');
+  if (!manifest.marketCsv) fs.rmSync(path.join(output, 'downloads', 'market', '_unpublished'), { force: true });
   const emitted = recordEmittedFiles({ output, manifest, inventoryDirectory });
   for (const asset of manifest.assets) {
     const source = path.join(stagedAssets, relativeFile(asset.path));
@@ -64,7 +71,7 @@ function finalize({ allowSample = false, output = OUT, manifestPath, stagedAsset
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, aliasHtml(alias.target));
   }
-  fs.writeFileSync(path.join(output, '_headers'), cacheHeaders(output));
+  fs.writeFileSync(path.join(output, '_headers'), cacheHeaders(output, manifest.marketCsv));
   writeJson(path.join(output, MARKER), { version: 1, snapshotId: manifest.snapshotId,
     generatedAt: manifest.generatedAt, sample: manifest.sample, routeCount: manifest.routes.length,
     aliases: manifest.aliases?.length ?? 0, emittedInventoryId: emitted.id });

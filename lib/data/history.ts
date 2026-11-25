@@ -1,6 +1,7 @@
 import * as schema from "@/db/schema-postgres";
 import { and, asc, desc, eq, getTableColumns, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
+import { companyRouteCodes, securityRouteCodes } from "../entity-paths";
 import type { SecurityListingPeriod } from "../security-lifecycle";
 import type { ReadDatabase } from "./publication";
 import { financialDetailMetrics, monthlyDividendHistory, readDividendReference, type DividendObservation } from '../detail-metric-availability';
@@ -205,22 +206,34 @@ export async function readRecentPrices(tx: ReadDatabase, securityIds: readonly s
   return grouped;
 }
 
-const routeCodesBySnapshot = new WeakMap<ReadDatabase, Promise<Map<string, string | null>>>();
+async function queryRouteIdentities(tx: ReadDatabase) {
+  return tx.query.security.findMany({ columns: {
+    securityId: true, exchange: true, ticker: true, companyId: true, type: true, delistingDate: true,
+  }, orderBy: [asc(schema.security.securityId)] });
+}
 
-async function queryRouteCodes(tx: ReadDatabase) {
-  const rows = await tx.query.security.findMany({ columns: { securityId: true, exchange: true, ticker: true },
-    orderBy: [asc(schema.security.securityId)] });
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    const code = `${row.exchange}.${row.ticker}`;
-    counts.set(code, (counts.get(code) ?? 0) + 1);
+type RouteIdentity = Awaited<ReturnType<typeof queryRouteIdentities>>;
+const lookupBySnapshot = new WeakMap<ReadDatabase, {
+  identities: Promise<RouteIdentity>;
+  securities?: Promise<Map<string, string | null>>;
+  companies?: Promise<Map<string, string | null>>;
+}>();
+
+function routeLookup(tx: ReadDatabase) {
+  let lookup = lookupBySnapshot.get(tx);
+  if (!lookup) {
+    lookup = { identities: queryRouteIdentities(tx) };
+    lookupBySnapshot.set(tx, lookup);
   }
-  return new Map(rows.map(row => { const code = `${row.exchange}.${row.ticker}`;
-    return [row.securityId, counts.get(code) === 1 ? code : null] as const; }));
+  return lookup;
 }
 
 export function readRouteCodes(tx: ReadDatabase) {
-  let result = routeCodesBySnapshot.get(tx);
-  if (!result) { result = queryRouteCodes(tx); routeCodesBySnapshot.set(tx, result); }
-  return result;
+  const lookup = routeLookup(tx);
+  return lookup.securities ??= lookup.identities.then(securityRouteCodes);
+}
+
+export function readCompanyRouteCodes(tx: ReadDatabase) {
+  const lookup = routeLookup(tx);
+  return lookup.companies ??= lookup.identities.then(companyRouteCodes);
 }

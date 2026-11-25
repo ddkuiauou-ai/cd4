@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { SiteDocumentLink as Link, siteDocumentHref, usesStaticDocuments } from '@/components/site-document-link';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronDown, Info, List, X } from 'lucide-react';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
@@ -272,11 +272,11 @@ export function DetailSwitchLink({ candidate, children, className, sections, ari
         }));
       } catch { /* The real URL still carries its fragment when storage is unavailable. */ }
     }
-    if (marketcap) router.push(destination.pathname + destination.search + destination.hash, { scroll: !section });
+    if (marketcap && !usesStaticDocuments) router.push(destination.pathname + destination.search + destination.hash, { scroll: !section });
     else window.location.assign(destination.href);
   }
 
-  return <a href={href} className={className} data-security-id={securityId} aria-current={current} aria-label={ariaLabel}
+  return <a href={siteDocumentHref(href)} className={className} data-security-id={securityId} aria-current={current} aria-label={ariaLabel}
     onClick={switchSecurity}>{children}</a>;
 }
 

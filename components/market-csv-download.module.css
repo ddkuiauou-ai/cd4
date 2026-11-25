@@ -1,0 +1,21 @@
+.download {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  align-content: center;
+  gap: 2px 6px;
+  min-height: 44px;
+  padding: 4px 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.download:hover { background: var(--accent); }
+.download small {
+  grid-column: 2;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}

@@ -4,7 +4,7 @@ import { RestoredSecurityDetail, type DetailSearch } from '@/components/restored
 import { securityMetadata } from '@/lib/business-metadata';
 
 
-export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('security') : undefined;
+export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('security', 'dps') : undefined;
 
 export async function generateMetadata({ params }: { params: Promise<{ secCode: string }> }) {
   return securityMetadata((await params).secCode, 'dps');

@@ -65,3 +65,11 @@ test('Korea business dates and malformed/truncated CSV checks remain exact', () 
   const text = csv.serializeRankingCsv(makeSnapshot([makeRow(), makeRow(0)]));
   assert.throws(() => csv.readRankingCsvMetadata(text.split('\n').slice(0, 2).join('\n')));
 });
+
+test('published static ranking CSV labels the official publication timestamp and keeps existing parsing', () => {
+  const snapshot = { ...makeSnapshot([makeRow()]), timestampSource: 'publication' };
+  const text = csv.serializeRankingCsv(snapshot);
+  assert.equal(csv.parseCsvRecords(text)[0][5], '자료 공개 시각');
+  assert.equal(csv.readRankingCsvMetadata(text).generatedAt, snapshot.generatedAt);
+  assert.equal(csv.parseCsvRecords(csv.serializeRankingCsv(makeSnapshot([makeRow()])))[0][5], '파일 산출 시각');
+});

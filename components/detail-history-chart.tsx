@@ -4,9 +4,11 @@ import { formatInvestorAmount, usesInvestorPrecision } from '@/lib/investor-numb
 import { lazy, useMemo, useState } from 'react';
 import { businessChangePercent, compareBusinessValues, projectBusinessChartRows, formatBusinessValue, formatMarketcapAmount, subtractBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
 import { aggregateDetailRows, detailAnnualRows, earlierDate, selectDetailRange, type DetailMetric, type DetailObservation } from '@/lib/detail-presentation';
-import { chartMonths, isMarketcapMonthly, lastMonthlyObservations, marketcapPeriodMonths, marketcapPeriods } from './detail-chart-observations';
+import { isMarketcapMonthly, lastMonthlyObservations, marketcapPeriodMonths, marketcapPeriods, monthlyDetailPoints, type DetailTrendPreview } from './detail-chart-observations';
+import { StaticTrendLine } from './static-detail-trend';
 import { ChartWhenVisible } from './detail-chart-visibility';
 import { DetailChartSkeleton } from './detail-record-skeleton';
+import { RecordLoading } from './record-loading';
 import styles from './detail-chart.module.css';
 
 const DetailTrendPlot = lazy(() => import('./detail-trend-plot').then(module => ({ default: module.DetailTrendPlot })));
@@ -26,6 +28,11 @@ type HistoryChartProps = {
   customRange?: boolean;
   withStatistics?: boolean;
   usePlotSkeleton?: boolean;
+  trendPreview?: DetailTrendPreview;
+  awaitingHistory?: boolean;
+  requestHistory?: () => void;
+  historyError?: string;
+  retry?: () => void;
   movingAverages?: Array<{ date: string; average5: string | null; average10: string | null }>;
 };
 
@@ -60,14 +67,19 @@ function fillMissingYears(rows: DetailObservation[]) {
   });
 }
 
-function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, annual = false, movingAverages, customRange = Boolean(selectedStart), withStatistics = false, usePlotSkeleton = false }: HistoryChartProps) {
+function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, annual = false, movingAverages, customRange = Boolean(selectedStart), withStatistics = false, usePlotSkeleton = false, trendPreview, awaitingHistory, requestHistory, historyError, retry }: HistoryChartProps) {
   const bpsAnnual = metric === 'bps' && annual;
   const simpleSelection = usesInvestorPrecision(metric);
   const capitalization = metric === 'marketcap' && !movingAverages;
   const labeledControls = capitalization || metric === 'per' || metric === 'pbr' || metric === 'eps' || metric === 'div';
   const aggregate = !bpsAnnual && metric !== 'dps' && metric !== 'marketcap';
-  const [period, setPeriod] = useState(metric === 'dps' ? '12M' : '5Y');
-  const [aggregateUnit, setAggregateUnit] = useState<'month' | 'year'>('month');
+  const [chosenPeriod, setPeriod] = useState(metric === 'dps' ? '12M' : '5Y');
+  const [chosenUnit, setAggregateUnit] = useState<'month' | 'year'>('month');
+  const showingPreview = Boolean(trendPreview && awaitingHistory);
+  const previewPeriod = metric === 'dps' ? '12M' : '5Y';
+  const period = showingPreview ? previewPeriod : chosenPeriod;
+  const aggregateUnit = showingPreview ? 'month' : chosenUnit;
+  const selectionPending = showingPreview && (chosenPeriod !== period || chosenUnit !== aggregateUnit);
   const periods = bpsAnnual ? annualPeriods : metric === 'dps' ? dividendPeriods : capitalization ? marketcapPeriods : aggregate ? trendPeriods : [];
   const fixedRange = customRange && periods.length > 0;
   const end = selectedEnd || rows.at(-1)?.date || '';
@@ -88,13 +100,12 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
   const summary = bpsAnnual ? null : summarizeBusinessWindow(source);
   let chartRows = source;
   const marketcapMonthly = capitalization && !fixedRange && isMarketcapMonthly(period);
-  if (bpsAnnual) {
+  if (showingPreview && trendPreview) {
+    chartRows = trendPreview.points.map(([date, value]) => ({ date, value }));
+  } else if (bpsAnnual) {
     chartRows = fillMissingYears(selectDetailRange(yearEnds, firstYearEnd).reverse());
   } else if (marketcapMonthly || aggregate && aggregateUnit === 'month') {
-    const byMonth = lastMonthlyObservations(source);
-    const months = [...byMonth.keys()].sort();
-    chartRows = marketcapMonthly ? months.map(month => byMonth.get(month)!) :
-      chartMonths(months[0], months.at(-1)).map(month => byMonth.get(month) ?? { date: `${month}-01`, value: null });
+    chartRows = marketcapMonthly ? [...lastMonthlyObservations(source).values()].sort((a, b) => a.date.localeCompare(b.date)) : monthlyDetailPoints(source);
   } else if (aggregate) {
     chartRows = aggregateDetailRows(source, 'year');
     if (labeledControls) chartRows = fillMissingYears(chartRows);
@@ -157,13 +168,14 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
   const hasDividendGrowth = metric === 'dps' && data.some(row => row.change != null && Number.isFinite(row.change));
   const points = `${chartSummary.count.toLocaleString('ko-KR')}개`;
   const directHistory = !bpsAnnual && !aggregate && !marketcapMonthly && chartSummary.count > 1;
+  const sourceCount = showingPreview && trendPreview ? trendPreview.sourceCount : summary?.count ?? 0;
   const caption = bpsAnnual
     ? `각 연도의 12월 마지막 관측 · ${chartRows.length.toLocaleString('ko-KR')}개 연말 중 ${points} 제공`
     : <>
     {directHistory
       ? `선택 원천 관측 ${chartSummary.start} ~ ${chartSummary.end} · ${points} 기록`
       : `${marketcapMonthly ? '월별 마지막 관측' : statisticsBasis} · ${points}`}
-    {summary && summary.count > chartSummary.count && ` / 원천 관측 ${summary.count.toLocaleString('ko-KR')}개`}
+    {sourceCount > chartSummary.count && ` / 원천 관측 ${sourceCount.toLocaleString('ko-KR')}개`}
     {movingAverages && ' · 5·10거래일 이동평균'}
   </>;
 
@@ -178,15 +190,23 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
     {(periods.length > 0 || aggregate) && <div className={styles.controls}>
       {fixedRange
         ? <p className={styles.range}>직접 지정 기간 <span>{selectedStart || '처음'} ~ {end || '마지막'}</span></p>
-        : periods.length > 0 && <ChartChoices items={periods} title={`${label} 표시 기간`} caption={labeledControls ? '기간' : undefined} active={period} select={setPeriod} />}
+        : periods.length > 0 && <ChartChoices items={periods} title={`${label} 표시 기간`} caption={labeledControls ? '기간' : undefined} active={period} select={value => {
+          setPeriod(value);
+          if (showingPreview && value !== previewPeriod) requestHistory?.();
+        }} />}
       {aggregate && <ChartChoices
         items={aggregatePeriods}
         title={`${label} 집계 단위`}
         caption={labeledControls ? '집계' : undefined}
         active={aggregateUnit}
-        select={value => setAggregateUnit(value === 'year' ? 'year' : 'month')}
+        select={value => {
+          setAggregateUnit(value === 'year' ? 'year' : 'month');
+          if (showingPreview && value === 'year') requestHistory?.();
+        }}
       />}
     </div>}
+    {selectionPending && historyError && <p role="alert" className={styles.caption}>{historyError} <button type="button" onClick={retry}>다시 시도</button></p>}
+    {selectionPending && !historyError && !hasPlot && <RecordLoading label="선택한 기간의 관측을 불러오는 중…" />}
     {lastYearEnd && <p className={styles.yearEndLatest} aria-live="polite">
       {lastYearEnd.date.slice(0, 4)}년 연말{' '}
       <strong title={lastYearEnd.plot == null ? undefined : `${formatBusinessValue(lastYearEnd.value)}${unit}`}>
@@ -208,10 +228,12 @@ function HistoryChart({ rows, label, unit, metric, selectedStart, selectedEnd, a
             <li className={styles.epsZero}>0원</li>
           </ul>
         </div> : !hasDividendGrowth && <p className={styles.axisUnit}>단위 {unit}{marketcapMonthly && ' · 월별 마지막 관측'}</p>}
-        <ChartWhenVisible fallback={capitalization || simpleSelection || usePlotSkeleton ? <DetailChartSkeleton variant={capitalization ? 'marketcap' : 'plot'} label={label + ' 차트'} plotOnly />
+        <ChartWhenVisible loadingLabel={trendPreview && !selectionPending ? '대화형 차트 준비 중' : undefined}
+          fallback={trendPreview ? <StaticTrendLine points={projection.rows} label={label} /> : capitalization || simpleSelection || usePlotSkeleton ? <DetailChartSkeleton variant={capitalization ? 'marketcap' : 'plot'} label={label + ' 차트'} plotOnly />
           : <div className={styles.placeholder}>차트 준비 중…</div>}>
           <DetailTrendPlot data={data} label={label} unit={unit} metric={metric} axisUnit={axisUnit} minimum={projection.min} maximum={projection.max} singlePoint={chartSummary.count === 1} showMovingAverages={Boolean(movingAverages)} showDividendGrowth={hasDividendGrowth} />
         </ChartWhenVisible>
+        {selectionPending && !historyError && <RecordLoading label="선택한 기간의 관측을 불러오는 중…" overChart />}
       </div>
       <figcaption className={styles.caption} aria-live="polite">
         {capitalization && chartSummary.count > 1 && lastPlotted && <span className={styles.marketcapReadout}>

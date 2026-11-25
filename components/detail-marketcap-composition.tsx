@@ -1,5 +1,5 @@
 import { lazy, type ReactNode } from 'react';
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import { formatBusinessValue, formatCompactBusinessValue, formatMarketcapAmount, type BusinessValue } from '@/lib/business-analysis';
 import type { prepareDetailComparison } from '@/lib/detail-comparison';
 import { ChartWhenVisible } from './detail-chart-visibility';

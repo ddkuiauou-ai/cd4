@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const { ROOT, OUT, STAGE, MARKER, readManifest, readJson, writeJson, routePath, outputFileForRoute,
   filesBelow, sha256, measureOutput, familyForRoute } = require('./static-tools.cjs');
 const { createStaticServer } = require('./preview-static.cjs');
+const { siteOrigin: defaultSiteOrigin } = require('../config/site-origin.cjs');
 
 function directoryFileCounts(files, limit = 54000) {
   const counts = new Map();
@@ -27,12 +28,6 @@ function canonicalPath(value) {
   const normalized = route.endsWith('/') ? route : `${route}/`;
   if (normalized === '/marketcaps/' || normalized === '/marketcaps/1/') return '/';
   return rankingPageOne.test(normalized) ? normalized.replace(/1\/$/, '') : normalized;
-}
-function configuredOrigin() {
-  const source = fs.readFileSync(path.join(ROOT, 'config/site.ts'), 'utf8');
-  const value = source.match(/\burl:\s*["']([^"']+)["']/)?.[1];
-  if (!value) throw new Error('Specify the static site origin in manifest.siteOrigin or config/site.ts');
-  return new URL(value).origin;
 }
 function checkCanonical(html, expected, origin, file) {
   const links = [...html.matchAll(/<link\b[^>]*>/gi)].map(match => match[0]).filter(tag => /\brel=["']canonical["']/i.test(tag));
@@ -129,7 +124,7 @@ async function verifyStatic({ allowSample = false, output = OUT, manifestPath, h
   for (const alias of manifest.aliases ?? []) if (!canonical.has(routePath(alias.target))) throw new Error(`Alias target is not a generated page: ${alias.target}`);
   // Inspect emitted HTML, while keeping only one page body in memory.
   const referencedFiles = new Set();
-  const origin = new URL(siteOrigin || manifest.siteOrigin || configuredOrigin()).origin;
+  const origin = new URL(siteOrigin || manifest.siteOrigin || defaultSiteOrigin).origin;
   const expectedByHtml = new Map(pages.map(route => [outputFileForRoute(route.path), route.target || route.path]));
   const references = text => { for (const match of text.matchAll(/\/static-data\/[A-Za-z0-9._~!$&()*+,;=:@%/-]+?\.(?:json|csv)/g)) referencedFiles.add(decodeURIComponent(match[0].slice(1))); };
   for (const file of expectedHtml) {

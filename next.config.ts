@@ -15,6 +15,9 @@ const nextConfig = (phase: string): NextConfig => ({
   // CD3 프로젝트 - 정적 사이트 생성 설정
   trailingSlash: true,
   output: outputMode === 'export' ? 'export' : 'standalone',
+  ...(staticBuild && process.env.STATIC_RELEASE_BUILD_ID
+    ? { generateBuildId: async () => process.env.STATIC_RELEASE_BUILD_ID! }
+    : {}),
 
   images: {
     unoptimized: true,

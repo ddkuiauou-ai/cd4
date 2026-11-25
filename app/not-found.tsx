@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { AppShell } from "@/components/app-shell";
 
 export default function NotFound() {

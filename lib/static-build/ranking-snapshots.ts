@@ -12,7 +12,8 @@ type Input = { securities: Security[]; companies: Company[]; ranks: Rank[]; publ
 type Price = Pick<PriceDTO, 'date' | 'open' | 'close' | 'rate' | 'volume'>;
 
 /** Assemble rank pages from one inventory; only latest-30 source prices need additional queries. */
-export function createPreparedRankings(raw: Input, routeCodes: Map<string, string | null>, suppliedMembers?: Map<string, Security[]>) {
+export function createPreparedRankings(raw: Input, routeCodes: Map<string, string | null>, suppliedMembers?: Map<string, Security[]>,
+  companyRoutes?: ReadonlyMap<string, string | null>) {
   const securityById = new Map(raw.securities.map(row => [row.securityId, row]));
   const publications = new Map(raw.publications.map(row => [row.publicationKey, row]));
   const members = suppliedMembers ?? new Map<string, Security[]>();
@@ -53,11 +54,19 @@ export function createPreparedRankings(raw: Input, routeCodes: Map<string, strin
   };
   return {
     stats,
-    async loadPrices(tx: ReadDatabase) {
+    async loadPrices(tx: ReadDatabase, source?: (id: string, day: string) => Price[]) {
       const started = performance.now();
       for (const [date, wantedIds] of wanted) {
         const grouped = new Map<string, Price[]>(); prices.set(date, grouped);
         const ids = [...wantedIds]; stats.distinctSecurityCutoffs += ids.length;
+        if (source) {
+          for (const id of ids) {
+            const rows = source(id, date);
+            grouped.set(id, rows);
+            stats.sourcePriceRows += rows.length;
+          }
+          continue;
+        }
         for (let offset = 0; offset < ids.length; offset += stats.batchSize) {
           const batch = await readRecentPrices(tx, ids.slice(offset, offset + stats.batchSize), 30, date);
           for (const [id, rows] of Object.entries(batch)) {
@@ -90,7 +99,7 @@ export function createPreparedRankings(raw: Input, routeCodes: Map<string, strin
         const rep = security ? { securityId: security.securityId, exchange: security.exchange, ticker: security.ticker,
           type: security.type, name: security.name, korName: security.korName, routeCode: routeCodes.get(security.securityId) ?? null,
           prices: priceMap?.get(security.securityId) ?? [] } : null;
-        return { ...row, representativeSecurity: rep, routeCode: rep?.routeCode ?? null, prices: rep?.prices ?? [] };
+        return { ...row, representativeSecurity: rep, routeCode: companyRoutes?.get(row.companyId) ?? rep?.routeCode ?? null, prices: rep?.prices ?? [] };
       });
       return { ...status, items: compactRankingItems(toDataDTO(items), scope), latestDate: status.publication?.asOf ?? null,
         totalCount: publication?.includedCount ?? 0, page: currentPage, pageSize, skip,

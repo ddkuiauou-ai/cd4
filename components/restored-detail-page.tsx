@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getCompanyDetailSnapshot, getSecurityDetailSnapshot } from '@/lib/data/detail-snapshot';
-import { compareBusinessValues } from '@/lib/business-analysis';
-import { detailObservations, sourceValue, type DetailMetric } from '@/lib/detail-presentation';
+import { compareBusinessValues, summarizeBusinessWindow } from '@/lib/business-analysis';
+import { detailObservations, earlierDate, selectDetailRange, sourceValue, type DetailMetric } from '@/lib/detail-presentation';
+import { lastMonthlyObservations, monthlyDetailPoints, type DetailTrendPreview } from './detail-chart-observations';
 import { detailMetricOrder } from '@/lib/detail-metric-availability';
 import { DetailSurface, prepareDetailAnalysis, type DetailSurfaceProps, type DetailSearch } from './detail-surface';
 import { StaticDetailClient } from './static-detail-client';
@@ -65,6 +66,39 @@ export function compactDetailProps(props: DetailSurfaceProps): DetailSurfaceProp
   };
 }
 
+function recentSlice<Row extends { date: string }>(rows: readonly Row[], date: string, warmup = 0) {
+  const first = rows.findIndex(row => row.date >= date);
+  return first < 0 ? [] : rows.slice(Math.max(0, first - warmup));
+}
+
+function seedMarketcapDetail(initial: DetailSurfaceProps, original: DetailSurfaceProps, end: string): DetailSurfaceProps {
+  const recent = earlierDate(end, 3);
+  const visible = selectDetailRange(original.history, earlierDate(end, 60), end);
+  const history = [...lastMonthlyObservations(visible.filter(row => row.date < recent)).values(),
+    ...visible.filter(row => row.date >= recent)];
+  const aggregates = original.company?.aggregatedHistory ?? [];
+  const coverage = lastMonthlyObservations(aggregates.filter(row => row.date >= earlierDate(end, 60) && row.date < recent)
+    .map(row => ({ date: row.date, value: row.totalMarketcap })));
+  const monthlyDates = new Set([...coverage.values()].map(row => row.date));
+  const company = initial.company && {
+    ...initial.company,
+    aggregatedHistory: aggregates.filter(row => row.date <= end && (row.date >= recent || monthlyDates.has(row.date))),
+  };
+  const priceRows = original.prices.flatMap(({ date, open, high, low, close, volume, rate }) =>
+    typeof date === 'string' ? [{ date, open, high, low, close, volume, rate }] : []);
+  const latestPrice = priceRows.at(-1)?.date ?? end;
+  const prices = recentSlice(priceRows, earlierDate(latestPrice, 3), 9);
+  return { ...initial, history, prices, company };
+}
+
+function prepareTrendPreview(props: DetailSurfaceProps, analysis: ReturnType<typeof prepareDetailAnalysis>): DetailTrendPreview {
+  const end = analysis.analysisEnd;
+  const range = selectDetailRange(props.history, earlierDate(end, props.metric === 'dps' ? 12 : 60), end);
+  const points = props.metric === 'bps' ? analysis.annualRows.slice(0, 5).toReversed()
+    : props.metric === 'dps' ? range : monthlyDetailPoints(range);
+  return { points: points.map(point => [point.date, point.value]), sourceCount: summarizeBusinessWindow(range).count };
+}
+
 async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'company', id: string) {
   if (process.env.NEXT_OUTPUT_MODE?.toLowerCase() !== 'export') return kind === 'company' ? <CompanyDetailClient {...props} /> : <DetailSurface {...props} />;
   const clientKey = `${kind}:${id}:${props.metric}`;
@@ -74,8 +108,15 @@ async function renderDetail(props: DetailSurfaceProps, kind: 'security' | 'compa
   const compact = compactDetailProps(props);
   const initial = {...compact, initialAnalysis: prepareDetailAnalysis(props)};
   const { getStaticDetailAssets } = await import('@/lib/static-build/server');
-  const assets = getStaticDetailAssets(kind, id);
+  const assets = getStaticDetailAssets(kind, id, props.metric);
   if (!assets) throw new Error(`Static detail assets missing: ${kind}/${id}`);
+  if (assets.yearly && props.basic) return <StaticDetailClient key={clientKey} initial={initial} assets={assets} />;
+  if (assets.yearly && props.metric === 'marketcap') {
+    return <StaticDetailClient key={clientKey} initial={seedMarketcapDetail(initial, props, initial.initialAnalysis.analysisEnd)} assets={assets} />;
+  }
+  if (assets.yearly || assets.perHistory && props.metric === 'per' && kind === 'security') {
+    return <StaticDetailClient key={clientKey} initial={initial} assets={assets} trendPreview={prepareTrendPreview(props, initial.initialAnalysis)} />;
+  }
   return <StaticDetailClient key={clientKey} initial={initial} assets={assets} />;
 }
 

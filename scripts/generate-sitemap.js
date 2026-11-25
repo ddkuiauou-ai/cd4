@@ -12,7 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const BASE_URL = "https://www.chundan.xyz";
+const { siteOrigin: BASE_URL } = require("../config/site-origin.cjs");
 const OUT_DIR = path.join(__dirname, "..", "out");
 const SITEMAP_PATH = path.join(OUT_DIR, "sitemap.xml");
 const ERROR_PAGE_PATHS = new Set(["/404", "/_not-found"]);
@@ -156,7 +156,7 @@ function generateSitemap(urls) {
     if (url === "/") {
       xml += "    <image:image>\n";
       xml +=
-        "      <image:loc>https://www.chundan.xyz/opengraph-image.png</image:loc>\n";
+        `      <image:loc>${BASE_URL}/opengraph-image.png</image:loc>\n`;
       xml +=
         "      <image:title>천하제일 단타대회 - 한국 주식 시장 투자 정보</image:title>\n";
       xml += "    </image:image>\n";

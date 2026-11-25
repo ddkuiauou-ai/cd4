@@ -79,11 +79,13 @@ test('static route HTML retains default ranking rows even when a scoped page ext
     'next/navigation': { useSearchParams: () => { throw new Promise(() => {}); }, usePathname: () => '/',
       notFound: () => { throw new Error('NOT_FOUND'); } },
     '@/lib/static-build/server': { isStaticBuild: () => true, getStaticRankingManifest: () => source },
+    '@/lib/data/market-csv': { getMarketCsvMetadata: async () => ({ date: '2026-10-08', rowCount: 7, url: '/downloads/market/2026-10-08.csv' }) },
     '@/lib/data/security': { getSecurityRanksPage: async () => snapshot('krx-all') },
   });
   const { PublishedRankingPage } = loader.load('components/published-ranking-page.tsx');
   const first = await loader.renderElement(await PublishedRankingPage({ metric: 'per' }));
   assert.match(first.html, /정적종목/);
+  assert.match(first.html, /<a href="\/downloads\/market\/2026-10-08\.csv" download/);
   assert.match(first.text, /9,007,199,254,740,993\.13 배/);
   await assert.doesNotReject(() => PublishedRankingPage({ metric: 'per', page: 3 }));
   await assert.rejects(() => PublishedRankingPage({ metric: 'per', page: 4 }), /NOT_FOUND/);
@@ -264,4 +266,33 @@ test('static dashboard suppresses content for a stale revision but preserves arr
     assert.match(document.body.textContent, /자료가 갱신되었습니다/);
     await render('revision=old&revision=another'); assert.match(document.body.textContent, /대시보드 본문/);
   });
+});
+
+test('scoped static ranking and direct range links render without URL hydration', async (t) => {
+  const { JSDOM } = require('jsdom');
+  const original = process.env.NEXT_PUBLIC_STATIC_DOCUMENTS;
+  process.env.NEXT_PUBLIC_STATIC_DOCUMENTS = '1';
+  t.after(() => {
+    if (original === undefined) delete process.env.NEXT_PUBLIC_STATIC_DOCUMENTS;
+    else process.env.NEXT_PUBLIC_STATIC_DOCUMENTS = original;
+  });
+  const configured = manifest();
+  configured.scopes.kospi = {...configured.scopes.kospi, totalCount: 27, totalPages: 2, pages: {'1': '/scope-1', '2': '/scope-2'}};
+  const loader = createBusinessPageLoader({
+    'next/navigation': { usePathname: () => '/per/kospi~2', useSearchParams: () => { throw new Promise(() => {}); } },
+    '@/lib/static-build/server': { isStaticBuild: () => true, getStaticRankingManifest: () => configured },
+    '@/lib/data/security': { getSecurityRanksPage: async (_metric, page, _order, scope) => {
+      assert.equal(page, 2); assert.equal(scope, 'kospi');
+      return {...snapshot('kospi'), totalCount: 27, totalPages: 2};
+    } },
+  });
+  const { PublishedRankingPage } = loader.load('components/published-ranking-page.tsx');
+  const { html } = await loader.renderElement(await PublishedRankingPage({ metric: 'per', page: 2, documentScope: 'kospi' }));
+  const dom = new JSDOM(html);
+  const ranges = [...dom.window.document.querySelectorAll('details.pageRanges a')];
+  assert.deepEqual(ranges.map(link => [link.textContent, link.getAttribute('href').split('?')[0]]),
+    [['1–20', '/per/kospi~1/'], ['21–27', '/per/kospi~2/']]);
+  assert.ok(ranges.every(link => /scope=kospi/.test(link.getAttribute('href'))));
+  assert.equal(ranges[1].getAttribute('aria-current'), 'page');
+  dom.window.close();
 });

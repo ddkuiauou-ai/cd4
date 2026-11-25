@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";

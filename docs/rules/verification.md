@@ -5,7 +5,7 @@
 - [package.json](../../package.json)의 스크립트를 `bun run <스크립트>`로 호출한다. Next.js와 `node --test`는 기존 Node 런타임으로 실행한다. 설치·lockfile·CI 전환은 별도 변경이다.
 - 실행 전 `bun --version`·`node --version`을 확인한다. Node는 [.nvmrc](../../.nvmrc)·[pnpm 설정](../../pnpm-workspace.yaml), 의존성은 [pnpm 잠금파일](../../pnpm-lock.yaml)을 따른다. 전체 정적 빌드·벤치마크의 [내부 검사](../../scripts/static-tools.cjs)는 Node 22.23.3과 pnpm 10.34.6을 요구한다.
 - **프로덕션 빌드 전** `NODE_ENV`를 확인한다. 개발 셸에서 `development`가 상속됐다면 해당 실행에서 해제하거나 `production`으로 지정한다. `bun run build`와 `bun run build:static` 모두에 적용한다.
-- [Netlify](../../.github/workflows/deploy-netlify.yml)·[R2](../../.github/workflows/deploy-r2.yml)는 pnpm 기반 수동 배포다. 배포 workflow는 배포 요청 범위에서 실행한다.
+- [Netlify](../../.github/workflows/deploy-netlify.yml)는 수동 배포다. [R2](../../.github/workflows/deploy-r2.yml)의 수동 전체 배포·장 마감 갱신·월간 검증은 [운영 안내](../static-export.md#r2-운영)를 따른다.
 
 ## 명령 선택
 
@@ -13,6 +13,7 @@
 | --- | --- |
 | 개발·서버 빌드·시작 | `bun run dev`는 기본 `-H 0.0.0.0`이므로 연결 대상·포트를 확인한다. `bun run build`는 기본 standalone이고 DB 환경이 필요할 수 있다. `bun run start`는 `next start`다. |
 | 전체 정적 출력 | `bun run build:static`은 동결 입력·디스크 공간이 필요하다. 생성한 out은 `bun run preview:static`과 `bun run verify:static`으로 확인한다. |
+| 로컬 R2 후보 | `bun run build:release`로 전체 후보를 만들고 `bun run build:release:daily`로 후속 릴리스를 만든다. `bun run preview:release`와 [객체 건수·헤더·변경 계획](../static-export.md#로컬-r2-후보)을 확인한다. |
 | 정적 성능·SEO | 성능 비교는 `bun run benchmark:static`, 사이트맵은 출력 모드와 origin을 확인한 뒤 `bun run sitemap`을 사용한다. |
 | 단위·회귀 | `bun run test`는 Node로 `tests/*.test.cjs`를 실행한다. `bun run test:main`은 메인 캐시·대시보드 두 파일이다. 개별 회귀는 `node --test tests/<파일>.test.cjs`로 선택한다. |
 | 정적 분석 | `bun run lint`는 ESLint, `bun run typecheck`는 TypeScript 검사다. |

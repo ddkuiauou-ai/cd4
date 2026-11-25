@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import type { ReactNode } from 'react';
 import { formatInvestorAmount, formatInvestorNumber, usesInvestorPrecision } from '@/lib/investor-number';
 import { businessPercentageOf, businessRatio, compareBusinessValues, formatBusinessValue, formatCompactBusinessValue, isBusinessDay, roundBusinessValue, subtractBusinessValues, type BusinessValue } from '@/lib/business-analysis';
@@ -35,6 +35,10 @@ export function detailHref(path: string, { start, end, periodId }: Scope) {
   if (end) query.set('end', end);
   if (periodId) query.set('period', periodId);
   return query.size ? path + '?' + query : path;
+}
+
+export function securityPriceHistoryHref(security: Parameters<typeof securityPath>[0], periodId?: string) {
+  return detailHref(securityPath(security, 'marketcap') + '/', { periodId }) + '#price-history';
 }
 
 function fieldValue(source: Record<string, unknown> | undefined, field: string): BusinessValue {
@@ -357,7 +361,8 @@ export function DividendTable({ members, securityId, metric, csvStem, scope, bas
     const dps = securityValue(member, 'dps');
     const div = securityValue(member, 'div');
     const price = memberPrice(member);
-    const target = detailHref(securityPath(member, 'marketcap'), { ...scope, periodId: key === securityId ? scope.periodId : undefined }) + '#price-history';
+    const target = key === securityId && metric ? securityPriceHistoryHref(member, scope.periodId)
+      : detailHref(securityPath(member, 'marketcap'), { ...scope, periodId: key === securityId ? scope.periodId : undefined }) + '#price-history';
     return { key, selected: key === securityId, cells: [
       { value: name, display: <>{name}{member.ticker && <small>{member.ticker}</small>}</> },
       makeCell(dps.value, '원', dps.date), makeCell(div.value, '%', div.date),
@@ -604,7 +609,7 @@ export function ValuationSummary({ metric, security, previous, scope, quoteChang
   const relatedCell = (observation: typeof second, unit: string, key?: DetailMetric): Cell => {
     const cell = investorNumCell(observation.value, unit, observation.date);
     return observation.value == null || key && !metricAvailable(security, key) ? cell : { ...cell, display: <Link prefetch={false}
-      href={detailHref(securityPath(security, key), scope)}>{cell.display}</Link> };
+      href={key ? detailHref(securityPath(security, key), scope) : securityPriceHistoryHref(security, scope.periodId)}>{cell.display}</Link> };
   };
   const current = securityValue(security, metric);
   const result = investorNumCell(current.value, resultUnit, current.date);

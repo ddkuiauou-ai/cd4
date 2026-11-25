@@ -5,7 +5,11 @@ const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const STAGE = path.join(ROOT, '.static-build');
+const configuredStage = process.env.STATIC_RELEASE_HOME;
+if (configuredStage && (!path.isAbsolute(configuredStage) || path.resolve(configuredStage) === path.parse(configuredStage).root)) {
+  throw new Error('STATIC_RELEASE_HOME must be an absolute dedicated directory');
+}
+const STAGE = configuredStage ? path.resolve(configuredStage) : path.join(ROOT, '.static-build');
 const OUT = path.join(ROOT, 'out');
 const WORKSPACE = path.join(STAGE, 'workspace');
 const MARKER = '_static-build.json';
@@ -51,6 +55,11 @@ function readManifest({ allowSample = false, filename = path.join(STAGE, 'manife
     || !manifest.sample || typeof manifest.sample.enabled !== 'boolean' || !Array.isArray(manifest.routes)
     || !Array.isArray(manifest.assets)) throw new Error('Incomplete or unsupported static build manifest');
   if (manifest.sample.enabled && !allowSample) throw new Error('This is a sample snapshot. A full build must prepare fresh, complete input.');
+  if (manifest.marketCsv) {
+    const { date, rowCount, url } = manifest.marketCsv;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || url !== `/downloads/market/${date}.csv`
+      || !Number.isSafeInteger(rowCount) || rowCount < 0) throw new Error('Invalid daily market CSV metadata');
+  }
   const routes = new Set();
   for (const route of manifest.routes) {
     if (route.kind !== 'page' || !route.path.endsWith('/')) throw new Error(`Expected a canonical page URL: ${route.path}`);
@@ -139,7 +148,9 @@ function measureOutput(manifest, output = OUT) {
 }
 
 function freeBytes(directory = ROOT) {
-  const stats = fs.statfsSync(directory);
+  let existing = directory;
+  while (!fs.existsSync(existing)) existing = path.dirname(existing);
+  const stats = fs.statfsSync(existing);
   return stats.bavail * stats.bsize;
 }
 
@@ -202,14 +213,15 @@ function diskProjection(manifest) {
     note: 'Projection uses the largest measured page in each family and accounts for workspace/.next plus out copies. Unseen larger histories or compiler growth can exceed it; runtime disk monitoring remains enabled.' };
 }
 
-function diskPreflight(manifest) {
+function diskPreflight(manifest, { inspectLegacyOutput = true } = {}) {
   const reserveGiB = Number(process.env.STATIC_BUILD_RESERVE_GIB ?? 2);
   if (!Number.isFinite(reserveGiB) || reserveGiB < 0.25) throw new Error('STATIC_BUILD_RESERVE_GIB must be at least 0.25');
   const reserveBytes = Math.ceil(reserveGiB * 2 ** 30);
-  const availableBytes = freeBytes();
+  const availableBytes = freeBytes(STAGE);
   const stagedAssetBytes = manifest?.assets.reduce((total, asset) => total + asset.bytes, 0) ?? 0;
   const projection = diskProjection(manifest);
-  const existingGeneratedDirectories = [OUT, path.join(WORKSPACE, '.next'), path.join(WORKSPACE, 'out')].map(directoryUsage);
+  const existingGeneratedDirectories = inspectLegacyOutput
+    ? [OUT, path.join(WORKSPACE, '.next'), path.join(WORKSPACE, 'out')].map(directoryUsage) : [];
   const minimumBytes = reserveBytes + Math.max(stagedAssetBytes, projection?.additionalBytes ?? 0);
   if (availableBytes < minimumBytes) throw new Error(`Insufficient disk space: ${availableBytes} bytes available; ${minimumBytes} needed for staged assets and reserve`);
   return { availableBytes, reserveBytes, stagedAssetBytes, minimumBytes, projection, existingGeneratedDirectories,

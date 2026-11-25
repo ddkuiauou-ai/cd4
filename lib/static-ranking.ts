@@ -1,5 +1,12 @@
 import type { StaticRankingManifest, StaticRankingSnapshot } from "@/lib/static-build/types";
 
+export function rankingManifestForPage(manifest: StaticRankingManifest, page: number): StaticRankingManifest {
+  const key = String(page);
+  return { ...manifest, scopes: Object.fromEntries(Object.entries(manifest.scopes).map(([scope, entry]) => [
+    scope, { ...entry, pages: entry.pages[key] ? { [key]: entry.pages[key] } : {} },
+  ])) };
+}
+
 export function selectStaticRanking(manifest: StaticRankingManifest, query: URLSearchParams, page: number) {
   const single = (key: string) => query.getAll(key).length === 1 ? query.get(key) : null;
   const requestedScope = single("scope");

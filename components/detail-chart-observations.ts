@@ -36,3 +36,15 @@ export function chartMonths(first?: string, last?: string) {
     return `${String(Math.floor(month / 12)).padStart(4, '0')}-${String(month % 12 + 1).padStart(2, '0')}`;
   });
 }
+
+/** Keep gaps in the same calendar months in the first HTML and in the interactive chart. */
+export function monthlyDetailPoints(rows: readonly DetailObservation[]) {
+  const byMonth = lastMonthlyObservations(rows);
+  const months = [...byMonth.keys()].sort();
+  return chartMonths(months[0], months.at(-1)).map(month => byMonth.get(month) ?? { date: month + '-01', value: null });
+}
+
+export type DetailTrendPreview = {
+  points: [string, DetailObservation['value']][];
+  sourceCount: number;
+};

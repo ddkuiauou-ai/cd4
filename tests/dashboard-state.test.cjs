@@ -22,11 +22,12 @@ function snapshot(items = [], overrides = {}) {
   return { state: "published", publication, revisionChanged: false, items, totalCount: items.length,
     totalPages: 1, ...overrides };
 }
-async function renderDashboard(result, searchParams = {}, inspectTrends = false, arena = null) {
+async function renderDashboard(result, searchParams = {}, inspectTrends = false, arena = null, marketCsv = null) {
   const calls = []; let trends;
   const loader = createBusinessPageLoader({
     "@/lib/data/company": { getCompanyRankingPage: async (...args) => { calls.push(args); return result; } },
     "@/lib/data/dashboard-arena": { getDashboardArena: async () => arena },
+    "@/lib/data/market-csv": { getMarketCsvMetadata: async () => marketCsv },
     "@/lib/data/security": {},
     ...(inspectTrends ? { "@/components/MarketTrends": { default: props => {
       trends = props; return React.createElement("section", null, "관측 데이터 테스트");
@@ -173,8 +174,9 @@ test("a replaced revision offers a dashboard refresh and renders no mixed rankin
   assert.doesNotMatch(html, /dashboard-companies|ranking-data\/|dashboard-facts/);
 });
 
-test("records-room entry keeps company exports with TOP5 and gives each of the seven ranking shortcuts its own scope", async () => {
-  const { html } = await renderDashboard(snapshot([withPrice(1, "2", "100")]));
+test("records-room entry keeps company exports with TOP5 and gives each of the eight ranking shortcuts its own scope", async () => {
+  const { html } = await renderDashboard(snapshot([withPrice(1, "2", "100")]), {}, false, null,
+    { date: "2026-10-08", rowCount: 2872, url: "/downloads/market/2026-10-08.csv" });
   const document = documentOf(html);
   assert.equal(document.querySelector("h1").textContent, "대회장");
   const top5 = document.getElementById("dashboard-ranking").closest("section");
@@ -182,7 +184,9 @@ test("records-room entry keeps company exports with TOP5 and gives each of the s
   assert.ok(top5.querySelector('a[href="/company/company-1/marketcap"]'));
   assert.ok(top5.querySelector('button[data-rank="1"]'));
   const shortcuts = document.querySelector('nav[aria-label="지표별 전체 순위"]');
-  assert.equal(shortcuts.querySelectorAll("a").length, 7);
+  assert.equal(shortcuts.querySelectorAll("a").length, 8);
+  assert.match(shortcuts.querySelector('a[href="/marketcap"]').textContent, /시가총액종목별/);
+  assert.equal(document.querySelector('a[download][href="/downloads/market/2026-10-08.csv"] time').dateTime, '2026-10-08');
   assert.equal(shortcuts.querySelector("a").getAttribute("href"), `/marketcaps?revision=${publication.revision}`);
   assert.match(shortcuts.querySelector("a").textContent, /기업 합산/);
   assert.equal(shortcuts.querySelector('a[href="/per"]').textContent.includes("종목별"), true);

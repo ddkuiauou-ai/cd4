@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import Link, { LinkProps } from "next/link";
-import { usePathname, useRouter } from "next/navigation"; // useRouter 추가
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
+import type { ComponentProps } from "react";
+import { usePathname } from "next/navigation"; // useRouter 추가
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -123,7 +124,7 @@ export function MobileNav() {
   );
 }
 
-interface MobileLinkProps extends LinkProps {
+interface MobileLinkProps extends ComponentProps<typeof Link> {
   onOpenChange?: (open: boolean) => void; // Ensure this line is present and uncommented
   children: React.ReactNode;
   className?: string;
@@ -136,7 +137,6 @@ function MobileLink({
   children,
   ...props
 }: MobileLinkProps) {
-  const router = useRouter();
   const pathname = usePathname(); // 현재 경로를 가져옴
 
   // 네비게이션 아이템 정의에서 altHref를 찾아 현재 경로와 비교
@@ -149,7 +149,6 @@ function MobileLink({
     <Link
       href={href}
       onClick={() => {
-        router.push(href.toString());
         onOpenChange?.(false); // Close sheet on click
       }}
       className={cn(

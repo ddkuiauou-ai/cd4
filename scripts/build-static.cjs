@@ -50,7 +50,7 @@ async function runNodeStage(name, args, { env, reportDirectory, reserveBytes, cw
   const resourceLog = path.join(reportDirectory, `${name}.resources.jsonl`);
   const log = fs.createWriteStream(logPath);
   const started = performance.now();
-  const initialFreeBytes = freeBytes();
+  const initialFreeBytes = freeBytes(STAGE);
   let minimumFreeBytes = initialFreeBytes, stoppedForDisk = false;
   const hook = path.join(__dirname, 'static-resource-hook.cjs');
   const nodeOptions = `${env.NODE_OPTIONS || ''} --require ${JSON.stringify(hook)}`.trim();
@@ -69,7 +69,7 @@ async function runNodeStage(name, args, { env, reportDirectory, reserveBytes, cw
   const diskSamples = [];
   const timer = setInterval(() => {
     try {
-      const availableBytes = freeBytes();
+      const availableBytes = freeBytes(STAGE);
       minimumFreeBytes = Math.min(minimumFreeBytes, availableBytes);
       diskSamples.push({ at: Date.now(), availableBytes });
       if (availableBytes < reserveBytes && !stoppedForDisk) { stoppedForDisk = true; stopChild('SIGTERM'); }
@@ -95,7 +95,11 @@ async function runNodeStage(name, args, { env, reportDirectory, reserveBytes, cw
 
 function syncWorkspace({ projectRoot = ROOT, workspace = WORKSPACE } = {}) {
   const started = performance.now();
-  if (!workspace.startsWith(`${path.join(projectRoot, '.static-build')}${path.sep}`)) throw new Error('Static workspace must be inside .static-build');
+  const releaseCompiler = process.env.STATIC_RELEASE_HOME && workspace === path.join(STAGE, 'release-compiler-workspace')
+    && !workspace.startsWith(projectRoot + path.sep);
+  if (!releaseCompiler && !workspace.startsWith(`${path.join(projectRoot, '.static-build')}${path.sep}`)) {
+    throw new Error('Static workspace must be inside .static-build or the dedicated release compiler directory');
+  }
   fs.mkdirSync(workspace, { recursive: true });
   if (fs.lstatSync(workspace).isSymbolicLink()) throw new Error('Static workspace cannot be a symbolic link');
   const exclusions = ['.git', 'node_modules', '.next', '.next-static', '.static-build', 'out', '.env*', '.pnpm-store', '.impeccable', '.kilo', '.vercel', '.aws', '.codex', '.agents'];
@@ -178,6 +182,7 @@ async function buildStatic({ allowSample = false, reuse = false, compression = f
   const fingerprint = sourceFingerprint();
   const settings = selectBuildSettings({ fingerprint });
   const env = { ...process.env, NEXT_OUTPUT_MODE: 'export', NEXT_TELEMETRY_DISABLED: '1',
+    NEXT_PUBLIC_STATIC_DOCUMENTS: '1',
     STATIC_SNAPSHOT_DIR: STAGE, STATIC_BUILD_PROJECT_ROOT: ROOT,
     STATIC_BUILD_CPUS: settings.workers, STATIC_BUILD_CONCURRENCY: settings.concurrency };
   const report = { version: 1, reportId, success: false, runtime, mode: allowSample ? 'sample' : 'full',

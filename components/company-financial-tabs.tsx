@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { usePathname } from "next/navigation";
 import { metricItems } from "@/lib/metric-navigation";
 import { cn } from "@/lib/utils";

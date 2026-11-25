@@ -41,6 +41,8 @@ bun run start
 
 ## 정적 출력과 서버 실행
 
+로컬 R2 후보의 전체 빌드·일별 증분과 객체 미리보기는 [로컬 R2 후보](docs/static-export.md#로컬-r2-후보)를 따른다.
+
 두 모드를 지원한다. 정적 모드는 프리징된 PostgreSQL 입력을 한 번 추출한 뒤
 비공개 파일 입력으로 페이지를 생성한다. 새 데이터는 재빌드·배포 후 공개된다.
 서버 모드는 요청 시 DB 조회와 해당 캐시 정책을 사용한다.
@@ -60,7 +62,7 @@ standalone 경고가 발생할 수 있다. standalone 산출물을 직접 실행
 `public`과 `.next/static`을 서버 산출물에 함께 패키징하고 Node로 실행한다.
 [배포 안내](VERCEL_SETUP.md)의 모드별 설명도 현재 설정과 대조한다.
 
-R2·Netlify는 별도 수동 배포 경로다. [배포 workflow와 로컬 실행 조건](docs/rules/verification.md#실행-환경)
+R2는 수동 전체 배포와 평일 갱신·월간 검증을 지원한다. Netlify는 별도 수동 배포 경로다. [R2 운영](docs/static-export.md#r2-운영)
 
 ## 데이터 계약
 

@@ -128,7 +128,7 @@ test('PBR, EPS and BPS outlines follow the approved record order and link only p
       } else {
         const summary = doc.querySelector(`[aria-label="현재 ${metric.toUpperCase()} 구성"] .calculationInputs`);
         assert.deepEqual([...summary.querySelectorAll('dt')].map(dt => dt.textContent), metric === 'eps' ? ['종가'] : ['종가', 'PBR']);
-        assert.match(summary.querySelector('a[href$="005930?start=2024-01-01"]').textContent, /74,000원/);
+        assert.match(summary.querySelector('a[href="/security/KOSPI.005930/marketcap/#price-history"]').textContent, /74,000원/);
         if (metric === 'bps') assert.equal(summary.querySelector('a[href*="/pbr?"]').textContent, '2.12배');
       }
     } finally { view.close(); }
@@ -906,5 +906,24 @@ test('shares and strip cover every official constituent, including zero and a si
         assert.equal(new Set(colors).size,securities.length);
       }
     } finally {view.close();}
+  }
+});
+
+test('financial current quotes open the same listing in marketcap price history', () => {
+  for (const metric of ['per', 'pbr', 'eps', 'bps', 'div', 'dps']) {
+    const { DetailSurface } = loadFor('/security/KOSPI.005935/' + metric)('components/detail-surface.tsx');
+    const defaults = primaryDetailProps();
+    const security = {
+      ...defaults.security, securityId: preferred.securityId, routeCode: preferred.routeCode, ticker: preferred.ticker,
+      selectedPeriod: { periodId: 'preferred-episode', listingDate: '1997-01-01' },
+      availableMetrics: [metric, 'marketcap', 'per', 'pbr', 'eps', 'bps', 'div', 'dps'],
+      [metric]: '5', [metric + 'State']: 'provided', [metric + 'Date']: publication.asOf,
+    };
+    const view = documentFor(DetailSurface, {...defaults, metric, security, search: {start: '2026-01-01'}});
+    try {
+      const quoteLinks = [...view.document.querySelectorAll('#current-overview a[href*="/security/KOSPI.005935/"]')].filter(link => link.textContent === '74,000원');
+      assert.ok(quoteLinks.length, metric);
+      for (const link of quoteLinks) assert.equal(link.getAttribute('href'), '/security/KOSPI.005935/marketcap/?period=preferred-episode#price-history', metric);
+    } finally { view.close(); }
   }
 });

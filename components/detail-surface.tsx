@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Fragment, type ReactNode } from 'react';
 import type { getSecurityDetailSnapshot } from '@/lib/data/detail-snapshot';
@@ -17,7 +17,7 @@ import { hasMarketcapHierarchy, MarketcapAmount, MarketcapBreakdown, type Market
 import {
   annualDividendComparison, companyMetricLinks, ConstituentsTable, detailEntityMembers, detailHref, detailMetricLabel, detailNavGroups, DetailRecordHeading, detailSwitchCandidates, detailValue,
   dividendComparisonHeading, DividendTable, InvestorTable, metricAvailable, securityName, securityValue, StockSelection,
-  valuationReference, ValuationSummary, type ValuationObservation,
+  securityPriceHistoryHref, valuationReference, ValuationSummary, type ValuationObservation,
 } from './detail-investor-records';
 import { DetailHistoryChart } from './detail-history-chart';
 import { MarketcapRangeLink } from './marketcap-chart-range';
@@ -30,6 +30,9 @@ import { StickyCompanyHeader } from './sticky-company-header';
 import { SecurityLifecycle } from './security-lifecycle';
 import { RecentSecurityTracker } from './recent-security-tracker';
 import { CsvDownloadButton } from './CsvDownloadButton';
+import { ChartWhenVisible } from './detail-chart-visibility';
+import { PendingChart } from './record-loading';
+import type { DetailTrendPreview } from './detail-chart-observations';
 import ShareButton from './share-button';
 import styles from './detail-investor-summary.module.css';
 import layoutStyles from './detail.module.css';
@@ -69,6 +72,11 @@ export interface DetailSurfaceProps {
   initialSnapshotAnalysis?: DetailSnapshotAnalysis;
   historyPending?: boolean;
   historyError?: string;
+  deferredHistory?: {
+    preview?: DetailTrendPreview; request: () => void; loadCsvRows: () => Promise<Record<string, unknown>[]>;
+    loadPriceCsvRows: () => Promise<Record<string, unknown>[]>; staticMarketcapReady?: boolean;
+    pricesPending: boolean; pricesFailed: boolean; requestPrices: () => void; retryPrices: () => void;
+  };
   onRetry?: () => void;
 }
 
@@ -282,8 +290,11 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const fileLabel = name + ' ' + (aggregateMarketcap ? '기업 합산 시가총액' : marketcapDetail ? '종목 시가총액' : pageLabel) + ' 전체 이력 CSV';
   const fileName = [stem, fileMetric, periodId ? security?.selectedPeriod?.listingDate : null, historyEnd].filter(Boolean).join('-') + '.csv';
   const headerCompact = compactActions || marketcapDetail;
+  const deferred = props.deferredHistory;
   const download = (showHistoryCsv || headerCompact && historyPending) && <div id="history-download" className={`investor-history-action ${styles.historyAction}`}>
-    <CsvDownloadButton key={fileName} data={historyPending || historyError ? undefined : historyCsvRows(props)} filename={fileName} label={fileLabel}
+    <CsvDownloadButton key={fileName} data={historyPending || historyError || props.deferredHistory ? undefined : historyCsvRows(props)}
+      loadData={deferred && hasHistory ? async () => historyCsvRows({ ...props, sourceHistory: await deferred.loadCsvRows() }) : undefined}
+      filename={fileName} label={fileLabel}
       buttonText={headerCompact ? 'CSV' : '전체 이력 CSV'} compact={headerCompact}
       historyFeedback={headerCompact ? 'toast' : undefined} />
   </div>;
@@ -298,18 +309,32 @@ export function DetailSurface(props: DetailSurfaceProps) {
     : null;
   const currentRank = validRank(marketcapDetail && !companyPage && security?.historicalPeriod ? null : ranking?.currentRank);
   const order: DetailRecord[] = [];
+  const waitForHistory = (skeleton: ReactNode, label: string) => {
+    if (!props.deferredHistory) return skeleton;
+    if (historyError) return <p role="alert">{historyError} <button type="button" onClick={onRetry}>다시 시도</button></p>;
+    return <ChartWhenVisible onApproach={props.deferredHistory.request} fallback={skeleton}>
+      <PendingChart label={label}>{skeleton}</PendingChart>
+    </ChartWhenVisible>;
+  };
 
   const priceHistory = () => section('price-history', marketcapDetail ? companyPage ? '대표 보통주 주가·거래량' : name + ' 주가·거래량'
     : name + ' 주가',
-    headerCompact && pendingHistory ? <DetailChartSkeleton variant="price" />
-      : state || (marketcapDetail && !prices.some(row => sourceValue(row.close) != null) ? <p className="investor-muted" role="status">
+    invalid ? state : deferred?.pricesFailed ? <p role="alert">주가 자료를 불러오지 못했습니다. <button type="button" onClick={deferred.retryPrices}>다시 시도</button></p>
+      : deferred?.pricesPending ? <ChartWhenVisible onApproach={deferred.requestPrices} fallback={<DetailChartSkeleton variant="price" />}>
+          <PendingChart label="주가 이력을 불러오는 중"><DetailChartSkeleton variant="price" /></PendingChart>
+        </ChartWhenVisible>
+      : !deferred && headerCompact && pendingHistory ? <DetailChartSkeleton variant="price" />
+      : !deferred && state ? state
+      : !prices.some(row => sourceValue(row.close) != null) ? <p className="investor-muted" role="status">
         {companyPage && !security ? '대표 보통주 거래 자료가 없습니다.' : '제공된 주가·거래량 이력이 없습니다.'}
       </p> : <DetailPriceHistory rows={prices} start={start} end={end} usePlotSkeleton={headerCompact}
-        marketcapRange={marketcapDetail ? { initial: single(search.priceRange) } : undefined} />),
+        staticPreview={Boolean(deferred)}
+        marketcapRange={marketcapDetail ? { initial: single(search.priceRange) } : undefined} />,
     marketcapDetail ? <div className="flex flex-wrap items-center gap-2">
       {companyPage && security && <span className="investor-muted">{securityName(security)}{security.ticker && ' · ' + security.ticker}</span>}
       {security && <CsvDownloadButton key={security.securityId + ':' + (security.selectedPeriod?.periodId ?? '')} compact
-        data={historyPending || historyError ? undefined : priceCsvRows(prices)}
+        data={deferred || historyPending || historyError ? undefined : priceCsvRows(prices)}
+        loadData={deferred ? async () => priceCsvRows(await deferred.loadPriceCsvRows()) : undefined}
         filename={[securityRouteCode(security).replace(/[.]/g, '-'), 'price', security.selectedPeriod?.listingDate].filter(Boolean).join('-') + '.csv'}
         label={securityName(security) + ' 주가 전체 이력 CSV'} buttonText="주가 CSV" historyFeedback="toast" />}
     </div> : <span className="investor-muted">{start || end ? '선택 기간' : '최근 3개월'}</span>);
@@ -319,13 +344,13 @@ export function DetailSurface(props: DetailSurfaceProps) {
   const annualPrice = () => {
     const rows = analytics.priceAnnual ?? [];
     return section('annual-prices', '연도별 종가',
-      pendingHistory ? <DetailAnnualSkeleton closingPrice />
-        : state || <DetailAnnualHistory rows={rows} label="종가" unit="원" metric="price" />,
-      !pendingHistory && !state && rows.length > 0 ? <span className="investor-muted flex-1">{rows.length}개 연도</span> : undefined);
+      pendingHistory && (!deferred || !initialAnalysis) ? <DetailAnnualSkeleton closingPrice />
+        : invalid ? state : <DetailAnnualHistory rows={rows} label="종가" unit="원" metric="price" />,
+      !state && rows.length > 0 ? <span className="investor-muted flex-1">{rows.length}개 연도</span> : undefined);
   };
   const annual = () => {
     const comparison = dividend ? annualDividendComparison({ members, securityId: security?.securityId, metric, rows: annualRows, scope }) : undefined;
-    const unavailable = invalid || (marketcapDetail ? historyPending || historyError : compactActions ? (historyPending || historyError) && !initialAnalysis
+    const unavailable = invalid || (marketcapDetail ? (historyPending || historyError) && (!deferred || !initialAnalysis) : compactActions ? (historyPending || historyError) && !initialAnalysis
       : historyError || rangePending || historyPending && !annualRows.length);
     return section('annual-data', metric === 'bps' ? '연말 기록' : marketcapDetail ? '연도별 시가총액' : '연도별 기록', unavailable
       ? marketcapDetail && pendingHistory ? <DetailAnnualSkeleton marketcap={companyPage ? 'company' : 'security'} />
@@ -348,8 +373,8 @@ export function DetailSurface(props: DetailSurfaceProps) {
       Boolean(start || end) && <span className="investor-muted">지정한 기간</span>);
   };
   const extra = (kind: 'distribution' | 'monthly') => section(kind === 'distribution' ? 'metric-analysis' : 'monthly-records',
-    kind === 'distribution' ? '과거 분포' : '월별 기록', compactActions && pendingHistory
-      ? <DetailChartSkeleton variant={kind} />
+    kind === 'distribution' ? '과거 분포' : '월별 기록', compactActions && (pendingHistory || props.deferredHistory && historyError)
+      ? waitForHistory(<DetailChartSkeleton variant={kind} />, kind === 'distribution' ? '과거 분포를 불러오는 중' : '월별 기록을 불러오는 중')
       : state || <DetailFinancialAnalysis rows={selected} metric={metric} name={name} kind={kind} currentValue={snapshot.value} />);
   const perShare = metric === 'eps' || metric === 'bps';
   const dividendComparison = dividend && members.filter(member => member.dividendHistory?.some(row => row[metric] != null)
@@ -360,17 +385,21 @@ export function DetailSurface(props: DetailSurfaceProps) {
 
   const trend = () => {
     const metricTitle = metric === 'dps' ? '주당배당금과 변화율' : label + ' 추이';
-    const chart = marketcapDetail && pendingHistory
+    const chart = deferred?.preview && !invalid
+      ? <DetailHistoryChart key={route} rows={selected} metric={metric} label={label} unit={info.unit} selectedEnd={analysisEnd}
+          trendPreview={deferred.preview} awaitingHistory={historyPending} requestHistory={deferred.request}
+          historyError={historyError} retry={onRetry} withStatistics />
+      : marketcapDetail && pendingHistory && !deferred?.staticMarketcapReady
       ? <DetailChartSkeleton variant="marketcap" marketcapScope={companyPage ? 'company' : 'security'} customRange={Boolean(start || end)} /> : financialMetric && pendingHistory
       ? <DetailChartSkeleton variant={financialMetric} customRange={Boolean(start || end)} /> : state || (marketcapDetail
       ? <InteractiveChartSection companyMarketcapData={security?.historicalPeriod ? null : company} companySecs={companySecs} type="summary"
         selectedSecurityId={companyPage ? undefined : security?.securityId} start={start} end={end}
-        unified={{ rows: selected, selectedLabel: companyPage ? '기업 합산' : name, initialRange: single(search.capRange) }} />
+        unified={{ rows: selected, selectedLabel: companyPage ? '기업 합산' : name, initialRange: single(search.capRange), staticPreview: Boolean(deferred) }} />
       : <DetailHistoryChart key={route} rows={selected} metric={metric} label={label} unit={info.unit} selectedStart={start}
         selectedEnd={end || analysisEnd} annual={metric === 'bps'} customRange={Boolean(start || end)} withStatistics />);
     return section('chart-analysis', marketcapDetail ? '시가총액 추이' : metric === 'bps' ? '연말 BPS'
       : dividend ? name + ' ' + metricTitle : metricTitle,
-      marketcapDetail && !state && !pendingHistory && hasHistory ? <>
+      marketcapDetail && !state && (!pendingHistory || deferred?.staticMarketcapReady) && hasHistory ? <>
         {chart}
         <div className={styles.marketcapComparison}><SnapshotDifference analysis={snapshotAnalysis} unit={info.unit} /></div>
       </> : chart);
@@ -406,7 +435,7 @@ export function DetailSurface(props: DetailSurfaceProps) {
         order.push(trend(), extra('distribution'), average(), extra('monthly'), annual(), priceHistory());
         break;
       case 'pbr':
-        order.push(trend(), section('book-value', '연말 BPS', pendingHistory ? <DetailChartSkeleton variant="bps" customRange={Boolean(start || end)} withStatistics={false} /> : state || <DetailHistoryChart rows={detailObservations(sourceHistory, 'bps')}
+        order.push(trend(), section('book-value', '연말 BPS', pendingHistory ? waitForHistory(<DetailChartSkeleton variant="bps" customRange={Boolean(start || end)} withStatistics={false} />, '연말 BPS 이력을 불러오는 중') : state || <DetailHistoryChart rows={detailObservations(sourceHistory, 'bps')}
           label="BPS" unit="원" metric="bps" annual selectedStart={start} selectedEnd={end || analysisEnd} customRange={Boolean(start || end)} />,
         security && metricAvailable(security, 'bps') && <Link prefetch={false} href={detailHref(securityPath(security, 'bps'), scope)}>BPS 상세 보기</Link>),
         average(), annual(), priceHistory());
@@ -495,7 +524,7 @@ export function DetailSurface(props: DetailSurfaceProps) {
     facts.push({ label, value, date: date && date !== basis ? date : undefined, href, direction });
   };
   const quoteHref = security && price.value != null
-    ? marketcapDetail ? '#price-history' : detailHref(securityPath(security, 'marketcap'), scope) + '#price-history' : undefined;
+    ? marketcapDetail ? '#price-history' : securityPriceHistoryHref(security, scope.periodId) : undefined;
   if (companyPage) {
     const cap = company?.state === 'published' ? company.totalMarketcap : null;
     fact('합산 시가총액', marketcapDetail ? formatMarketcapAmount(cap) : detailValue(cap, '원', true), typeof company?.totalMarketcapDate === 'string' ? company.totalMarketcapDate : null,
@@ -556,7 +585,7 @@ export function DetailSurface(props: DetailSurfaceProps) {
         <p>{companyPage ? '기업 전체' : [security?.type, security?.ticker, security?.exchange].filter(Boolean).join(' · ')}</p>
         <p>공개 기준일 {publication?.asOf || '미공개'}</p>
       </div>
-      {historyError && <p role="alert" className="investor-error">{historyError} <button type="button" onClick={onRetry}>다시 시도</button></p>}
+      {historyError && !props.deferredHistory && <p role="alert" className="investor-error">{historyError} <button type="button" onClick={onRetry}>다시 시도</button></p>}
       {(start || end) && <div className="investor-legacy-range">
         <span>선택 기간 {start || '처음'} ~ {end || '마지막'}</span>
         {marketcapDetail
@@ -610,7 +639,7 @@ export function DetailSurface(props: DetailSurfaceProps) {
       </div>
 
       <DetailInvestorOutline sections={sections} placement="inline" />
-      {headerCompact && <p role="status" className="sr-only">{pendingHistory && '이력 자료를 불러오는 중…'}</p>}
+      {headerCompact && !deferred && <p role="status" className="sr-only">{pendingHistory && '이력 자료를 불러오는 중…'}</p>}
       {order.map(({ id, body }) => <Fragment key={id}>{body}</Fragment>)}
     </div>
     <DetailInvestorRail candidates={candidates} facts={facts} sections={sections} secCode={secCode} name={name} basis={basis}

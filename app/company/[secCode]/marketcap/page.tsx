@@ -4,7 +4,7 @@ import { RestoredCompanyDetail, type DetailSearch } from '@/components/restored-
 import { companyMetadata } from '@/lib/business-metadata';
 
 
-export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('company') : undefined;
+export const generateStaticParams = isStaticBuild() ? async () => getStaticRouteParams('company', 'marketcap') : undefined;
 
 export async function generateMetadata({ params }: { params: Promise<{ secCode: string }> }) {
   return companyMetadata((await params).secCode, true);

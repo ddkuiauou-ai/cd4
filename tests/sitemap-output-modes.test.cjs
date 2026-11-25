@@ -83,7 +83,7 @@ function loadRoutes(large = false) {
       if (Object.hasOwn(queryMocks, name)) return queryMocks[name];
       if (Object.hasOwn(localFiles, name)) return load(localFiles[name]);
       assert.ok(!name.startsWith("@/"), `Unexpected database or application import: ${name}`);
-      return require(name);
+      return Module.createRequire(filename)(name);
     };
     const { outputText } = ts.transpileModule(readFileSync(filename, "utf8"), {
       fileName: filename,
@@ -106,7 +106,7 @@ function assertQueries(calls, count) {
   }
 }
 
-async function assertXml(response, root, locations) {
+async function assertXml(response, root, locations, lastmod = FIXED_TIME) {
   assert.ok(response instanceof NextResponse);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Content-Type"), "application/xml");
@@ -115,12 +115,12 @@ async function assertXml(response, root, locations) {
   assert.ok(xml.startsWith(`<?xml version="1.0" encoding="UTF-8"?>\n<${root} xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`));
   assert.ok(xml.endsWith(`</${root}>`));
   assert.deepEqual([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]), locations);
-  assert.deepEqual([...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]), locations.map(() => FIXED_TIME));
+  assert.deepEqual([...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]), lastmod ? locations.map(() => lastmod) : []);
 }
 
 for (const mode of [
-  { name: "export", value: "ExPoRt", origin: SITE_ORIGIN },
-  { name: "standalone", value: "standalone", origin: REQUEST_ORIGIN },
+  { name: "export", value: "ExPoRt", origin: SITE_ORIGIN, lastmod: null },
+  { name: "standalone", value: "standalone", origin: REQUEST_ORIGIN, lastmod: FIXED_TIME },
 ]) {
   const request = (pathname) => mode.name === "export"
     ? { get url() { throw new Error("Static export accessed the dynamic request URL"); } }
@@ -130,7 +130,7 @@ for (const mode of [
     setup(t, mode.value);
     const loaded = loadRoutes(true);
     await assertXml(await loaded.index.GET(request("/sitemap.xml")), "sitemapindex",
-      LARGE_SEGMENTS.map((segment) => `${mode.origin}/sitemaps/${segment}/sitemap.xml`));
+      LARGE_SEGMENTS.map((segment) => `${mode.origin}/sitemaps/${segment}/sitemap.xml`), mode.lastmod);
     assertQueries(loaded.calls, 1);
     assert.equal(loaded.index.revalidate, false);
     assert.equal(isStaticGenEnabled(loaded.index), true);
@@ -144,7 +144,7 @@ for (const mode of [
       const response = await loaded.chunk.GET(request(`/sitemaps/${segment}/sitemap.xml`), {
         params: Promise.resolve({ segment, fileName: "sitemap.xml" }),
       });
-      await assertXml(response, "urlset", paths.map((pathname) => `${mode.origin}${pathname}`));
+      await assertXml(response, "urlset", paths.map((pathname) => `${mode.origin}${pathname === "/" ? "/" : pathname + "/"}`), mode.lastmod);
     }
     assertQueries(loaded.calls, 3);
   });
@@ -162,7 +162,7 @@ for (const mode of [
     ]) {
       await assertXml(await loaded.chunk.GET(request(`/sitemaps/${segment}/sitemap.xml`), {
         params: Promise.resolve({ segment, fileName: "sitemap.xml" }),
-      }), "urlset", paths.map((pathname) => `${mode.origin}${pathname}`));
+      }), "urlset", paths.map((pathname) => `${mode.origin}${pathname}/`), mode.lastmod);
     }
     assertQueries(loaded.calls, 2);
   });
@@ -190,6 +190,20 @@ for (const mode of [
     assertQueries(loaded.calls, 0);
   });
 }
+
+test("static sitemap index and chunk bytes are independent of the build clock", async (t) => {
+  setup(t, "export");
+  const loaded = loadRoutes();
+  const req = { get url() { throw new Error("Unexpected request origin"); } };
+  const read = async () => [
+    await (await loaded.index.GET(req)).text(),
+    await (await loaded.chunk.GET(req, { params: Promise.resolve({ segment: "core-0", fileName: "sitemap.xml" }) })).text(),
+  ];
+  const first = await read();
+  t.mock.timers.setTime(Date.parse("2027-01-01T03:04:05.000Z"));
+  assert.deepEqual(await read(), first);
+  assert.ok(first.every(xml => !xml.includes("<lastmod>")));
+});
 
 test("an unset output mode keeps the request origin and does not generate static chunk params", async (t) => {
   setup(t, undefined);
@@ -242,7 +256,7 @@ test("native standalone route handling reads each request origin without static-
       sharedContext: { buildId: "sitemap-test" },
       renderOpts: { supportsDynamicResponse: !isStaticGenEnabled(loaded.chunk), cacheComponents: false, experimental: {}, cacheLifeProfiles: {} },
     });
-    await assertXml(response, "urlset", CORE_PATHS.map((pathname) => `${origin}${pathname}`));
+    await assertXml(response, "urlset", CORE_PATHS.map((pathname) => `${origin}${pathname === "/" ? "/" : pathname + "/"}`));
   }
   assertQueries(loaded.calls, 2);
 });

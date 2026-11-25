@@ -4,7 +4,7 @@ import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { businessDate, toDataDTO, type DataDTO } from "./dto";
 import { computeMixedPagination, computeTotalPagesMixed } from "./pagination";
 import { COMPANY_PUBLICATION_KEY, SECURITY_PUBLICATION_KEY, isCurrentResult, publicationState, readPublication, readSnapshot, type PublicationRow, type PublicationDTO, type ReadDatabase } from "./publication";
-import { readMarketcapHistory, readRecentPrices, readRouteCodes, type MarketcapDTO } from "./history";
+import { readCompanyRouteCodes, readMarketcapHistory, readRecentPrices, readRouteCodes, type MarketcapDTO } from "./history";
 import { listedSecurityPeriods } from "./listed-security-periods";
 import { listingContains } from "../security-lifecycle";
 import { aggregateRegisteredCompanyHistory, exactPercentage, type RegisteredCompanyObservation } from "./registered-company-history";
@@ -81,14 +81,15 @@ async function getLiveCompanyRankingPage(page: number, expectedRevision?: string
       with: { securities: { where: getListedCommonSecurityFilter(), columns: { securityId: true, exchange: true, ticker: true, type: true, name: true, korName: true }, orderBy: representativeSecurityOrder(), limit: 1 } },
     });
     const prices = await readRecentPrices(tx, rows.flatMap(row => row.securities.map(security => security.securityId)), 30, status.publication?.asOf);
-    const routeCodes = rows.length ? await readRouteCodes(tx) : new Map<string, string | null>();
+    const [routeCodes, companyCodes] = rows.length ? await Promise.all([readRouteCodes(tx), readCompanyRouteCodes(tx)])
+      : [new Map<string, string | null>(), new Map<string, string | null>()];
     return {
       ...status,
       items: toDataDTO(rows).map(row => {
         const securities = row.securities.map(security => ({ ...security, routeCode: routeCodes.get(security.securityId) ?? null,
           prices: prices[security.securityId] ?? [] }));
         return { ...row, securities, representativeSecurity: securities[0] ?? null,
-          routeCode: securities[0]?.routeCode ?? null, prices: securities[0]?.prices ?? [] };
+          routeCode: companyCodes.get(row.companyId) ?? null, prices: securities[0]?.prices ?? [] };
       }),
       page: currentPage, pageSize, skip,
       latestDate: status.publication?.asOf ?? null,
@@ -116,7 +117,8 @@ export async function readCompanyAggregatedMarketcap(tx: ReadDatabase, companyId
     const members = allMembers.filter(member => membership.has(member.securityId));
     const ids = members.map(member => member.securityId);
     const histories = await readMarketcapHistory(tx, ids, undefined, membershipDate ?? undefined, null);
-    const routeCodes = allMembers.length ? await readRouteCodes(tx) : new Map<string, string | null>();
+    const [routeCodes, companyCodes] = allMembers.length ? await Promise.all([readRouteCodes(tx), readCompanyRouteCodes(tx)])
+      : [new Map<string, string | null>(), new Map<string, string | null>()];
     const grouped = new Map<string, MarketcapDTO[]>();
     for (const observation of histories) if (observation.securityId && listingContains(membership.get(observation.securityId), observation.date)) {
       const history = grouped.get(observation.securityId) ?? [];
@@ -134,7 +136,6 @@ export async function readCompanyAggregatedMarketcap(tx: ReadDatabase, companyId
       percentage: complete && dto.marketcap != null && composition.securitiesBreakdown[member.securityId] != null
         ? exactPercentage(composition.securitiesBreakdown[member.securityId]!, dto.marketcap) : null,
       marketcapHistory: grouped.get(member.securityId) ?? [] }));
-    const representative = allMembers.find(member => member.type === "보통주");
     return {
       company: toDataDTO(currentCompany(row, publication)),
       companyId: row.companyId, companyName: row.name, companyKorName: row.korName,
@@ -148,7 +149,7 @@ export async function readCompanyAggregatedMarketcap(tx: ReadDatabase, companyId
       resultSourceRef: current ? row.resultSourceRef : null,
       state: current ? "published" : "unpublished",
       publication: current && publication ? toDataDTO(publication) : null,
-      routeCode: representative ? routeCodes.get(representative.securityId) ?? null : null,
+      routeCode: companyCodes.get(row.companyId) ?? null,
       compositionComplete: complete,
       compositionReason: !current ? "unpublished" : !composition || composition.observedCount === 0 || composition.partial || row.marketcapCompleteness !== "complete"
         ? "missing_input" : !complete ? "different_total" : null,
@@ -169,9 +170,9 @@ export async function getCompanyMarketCapPageData(rank: number) {
       orderBy: [asc(schema.company.marketcapRank), asc(schema.company.companyId)],
       with: { securities: { where: getListedCommonSecurityFilter(), columns: { securityId: true, ticker: true, exchange: true }, orderBy: representativeSecurityOrder(), limit: 1 } },
     });
-    const routeCodes = rows.length ? await readRouteCodes(tx) : new Map<string, string | null>();
+    const companyCodes = rows.length ? await readCompanyRouteCodes(tx) : new Map<string, string | null>();
     return toDataDTO(rows).map(row => ({ ...row, primaryTicker: row.securities[0]?.ticker ?? "", exchange: row.securities[0]?.exchange ?? "",
-      routeCode: row.securities[0] ? routeCodes.get(row.securities[0].securityId) ?? null : null }));
+      routeCode: companyCodes.get(row.companyId) ?? null }));
   });
 }
 export const getMarketCapPageData = getCompanyMarketCapPageData;

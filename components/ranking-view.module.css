@@ -19,9 +19,10 @@
 .basis dd { margin:0; font-weight:500; font-variant-numeric:tabular-nums; }
 .sortHint { margin:0; color:var(--muted-foreground); font-size:12px; }
 .download { grid-area:download; min-width:0; }
+.download { display:grid; justify-items:end; gap:6px; }
 .download>div { align-items:flex-end; }
-.download a { background:var(--primary); border-color:var(--primary); color:var(--primary-foreground); min-height:44px; border-radius:3px; padding:8px 14px; font-weight:650; }
-.download a:hover { background:color-mix(in srgb,var(--primary),var(--foreground) 7%); border-color:var(--primary); }
+.download>div a { background:var(--primary); border-color:var(--primary); color:var(--primary-foreground); min-height:44px; border-radius:3px; padding:8px 14px; font-weight:650; }
+.download>div a:hover { background:color-mix(in srgb,var(--primary),var(--foreground) 7%); border-color:var(--primary); }
 .download>div>p { text-align:right; font-size:11px; line-height:1.5; max-width:32ch; }
 .table { width:100%; border-collapse:collapse; table-layout:fixed; font-variant-numeric:tabular-nums; }
 .table th { color:var(--foreground); font-size:12px; line-height:1.5; font-weight:600; padding:12px 14px; text-align:left; border-top:1px solid var(--brand-red,#bd2b30); border-bottom:1px solid var(--border); }
@@ -77,6 +78,12 @@
 .listRange { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; font-size:12px; color:var(--muted-foreground); margin:0; }
 .listRange strong { font-size:15px; font-weight:600; color:var(--foreground); font-variant-numeric:tabular-nums; }
 .pager { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; margin-inline-start:auto; }
+.pageRanges { position:relative; font-size:12px; }
+.pageRanges summary { display:list-item; min-height:44px; padding:12px 10px; cursor:pointer; }
+.pageRanges ul { position:absolute; z-index:2; inset-inline-end:0; top:100%; display:grid; grid-template-columns:repeat(2,minmax(78px,1fr)); max-height:min(44vh,17rem); margin:0; padding:4px; overflow:auto; list-style:none; border:1px solid var(--border); background:var(--popover); }
+.pageRanges a { display:flex; align-items:center; justify-content:center; min-height:44px; padding:4px 8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.pageRanges a:hover { background:var(--accent); }
+.pageRanges a[aria-current] { background:var(--selected); font-weight:650; }
 .pageIndicator { color:var(--muted-foreground); font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .pageLink { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--border); border-radius:3px; font-size:13px; font-weight:500; white-space:nowrap; }
 .pageLink:hover { background:var(--muted); }
@@ -102,7 +109,7 @@
   .basis { flex-direction:column; align-items:flex-start; gap:2px; }
   .basis>div { flex-wrap:wrap; gap:2px 5px; }
   .download { align-self:start; }
-  .download a { font-size:12px; padding:8px 10px; }
+  .download>div a { font-size:12px; padding:8px 10px; }
   .download>div>p { font-size:10px; max-width:142px; }
   .name { font-size:14px; }
   .nameLink { gap:3px; padding:0; min-height:44px; }

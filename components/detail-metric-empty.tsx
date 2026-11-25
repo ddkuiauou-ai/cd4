@@ -1,5 +1,5 @@
 import type { DetailSecurity, DetailSecurityRow, DetailCompanyData } from './detail-types';
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import { CompanyFinancialTabs } from './company-financial-tabs';
 import { StickyCompanyHeader } from './sticky-company-header';
 import { SidebarManager } from './sidebar-manager';

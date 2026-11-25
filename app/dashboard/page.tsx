@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { Suspense } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { dashboardLabel } from "@/config/site";
@@ -9,6 +9,8 @@ import MarketTrends, { type TrendItem } from "@/components/MarketTrends";
 import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
 import { RankingValue } from "@/components/ranking-row-parts";
 import { RankingPosition } from "@/components/ranking-position";
+import { getMarketCsvMetadata } from "@/lib/data/market-csv";
+import { MarketCsvDownload } from "@/components/market-csv-download";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { DashboardArena } from "@/components/dashboard-arena";
 import { getCompanyRankingPage } from "@/lib/data/company";
@@ -25,7 +27,7 @@ export const metadata = dashboardMetadata;
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<RankingSearch> }) {
   const search = await readPageSearch(searchParams);
   const expectedRevision = typeof search.revision === "string" ? search.revision : undefined;
-  const snapshot = await getCompanyRankingPage(1, expectedRevision);
+  const [snapshot, marketCsv] = await Promise.all([getCompanyRankingPage(1, expectedRevision), getMarketCsvMetadata()]);
   const rows = createRankingRows(snapshot.items, "marketcap", "company");
   const priceDate = getPriceDateRange(rows);
   const withRates = rows.filter(row => row.rate !== null && row.securityHref);
@@ -37,6 +39,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     ticker: row.ticker, exchange: row.exchange, stockType: row.stockType });
   const revision = snapshot.publication?.revision;
   const rankingHref = `/marketcaps${revision ? `?revision=${encodeURIComponent(revision)}` : ""}`;
+  const rankingLinks = [
+    { label: "시가총액", href: rankingHref, scope: "기업 합산" },
+    { label: "시가총액", href: "/marketcap", scope: "종목별" },
+    ...metricItems.filter(item => item.key !== "marketcap").map(item => ({...item, scope: "종목별"})),
+  ];
   const usable = snapshot.state === "published" && !snapshot.revisionChanged;
   const date = snapshot.publication?.asOf;
   const market = snapshot.publication && snapshot.publication.scopeKey !== "krx-all" ? snapshot.publication.scopeKey : "코스피 · 코스닥 전체";
@@ -64,7 +71,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </section>
             <section className={styles.shortcuts} aria-labelledby="dashboard-metrics">
               <div className={styles.sectionHeading}><h2 id="dashboard-metrics">주요 지표별 순위 바로가기</h2></div>
-              <nav aria-label="지표별 전체 순위" className={styles.metricLinks}>{metricItems.map(item => <Link key={item.key} prefetch={false} href={item.key === "marketcap" ? rankingHref : item.href}><strong>{item.label}</strong><span>{item.key === "marketcap" ? "기업 합산" : "종목별"}</span><span className={styles.metricAction}>순위 보기<ArrowRight size={13} aria-hidden="true" /></span></Link>)}</nav>
+              <nav aria-label="지표별 전체 순위" className={styles.metricLinks}>{rankingLinks.map(item => <Link key={item.href} prefetch={false} href={item.href}><strong>{item.label}</strong><span>{item.scope}</span><span className={styles.metricAction}>순위 보기<ArrowRight size={13} aria-hidden="true" /></span></Link>)}</nav>
             </section>
             <MarketTrends gainers={gainers.map(trend)} losers={losers.map(trend)} volume={volumes.map(trend)} date={priceDate ?? undefined} sampleCount={rows.length} className={styles.trendsArea} />
           </div>
@@ -89,6 +96,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div><dt>시장</dt><dd>{market}</dd></div>
         <div><dt>기준일</dt><dd>{date ? <time dateTime={date}>{date.replaceAll("-", ".")}</time> : "미공개"}</dd></div>
       </dl>
+      {marketCsv && <MarketCsvDownload source={marketCsv} />}
     </header>
     {arena && date ? <>
       <DashboardArena data={arena} companyRows={rows} date={date} />

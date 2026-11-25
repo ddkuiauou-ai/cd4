@@ -1,10 +1,14 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { CsvDownloadButton } from "@/components/CsvDownloadButton";
 import { RecentSecuritiesSidebar } from "@/components/recent-securities-sidebar";
 import { ServerTable } from "@/components/server-table";
 import { Pager } from "@/components/pager";
+import { MarketCsvDownload } from "@/components/market-csv-download";
+import type { MarketCsvMetadata } from "@/lib/csv/market";
+import { scopedRankingPagePath } from "@/lib/ranking-page-address";
+import { usesStaticDocuments } from "@/components/site-document-link";
 import { MarketNav } from "@/components/market-nav";
 import { RANKING_METRICS, type RankingMetric, type RankingRow, type RankingScope, type RankingPublication } from "@/lib/ranking-view";
 import styles from "./ranking-view.module.css";
@@ -25,6 +29,7 @@ export interface RankingPageViewProps {
   revisionChanged?: boolean;
   scopeKey?: string;
   staticCsvSource?: StaticCsvSource;
+  marketCsv?: MarketCsvMetadata | null;
   feedback?: { title: string; description?: string; alert?: boolean; busy?: boolean; action?: ReactNode };
 }
 
@@ -36,13 +41,14 @@ const scopeNames: Record<string, string> = {
 };
 
 export function RankingPageView({ rows, metric, scope, latestDate, totalCount, currentPage, totalPages, basePath,
-  publication, state = "published", revisionChanged = false, scopeKey = "krx-all", staticCsvSource, feedback }: RankingPageViewProps) {
+  publication, state = "published", revisionChanged = false, scopeKey = "krx-all", staticCsvSource, marketCsv, feedback }: RankingPageViewProps) {
   const isCurrent = state === "published" && !revisionChanged && !feedback;
   const referenceDate = isCurrent ? publication?.asOf ?? latestDate : null;
   const definition = RANKING_METRICS[metric];
   const revision = publication?.revision;
   const query = new URLSearchParams({ ...(revision ? { revision } : {}), ...(scope === "security" ? { scope: scopeKey } : {}) }).toString();
-  const refreshHref = `${basePath}${scope === "security" ? `?scope=${encodeURIComponent(scopeKey)}` : ""}`;
+  const refreshBase = usesStaticDocuments && scope === "security" && publication ? scopedRankingPagePath(basePath, scopeKey, 1) : basePath;
+  const refreshHref = `${refreshBase}${scope === "security" ? `?scope=${encodeURIComponent(scopeKey)}` : ""}`;
   const rankValues = rows.flatMap(row => row.rank == null ? [] : [row.rank]);
   const firstRank = rankValues.length ? Math.min(...rankValues) : null;
   const lastRank = rankValues.length ? Math.max(...rankValues) : null;
@@ -67,8 +73,11 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
               </dl>
               {definition.sortHint && <p className={styles.sortHint}>{definition.sortHint}</p>}
             </div>
-            {isCurrent && <div className={styles.download}><CsvDownloadButton scope={scope} metric={metric} scopeKey={scopeKey} revision={revision}
-              refreshHref={refreshHref} expectedDate={referenceDate} expectedTotalCount={totalCount} staticSource={staticCsvSource} /></div>}
+            {(isCurrent || marketCsv) && <div className={styles.download}>
+              {isCurrent && <CsvDownloadButton scope={scope} metric={metric} scopeKey={scopeKey} revision={revision}
+                refreshHref={refreshHref} expectedDate={referenceDate} expectedTotalCount={totalCount} staticSource={staticCsvSource} />}
+              {marketCsv && <MarketCsvDownload source={marketCsv} />}
+            </div>}
           </div>
           <div className={styles.metricSection}>
             <MarketNav metric={metric} scope={scope} scopeKey={scopeKey} />
@@ -86,7 +95,7 @@ export function RankingPageView({ rows, metric, scope, latestDate, totalCount, c
               )}
               <span>전체 {totalCount.toLocaleString("ko-KR")}개 {entity}</span>
             </p>
-            <Pager basePath={basePath} currentPage={currentPage} totalPages={totalPages} nextCount={nextCount} query={query} />
+            <Pager basePath={basePath} currentPage={currentPage} totalPages={totalPages} totalCount={totalCount} nextCount={nextCount} query={query} scopeKey={scopeKey} />
           </footer>
         </> : <div className={styles.empty} role="status"><h2>이 기준에 해당하는 {entity}이 없습니다</h2><p>공개된 순위 대상은 0개입니다. 전체 순위 CSV는 열 이름만 포함합니다.</p></div>}
       </section>

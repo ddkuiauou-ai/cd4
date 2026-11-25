@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { SiteDocumentLink as Link } from '@/components/site-document-link';
 import {lifecycleTimeline,type SecurityListingPeriod,type SecurityLifecycleEvent} from '@/lib/security-lifecycle';
 import type {DetailSearch} from './detail-surface';
 import { MarketcapRangeLink } from './marketcap-chart-range';

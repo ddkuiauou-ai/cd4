@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { useEffect, useId, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { metricItems, RANKING_METRIC_NAV_ID } from "@/lib/metric-navigation";

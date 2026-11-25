@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 interface StockCardProps {

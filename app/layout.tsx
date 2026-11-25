@@ -3,10 +3,10 @@ import type { Metadata, Viewport } from "next";
 import { siteConfig } from "@/config/site";
 import { ThemeProvider } from "@/components/providers";
 import localFont from "next/font/local";
-import { structuredData, organizationData, financialServiceData, faqData } from "@/lib/structured-data";
+import { DocumentNavigationFeedback } from "@/components/document-navigation-feedback";
+import { usesStaticDocuments } from "@/components/site-document-link";
 
 // import { SpeedInsights } from "@vercel/speed-insights/next";
-const brandFont = localFont({ src: "./fonts/brand-nanum.woff2", weight: "800", display: "swap", variable: "--font-brand" });
 const recordsFont = localFont({ src: "./fonts/ChosunGs.ttf", weight: "400", display: "swap", preload: false, variable: "--font-records" });
 
 export const metadata: Metadata = {
@@ -149,39 +149,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <html lang="ko" className={`${brandFont.variable} ${recordsFont.variable}`} suppressHydrationWarning>
-        <head>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData),
-            }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(organizationData),
-            }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(financialServiceData),
-            }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(faqData),
-            }}
-          />
-          <link
-            rel="alternate"
-            href="https://www.chundan.xyz"
-            hrefLang="ko"
-          />
-        </head>
-
+      <html lang="ko" className={recordsFont.variable} suppressHydrationWarning>
         <body className="min-h-screen bg-background antialiased">
           <ThemeProvider
             attribute="class"
@@ -194,6 +162,7 @@ export default function RootLayout({
                 {children}
               </div>
             </div>
+            {usesStaticDocuments && <DocumentNavigationFeedback />}
 
           </ThemeProvider>
         </body>

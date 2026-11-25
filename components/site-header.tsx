@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import Image from "next/image";
 import { dashboardLabel, siteConfig } from "@/config/site";
 import { CommandMenu } from "@/components/command-menu";

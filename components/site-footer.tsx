@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { DetailFooterLink } from "@/components/detail-footer-link";
 import { metricItems, RANKING_METRIC_NAV_ID } from "@/lib/metric-navigation";
 import styles from "./site-footer.module.css";

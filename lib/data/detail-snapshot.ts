@@ -7,7 +7,7 @@ import { availableDetailMetrics, dividendReferenceDate, financialDetailMetrics }
 import { businessDate, toDataDTO } from "./dto";
 import { readCompanyAggregatedMarketcap, getCompanyMarketcapRankingFilter, representativeSecurityOrder } from "./company";
 import { readCompanySecurities, readSecurityByCode } from "./security";
-import { historyRange, readDetailDividendHistory, readDetailDividendReferences, readDetailFinancialAvailability, readMetricsHistory, readPriceHistory, readRouteCodes } from "./history";
+import { historyRange, readDetailDividendHistory, readDetailDividendReferences, readDetailFinancialAvailability, readMetricsHistory, readPriceHistory, readCompanyRouteCodes } from "./history";
 import { readSecurityMemberRanks, readSecurityMetricDetailRanking, readSecurityMetricNeighbors } from "./security-ranking-detail";
 import { COMPANY_PUBLICATION_KEY, isCurrentResult, readPublication, readSnapshot, SECURITY_PUBLICATION_KEY, type ReadDatabase } from "./publication";
 
@@ -101,9 +101,9 @@ async function companyNeighbors(tx: ReadDatabase, rank: number | null) {
     orderBy: [desc(schema.company.marketcapRank), asc(schema.company.companyId)], limit: 1, with: withRepresentative });
   const next = await tx.query.company.findMany({ where: and(getCompanyMarketcapRankingFilter(header), gt(schema.company.marketcapRank, rank)),
     orderBy: [asc(schema.company.marketcapRank), asc(schema.company.companyId)], limit: 1, with: withRepresentative });
-  const routeCodes = await readRouteCodes(tx);
+  const routeCodes = await readCompanyRouteCodes(tx);
   return toDataDTO([...previous, ...next]).map(row => ({ ...row,
-    routeCode: row.securities[0] ? routeCodes.get(row.securities[0].securityId) ?? null : null }));
+    routeCode: routeCodes.get(row.companyId) ?? null }));
 }
 
 function getLiveCompanyDetailSnapshot(code: string, start?: string, end?: string) {

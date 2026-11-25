@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 
 const sha256 = data => crypto.createHash('sha256').update(data).digest('hex');
 
-function createStaticAssetWriter(directory, { hashLength = 20 } = {}) {
+function createStaticAssetWriter(directory, { hashLength = 20, previousDirectory } = {}) {
   if (!Number.isInteger(hashLength) || hashLength < 2 || hashLength > 64) throw new Error('Invalid asset hash length');
   const assets = [];
   const recorded = new Map();
@@ -19,6 +19,20 @@ function createStaticAssetWriter(directory, { hashLength = 20 } = {}) {
     if (previous && previous.sha256 !== hash) throw new Error(`Static asset hash collision: ${relative}`);
     const file = path.join(directory, relative);
     fs.mkdirSync(path.dirname(file), { recursive: true });
+    if (!previous && previousDirectory) {
+      const priorFile = path.join(previousDirectory, relative);
+      try {
+        const bytes = fs.readFileSync(priorFile);
+        if (!bytes.equals(data)) throw new Error(`Changed content at prior asset address: ${relative}`);
+        fs.linkSync(priorFile, file);
+        const entry = { path: relative, bytes: data.length, sha256: hash };
+        assets.push(entry);
+        recorded.set(relative, entry);
+        return `/${relative}`;
+      } catch (error) {
+        if (!['ENOENT', 'EXDEV', 'EEXIST'].includes(error.code)) throw error;
+      }
+    }
     try {
       fs.writeFileSync(file, data, { flag: 'wx' });
     } catch (error) {

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { businessRatio, formatBusinessValue } from "@/lib/business-analysis";
 import { arenaClosing, type ArenaEntry, type ArenaQuote } from "@/lib/dashboard-arena";
 import type { getDashboardArena } from "@/lib/data/dashboard-arena";

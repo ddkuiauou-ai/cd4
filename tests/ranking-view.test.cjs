@@ -336,7 +336,8 @@ test("metric page two renders the hundred-item next window and carries both revi
     assert.equal(document.querySelector(".listRange span").textContent, "전체 120개 종목");
     const pager = document.querySelector('nav[aria-label="순위 목록 페이지"]');
     assert.equal(pager.querySelector("a").getAttribute("href"), `/${metric}?revision=${publication.revision}&scope=${scope}`);
-    assert.equal(pager.querySelectorAll("a").length, 1);
+    assert.equal(pager.querySelectorAll('a[rel="prev"], a[rel="next"]').length, 1);
+  assert.deepEqual([...pager.querySelectorAll("details a")].map(link => link.textContent), ["1–20", "21–120"]);
   }
 });
 
@@ -351,7 +352,8 @@ test("company page two renders one hundred official totals with a first-page pre
   assert.equal(rankingRows(document).length, 100);
   const pager = document.querySelector('nav[aria-label="순위 목록 페이지"]');
   assert.equal(pager.querySelector("a").getAttribute("href"), `/marketcaps?revision=${publication.revision}`);
-  assert.equal(pager.querySelectorAll("a").length, 1);
+  assert.equal(pager.querySelectorAll('a[rel="prev"], a[rel="next"]').length, 1);
+  assert.deepEqual([...pager.querySelectorAll("details a")].map(link => link.textContent), ["1–20", "21–120"]);
 });
 
 test("published zero-member rankings allow a header-only export while unpublished rankings have no export", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import type { DetailCompanyData, DetailSecurityRow } from './detail-types';
-import Link from "next/link";
+import { SiteDocumentLink as Link } from "@/components/site-document-link";
 import { companyPath, securityPath } from "@/lib/entity-paths";
 import { useState } from "react";
 import { usePathname } from "next/navigation";

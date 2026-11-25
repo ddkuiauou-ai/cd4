@@ -40,7 +40,7 @@ function contentType(filename) {
   return ({ '.html': 'text/html; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8',
     '.csv': 'text/csv; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
     '.xml': 'application/xml; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff' })[path.extname(filename)] || 'application/octet-stream';
+    '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf' })[path.extname(filename)] || 'application/octet-stream';
 }
 
 function headerRules(output) {
@@ -63,9 +63,10 @@ function headerRules(output) {
   return rules;
 }
 
-function createStaticServer({ output = OUT, trafficReport, compression = false } = {}) {
+function createStaticServer({ output = OUT, fallbackOutput, trafficReport, compression = false } = {}) {
   const root = fs.realpathSync(output);
-  const rules = headerRules(output);
+  const roots = [root, ...(fallbackOutput ? [fs.realpathSync(fallbackOutput)] : [])];
+  const rulesByRoot = new Map(roots.map(origin => [origin, headerRules(origin)]));
   const record = trafficRecorder(trafficReport);
   let requestId = 0;
   return http.createServer(async (request, response) => {
@@ -92,27 +93,32 @@ function createStaticServer({ output = OUT, trafficReport, compression = false }
       let decoded;
       try { decoded = decodeURIComponent(url.pathname); } catch { response.writeHead(400); response.end(); return; }
       if (decoded.includes('\0') || decoded.includes('\\') || decoded.split('/').includes('..')) { response.writeHead(400); response.end(); return; }
-      let filename = path.join(root, decoded);
-      let stat = await fs.promises.stat(filename).catch(() => null);
-      if (stat?.isDirectory()) {
-        if (!url.pathname.endsWith('/')) { response.writeHead(308, { Location: `${url.pathname}/${url.search}` }); response.end(); return; }
-        filename = path.join(filename, 'index.html');
+      let filename, stat, origin = root;
+      for (origin of roots) {
+        filename = path.join(origin, decoded);
         stat = await fs.promises.stat(filename).catch(() => null);
+        if (stat?.isDirectory()) {
+          filename = path.join(filename, 'index.html');
+          stat = await fs.promises.stat(filename).catch(() => null);
+          if (stat?.isFile() && !url.pathname.endsWith('/')) { response.writeHead(308, { Location: `${url.pathname}/${url.search}` }); response.end(); return; }
+        }
+        if (stat?.isFile()) break;
       }
       let status = 200;
       if (!stat?.isFile()) {
         status = 404;
-        filename = path.join(root, '404.html');
+        origin = root;
+        filename = path.join(origin, '404.html');
         stat = await fs.promises.stat(filename).catch(() => null);
       }
       if (!stat?.isFile()) { response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); response.end('Not found'); return; }
       const real = await fs.promises.realpath(filename);
-      if (!real.startsWith(`${root}${path.sep}`)) { response.writeHead(403); response.end(); return; }
+      if (!real.startsWith(`${origin}${path.sep}`)) { response.writeHead(403); response.end(); return; }
       const headers = { 'Content-Type': contentType(filename), 'Content-Length': String(stat.size), 'X-Content-Type-Options': 'nosniff' };
-      for (const rule of rules) if (rule.match.test(url.pathname)) Object.assign(headers, rule.values);
+      for (const rule of rulesByRoot.get(origin)) if (rule.match.test(url.pathname)) Object.assign(headers, rule.values);
       // Generated headers are case-insensitive; normalize them before compression and traffic recording.
       const normalized = Object.fromEntries(Object.entries(headers).map(([name, value]) => [name.toLowerCase(), value]));
-      const compressible = /^(?:text\/|application\/(?:json|xml|javascript))/.test(normalized['content-type']);
+      const compressible = /^(?:text\/|application\/(?:json|xml|javascript)|font\/ttf\b|image\/svg\+xml\b)/.test(normalized['content-type']);
       const encoding = compression && compressible && stat.size >= 1024 ? negotiatedEncoding(request.headers['accept-encoding']) : null;
       row.uncompressedBytes = request.method === 'HEAD' ? 0 : stat.size;
       if (compression && compressible) normalized.vary = 'Accept-Encoding';
@@ -122,7 +128,10 @@ function createStaticServer({ output = OUT, trafficReport, compression = false }
       if (request.method === 'HEAD') response.end();
       else {
         const stream = fs.createReadStream(real);
-        const encoded = encoding === 'br' ? zlib.createBrotliCompress({ params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 5 } })
+        const encoded = encoding === 'br' ? zlib.createBrotliCompress({ params: {
+          [zlib.constants.BROTLI_PARAM_QUALITY]: 5,
+          [zlib.constants.BROTLI_PARAM_SIZE_HINT]: stat.size,
+        } })
           : encoding === 'gzip' ? zlib.createGzip() : null;
         const streams = encoded ? [stream, encoded, response] : [stream, response];
         pipeline(...streams, error => { if (error) response.destroy(); });

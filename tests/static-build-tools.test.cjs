@@ -71,8 +71,12 @@ test('preview traffic counts negotiated response body bytes and emits RSC and CS
   const data = fixture();
   const trafficReport = path.join(data.directory, 'traffic.json');
   const body = JSON.stringify(Array.from({ length: 1000 }, (_, index) => ({ index, label: 'repeated financial history' })));
+  const font = Buffer.alloc(4096, 0xa6);
+  const artwork = '<svg xmlns="http://www.w3.org/2000/svg">' + '<path d="M0 0h8v8Z"/>'.repeat(80) + '</svg>';
   try {
     data.write(data.output, 'history.json', body);
+    data.write(data.output, '_next/static/media/records.ttf', font);
+    data.write(data.output, '_next/static/media/record-dragon.svg', artwork);
     data.write(data.output, 'ranking-data/securities-per.csv', 'code,per\nTEST,10\n');
     finalize(data);
     const server = createStaticServer({ output: data.output, trafficReport, compression: true });
@@ -96,6 +100,19 @@ test('preview traffic counts negotiated response body bytes and emits RSC and CS
         assert.equal(report.requests.at(-1).finished, true);
         assert.equal(report.requests.at(-1).uncompressedBytes, Buffer.byteLength(body));
       }
+      const compressedFont = await request('/_next/static/media/records.ttf', 'br');
+      assert.equal(compressedFont.headers['content-type'], 'font/ttf');
+      assert.equal(compressedFont.headers['content-encoding'], 'br');
+      assert.match(compressedFont.headers.vary, /Accept-Encoding/i);
+      assert.match(compressedFont.headers['cache-control'], /immutable/);
+      assert.deepEqual(zlib.brotliDecompressSync(compressedFont.body), font);
+      const originalFont = await request('/_next/static/media/records.ttf', 'identity');
+      assert.equal(originalFont.headers['content-encoding'], undefined);
+      assert.deepEqual(originalFont.body, font);
+      const dragon = await request('/_next/static/media/record-dragon.svg', 'br');
+      assert.equal(dragon.headers['content-type'], 'image/svg+xml');
+      assert.equal(dragon.headers['content-encoding'], 'br');
+      assert.equal(zlib.brotliDecompressSync(dragon.body).toString(), artwork);
       const rsc = await request('/security/test/per/index.txt', 'identity');
       assert.match(rsc.headers['content-type'], /text\/x-component/);
       const csv = await request('/ranking-data/securities-per.csv', 'identity');

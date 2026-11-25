@@ -128,6 +128,46 @@ test('PBR source membership and states survive missing BPS dependencies and para
   }finally{restore();}
 });
 
+test('PER period and CSV reuse the yearly metric files and load the independent price files on demand', async () => {
+  const perHistory = {
+    metric: { archive: '/per-before', current: '/per-current', currentStart: '2026-01-01' },
+    prices: { archive: '/prices-before', current: '/prices-current', currentStart: '2026-01-01' },
+  };
+  const tables = {
+    '/per-before': table(['date', 'per', 'eps', 'perState'], [['2025-12-30', null, null, 'source_missing']]),
+    '/per-current': table(['date', 'per', 'eps', 'perState'], [['2026-01-02', '0', '-1.250', 'provided']]),
+    '/prices-before': table(['date', 'close'], []),
+    '/prices-current': table(['date', 'close'], [['2026-01-02', '9007199254740993']]),
+  };
+  const requests = [];
+  const restore = replaceGlobals({ fetch: async url => {
+    requests.push(url);
+    return { ok: true, json: async () => tables[url] };
+  }});
+  try {
+    const { loadStaticDetailData, loadYearlyHistory } = loader()('lib/static-data.ts');
+    const current = await loadStaticDetailData({ perHistory }, 'per', false, false, { start: '2026-01-01' });
+    assert.deepEqual(current.sourceHistory.map(row => row.date), ['2026-01-02']);
+    assert.deepEqual(requests, ['/per-current']);
+    const archive = await loadYearlyHistory(perHistory.metric, { end: '2025-12-31' });
+    assert.deepEqual(archive.map(row => row.date), ['2025-12-30']);
+    assert.deepEqual(requests, ['/per-current', '/per-before']);
+    const [chart, csv] = await Promise.all([
+      loadStaticDetailData({ perHistory }, 'per', false, false),
+      loadYearlyHistory(perHistory.metric),
+    ]);
+    assert.deepEqual(chart.sourceHistory, csv);
+    assert.deepEqual(csv.map(row => [row.date, row.per, row.eps, row.perState]), [
+      ['2025-12-30', null, null, 'source_missing'], ['2026-01-02', '0', '-1.250', 'provided'],
+    ]);
+    assert.deepEqual(chart.prices, []);
+    assert.deepEqual(requests, ['/per-current', '/per-before']);
+    const full = await loadStaticDetailData({ perHistory }, 'per');
+    assert.deepEqual(full.prices, [{ date: '2026-01-02', close: '9007199254740993' }]);
+    assert.deepEqual(requests, ['/per-current', '/per-before', '/prices-before', '/prices-current']);
+  } finally { restore(); }
+});
+
 test('optimized static props omit full histories while preserving official quote, default statistics and annual SSR',async()=>{
   const context=presentationLoader({'@/lib/data/detail-snapshot':{getSecurityDetailSnapshot:async()=>({...props,priceHistory:props.prices,history:rows})},'@/lib/static-build/server':{getStaticDetailAssets:()=>({metrics:{pbr:'/pbr',bps:'/bps'},prices:'/prices'})}});
   const surface=context.load('components/detail-surface.tsx');
@@ -404,4 +444,83 @@ test('metric navigation remounts page state and reuses shared prices and previou
     assert.deepEqual(context.csv().data.map(row=>row.pbr),['999','0','2']);
     assert.deepEqual(calls,['/pbr','/prices','/bps','/per','/eps']);
   }finally{if(mounted)await React.act(async()=>mounted.unmount());restore();dom.window.close();}
+});
+
+test('frozen history partitions retain exact older rows, share unchanged bytes, and accept private gzip data', () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const { gzipSync } = require('node:zlib');
+  const { createStaticAssetWriter } = require('../scripts/static-asset-writer.cjs');
+  const { augmentDetailHistoryPacks, INDEX } = require('../scripts/prepare-static-detail-history-packs.cjs');
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'cd-history-pack-test.'));
+  try {
+    const source = path.join(scratch, 'frozen');
+    fs.mkdirSync(path.join(source, 'data/security'), { recursive: true });
+    fs.writeFileSync(path.join(source, 'data/security/security.json.gz'), gzipSync('{"securityId":"security"}'));
+    const writer = createStaticAssetWriter(path.join(source, 'assets'));
+    const prices = table(['date', 'open', 'high', 'low', 'close', 'volume'], [
+      ['2025-12-30', '8', '9', '7', '8', '9007199254740993'],
+      ['2026-01-02', null, null, null, null, null],
+      ['2026-03-01', '0', '0', '0', '0', '0'],
+    ]);
+    const priceUrl = writer.write(prices);
+    const valueUrl = writer.write(table(['date', 'div', 'divState'], [['2026-01-02', '0', 'provided']]));
+    fs.writeFileSync(path.join(source, 'manifest.json'), JSON.stringify({
+      assets: writer.assets, sourcePublications: { 'security_latest/krx-all': { asOf: '2026-10-08', revision: '52' } },
+    }));
+    const first = augmentDetailHistoryPacks({ input: source, output: path.join(scratch, 'augmented') });
+    const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+    const index = read(path.join(first, INDEX));
+    assert.equal(index[valueUrl].current, valueUrl);
+    assert.equal(index[valueUrl].archive, undefined);
+    const split = index[priceUrl];
+    assert.equal(split.currentStart, '2026-01-01');
+    assert.deepEqual(read(path.join(first, 'assets', split.archive)).rows, prices.rows.slice(0,1));
+    assert.deepEqual(read(path.join(first, 'assets', split.current)).rows, prices.rows.slice(1));
+    assert.ok(fs.existsSync(path.join(first, 'data/security/security.json.gz')));
+    assert.equal(fs.existsSync(path.join(source, INDEX)), false);
+    const second = augmentDetailHistoryPacks({ input: source, output: path.join(scratch, 'reused'), previous: first });
+    assert.deepEqual(read(path.join(second, INDEX)), index);
+    assert.equal(fs.statSync(path.join(first, 'assets', split.archive)).ino, fs.statSync(path.join(second, 'assets', split.archive)).ino);
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('paired packs share fetches across financial siblings without adding dates or exposing later observations', async () => {
+  const { createHistoryPackIndex, pairKey } = require('../scripts/prepare-static-detail-history-packs.cjs');
+  const primary = table(['date', 'per', 'perState'], [
+    ['2025-12-30', '20.00', 'provided'], ['2026-01-02', null, 'source_missing'], ['2026-11-04', '123.45', 'provided'],
+  ]);
+  const secondary = table(['date', 'eps', 'epsState'], [
+    ['2025-12-30', '9007199254740993', 'provided'], ['2026-02-01', '0', 'provided'],
+  ]);
+  const tables = {};
+  let counter = 0;
+  const index = createHistoryPackIndex({ cutoff: '2026-10-08', writer: {
+    write(value) { const url = '/test-pack-' + (++counter); tables[url] = value; return url; },
+  } });
+  const pack = index.addPair('/per', 'per', '/eps', 'eps', url => url === '/per' ? primary : secondary);
+  assert.equal(index.entries[pairKey('/eps', '/per')], pack);
+  assert.deepEqual(pack.archiveDates, ['2025-12-30', '2025-12-30']);
+  assert.deepEqual(pack.currentDates, ['2026-01-02', '2026-02-01']);
+  const requests = [];
+  const restore = replaceGlobals({ fetch: async url => { requests.push(url); return { ok: true, json: async () => tables[url] }; } });
+  try {
+    const { loadStaticDetailData, loadYearlyHistory } = loader()('lib/static-data.ts');
+    const gap = await loadYearlyHistory(pack, { start: '2026-05-01', end: '2026-09-01' });
+    assert.deepEqual(gap, []);
+    assert.deepEqual(requests, []);
+    const batch = { yearly: { metrics: { per: pack, eps: pack } } };
+    const [per, eps] = await Promise.all([
+      loadStaticDetailData(batch, 'per', false, false),
+      loadStaticDetailData(batch, 'eps', false, false),
+    ]);
+    assert.deepEqual(requests, [pack.archive, pack.current]);
+    assert.deepEqual(per.sourceHistory.map(({ date, per, perState, eps }) => [date, per, perState, eps]), [
+      ['2025-12-30', '20.00', 'provided', '9007199254740993'], ['2026-01-02', null, 'source_missing', null],
+    ]);
+    assert.deepEqual(eps.sourceHistory.map(({ date, eps }) => [date, eps]), [['2025-12-30', '9007199254740993'], ['2026-02-01', '0']]);
+  } finally { restore(); }
 });
