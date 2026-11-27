@@ -13,7 +13,6 @@ const digest = /^[a-f0-9]{64}$/;
 const commitHash = /^[a-f0-9]{40}$/;
 const daySyntax = /^\d{4}-\d{2}-\d{2}$/;
 const runName = /^release-[A-Za-z0-9]+$/;
-const legacyDocument = /^(?:security\/[^/]+\/(?:(?:marketcap|per|pbr|bps|eps|div|dps)\/)?|company\/[^/]+\/(?:marketcap\/)?)index\.html$/;
 const reviewKey = id => `cd-release/candidates/${id}.json`;
 
 function seoulCalendar(now = new Date()) {
@@ -139,19 +138,6 @@ function fullOperations(plan) {
     ...plan.operations.filter(operation => operation.action === 'retire')];
 }
 
-async function legacyRetirements(client, config, keys, identities) {
-  const retired = [];
-  for (const prefix of ['security/', 'company/']) {
-    for await (const key of client.listKeys(config.publicBucket, prefix)) {
-      const [kind, alias] = key.split('/');
-      if (legacyDocument.test(key) && !keys.has(key) && (!identities || Object.hasOwn(identities[kind], alias))) {
-        retired.push({ action: 'retire', key });
-      }
-    }
-  }
-  return retired.sort((a, b) => a.key < b.key ? -1 : Number(a.key > b.key));
-}
-
 function plannedCounts(operations) {
   const puts = operations.filter(row => row.action === 'put');
   return { putKeys: puts.length, putBytes: puts.reduce((total, row) => total + row.bytes, 0),
@@ -206,7 +192,7 @@ function adoptLocal(store, descriptor) {
 }
 
 async function deploy(options, { client, config, build = buildRelease } = {}) {
-  const { mode, store, candidateId, retireLegacy, commit, concurrency = 24, day, input, inputCommit } = options;
+  const { mode, store, candidateId, commit, concurrency = 24, day, input, inputCommit } = options;
   if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
   if (mode === 'status') {
@@ -282,15 +268,6 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
         return { mode, equal: true, releaseId: base, ...plannedCounts([]) };
       }
       const operations = mode === 'daily' ? plan.operations : fullOperations(plan);
-      if (mode === 'full' && retireLegacy) {
-        const already = new Set(operations.filter(op => op.action === 'retire').map(op => op.key));
-        const { securityAliases, companyAliases } = readJson(path.join(report.source, 'manifest.json'));
-        for (const operation of await legacyRetirements(client, config, new Set(plan.inventory.activeKeys), {
-          security: securityAliases, company: companyAliases,
-        })) {
-          if (!already.has(operation.key)) operations.push(operation);
-        }
-      }
       let unmanagedIndex = false;
       if (!base) for await (const key of client.listKeys(config.publicBucket, 'index.html')) {
         if (key === 'index.html') { unmanagedIndex = true; break; }
@@ -334,14 +311,13 @@ if (require.main === module) {
   Promise.resolve().then(async () => {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
       input: { type: 'string' }, 'input-commit': { type: 'string' },
-      'candidate-id': { type: 'string' }, 'retire-legacy': { type: 'boolean' }, 'first-saturday': { type: 'boolean' } } });
+      'candidate-id': { type: 'string' }, 'first-saturday': { type: 'boolean' } } });
     if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision', 'smoke'].includes(values.mode)) {
       throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
     }
     if (values.input && (values.mode !== 'full' || !path.isAbsolute(values.input) || !values['input-commit'] || !values.day)) {
       throw new Error('--input requires an absolute path, --mode full, --input-commit and --day');
     }
-    if (values['retire-legacy'] && values.mode !== 'full') throw new Error('Legacy HTML retirement requires --mode full');
     if (values['first-saturday'] && !seoulCalendar().firstSaturday) return;
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
@@ -351,7 +327,7 @@ if (require.main === module) {
     const concurrency = Number(process.env.R2_PUT_CONCURRENCY ?? 24);
     if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64) throw new Error('R2_PUT_CONCURRENCY must be between 1 and 64');
     const result = await deploy({ mode: values.mode, store: path.resolve(values.store ?? path.join(STAGE, 'r2-local-release')),
-      commit, concurrency, candidateId: values['candidate-id'], retireLegacy: values['retire-legacy'],
+      commit, concurrency, candidateId: values['candidate-id'],
       day: values.day, input: values.input, inputCommit: values['input-commit'] }, { client, config });
     if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n`);
@@ -374,4 +350,4 @@ if (require.main === module) {
   }).catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { seoulCalendar, compareActive, batches, plannedCounts, executePending, legacyRetirements, deploy, smokeRelease };
+module.exports = { seoulCalendar, compareActive, batches, plannedCounts, executePending, deploy, smokeRelease };

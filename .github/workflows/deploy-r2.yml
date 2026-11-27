@@ -11,10 +11,6 @@ on:
       candidate_id:
         description: Reviewed candidate ID for promote
         type: string
-      retire_legacy:
-        description: Retire obsolete security/company HTML during a full release
-        type: boolean
-        default: false
       frozen_input:
         description: Optional verified frozen input (absolute runner path, first full only)
         type: string
@@ -90,18 +86,18 @@ jobs:
 
       - name: Checkout trusted branch
         if: steps.task.outputs.mode != ''
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup pnpm
         if: steps.task.outputs.mode != ''
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6.1.1
 
       - name: Setup Node.js
         if: steps.task.outputs.mode != ''
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -151,7 +147,6 @@ jobs:
         env:
           MODE: ${{ steps.task.outputs.mode }}
           CANDIDATE_ID: ${{ inputs.candidate_id }}
-          RETIRE_LEGACY: ${{ inputs.retire_legacy }}
           FROZEN_INPUT: ${{ inputs.frozen_input }}
           FROZEN_DAY: ${{ inputs.frozen_day }}
           FROZEN_COMMIT: ${{ inputs.frozen_commit }}
@@ -162,7 +157,6 @@ jobs:
             [[ "$CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]] || exit 1
             args+=(--candidate-id "$CANDIDATE_ID")
           fi
-          if [[ "$MODE" = full && "$RETIRE_LEGACY" = true ]]; then args+=(--retire-legacy); fi
           if [[ -n "$FROZEN_INPUT" ]]; then
             [[ "$MODE" = full && "$FROZEN_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$FROZEN_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
             args+=(--input "$FROZEN_INPUT" --day "$FROZEN_DAY" --input-commit "$FROZEN_COMMIT")

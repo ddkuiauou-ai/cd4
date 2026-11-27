@@ -58,7 +58,6 @@ function candidate(day, revision, calls) {
     const output = path.join(run, 'out'), source = path.join(run, 'source');
     fs.mkdirSync(path.join(output, 'downloads/market'), { recursive: true });
     fs.mkdirSync(source);
-    fs.writeFileSync(path.join(source, 'manifest.json'), JSON.stringify({ securityAliases: { 'known alias': 'sid' }, companyAliases: {} }));
     fs.writeFileSync(path.join(output, 'index.html'), '<p>' + revision + '</p>');
     fs.writeFileSync(path.join(output, 'robots.txt'), 'User-agent: *');
     fs.writeFileSync(path.join(output, 'downloads', 'market', day + '.csv'), '﻿기준일,종목코드\n' + day + ',005930');
@@ -74,17 +73,27 @@ test('durable R2 full, delta, resumable batch and independent verify/promotion w
   const options = { store, commit };
   const run = (mode, build, extra = {}) => deploy({ ...options, mode, ...extra }, { client: mock.client, config, build });
   mock.publicKeys.set('keep.bin', { body: 'unrelated' });
-  mock.publicKeys.set('security/known alias/per/index.html', { body: 'known redirect' });
   mock.publicKeys.set('security/unrelated/per/index.html', { body: 'unrelated' });
   const day7 = '2026-10-07', day8 = '2026-10-08';
   const preflight = await run('status', null);
   assert.deepEqual([preflight.buckets.public.readable, preflight.buckets.state.readable, preflight.current], [true, true, null]);
   assert.equal(mock.values.size, 0);
   assert.equal(mock.puts.length, 0);
-  const first = await run('full', candidate(day7, '7', calls), { retireLegacy: true });
+  await assert.rejects(run('daily', candidate(day7, '7', calls)), /Publish a full R2 baseline first/);
+  assert.equal(calls.length, 0);
+  assert.equal(mock.puts.length, 0);
+
+  const first = await run('full', candidate(day7, '7', calls));
   assert.equal(first.putKeys, 3);
-  assert.deepEqual(mock.deletes, [['security/known alias/per/index.html']]);
+  assert.equal(first.deleteKeys, 0);
+  assert.deepEqual(mock.deletes, []);
   assert.ok(mock.publicKeys.has('security/unrelated/per/index.html'));
+
+  const differentCommit = await run('daily', candidate(day8, '8', calls), { commit: '2'.repeat(40) });
+  assert.equal(differentCommit.requiresFull, true);
+  assert.equal(differentCommit.putKeys, 0);
+  assert.equal(mock.puts.length, first.putKeys);
+  assert.equal(calls.length, 1);
 
   mock.outage('index.html');
   await assert.rejects(run('daily', candidate(day8, '8', calls), { day: day8 }), /simulated transport outage/);

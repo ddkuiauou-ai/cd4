@@ -48,7 +48,7 @@ try {
   if (remote) args.shift();
   if (args.includes('--help')) {
     console.log(remote
-      ? 'Usage: bun run deploy:r2 --mode full|daily|verify|promote|resume|status [--candidate-id <ID>] [--retire-legacy]'
+      ? 'Usage: bun run deploy:r2 --mode status|provision|full|daily|verify|promote|resume|smoke [--candidate-id <ID>]'
       : 'Usage: bun run build:release[:daily] [--input <snapshot>] [--previous <snapshot>] [--store <path>] [--candidate-only] [--clean]');
   } else {
     const tools = installedToolchain();
