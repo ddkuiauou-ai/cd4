@@ -156,6 +156,66 @@ test('active comparison and R2 S3 transport without network', async () => {
   assert.equal(await api.putJson(cfg.stateBucket, stateFile, { fixture: true }, '"current"'), '"next"');
 });
 
+test('a conditional PUT with a lost response accepts only identical unencoded state and a strong readback ETag', async t => {
+  const cfg = { ...config, endpoint: new URL('https://example.test'), accessKey: 'fake-key', secret: 'fake-secret' };
+  const value = { current: 'existing', pending: { id: 'candidate', next: 1 }, label: '시장' };
+  const expected = JSON.stringify(value);
+  for (const [name, makeStored, shouldSucceed] of [
+    ['exact state', () => new Response(expected, { headers: { etag: '"latest"' } }), true],
+    ['advanced cursor', () => Response.json({ ...value, pending: { ...value.pending, next: 2 } }, { headers: { etag: '"latest"' } })],
+    ['different candidate', () => Response.json({ ...value, pending: { ...value.pending, id: 'other' } }, { headers: { etag: '"latest"' } })],
+    ['same JSON with different bytes', () => new Response(expected + '\n', { headers: { etag: '"latest"' } })],
+    ['weak readback ETag', () => new Response(expected, { headers: { etag: 'W/"latest"' } })],
+    ['missing readback ETag', () => new Response(expected)],
+    ['encoded readback', () => new Response(expected, { headers: { etag: '"latest"', 'content-encoding': 'gzip' } })],
+    ['missing readback object', () => new Response(null, { status: 404 })],
+  ]) await t.test(name, async () => {
+    const requests = [];
+    let stored;
+    const client = createR2Client(cfg, { pause: async () => {}, async request(url, options) {
+      requests.push({ key: url.pathname, ...options });
+      if (requests.length === 1) {
+        stored = options.body;
+        throw Error('response lost after committing the first request');
+      }
+      if (options.method === 'PUT') return new Response(null, { status: 412 });
+      return makeStored();
+    } });
+    const put = client.putJson(cfg.stateBucket, stateFile, value, '"old"');
+    if (shouldSucceed) assert.equal(await put, '"latest"');
+    else await assert.rejects(put, { code: 'R2_CONFLICT' });
+    assert.equal(stored, expected);
+    assert.deepEqual(requests.map(request => [request.method, request.key]), [
+      ['PUT', '/private-test/' + stateFile], ['PUT', '/private-test/' + stateFile], ['GET', '/private-test/' + stateFile],
+    ]);
+    assert.equal(requests[0].headers['if-match'], '"old"');
+    assert.equal(requests[1].headers['if-match'], '"old"');
+    assert.equal(requests[1].body, expected);
+    assert.equal(requests[2].headers['accept-encoding'], 'identity');
+    assert.match(requests[2].headers.authorization, /SignedHeaders=accept-encoding;host;/);
+  });
+});
+
+test('private JSON refuses weak state versions and requests identity encoding for reads', async () => {
+  const cfg = { ...config, endpoint: new URL('https://example.test'), accessKey: 'fake-key', secret: 'fake-secret' };
+  const requests = [];
+  const client = createR2Client(cfg, { async request(_url, options) {
+    requests.push(options);
+    return Response.json({ fixture: true }, { headers: { etag: 'W/"weak"' } });
+  } });
+  await assert.rejects(client.getJson(cfg.stateBucket, stateFile), /requires an unencoded object with a strong ETag/);
+  for (const etag of ['W/"weak"', '*', '"multiple", "tags"', '']) {
+    await assert.rejects(client.putJson(cfg.stateBucket, stateFile, { fixture: true }, etag), /requires a strong ETag/);
+  }
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].headers['accept-encoding'], 'identity');
+  await assert.rejects(client.putJson(cfg.stateBucket, stateFile, { fixture: true }), /write could not be confirmed/);
+  assert.equal(requests[1].headers['if-none-match'], '*');
+  assert.deepEqual(await client.getJson(cfg.stateBucket, 'immutable-candidate.json', { forUpdate: false }),
+    { value: { fixture: true } });
+  assert.equal(requests[2].headers['accept-encoding'], undefined);
+});
+
 test('read-only status distinguishes HEAD and List and provisioning creates only confirmed missing buckets', async () => {
   const cfg = r2Config({ R2_ENDPOINT_URL: 'https://example.test', R2_BUCKET_NAME: 'site',
     AWS_ACCESS_KEY_ID: 'ambient', AWS_SECRET_ACCESS_KEY: 'ambient-secret', AWS_SESSION_TOKEN: 'ambient-token',

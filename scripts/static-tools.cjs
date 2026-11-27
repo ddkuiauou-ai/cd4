@@ -179,16 +179,20 @@ function directoryUsage(directory) {
   return { directory: path.relative(ROOT, directory), files, logicalBytes, allocatedBytes };
 }
 
+const sourceDirectories = ['app', 'components', 'hooks', 'lib', 'db', 'config', 'types', 'scripts', 'public'];
+const sourceFiles = ['next.config.ts', 'package.json', 'pnpm-lock.yaml', '.nvmrc', 'pnpm-workspace.yaml', 'tsconfig.json', 'postcss.config.mjs'];
+const sourceFingerprintPaths = [...sourceDirectories, ...sourceFiles];
+
 function sourceFingerprint(projectRoot = ROOT) {
   const digest = crypto.createHash('sha256');
-  for (const directory of ['app', 'components', 'hooks', 'lib', 'db', 'config', 'types', 'scripts', 'public']) {
+  for (const directory of sourceDirectories) {
     for (const file of filesBelow(path.join(projectRoot, directory))) {
       if (directory !== 'public' && !/\.(?:[cm]?[jt]sx?|json|css|svg|png|ico|webp|woff2?)$/.test(file)) continue;
       digest.update(`${directory}/${file}\0`);
       digest.update(fs.readFileSync(path.join(projectRoot, directory, file)));
     }
   }
-  for (const file of ['next.config.ts', 'package.json', 'pnpm-lock.yaml', '.nvmrc', 'pnpm-workspace.yaml', 'tsconfig.json', 'postcss.config.mjs']) {
+  for (const file of sourceFiles) {
     digest.update(file);
     digest.update(fs.readFileSync(path.join(projectRoot, file)));
   }
@@ -245,4 +249,5 @@ function runtimeInfo({ enforce = false } = {}) {
 }
 
 module.exports = { ROOT, STAGE, OUT, WORKSPACE, MARKER, relativeFile, routePath, outputFileForRoute, readJson, writeJson, directoryUsage,
-  readManifest, filesBelow, sha256, familyForRoute, measureOutput, freeBytes, diskPreflight, diskProjection, sourceFingerprint, runtimeInfo };
+  readManifest, filesBelow, sha256, familyForRoute, measureOutput, freeBytes, diskPreflight, diskProjection,
+  sourceFingerprint, sourceFingerprintPaths, runtimeInfo };

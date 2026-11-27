@@ -278,7 +278,17 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
         throw new Error('Application source changed during preparation; rebuild using the closed frozen input');
       }
       prepareReleaseRoutes(workspace, manifest);
-      if (clean) fs.rmSync(path.join(workspace, '.next'), { recursive: true, force: true });
+      const nextDir = path.join(workspace, '.next');
+      const cache = path.join(nextDir, 'cache');
+      const runtimeFile = path.join(cache, 'cd4-runtime');
+      const runtime = [process.platform, process.arch, process.versions.modules].join('/');
+      if (clean) {
+        fs.rmSync(nextDir, { recursive: true, force: true });
+      } else if (fs.existsSync(cache) && (!fs.existsSync(runtimeFile) || fs.readFileSync(runtimeFile, 'utf8') !== runtime)) {
+        fs.rmSync(cache, { recursive: true, force: true });
+      }
+      fs.mkdirSync(cache, { recursive: true });
+      fs.writeFileSync(runtimeFile, runtime);
       await exportCandidate('next-build', prior);
       try { result = publishCandidate(); }
       catch (error) {

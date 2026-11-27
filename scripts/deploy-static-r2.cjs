@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { execFileSync } = require('node:child_process');
-const { ROOT, STAGE, readJson, relativeFile, sha256, writeJson } = require('./static-tools.cjs');
+const { ROOT, STAGE, readJson, relativeFile, sha256, sourceFingerprint, sourceFingerprintPaths, writeJson } = require('./static-tools.cjs');
 const { acquireStoreLock, jsonHash, operationPhase, planRelease, publishRelease, readRelease, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
 const { createR2Client, r2Config, compareObjectResponse } = require('./static-r2-client.cjs');
@@ -16,6 +16,8 @@ const commitHash = /^[a-f0-9]{40}$/;
 const daySyntax = /^\d{4}-\d{2}-\d{2}$/;
 const runName = /^release-[A-Za-z0-9]+$/;
 const reviewKey = id => `cd-release/candidates/${id}.json`;
+const modes = ['daily', 'full', 'verify'];
+const valid = (pattern, value) => typeof value === 'string' && pattern.test(value);
 
 function compareActive(left, right) {
   const active = inventory => {
@@ -57,19 +59,19 @@ async function getState(client, config) {
   const entry = await client.getJson(config.stateBucket, CURRENT);
   if (!entry) return { value: { version: 1, current: null, previous: null, pending: null }, etag: null };
   const { value } = entry;
-  if (value.version !== 1 || [value.current, value.previous].filter(Boolean).some(row => !digest.test(row.releaseId) || !digest.test(row.candidateId)
-    || !commitHash.test(row.commit) || !daySyntax.test(row.day))
-    || (value.pending && (!digest.test(value.pending.id) || !Number.isSafeInteger(value.pending.next) || value.pending.next < 0))) {
+  if (value.version !== 1 || [value.current, value.previous].filter(Boolean).some(row => !valid(digest, row.releaseId) || !valid(digest, row.candidateId)
+    || !valid(commitHash, row.commit) || !valid(daySyntax, row.day))
+    || (value.pending && (!valid(digest, value.pending.id) || !Number.isSafeInteger(value.pending.next) || value.pending.next < 0))) {
     throw new Error('Invalid durable R2 release pointer');
   }
   return entry;
 }
 
 async function getDescriptor(client, config, id) {
-  if (!digest.test(id ?? '')) throw new Error('Invalid candidate ID');
-  const entry = await client.getJson(config.stateBucket, reviewKey(id));
-  if (!entry || entry.value.version !== 1 || jsonHash(entry.value) !== id || !runName.test(entry.value.run)
-    || !commitHash.test(entry.value.commit) || !daySyntax.test(entry.value.day)) {
+  if (!valid(digest, id)) throw new Error('Invalid candidate ID');
+  const entry = await client.getJson(config.stateBucket, reviewKey(id), { forUpdate: false });
+  if (!entry || entry.value.version !== 1 || jsonHash(entry.value) !== id || !valid(runName, entry.value.run)
+    || !valid(commitHash, entry.value.commit) || !valid(daySyntax, entry.value.day)) {
     throw new Error('Invalid or missing release candidate');
   }
   if (jsonHash(entry.value.inventory) !== entry.value.releaseId) throw new Error('R2 release inventory digest mismatch');
@@ -130,6 +132,14 @@ async function register(client, config, descriptor) {
   return id;
 }
 
+async function putPointer(client, config, value, etag, stage) {
+  try { return await client.putJson(config.stateBucket, CURRENT, value, etag); }
+  catch (error) {
+    if (error.code !== 'R2_CONFLICT') throw error;
+    throw Object.assign(new Error(`R2 private state changed concurrently (${stage})`), { code: error.code });
+  }
+}
+
 function fullOperations(plan) {
   const active = new Set(plan.inventory.activeKeys);
   return [...plan.inventory.objects.filter(object => active.has(object.key)).map(object => ({ action: 'put', ...object })),
@@ -175,12 +185,12 @@ async function executePending({ client, config, entry, descriptor, candidate, te
       } finally { if (restored) fs.rmSync(restored, { recursive: true, force: true }); }
     }
     value = { ...value, pending: { ...pending, next: index + 1 } };
-    etag = await client.putJson(config.stateBucket, CURRENT, value, etag);
+    etag = await putPointer(client, config, value, etag, 'checkpoint');
   }
   const current = { releaseId: descriptor.releaseId, candidateId: pending.id, commit: descriptor.commit, day: descriptor.day,
     ...(descriptor.portable && { portable: descriptor.portable.head }) };
   const completed = { version: 1, current, previous: value.current, pending: null };
-  await client.putJson(config.stateBucket, CURRENT, completed, etag);
+  await putPointer(client, config, completed, etag, 'commit');
   return completed;
 }
 
@@ -192,6 +202,119 @@ function previousRelease(current, descriptor) {
   const active = new Set(keys);
   return { releaseId: current.releaseId, inventory, objects, active,
     activeDigest: jsonHash(keys.map(key => objects.get(key))) };
+}
+
+function committedFingerprint(commit, temporary) {
+  const checkout = path.join(temporary, 'candidate-commit');
+  fs.mkdirSync(checkout);
+  try {
+    const archive = path.join(temporary, 'candidate-commit.tar');
+    execFileSync('git', ['archive', '--format=tar', '--output=' + archive, commit, '--', ...sourceFingerprintPaths],
+      { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync('tar', ['-xf', archive, '-C', checkout], { stdio: ['ignore', 'pipe', 'pipe'] });
+    return sourceFingerprint(checkout);
+  } catch {
+    throw new Error('Cannot identify the registered full candidate commit from local Git history');
+  }
+}
+
+function requireLocal(file, expected, directory = false) {
+  const stat = fs.lstatSync(file, { throwIfNoEntry: false });
+  if (!(directory ? stat?.isDirectory() : stat?.isFile()) || fs.realpathSync(file) !== expected) {
+    throw new Error('Owning runner is missing a controlled full candidate file or directory');
+  }
+}
+
+async function checkPortableRecovery(client, config, id, descriptor, source, state, manifest) {
+  const { portable } = descriptor;
+  if (!portable) return;
+  const head = { sample: manifest.sample, sourcePublications: manifest.sourcePublications, referenceDate: manifest.referenceDate };
+  const { sourceCode, routes, documents, buildId, snapshotId } = state;
+  const expectedState = { sourceCode, routes, documents, buildId, snapshotId };
+  if (portable.version !== 1 || !Array.isArray(portable.parts) || !portable.parts.length || portable.output !== undefined
+    || jsonHash(head) !== jsonHash(portable.head) || jsonHash(expectedState) !== jsonHash(portable.state)) {
+    throw new Error('Registered portable baseline differs from the local full candidate');
+  }
+  const references = { version: 1, mode: descriptor.mode, baseCandidateId: descriptor.baseCandidateId,
+    source: portable.parts.map(part => part.key), output: [] };
+  const ref = await client.getJson(config.stateBucket, `cd-release/portable/refs/${id}.json`);
+  if (!ref || jsonHash(ref.value) !== jsonHash(references)) throw new Error('Registered portable references are missing or differ');
+  const missing = new Set(references.source);
+  for await (const key of client.listPortableKeys()) missing.delete(key);
+  if (missing.size) throw new Error('A registered portable source bundle is missing');
+  const root = fs.realpathSync(source);
+  const seen = new Set();
+  for (const part of portable.parts) {
+    if (!valid(digest, part.sha256) || !Number.isSafeInteger(part.bytes) || part.bytes < 0
+      || !/^cd-release\/portable\/source\/release-[A-Za-z0-9]+\/[a-f0-9]{64}\.gz$/.test(part.key)
+      || !part.key.endsWith(`/${part.sha256}.gz`) || !Array.isArray(part.files) || !part.files.length) {
+      throw new Error('Invalid registered portable source bundle');
+    }
+    for (const object of part.files) {
+      const key = relativeFile(object.key);
+      const filename = path.join(root, key);
+      requireLocal(filename, filename);
+      if (seen.has(key) || fs.statSync(filename).size !== object.bytes || sha256(filename) !== object.sha256) {
+        throw new Error('Frozen source differs from its registered portable baseline');
+      }
+      seen.add(key);
+    }
+  }
+  if (!['manifest.json', 'identities.json', 'companies.json', 'company-assets.json'].every(key => seen.has(key))) {
+    throw new Error('Registered portable baseline is missing frozen source metadata');
+  }
+}
+
+async function verifyFullRecovery({ client, config, descriptor, id, current, store, scratch, fingerprint, platform }) {
+  if (platform !== 'darwin') throw new Error('A registered full candidate requires its owning Mac runner');
+  if (!fs.lstatSync(RUNS, { throwIfNoEntry: false })?.isDirectory()) {
+    throw new Error('Owning runner is missing its full candidate storage');
+  }
+  const run = path.join(RUNS, descriptor.run);
+  const real = path.join(fs.realpathSync(RUNS), descriptor.run);
+  requireLocal(run, real, true);
+  const source = path.join(run, 'source');
+  const output = path.join(run, 'out');
+  const record = name => {
+    const file = path.join(run, name);
+    requireLocal(file, path.join(real, name));
+    try { return readJson(file); }
+    catch { throw new Error('Invalid owning runner full candidate record'); }
+  };
+  const owner = record('release-owner.json');
+  const report = record('report.json');
+  const state = record('build-state.json');
+  if (owner.version !== 1 || owner.status !== 'candidate' || owner.store !== path.resolve(store)
+    || !Array.isArray(owner.references) || ![source, output, state.packInput].every(file => owner.references.includes(file))
+    || report.success !== true || report.candidateOnly !== true || report.dryRun !== true || report.mode !== 'full'
+    || report.pointerWrites !== 0 || report.totalObjects !== descriptor.inventory.objects.length
+    || report.run !== run || report.output !== output || report.source !== source
+    || report.releaseId !== descriptor.releaseId || report.day !== descriptor.day
+    || state.mode !== 'full' || state.sample !== false || state.source !== source
+    || state.candidateOut !== output || state.baseReleaseId !== descriptor.base || state.day !== descriptor.day
+    || !valid(digest, state.sourceCode) || ![source, path.join(run, 'packed-input')].includes(state.packInput)
+    || (current?.portable && !descriptor.portable)) {
+    throw new Error('Registered full candidate differs from the owning runner records');
+  }
+  requireLocal(output, path.join(real, 'out'), true);
+  requireLocal(source, path.join(real, 'source'), true);
+  requireLocal(state.packInput, path.join(real, path.basename(state.packInput)), true);
+  const manifest = record('source/manifest.json');
+  const packed = state.packInput === source ? manifest : record('packed-input/manifest.json');
+  if (manifest.version !== 1 || manifest.sample?.enabled !== false || manifest.referenceDate !== descriptor.day
+    || packed.snapshotId !== state.snapshotId || packed.referenceDate !== descriptor.day
+    || fingerprint(descriptor.commit, scratch()) !== state.sourceCode) {
+    throw new Error('Frozen full candidate day, snapshot or commit differs from its registration');
+  }
+  const baseline = previousRelease(current, await checkActiveInventory(client, config, current));
+  await checkPortableRecovery(client, config, id, descriptor, source, state, manifest);
+  let plan;
+  try { plan = planRelease({ candidate: output, previous: baseline }); }
+  catch { throw new Error('Owning runner could not verify the full candidate output'); }
+  if (plan.releaseId !== descriptor.releaseId || jsonHash(fullOperations(plan)) !== jsonHash(descriptor.operations)
+    || jsonHash(plan.operations) !== jsonHash(report.operations)) {
+    throw new Error('Full candidate output or operations differ from the registered inventory');
+  }
 }
 
 function adoptLocal(store, descriptor) {
@@ -209,7 +332,8 @@ function adoptLocal(store, descriptor) {
   return result;
 }
 
-async function deploy(options, { client, config, build = buildRelease, now = Date.now } = {}) {
+async function deploy(options, { client, config, build = buildRelease, now = Date.now,
+  platform = process.platform, fingerprint = committedFingerprint } = {}) {
   const { mode, store, candidateId, commit, concurrency = 24, day } = options;
   if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
@@ -242,10 +366,21 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
     let entry = await getState(client, config);
     const current = entry.value.current;
     const retryDaily = mode === 'daily' && entry.value.pending?.mode === 'daily';
+    const targetedResume = mode === 'resume' && candidateId !== undefined;
+    if (targetedResume && !valid(digest, candidateId)) throw new Error('Invalid candidate ID');
+    if (targetedResume && entry.value.pending && entry.value.pending.id !== candidateId) {
+      throw new Error('A different R2 candidate is pending');
+    }
     if (entry.value.pending && !retryDaily && !['resume', 'promote'].includes(mode)) {
       throw new Error('Resume the interrupted R2 release before starting another');
     }
-    if (mode === 'resume' && !entry.value.pending) {
+    if (targetedResume && !entry.value.pending && current?.candidateId === candidateId) {
+      if ((await checkActiveInventory(client, config, current)).mode !== 'full') {
+        throw new Error('Only a registered full candidate can be recovered by ID');
+      }
+      return { mode, candidateId, releaseId: current.releaseId, day: current.day, ...plannedCounts([]) };
+    }
+    if (mode === 'resume' && !entry.value.pending && !targetedResume) {
       if (!current) return { mode, ...plannedCounts([]) };
       if (!current.portable && readRelease(store)?.releaseId !== current.releaseId) {
         adoptLocal(store, await checkActiveInventory(client, config, current));
@@ -255,10 +390,11 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
     const base = current?.releaseId ?? null;
     let descriptor, id;
     if (retryDaily || mode === 'resume' || mode === 'promote') {
-      id = retryDaily || mode === 'resume' ? entry.value.pending?.id : candidateId;
+      id = retryDaily || (mode === 'resume' && !targetedResume) ? entry.value.pending?.id : candidateId;
       if (entry.value.pending && entry.value.pending.id !== id) throw new Error('A different R2 candidate is pending');
       descriptor = await getDescriptor(client, config, id);
       if (mode === 'promote' && descriptor.mode !== 'verify') throw new Error('Only an independent review candidate can be promoted');
+      if (targetedResume && descriptor.mode !== 'full') throw new Error('Only a registered full candidate can be recovered by ID');
     } else {
       if (['daily', 'verify'].includes(mode) && !base) throw new Error('Publish a full R2 baseline first');
       if (mode === 'verify' && commit !== current.commit) throw new Error('Independent verification requires the last successful commit');
@@ -312,6 +448,7 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
           root: report.output, run: descriptor.run, temporary, parallel: bounded, compressedHtml: report.compressedHtml });
       } else if (current?.portable) throw new Error('Candidate has no portable daily baseline');
       id = await register(client, config, descriptor);
+      console.log('R2 candidate registered:', id);
       if (descriptor.portable) await registerPortableReferences(client, config.stateBucket, id, descriptor);
       if (mode === 'verify') return { mode, equal: false, candidateId: id, releaseId: plan.releaseId,
         changedKeys: diff.changed.length, removedKeys: diff.removed.length, ...plannedCounts([]), promotion: plannedCounts(operations) };
@@ -319,13 +456,16 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
     if (descriptor.base !== base || descriptor.baseCandidateId !== (entry.value.current?.candidateId ?? null)) {
       throw new Error('Review candidate base is stale; build another candidate');
     }
+    if (targetedResume && !entry.value.pending) {
+      await verifyFullRecovery({ client, config, descriptor, id, current, store, scratch, fingerprint, platform });
+    }
     const localCandidate = path.join(RUNS, descriptor.run, 'out');
     const candidate = fs.existsSync(path.join(localCandidate, 'index.html')) ? localCandidate : null;
     if (!candidate && !descriptor.portable?.output) throw new Error('Candidate unavailable on this runner; restore its dedicated release storage');
     if (!entry.value.pending) {
       const value = { ...entry.value, pending: { id, base, next: 0, mode: descriptor.mode,
         ...(descriptor.portable && { portable: true }) } };
-      entry = { value, etag: await client.putJson(config.stateBucket, CURRENT, value, entry.etag) };
+      entry = { value, etag: await putPointer(client, config, value, entry.etag, 'claim') };
     }
     await executePending({ client, config, entry, descriptor, candidate, temporary: candidate ? undefined : scratch(), concurrency });
     if (!descriptor.portable) adoptLocal(store, descriptor);
@@ -339,6 +479,30 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
   } finally {
     try { if (temporary) fs.rmSync(temporary, { recursive: true, force: true }); }
     finally { unlock(); }
+  }
+}
+
+function resolveAppBuild(mode, configured = process.env.STATIC_RELEASE_APP_CHECKOUT) {
+  const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  if (configured === undefined) return { commit: git(ROOT, 'rev-parse', 'HEAD'), build: buildRelease };
+  if (!['daily', 'verify'].includes(mode) || !path.isAbsolute(configured)) {
+    throw new Error('STATIC_RELEASE_APP_CHECKOUT requires daily or verify mode and an absolute checkout path');
+  }
+  try {
+    const checkout = fs.realpathSync(configured);
+    const commit = git(checkout, 'rev-parse', 'HEAD');
+    if (!valid(commitHash, commit) || fs.realpathSync(git(checkout, 'rev-parse', '--show-toplevel')) !== checkout
+      || git(checkout, 'status', '--porcelain', '--untracked-files=normal')) {
+      throw new Error('Invalid app checkout');
+    }
+    git(ROOT, 'merge-base', '--is-ancestor', commit, 'HEAD');
+    const script = path.join(checkout, 'scripts', 'build-static-release.cjs');
+    requireLocal(script, script);
+    const { buildRelease: build } = require(script);
+    if (typeof build !== 'function') throw new Error('Invalid app build');
+    return { commit, build };
+  } catch {
+    throw new Error('STATIC_RELEASE_APP_CHECKOUT must be a clean repository checkout of an ancestor of the release controller');
   }
 }
 
@@ -363,7 +527,7 @@ if (require.main === module) {
       throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
     }
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
-    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+    const { commit, build } = resolveAppBuild(values.mode);
     if (!commitHash.test(commit)) throw new Error('Cannot resolve the checked-out commit');
     const config = r2Config();
     const client = createR2Client(config);
@@ -371,15 +535,19 @@ if (require.main === module) {
     if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64) throw new Error('R2_PUT_CONCURRENCY must be between 1 and 64');
     const result = await deploy({ mode: values.mode, store: path.resolve(values.store ?? path.join(STAGE, 'r2-local-release')),
       commit, concurrency, candidateId: values['candidate-id'],
-      day: values.day }, { client, config });
+      day: values.day }, { client, config, build });
     if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n` +
-        `pending_mode=${['daily', 'full', 'verify'].includes(result.pendingMode) ? result.pendingMode : ''}\n` +
+        `release_id=${result.current?.releaseId ?? ''}\npending_mode=${modes.includes(result.pendingMode) ? result.pendingMode : ''}\n` +
+        `pending_next=${result.pending?.next ?? ''}\n` +
         `active_portable=${Boolean(result.current?.portable)}\n`);
     }
     if (values.mode === 'status') {
       console.log(JSON.stringify({ mode: 'status', buckets: result.buckets,
-        ...(result.readable ? { activeRelease: Boolean(result.current), interruptedRelease: Boolean(result.pending) } : {}),
+        ...(result.readable ? { activeRelease: Boolean(result.current), releaseId: result.current?.releaseId ?? null,
+          releaseCommit: result.current?.commit ?? null, activePortable: Boolean(result.current?.portable),
+          interruptedRelease: Boolean(result.pending), pendingMode: modes.includes(result.pendingMode) ? result.pendingMode : null,
+          pendingNext: result.pending?.next ?? null } : {}),
         publicOrigin: config.origin.href }));
       if (!result.readable) process.exitCode = 1;
     } else if (values.mode === 'provision') {

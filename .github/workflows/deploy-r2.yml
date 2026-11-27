@@ -10,7 +10,7 @@ on:
           [status, provision, full, daily, verify, promote, resume, smoke]
         default: status
       candidate_id:
-        description: Reviewed candidate ID for promote
+        description: Reviewed candidate for promote, or a registered full candidate for resume
         type: string
   schedule:
     # 17:30 Asia/Seoul on weekdays and 09:00 Asia/Seoul on Saturday.
@@ -92,10 +92,11 @@ jobs:
           MODE: ${{ steps.task.outputs.mode }}
           PENDING_MODE: ${{ steps.state.outputs.pending_mode }}
           ACTIVE_PORTABLE: ${{ steps.state.outputs.active_portable }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
         run: |
           set -euo pipefail
           labels='["self-hosted","macOS","X64"]'
-          if [[ "$MODE" = daily || "$MODE" = status || "$MODE" = smoke || ( "$MODE" = resume && ( "$PENDING_MODE" = daily || ( -z "$PENDING_MODE" && "$ACTIVE_PORTABLE" = true ) ) ) ]]; then
+          if [[ "$MODE" = daily || "$MODE" = status || "$MODE" = smoke || ( "$MODE" = resume && -z "$CANDIDATE_ID" && ( "$PENDING_MODE" = daily || ( -z "$PENDING_MODE" && "$ACTIVE_PORTABLE" = true ) ) ) ]]; then
             labels='"ubuntu-latest"'
           fi
           printf 'labels=%s\n' "$labels" >> "$GITHUB_OUTPUT"
@@ -147,18 +148,32 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.1.1
 
+      - name: Detect native Node architecture on Mac
+        if: runner.os == 'macOS'
+        id: native
+        shell: bash
+        run: |
+          if [[ "$(uname -m)" = arm64 || "$(/usr/sbin/sysctl -in sysctl.proc_translated)" = 1 ]]; then
+            echo 'arch=arm64' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
+          architecture: ${{ steps.native.outputs.arch }}
 
       - name: Set dedicated release directory
         shell: node {0}
+        env:
+          NATIVE_ARCH: ${{ steps.native.outputs.arch }}
         run: |
           const fs = require('node:fs');
           const os = require('node:os');
           const path = require('node:path');
+          if (process.env.NATIVE_ARCH && process.arch !== process.env.NATIVE_ARCH) throw new Error('Expected native Mac Node.js');
+          console.log(`Release Node ${process.version} (${process.platform}/${process.arch})`);
           const hostDirectory = process.env.RUNNER_ENVIRONMENT === 'github-hosted'
             ? path.join(process.env.RUNNER_TEMP, 'cd4-r2')
             : path.join(os.homedir(), '.local', 'state', 'cd4-r2');
@@ -181,21 +196,30 @@ jobs:
         run: node scripts/check-static-db-access.cjs --authenticated --report-only
 
       - name: Resolve last successful release
-        if: needs.route.outputs.mode == 'verify'
+        if: needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'verify'
         id: state
         run: node scripts/deploy-static-r2.cjs --mode status
 
-      - name: Pin independent verification to published code
-        if: needs.route.outputs.mode == 'verify'
+      - name: Select the app version used by the published release
+        if: needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'verify'
         shell: bash
         env:
           RELEASE_COMMIT: ${{ steps.state.outputs.release_commit }}
+          PORTABLE: ${{ steps.state.outputs.active_portable }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          if [[ ! "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ || "$PORTABLE" != true ]]; then
+            echo 'Run a full release on the Mac to publish the daily baseline.' >&2
+            exit 1
+          fi
           git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
-          git checkout --detach "$RELEASE_COMMIT"
-          pnpm install --prod=false --frozen-lockfile
+          if [[ "$RELEASE_COMMIT" != "$GITHUB_SHA" ]]; then
+            app_checkout=$(mktemp -d "$RUNNER_TEMP/cd4-published.XXXXXX")
+            git clone --quiet --local --no-checkout "$GITHUB_WORKSPACE" "$app_checkout"
+            git -C "$app_checkout" checkout --quiet --detach "$RELEASE_COMMIT"
+            pnpm --dir "$app_checkout" install --prod=false --frozen-lockfile
+            printf 'STATIC_RELEASE_APP_CHECKOUT=%s\n' "$app_checkout" >> "$GITHUB_ENV"
+          fi
 
       - name: Build, verify or promote the release
         shell: bash
@@ -206,7 +230,7 @@ jobs:
         run: |
           set -euo pipefail
           args=(--mode "$MODE")
-          if [[ "$MODE" = promote ]]; then
+          if [[ "$MODE" = promote || ( "$MODE" = resume && -n "$CANDIDATE_ID" ) ]]; then
             [[ "$CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]] || exit 1
             args+=(--candidate-id "$CANDIDATE_ID")
           fi

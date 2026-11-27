@@ -17,6 +17,19 @@ const s3Code = body => {
   const code = body.match(/<(?:\w+:)?Code>([A-Za-z]+)<\/(?:\w+:)?Code>/)?.[1];
   return s3Codes.has(code) ? code : undefined;
 };
+const strongEtag = value => typeof value === 'string' && /^"[\x21\x23-\x7e\x80-\xff]*"$/.test(value);
+const identityEncoding = { 'accept-encoding': 'identity' };
+const unencoded = response => (response.headers.get('content-encoding') ?? 'identity').toLowerCase() === 'identity';
+
+async function matchesBody(response, body) {
+  const expected = Buffer.from(body);
+  let offset = 0;
+  for await (const chunk of response.body ?? []) {
+    if (!expected.subarray(offset, offset + chunk.length).equals(chunk)) return false;
+    offset += chunk.length;
+  }
+  return offset === expected.length;
+}
 
 async function compareObjectResponse(response, expected) {
   const mime = value => (value ?? '').toLowerCase().split(';').map(part => part.trim()).join(';');
@@ -94,14 +107,20 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     throw new Error(`R2 ${method} failed (${status})`);
   }
 
-  async function getJson(bucket, key) {
-    const response = await call('GET', bucket, key);
+  async function getJson(bucket, key, { forUpdate = true } = {}) {
+    const response = await call('GET', bucket, key, forUpdate ? { headers: identityEncoding } : {});
     if (response.status === 404) {
       if (s3Code(await response.text()) === 'NoSuchKey') return null;
       throw new Error('R2 private object read returned an unconfirmed absence');
     }
-    if (!response.ok || !response.headers.get('etag')) throw new Error('R2 private object could not be read');
-    return { value: await response.json(), etag: response.headers.get('etag') };
+    // A content-addressed reader can use a compressed representation and gets no conditional token.
+    if (!forUpdate && response.status === 200) return { value: await response.json() };
+    const etag = response.headers.get('etag');
+    if (response.status !== 200 || !unencoded(response) || !strongEtag(etag)) {
+      await response.body?.cancel();
+      throw new Error('R2 private state read requires an unencoded object with a strong ETag');
+    }
+    return { value: await response.json(), etag };
   }
 
   async function verifyObject(bucket, object) {
@@ -152,13 +171,26 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
   }
 
   async function putJson(bucket, key, value, etag = null) {
-    const response = await call('PUT', bucket, key, { body: JSON.stringify(value), headers: {
+    if (etag !== null && !strongEtag(etag)) throw new Error('R2 private state write requires a strong ETag');
+    const body = JSON.stringify(value);
+    const response = await call('PUT', bucket, key, { body, headers: {
       'content-type': 'application/json', 'cache-control': 'no-store', ...(etag ? { 'if-match': etag } : { 'if-none-match': '*' }),
     } });
-    await response.body?.cancel();
-    if (response.status === 412) throw Object.assign(new Error('R2 private state changed concurrently'), { code: 'R2_CONFLICT' });
-    if (!response.ok || !response.headers.get('etag')) throw new Error('R2 private state write could not be confirmed');
-    return response.headers.get('etag');
+    await response.body?.cancel().catch(() => {});
+    if (response.status === 412) {
+      // A transport retry can get a 412 after the original PUT was applied.
+      try {
+        const stored = await call('GET', bucket, key, { headers: identityEncoding });
+        const latest = stored.headers.get('etag');
+        if (stored.status === 200 && unencoded(stored) && strongEtag(latest)) {
+          if (await matchesBody(stored, body)) return latest;
+        } else await stored.body?.cancel();
+      } catch { /* The conditional write remains unconfirmed. */ }
+      throw Object.assign(new Error('R2 private state changed concurrently'), { code: 'R2_CONFLICT' });
+    }
+    const latest = response.headers.get('etag');
+    if (!response.ok || !strongEtag(latest)) throw new Error('R2 private state write could not be confirmed');
+    return latest;
   }
 
   async function putObject(bucket, object, file) {
@@ -179,8 +211,8 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
   }
 
   async function getPrivateObject({ key, sha256, bytes }, file) {
-    const response = await call('GET', config.stateBucket, key);
-    if (!response.ok || !response.body) {
+    const response = await call('GET', config.stateBucket, key, { headers: identityEncoding });
+    if (!response.ok || !response.body || !unencoded(response)) {
       await response.body?.cancel();
       throw new Error(`R2 private bundle GET failed (${response.status})`);
     }

@@ -42,6 +42,9 @@ function memoryR2() {
     async putJson(bucket, key, value, etag = null) {
       assert.equal(bucket, config.stateBucket);
       assert.equal(metadata.get(key)?.etag ?? null, etag);
+      if (mock.failClaim && key === CURRENT && value.pending?.next === 0) {
+        throw Object.assign(new Error('candidate claim conflict'), { code: 'R2_CONFLICT' });
+      }
       const next = sha256(JSON.stringify(value));
       metadata.set(key, { value: structuredClone(value), etag: next });
       return next;
@@ -91,7 +94,7 @@ function fixture(day, revision, options, previousRelease = options.previousRelea
     fs.mkdirSync(path.join(source, directory), { recursive: true });
   }
   fs.mkdirSync(path.join(output, 'downloads/market'), { recursive: true });
-  writeJson(path.join(source, 'manifest.json'), { separatedCompanyAssets: true, historyPacks: true,
+  writeJson(path.join(source, 'manifest.json'), { version: 1, snapshotId: day, separatedCompanyAssets: true, historyPacks: true,
     sourcePublications: { [sourcePublication]: { asOf: day, revision } }, sample: { enabled: false }, referenceDate: day });
   writeJson(path.join(source, 'identities.json'), [{ securityId: 'SECURITY' }]);
   for (const file of ['companies.json', 'company-assets.json']) writeJson(path.join(source, file), {});
@@ -106,10 +109,96 @@ function fixture(day, revision, options, previousRelease = options.previousRelea
   fs.writeFileSync(path.join(output, 'downloads/market', day + '.csv'), `\uFEFF기준일,종목코드\n${day},005930`);
   const plan = planRelease({ candidate: output, previous: previousRelease });
   const state = { source, day, sourceCode: 'f'.repeat(64), routes: { '/': revision }, documents: { 'index.html': [] },
-    buildId: 'b'.repeat(64), snapshotId: day };
+    buildId: 'b'.repeat(64), snapshotId: day, candidateOut: output, packInput: source, mode: 'full', sample: false,
+    baseReleaseId: previousRelease?.releaseId ?? null };
+  writeJson(path.join(run, 'build-state.json'), state);
+  writeJson(path.join(run, 'report.json'), { run, source, day, output, releaseId: plan.releaseId, operations: plan.operations,
+    success: true, candidateOnly: true, dryRun: true, mode: 'full', pointerWrites: 0, totalObjects: plan.inventory.objects.length });
   markReleaseRun(run, options.store, 'candidate', [source, output]);
   return { run, output, day, plan, state };
 }
+
+test('the owning Mac can safely claim an exact registered full candidate before the pending pointer exists', async () => {
+  const mock = memoryR2();
+  const store = path.join(home, 'recover-mac');
+  const run = (mode, extra = {}, dependencies = {}) => deploy({ mode, store, commit, ...extra }, {
+    client: mock.client, config, platform: 'darwin', fingerprint: candidateCommit => {
+      assert.equal(candidateCommit, commit);
+      return 'f'.repeat(64);
+    },
+    build: () => assert.fail('recovery must use the saved full output'), ...dependencies,
+  });
+  const first = await run('full', {}, { build: options => fixture(firstDay, '1000', options) });
+  let saved;
+  mock.failClaim = true;
+  await assert.rejects(run('full', {}, { build: options => (saved = fixture(secondDay, '1001', options)) }),
+    { code: 'R2_CONFLICT', message: 'R2 private state changed concurrently (claim)' });
+  mock.failClaim = false;
+  const candidates = [...mock.metadata].filter(([key]) => key.startsWith('cd-release/candidates/'));
+  const [registered, { value: descriptor }] = candidates.at(-1);
+  const candidateId = path.basename(registered, '.json');
+  assert.equal(descriptor.releaseId, saved.plan.releaseId);
+  const putCount = mock.publicWrites.length;
+  const resume = (options, dependencies) => run('resume', { candidateId, commit: '9'.repeat(40), ...options }, dependencies);
+  const pointer = () => mock.metadata.get(CURRENT).value;
+  assert.equal(pointer().current.candidateId, first.candidateId);
+  assert.equal(pointer().pending, null);
+  await assert.rejects(resume({}, { platform: 'linux' }), /requires its owning Mac/);
+  await assert.rejects(resume({ store: path.join(home, 'other') }), /differs from the owning runner records/);
+  await assert.rejects(resume({}, { fingerprint: () => 'wrong-commit' }), /snapshot or commit differs/);
+
+  const reference = `cd-release/portable/refs/${candidateId}.json`;
+  const registeredReference = mock.metadata.get(reference);
+  mock.metadata.delete(reference);
+  await assert.rejects(resume(), /portable references are missing or differ/);
+  mock.metadata.set(reference, registeredReference);
+  const bundle = descriptor.portable.parts[0].key;
+  const bytes = mock.privateObjects.get(bundle);
+  mock.privateObjects.delete(bundle);
+  await assert.rejects(resume(), /portable source bundle is missing/);
+  mock.privateObjects.set(bundle, bytes);
+
+  const reportFile = path.join(saved.run, 'report.json');
+  const report = readJson(reportFile);
+  writeJson(reportFile, { ...report, success: false });
+  await assert.rejects(resume(), /differs from the owning runner records/);
+  writeJson(reportFile, report);
+  const sourceFile = path.join(saved.state.source, securityKey);
+  const originalSource = fs.readFileSync(sourceFile);
+  fs.writeFileSync(sourceFile, 'tampered frozen input');
+  await assert.rejects(resume(), /Frozen source differs/);
+  fs.writeFileSync(sourceFile, originalSource);
+  const index = path.join(saved.output, 'index.html');
+  const originalIndex = fs.readFileSync(index);
+  fs.unlinkSync(index);
+  fs.symlinkSync(sourceFile, index);
+  await assert.rejects(resume(), /could not verify the full candidate output/);
+  fs.unlinkSync(index);
+  fs.writeFileSync(index, 'tampered output');
+  await assert.rejects(resume(), /output or operations differ from the registered inventory/);
+  fs.writeFileSync(index, originalIndex);
+  assert.equal(pointer().pending, null);
+  assert.equal(mock.publicWrites.length, putCount);
+
+  const recovered = await resume();
+  assert.equal(recovered.candidateId, candidateId);
+  assert.equal(pointer().current.candidateId, candidateId);
+  assert.equal(pointer().current.commit, commit);
+  assert.equal(pointer().pending, null);
+  assert.equal(mock.publicObjects.get('index.html'), '<p>1001</p>');
+  assert.equal(readJson(path.join(saved.run, 'release-owner.json')).status, 'published');
+  const publishedCount = mock.publicWrites.length;
+  assert.equal((await resume({}, { platform: 'linux' })).putKeys, 0);
+  assert.equal(mock.publicWrites.length, publishedCount);
+  const status = await run('status');
+  assert.equal(status.current.releaseId, recovered.releaseId);
+  assert.equal(status.current.commit, commit);
+  assert.ok(status.current.portable);
+  assert.equal(status.pending, null);
+  await assert.rejects(run('resume', { candidateId: first.candidateId }), /base is stale/);
+  const review = await run('verify', {}, { build: options => fixture(secondDay, 'independent review', options) });
+  await assert.rejects(run('resume', { candidateId: review.candidateId }), /Only a registered full candidate/);
+});
 
 test('a full seeds portable input, no-op reads only heads, and a clean runner resumes a daily batch', async () => {
   const mock = memoryR2();
