@@ -1,0 +1,146 @@
+name: Rehearse October R2 daily release
+
+on:
+  push:
+    branches: [codex/r2-october-rehearsal]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd4-october-release-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    if: github.repository == 'ddkuiauou-ai/cd4' && github.ref == 'refs/heads/codex/r2-october-rehearsal'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out rehearsal controller and published app
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.1.1
+      - name: Set up Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Install the published app
+        run: |
+          umask 077
+          start=$SECONDS
+          directory=$(mktemp -d "$RUNNER_TEMP/cd4-october.XXXXXXXX")
+          app="$directory/app"
+          git worktree add --quiet --detach "$app" 92bc2ba4d918fc04f57d837749d577844398db79
+          mkdir "$directory/full" "$directory/daily"
+          if ! pnpm --dir "$app" install --prod=false --frozen-lockfile >"$directory/install.log" 2>&1; then
+            echo 'Published app installation failed'
+            exit 1
+          fi
+          {
+            printf 'CD_REHEARSAL_HOME=%s\n' "$directory"
+            printf 'CD_REHEARSAL_APP_ROOT=%s\n' "$app"
+          } >> "$GITHUB_ENV"
+          printf 'Published app install and checkout seconds: %d\n' "$((SECONDS-start))"
+          printf 'Available bytes after install: %s\n' "$(df -B1 --output=avail "$directory" | tail -1 | tr -d ' ')"
+      - name: Start isolated PostgreSQL
+        run: |
+          umask 077
+          start=$SECONDS
+          admin_password=$(openssl rand -hex 24)
+          reader_password=$(openssl rand -hex 24)
+          echo "::add-mask::$admin_password"
+          echo "::add-mask::$reader_password"
+          postgres_env="$CD_REHEARSAL_HOME/postgres.env"
+          {
+            printf 'POSTGRES_USER=october_admin\nPOSTGRES_DB=cd_october_qa\n'
+            printf 'POSTGRES_PASSWORD=%s\n' "$admin_password"
+          } > "$postgres_env"
+          docker run --detach --name cd4-october-postgres --env-file "$postgres_env" \
+            --publish 127.0.0.1:15432:5432 postgres:18 \
+            -c wal_level=minimal -c max_wal_senders=0 -c max_wal_size=512MB > /dev/null
+          for attempt in {1..60}; do
+            if docker exec cd4-october-postgres pg_isready --host 127.0.0.1 --quiet; then break; fi
+            if [[ "$attempt" == 60 ]]; then echo 'Isolated PostgreSQL failed to start'; exit 1; fi
+            sleep 1
+          done
+          {
+            printf 'CD_QA_SEED_DATABASE_URL=postgresql://october_admin:%s@127.0.0.1:15432/cd_october_qa\n' "$admin_password"
+            printf 'CD_QA_FULL_DATABASE_URL=postgresql://october_reader:%s@127.0.0.1:15432/cd_october_qa\n' "$reader_password"
+          } > "$CD_REHEARSAL_HOME/loopback.env"
+          printf 'Isolated PostgreSQL setup seconds: %d\n' "$((SECONDS-start))"
+      - name: Reconstruct October 7 in the isolated database
+        env:
+          STATIC_RELEASE_POSTGRES_TLS: verify-full
+          POSTGRES_HOST: ${{ secrets.POSTGRES_TLS_HOST || secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_TLS_PORT || secrets.POSTGRES_PORT }}
+          POSTGRES_TLS_CA: ${{ vars.POSTGRES_TLS_CA }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          umask 077
+          start=$SECONDS
+          set -a
+          source "$CD_REHEARSAL_HOME/loopback.env"
+          set +a
+          export NODE_PATH="$CD_REHEARSAL_APP_ROOT/node_modules"
+          if ! node .github/scripts/benchmark-october-baseline.cjs > "$CD_REHEARSAL_HOME/seed.log" 2>&1; then
+            sed -nE '/^\{"stage":"[a-z0-9-]+","reason":"[a-z0-9-]+"(,"code":"[A-Z0-9]+")?\}$/p' "$CD_REHEARSAL_HOME/seed.log"
+            echo 'October 7 baseline preparation failed'
+            exit 1
+          fi
+          tail -1 "$CD_REHEARSAL_HOME/seed.log" | node -e 'const r=JSON.parse(require("node:fs").readFileSync(0,"utf8")); console.log(JSON.stringify({day:r.day,revision:r.revision,listed:r.listed,sourceBytes:r.sourceBytes,copySeconds:r.copySeconds,projectionSeconds:r.projectionSeconds,databaseBytes:r.databaseBytes}));'
+          printf 'October 7 baseline preparation seconds: %d\n' "$((SECONDS-start))"
+      - name: Build full October 7 and prepare its portable baseline
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: "1"
+          NODE_OPTIONS: --max-old-space-size=3072
+        run: |
+          umask 077
+          source "$CD_REHEARSAL_HOME/loopback.env"
+          app_controller="$GITHUB_WORKSPACE/.github/benchmarks/october-release.cjs"
+          cd "$CD_REHEARSAL_APP_ROOT"
+          if ! DATABASE_URL="$CD_QA_FULL_DATABASE_URL" STATIC_RELEASE_HOME="$CD_REHEARSAL_HOME/full" \
+            node "$app_controller" full 3>&1 > "$CD_REHEARSAL_HOME/full.log" 2>&1; then
+            if [[ -f "$CD_REHEARSAL_HOME/full-failure.json" ]]; then cat "$CD_REHEARSAL_HOME/full-failure.json"; fi
+            echo 'October 7 full rehearsal failed'
+            exit 1
+          fi
+          tee -a "$GITHUB_STEP_SUMMARY" < "$CD_REHEARSAL_HOME/full-metrics.json"
+          docker rm --force --volumes cd4-october-postgres > /dev/null
+          rm -rf -- "${CD_REHEARSAL_HOME:?}/full"
+      - name: Run October 8 production daily against the local rehearsal store
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: "1"
+          NODE_OPTIONS: --max-old-space-size=3072
+          STATIC_RELEASE_POSTGRES_TLS: verify-full
+          POSTGRES_HOST: ${{ secrets.POSTGRES_TLS_HOST || secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_TLS_PORT || secrets.POSTGRES_PORT }}
+          POSTGRES_TLS_CA: ${{ vars.POSTGRES_TLS_CA }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          umask 077
+          app_controller="$GITHUB_WORKSPACE/.github/benchmarks/october-release.cjs"
+          cd "$CD_REHEARSAL_APP_ROOT"
+          status=0
+          STATIC_RELEASE_HOME="$CD_REHEARSAL_HOME/daily" \
+            node "$app_controller" daily 3>&1 > "$CD_REHEARSAL_HOME/daily.log" 2>&1 || status=$?
+          if [[ -f "$CD_REHEARSAL_HOME/daily-metrics.json" ]]; then
+            tee -a "$GITHUB_STEP_SUMMARY" < "$CD_REHEARSAL_HOME/daily-metrics.json"
+          elif [[ -f "$CD_REHEARSAL_HOME/daily-failure.json" ]]; then
+            cat "$CD_REHEARSAL_HOME/daily-failure.json"
+          fi
+          if [[ "$status" == 2 ]]; then echo 'October 8 inventory or retained CSV differs from the reference'; fi
+          if [[ "$status" == 1 ]]; then echo 'October 8 daily rehearsal failed'; fi
+          exit "$status"
