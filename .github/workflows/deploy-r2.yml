@@ -211,3 +211,7 @@ jobs:
             args+=(--candidate-id "$CANDIDATE_ID")
           fi
           node scripts/deploy-static-r2.cjs "${args[@]}"
+
+      - name: Inspect registered full candidates
+        if: needs.route.outputs.mode == 'status'
+        run: node .github/scripts/inspect-r2-candidates.cjs
