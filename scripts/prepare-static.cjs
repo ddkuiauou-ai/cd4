@@ -16,6 +16,8 @@ const previous = process.env.STATIC_PREVIOUS_SNAPSHOT_DIR ? path.resolve(process
 const compactPrivate = process.env.STATIC_BUILD_COMPACT_PRIVATE === '1';
 const releaseMode = process.env.STATIC_RELEASE_MODE ?? 'full';
 const daily = releaseMode === 'daily';
+const portableDaily = daily && process.env.STATIC_RELEASE_PORTABLE === '1';
+const publicationCheck = process.argv.includes('--publication-check');
 const indexed = process.env.STATIC_BUILD_SOURCE_INDEX === '1' && !process.env.STATIC_BUILD_SAMPLE;
 const privateDigests = { security: {}, company: {} };
 const historySources = Object.create(null);
@@ -33,7 +35,7 @@ const { readPrivateHistory, encodePrivateHistory, normalizeLegacyHistory } = req
 const { readPrivateJsonText } = require('../lib/static-build/read-private-json.ts');
 const { currentSecurity } = require('../lib/data/security.ts');
 const { currentCompany } = require('../lib/data/company.ts');
-const { readSecurityBatch, readDailyHistorySources, readObservedMarketDays } = require('../lib/static-build/read-security-batch.ts');
+const { readBatchLifecycles, readSecurityBatch, readDailyHistorySources, readObservedMarketDays } = require('../lib/static-build/read-security-batch.ts');
 const { aggregateRegisteredCompanyHistory, exactPercentage } = require('../lib/data/registered-company-history.ts');
 const { securityRouteCodes, companyRouteCodes } = require('../lib/entity-paths.ts');
 const { readWholeRankingExport } = require('../lib/data/ranking-export.ts');
@@ -47,6 +49,7 @@ const { scopedRankingPagePath } = require('../lib/ranking-page-address.ts');
 const { planDailyPublication, publicationHeads, readPreviousManifest, mergeBusinessDay } = require('./static-daily-input.cjs');
 const { createFrozenArenaAccumulator } = require('../lib/static-build/frozen-arena.ts');
 const { FILE: SOURCE_INDEX, buildSourceIndex, rankNeighborsByValue } = require('./static-source-index.cjs');
+const { checkStaticDatabaseAccess } = require('./check-static-db-access.cjs');
 
 function writeJson(relative, value) {
   const compact = compactPrivate && /^data\/(security|company)\//.test(relative);
@@ -59,7 +62,7 @@ function writeJson(relative, value) {
 }
 const digest = data => crypto.createHash('sha256').update(data).digest('hex');
 const assetWriter = createStaticAssetWriter(path.join(work, 'assets'),
-  { previousDirectory: previous ? path.join(previous, 'assets') : undefined });
+  { previousDirectory: previous && !portableDaily ? path.join(previous, 'assets') : undefined });
 const assets = assetWriter.assets;
 // Entity labels describe call sites only; identical payload bytes always share one URL.
 const asset = (_label, value, extension = 'json') => assetWriter.write(value, extension);
@@ -72,10 +75,15 @@ const readSecurity = id => JSON.parse(readPrivateJsonText(path.join(work, `data/
 
 async function prepare() {
   if (!['full', 'daily'].includes(releaseMode) || daily && (!indexed || !compactPrivate)) throw new Error('Daily source requires canonical compact extraction');
+  if (publicationCheck && !portableDaily) throw new Error('The publication check requires a portable daily release');
   if ((process.argv.includes('--reuse') || process.env.STATIC_BUILD_REUSE === '1')
     && fs.existsSync(path.join(work, 'manifest.json'))
     && fs.existsSync(path.join(work, STATIC_SEARCH_SECURITY_IDS_FILE))) {
     console.log('Reusing immutable static input'); return;
+  }
+  if (process.env.STATIC_RELEASE_POSTGRES_TLS === 'verify-full') {
+    const access = await checkStaticDatabaseAccess(process.env);
+    if (access !== 'verified-tls') throw new Error(`Hosted PostgreSQL preflight failed: ${access}`);
   }
   const started = Date.now(), generatedAt = new Date().toISOString();
   if (previous === work) throw new Error('Previous static snapshot must be separate from the new input');
@@ -85,8 +93,10 @@ async function prepare() {
     fs.rmSync(path.join(work, 'manifest.json'), { force: true });
     for (const directory of ['assets', 'data', 'rankings']) fs.rmSync(path.join(work, directory), { recursive: true, force: true });
   }
-  const manifest = await readSnapshot(tx => extract(tx, started, generatedAt));
-  if (manifest.unchanged || manifest.requiresFull) {
+  const manifest = await readSnapshot(tx => publicationCheck
+    ? tx.query.resultPublication.findMany().then(headlines => readDailyPlan(tx, headlines))
+    : extract(tx, started, generatedAt));
+  if (publicationCheck || manifest.unchanged || manifest.requiresFull) {
     writeJson('prepare-status.json', { ...manifest, input: previous, databaseQueries: queryCounter.snapshot() });
     console.log(JSON.stringify(manifest));
     if (manifest.requiresFull) process.exitCode = 2;
@@ -99,28 +109,34 @@ async function prepare() {
   console.log(JSON.stringify({snapshotId:manifest.snapshotId,sample:manifest.sample,routes:manifest.routes.length,assets:assets.length,extraction:manifest.extraction}));
 }
 
-async function extract(tx, started, generatedAt) {
-  queryCounter.phase('inventory');
-  const headlines = await tx.query.resultPublication.findMany();
+async function readDailyPlan(tx, headlines, oldManifest = readPreviousManifest(previous)) {
   const expectedDay = process.env.STATIC_RELEASE_DAY;
   if (expectedDay && businessDate(expectedDay) !== expectedDay) throw new Error('Invalid STATIC_RELEASE_DAY');
-  const oldManifest = readPreviousManifest(previous);
-  const dayPlan = daily ? planDailyPublication({ previous: oldManifest, publications: headlines, expectedDay }) : null;
-  if (dayPlan?.requiresFull) return dayPlan;
-  if (dayPlan?.unchanged) {
+  const dayPlan = planDailyPublication({ previous: oldManifest, publications: headlines, expectedDay });
+  if (dayPlan.requiresFull) return dayPlan;
+  if (dayPlan.unchanged) {
     if (dayPlan.reason === 'publication-not-advanced') {
       const observed = await readObservedMarketDays(tx, dayPlan.from, expectedDay);
       return { ...dayPlan, observedTradingDay: observed.includes(expectedDay) };
     }
     return dayPlan;
   }
+  const days = await readObservedMarketDays(tx, dayPlan.from, dayPlan.day);
+  if (!days.includes(dayPlan.day)) return { requiresFull: true, reason: 'published-day-without-market-observation', day: dayPlan.day };
+  if (days.length !== 1) return { requiresFull: true, reason: 'missed-trading-day', days };
+  return dayPlan;
+}
+
+async function extract(tx, started, generatedAt) {
+  queryCounter.phase('inventory');
+  const headlines = await tx.query.resultPublication.findMany();
+  const expectedDay = process.env.STATIC_RELEASE_DAY;
+  if (expectedDay && businessDate(expectedDay) !== expectedDay) throw new Error('Invalid STATIC_RELEASE_DAY');
+  const oldManifest = readPreviousManifest(previous);
+  const dayPlan = daily ? await readDailyPlan(tx, headlines, oldManifest) : null;
+  if (dayPlan?.requiresFull || dayPlan?.unchanged) return dayPlan;
   if (!daily && expectedDay && publicationHeads(headlines)[SECURITY_PUBLICATION_KEY]?.asOf !== expectedDay) {
     return { requiresFull: true, reason: 'requested-full-day-not-current', expectedDay };
-  }
-  if (dayPlan) {
-    const days = await readObservedMarketDays(tx, dayPlan.from, dayPlan.day);
-    if (!days.includes(dayPlan.day)) return { requiresFull: true, reason: 'published-day-without-market-observation', day: dayPlan.day };
-    if (days.length !== 1) return { requiresFull: true, reason: 'missed-trading-day', days };
   }
   const raw = {
     securities: await tx.query.security.findMany({ orderBy: [asc(schema.security.securityId)] }),
@@ -133,6 +149,13 @@ async function extract(tx, started, generatedAt) {
   const secPub = publications.get(SECURITY_PUBLICATION_KEY) ?? null, coPub = publications.get('company_marketcap/krx-all') ?? null;
   const history = coPub && !indexed ? await readArenaHistory(tx, businessDate(coPub.asOf)) : null;
   const listed = listedSecurityPeriods(raw.securities, raw.listingPeriods, businessDate(secPub?.asOf));
+  if (dayPlan) {
+    const previousListed = listedSecurityPeriods(raw.securities, raw.listingPeriods, dayPlan.from);
+    if (listed.size !== previousListed.size || [...listed].some(([id, period]) => !previousListed.has(id)
+      || previousListed.get(id)?.periodId !== period?.periodId)) {
+      return { requiresFull: true, reason: 'entity-inventory-or-membership-changed', day: dayPlan.day };
+    }
+  }
   const marketCsv = secPub
     ? await readMarketCsv(tx, secPub, raw.securities.filter(row => listed.has(row.securityId)), raw.publications, raw.ranks)
     : null;
@@ -225,6 +248,8 @@ async function extract(tx, started, generatedAt) {
     if (!url || inheritedAssets.has(url)) return;
     const entry = priorAssets.get(url);
     if (!entry) throw new Error('Previous immutable history object is missing from its manifest');
+    inheritedAssets.set(url, entry);
+    if (portableDaily) return;
     const target = path.join(work, 'assets', entry.path);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     try { fs.linkSync(path.join(previous, 'assets', entry.path), target); }
@@ -232,10 +257,10 @@ async function extract(tx, started, generatedAt) {
       if (error.code === 'EXDEV') fs.copyFileSync(path.join(previous, 'assets', entry.path), target, fs.constants.COPYFILE_EXCL);
       else if (error.code !== 'EEXIST') throw error;
     }
-    inheritedAssets.set(url, entry);
   }
   function nextPack(key, rows, columns, prior, { pair, splitYear = year } = {}) {
-    const reuse = dayPlan && prior?.currentStart === splitYear + '-01-01' ? prior : undefined;
+    const reuse = dayPlan && prior && (prior.currentStart === splitYear + '-01-01' || (!prior.current && !prior.currentDates))
+      ? prior : undefined;
     if (reuse) inheritAsset(reuse.archive);
     return packs.add(key, table(reuse ? rows.filter(row => row.date.startsWith(splitYear)) : rows, columns, Boolean(pair)),
       { original: null, pair, previousArchive: reuse });
@@ -274,6 +299,7 @@ async function extract(tx, started, generatedAt) {
   if (indexed) fs.mkdirSync(path.join(work, '_company-staging'));
   let completed = 0;
   const ids = [...neededSecurities];
+  const lifecycle = await readBatchLifecycles(tx, ids);
   for (let offset = 0; offset < ids.length; offset += batchMemory.batchSize) {
     const batchIds = ids.slice(offset, offset + batchMemory.batchSize);
     const oldFiles = new Map();
@@ -304,7 +330,7 @@ async function extract(tx, started, generatedAt) {
           }
         }
         return output;
-      } : undefined, { officialOnly: indexed, pricesThrough: indexed ? rankCutoffs.at(-1) : undefined });
+      } : undefined, { lifecycle, officialOnly: indexed, pricesThrough: indexed ? rankCutoffs.at(-1) : undefined });
     batchMemory.batches++; batchMemory.maxHistoryRows = Math.max(batchMemory.maxHistoryRows, batch.historyRows);
     recordBatchMemory();
     for (const { securityId: id, security, metrics: history, companyMember, allMarketcaps, rawCompanyMarketcaps, rankingPriceSources, archive } of batch.items) {
@@ -540,5 +566,12 @@ async function extract(tx, started, generatedAt) {
     extraction:{seconds:(Date.now()-started)/1000,sourceSecurities:raw.securities.length,sourceCompanies:raw.companies.length,
       preparedSecurities:neededSecurities.size,batchMemory,rankingPrices:preparedRankings.stats}};
 }
-prepare().catch(error=>{console.error('Static extraction failed:',error.code||error.name,error.message?.replace(/postgres(?:ql)?:\/\/\S+/g,'[redacted]'));process.exitCode=1;})
+prepare().catch(error => {
+  const tlsRequired = process.env.STATIC_RELEASE_POSTGRES_TLS === 'verify-full';
+  const message = tlsRequired && (error.cause || !/^Hosted PostgreSQL preflight failed: [a-z-]+$/.test(error.message))
+    ? 'Hosted snapshot preparation failed. Use the status operation to check TLS and read access.'
+    : error.message?.replace(/postgres(?:ql)?:\/\/\S+/g, '[redacted]');
+  console.error('Static extraction failed:', error.code || error.name, message);
+  process.exitCode = 1;
+})
   .finally(()=>closeDatabase());

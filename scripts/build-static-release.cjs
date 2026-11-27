@@ -9,10 +9,11 @@ const {
 const { runNodeStage, syncWorkspace, selectBuildSettings } = require('./build-static.cjs');
 const { augmentMarketInput } = require('./augment-static-market-input.cjs');
 const { augmentDetailHistoryPacks } = require('./prepare-static-detail-history-packs.cjs');
-const { blob, documentAssetKeys, isRsc, publishRelease, readRelease,
+const { blob, documentAssetKeys, isRsc, operationReport, planRelease, publishRelease, readRelease,
   acquireStoreLock, releaseBuildState, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { planRender, routeFingerprints } = require('./static-render-plan.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
+const { hostedRenderBatches, mergeHostedExport } = require('./static-hosted-build.cjs');
 
 const storeState = 'build-state.json';
 const metrics = ['marketcap', 'per', 'pbr', 'eps', 'bps', 'div', 'dps'];
@@ -58,20 +59,33 @@ function rankingObjects(input) {
   return { assets, unavailable };
 }
 
-function assembleCandidate({ output, input, manifest, changed, previous, store }) {
+function assembleCandidate({ output, input, manifest, changed, previous, store, previousDocuments, compressedHtml }) {
   const changedRoutes = new Set(changed);
   const { assets: dependencies, unavailable } = rankingObjects(input);
+  const retained = new Map();
   for (const { path: address } of manifest.routes) {
     const key = outputFileForRoute(address);
     const file = path.join(output, key);
+    const compressed = compressedHtml?.get(key);
     const fixedEntry = address.split('/').filter(Boolean).length < 2;
     const old = previous?.objects.get(key);
     if (!fixedEntry && !changedRoutes.has(address) && old) {
       fs.rmSync(file, { force: true });
+      if (previousDocuments) {
+        if (compressed) {
+          fs.rmSync(compressed.file);
+          compressedHtml.delete(key);
+        }
+        const assets = previousDocuments[key];
+        if (!previous.active.has(key) || !Array.isArray(assets)) throw new Error(`Missing checkpoint document: ${address}`);
+        retained.set(key, assets);
+        for (const asset of assets) if (asset.startsWith('static-data/')) dependencies.add(asset);
+        continue;
+      }
       linkFile(blob(store, old.sha256), file);
     }
-    if (!fs.existsSync(file)) throw new Error(`Missing generated document: ${address}`);
-    for (const asset of documentAssetKeys(fs.readFileSync(file, 'utf8'))) {
+    if (!compressed && !fs.existsSync(file)) throw new Error(`Missing generated document: ${address}`);
+    for (const asset of compressed?.dependencies ?? documentAssetKeys(fs.readFileSync(file, 'utf8'))) {
       if (asset.startsWith('static-data/')) dependencies.add(asset);
     }
   }
@@ -84,6 +98,11 @@ function assembleCandidate({ output, input, manifest, changed, previous, store }
     const file = path.join(output, asset);
     if (fs.existsSync(file)) continue;
     if (!staged) throw new Error(`Candidate references an unknown staged asset: ${asset}`);
+    const old = previousDocuments && previous?.objects.get(asset);
+    if (old && old.sha256 === staged.sha256 && old.bytes === staged.bytes) {
+      retained.set(asset, []);
+      continue;
+    }
     const source = path.join(input, 'assets', asset);
     if (fs.statSync(source).size !== staged.bytes || sha256(source) !== staged.sha256) {
       throw new Error(`Staged asset changed: ${asset}`);
@@ -93,7 +112,7 @@ function assembleCandidate({ output, input, manifest, changed, previous, store }
   for (const key of manifest.requiredFiles ?? []) if (!unavailable.has(key) && !fs.existsSync(path.join(output, key))) {
     throw new Error(`Missing required public file: ${key}`);
   }
-  return dependencies.size;
+  return { assets: dependencies.size, retained };
 }
 
 async function buildRelease(options = {}) {
@@ -105,12 +124,16 @@ async function buildRelease(options = {}) {
 }
 
 async function buildLocked({ input, previousInput, root, daily = false, candidateOnly = false, allowSample = false,
-  clean = false, day, independent = false }) {
+  clean = false, day, independent = false, previousRelease, previousState, portable }) {
   if (allowSample && (!input || !root.startsWith(STAGE + path.sep) || !path.basename(root).startsWith('fixture-'))) {
     throw new Error('Sample release requires --input and a separate .static-build/fixture-* store');
   }
-  const previous = readRelease(root);
-  const state = releaseBuildState(root, previous?.releaseId);
+  const external = previousRelease !== undefined;
+  if ((external && !candidateOnly) || (portable && (!daily || !external || !previousRelease || !previousState?.source))) {
+    throw new Error('Portable daily builds require a published baseline and a candidate-only build');
+  }
+  let previous = external ? previousRelease : readRelease(root);
+  let state = previousState === undefined ? releaseBuildState(root, previous?.releaseId) : previousState;
   fs.mkdirSync(RUNS, { recursive: true });
   const run = fs.mkdtempSync(path.join(RUNS, 'release-'));
   markReleaseRun(run, root, 'building', [input, previousInput, state?.source, state?.packInput]);
@@ -119,39 +142,62 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
   const reserveBytes = diskPreflight(undefined, { inspectLegacyOutput: false }).reserveBytes;
   const sourceCode = sourceFingerprint();
   const workspace = path.join(STAGE, 'release-compiler-workspace');
-  const compilerMatches = state?.compilerWorkspace === workspace && state?.sourceCode === sourceCode;
   const settings = selectBuildSettings({ fingerprint: sourceCode });
   const env = { ...process.env, NODE_ENV: 'production', NEXT_OUTPUT_MODE: 'export', NEXT_TELEMETRY_DISABLED: '1',
     NEXT_PUBLIC_STATIC_DOCUMENTS: '1', STATIC_BUILD_PROJECT_ROOT: ROOT,
-    STATIC_RELEASE_BUILD_ID: compilerMatches ? state.buildId ?? sourceCode : sourceCode,
+    STATIC_RELEASE_BUILD_ID: sourceCode,
     STATIC_BUILD_CPUS: settings.workers, STATIC_BUILD_CONCURRENCY: settings.concurrency,
-    STATIC_BUILD_SAMPLE: '', STATIC_RELEASE_PARAMS: '', STATIC_BUILD_REUSE: '0', NEXT_PUBLIC_R2_PER_PILOT: '0' };
+    STATIC_BUILD_SAMPLE: '', STATIC_RELEASE_PARAMS: '', STATIC_BUILD_REUSE: '0' };
+  function finishPrepare(result) {
+    Object.assign(report, result, { putKeys: 0, putBytes: 0, deleteKeys: 0, objectWrites: 0, bytesWritten: 0, pointerWrites: 0 });
+    if (result.unchanged) Object.assign(report, { success: true, releaseId: previous?.releaseId });
+    markReleaseRun(run, root, result.unchanged ? 'unchanged' : 'failed');
+    return report;
+  }
+  async function prepareSource(name, destination, previousSource, targetDay, args = []) {
+    const status = path.join(destination, 'prepare-status.json');
+    try {
+      report.stages.push(await runNodeStage(name, [path.join(__dirname, 'prepare-static.cjs'), ...args], {
+        env: { ...env, STATIC_SNAPSHOT_DIR: destination, STATIC_BUILD_COMPACT_PRIVATE: '1', STATIC_BUILD_SOURCE_INDEX: '1',
+          STATIC_RELEASE_MODE: daily ? 'daily' : 'full', STATIC_RELEASE_DAY: targetDay ?? '',
+          STATIC_RELEASE_PORTABLE: portable ? '1' : '',
+          STATIC_PREVIOUS_SNAPSHOT_DIR: previousSource ?? '' },
+        reportDirectory: run, reserveBytes,
+      }));
+    } catch (error) {
+      if (error.stageReport) report.stages.push(error.stageReport);
+      if (!fs.existsSync(status) || !readJson(status).requiresFull) throw error;
+    }
+    return fs.existsSync(status) ? readJson(status) : null;
+  }
   try {
     let source = input && fs.realpathSync(input);
     let unchangedInput = false;
+    let targetDay = day;
+    if (portable) {
+      if (!source) {
+        const result = await prepareSource('publication-check', path.join(run, 'publication-check'), state.source, day, ['--publication-check']);
+        if (!result) throw new Error('The portable publication check returned no plan');
+        if (result.requiresFull || result.unchanged) return finishPrepare(result);
+        targetDay = result.day;
+      }
+      const hydrated = await portable.restoreSource(state.source);
+      if (hydrated) {
+        if (hydrated.previousRelease.releaseId !== previous.releaseId) throw new Error('Portable release baseline changed during restore');
+        ({ previousRelease: previous, previousState: state } = hydrated);
+      }
+      if (!state?.documents || !state.routes || state.sourceCode !== sourceCode) {
+        return finishPrepare({ requiresFull: true, reason: 'portable-build-baseline-mismatch' });
+      }
+    }
+    const compilerMatches = state?.sourceCode === sourceCode && (portable || state?.compilerWorkspace === workspace);
+    if (compilerMatches) env.STATIC_RELEASE_BUILD_ID = state.buildId ?? sourceCode;
     const previousSource = independent ? null : previousInput ? fs.realpathSync(previousInput) : state?.source;
     if (!source) {
       source = path.join(run, 'source');
-      try {
-        report.stages.push(await runNodeStage('prepare', [path.join(__dirname, 'prepare-static.cjs')], {
-          env: { ...env, STATIC_SNAPSHOT_DIR: source, STATIC_BUILD_COMPACT_PRIVATE: '1', STATIC_BUILD_SOURCE_INDEX: '1',
-            STATIC_RELEASE_MODE: daily ? 'daily' : 'full', STATIC_RELEASE_DAY: day ?? '',
-            STATIC_PREVIOUS_SNAPSHOT_DIR: previousSource ?? '' },
-          reportDirectory: run, reserveBytes,
-        }));
-      } catch (error) {
-        const status = path.join(source, 'prepare-status.json');
-        if (error.stageReport) report.stages.push(error.stageReport);
-        if (!fs.existsSync(status) || !readJson(status).requiresFull) throw error;
-      }
-      const status = path.join(source, 'prepare-status.json');
-      if (fs.existsSync(status)) {
-        const result = readJson(status);
-        if (result.requiresFull) {
-          Object.assign(report, result, { putKeys: 0, putBytes: 0, deleteKeys: 0 });
-          markReleaseRun(run, root, 'failed');
-          return report;
-        }
+      const result = await prepareSource('prepare', source, previousSource, targetDay);
+      if (result) {
+        if (result.requiresFull || portable && result.unchanged) return finishPrepare(result);
         unchangedInput = Boolean(result.unchanged);
         source = result.input;
       }
@@ -160,10 +206,10 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
     report.source = source;
     const sourceManifest = readManifest({ allowSample, filename: path.join(source, 'manifest.json') });
     if (sourceManifest.perPilot) throw new Error('A PER pilot input cannot be used for a release build');
-    if (day && !unchangedInput && sourceManifest.referenceDate !== day) throw new Error('Frozen source day differs from requested release day');
+    if (targetDay && !unchangedInput && sourceManifest.referenceDate !== targetDay) throw new Error('Frozen source day differs from requested release day');
     report.day = sourceManifest.referenceDate;
     const prior = daily && compilerMatches;
-    if (prior && source === state.source && sourceManifest.snapshotId === state.snapshotId) {
+    if (prior && source === state.source && sourceManifest.snapshotId === state.snapshotId && !external) {
       if (readRelease(root)?.releaseId !== previous.releaseId) throw new Error('Current release changed while checking the source; retry');
       Object.assign(report, { success: true, unchanged: true, releaseId: previous.releaseId,
         putKeys: 0, putBytes: 0, deleteKeys: 0, objectWrites: 0, bytesWritten: 0, pointerWrites: 0 });
@@ -187,24 +233,45 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
     const candidateState = { source, packInput, sourceCode, routes, snapshotId: manifest.snapshotId,
       compilerWorkspace: workspace, buildId: envNext.STATIC_RELEASE_BUILD_ID,
       baseReleaseId, sample: manifest.sample.enabled, day: sourceManifest.referenceDate, mode: daily ? 'daily' : 'full' };
-    let output, assets, result;
+    const previousYear = portable && readJson(path.join(state.source, 'manifest.json')).referenceDate?.slice(0, 4);
+    const compressedHtml = previousYear && sourceManifest.referenceDate?.slice(0, 4) !== previousYear ? new Map() : undefined;
+    let output, assets, result, plan, retained;
     function publishCandidate() {
+      if (external) {
+        plan = planRelease({ candidate: output, previous, retained, compressedHtml });
+        candidateState.documents = plan.documents;
+        return { releaseId: plan.releaseId, dryRun: true, totalObjects: plan.inventory.objects.length,
+          ...operationReport(plan.operations, plan.rollbackOperations), objectWrites: 0, bytesWritten: 0, pointerWrites: 0 };
+      }
       return publishRelease({ candidate: output, root, dryRun: candidateOnly, expectedPrevious: baseReleaseId,
         beforeCommit(pending) { writeReleaseBuildState(root, pending.releaseId, candidateState); } });
     }
     async function exportCandidate(name, reusePreview) {
-      report.stages.push(await runNodeStage(name, [path.join(ROOT, 'node_modules', 'next', 'dist', 'bin', 'next'), 'build', '--webpack'], {
-        cwd: workspace, env: envNext, reportDirectory: run, reserveBytes,
-      }));
+      const buildArgs = [path.join(workspace, 'node_modules', 'next', 'dist', 'bin', 'next'), 'build', '--webpack'];
+      const exported = path.join(workspace, 'out');
       output = path.join(run, 'out');
       candidateState.candidateOut = output;
-      fs.renameSync(path.join(workspace, 'out'), output);
-      assets = assembleCandidate({ output, input: packInput, manifest, changed: selection.changed,
-        previous: reusePreview ? previous : null, store: root });
+      if (portable) {
+        // Rollover rebuilds public archive assets while the export waves run.
+        const batches = hostedRenderBatches(selection.changed, previous, compressedHtml ? 384 * 2 ** 20 : undefined);
+        for (const [index, batch] of batches.entries()) {
+          writeJson(envNext.STATIC_RELEASE_PARAMS, batch);
+          report.stages.push(await runNodeStage(`${name}-${index + 1}`, buildArgs, {
+            cwd: workspace, env: envNext, reportDirectory: run, reserveBytes,
+          }));
+          mergeHostedExport({ exported, output, compressedHtml, compressedDirectory: path.join(run, 'compressed-html') });
+          fs.rmSync(path.join(workspace, '.next', 'server'), { recursive: true, force: true });
+        }
+      } else {
+        report.stages.push(await runNodeStage(name, buildArgs, { cwd: workspace, env: envNext, reportDirectory: run, reserveBytes }));
+        fs.renameSync(exported, output);
+      }
+      ({ assets, retained } = assembleCandidate({ output, input: packInput, manifest, changed: selection.changed,
+        previous: reusePreview ? previous : null, store: root, previousDocuments: portable ? state.documents : undefined, compressedHtml }));
     }
     const releaseCompiler = await waitForCompiler();
     try {
-      report.stages.push(syncWorkspace({ workspace }));
+      report.stages.push(syncWorkspace({ workspace, mirrorDependencies: true }));
       if (sourceFingerprint(workspace) !== sourceCode) {
         throw new Error('Application source changed during preparation; rebuild using the closed frozen input');
       }
@@ -214,6 +281,7 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
       try { result = publishCandidate(); }
       catch (error) {
         if (error.code !== 'IMMUTABLE_OBJECT_COLLISION' || !error.key.startsWith('_next/static/')) throw error;
+        if (portable) return finishPrepare({ requiresFull: true, reason: 'incompatible-compiler-output', key: error.key });
         fs.renameSync(output, path.join(run, 'incompatible-out'));
         envNext.STATIC_RELEASE_PARAMS = '';
         envNext.STATIC_RELEASE_BUILD_ID = createHash('sha256').update(`${sourceCode}:${error.key}:${error.digest}`).digest('hex');
@@ -238,6 +306,8 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
       finally { unlock?.(); }
     }
     Object.assign(report, { success: true, output, assets, selection, source, candidateOnly, ...result });
+    if (external) Object.defineProperties(report, { plan: { value: plan }, state: { value: candidateState },
+      compressedHtml: { value: compressedHtml } });
     return report;
   } catch (error) {
     report.error = error.message;

@@ -29,18 +29,24 @@ test('batched histories equal live providers for current/stale masters and older
     if (companyDate) state.publications.find(row => row.resultKind === 'company_marketcap').asOf = day(companyDate);
     else state.publications = state.publications.filter(row => row.resultKind !== 'company_marketcap');
     state.securities.push({ ...state.securities[0], securityId: 'stale', ticker: '000002', resultRevision: 2n });
+    state.listingPeriods.push({ securityId: 'security-1', periodId: 'open-period', listingDate: '2026-10-01',
+      delistingDate: null, lastPresentOn: '2026-10-02' });
+    state.lifecycleEvents.push({ eventId: 'rename', securityId: 'security-1', companyId: 'company-1',
+      eventType: 'security_name_change', effectiveOn: '2026-10-01', datePrecision: 'day',
+      oldName: '이전 종목명', newName: '변경 종목명' });
     for (const security of state.securities) for (const date of ['2026-10-01', '2026-10-02', '2026-10-03']) {
       state.prices.push({ securityId: security.securityId, date: day(date), close: '9007199254740993.125', volume: 9007199254740993n });
       state.marketcaps.push({ securityId: security.securityId, date: day(date), marketcap: 9007199254740993n, shares: 0n });
       state.metrics.push({ securityId: security.securityId, date: day(date), per: '-5', pbr: '0', eps: null });
     }
     const provider = load('lib/data/security.ts'), history = load('lib/data/history.ts');
-    const { readSecurityBatch } = load('lib/static-build/read-security-batch.ts');
+    const { readBatchLifecycles, readSecurityBatch } = load('lib/static-build/read-security-batch.ts');
     const routeCodes = load('lib/entity-paths.ts').securityRouteCodes(state.securities);
     const securityHeader = state.publications.find(row => row.resultKind === 'security_latest') ?? null;
     const companyHeader = state.publications.find(row => row.resultKind === 'company_marketcap') ?? null;
+    const companies = new Map(state.companies.map(row => [row.companyId, row]));
     const before = state.queries.length;
-    const result = await db.transaction(tx => readSecurityBatch(tx, state.securities, new Map(state.companies.map(row => [row.companyId, row])),
+    const result = await db.transaction(tx => readSecurityBatch(tx, state.securities, companies,
       securityHeader, companyHeader, routeCodes));
     const queries = state.queries.slice(before);
     assert.ok(queries.length <= 7, 'one bounded batch reads at most four histories and three lifecycle/name queries');
@@ -55,5 +61,17 @@ test('batched histories equal live providers for current/stale masters and older
       assert.deepEqual(actual.allMarketcaps, expectedCompanyHistory);
     }
     assert.ok(result.items.every(row => row.security.prices.every(price => price.close === '9007199254740993.125')));
+
+    const prefetched = await db.transaction(async tx => {
+      const lifecycle = await readBatchLifecycles(tx, state.securities.map(row => row.securityId));
+      assert.equal(lifecycle.periods.get('security-1')[0].periodId, 'open-period');
+      assert.equal(lifecycle.events.get('security-1')[0].eventId, 'rename');
+      const priorQueries = state.queries.length;
+      const batches = await Promise.all(state.securities.map(row => readSecurityBatch(tx, [row], companies,
+        securityHeader, companyHeader, routeCodes, undefined, { lifecycle })));
+      assert.ok(state.queries.slice(priorQueries).every(row => ['price', 'marketcap', 'bppedd'].includes(row.table)));
+      return batches.flatMap(batch => batch.items);
+    });
+    assert.deepEqual(prefetched, result.items);
   }
 });

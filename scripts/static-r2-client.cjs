@@ -1,5 +1,7 @@
 const { createHash, createHmac } = require('node:crypto');
-const { createReadStream } = require('node:fs');
+const { createReadStream, createWriteStream } = require('node:fs');
+const { Transform } = require('node:stream');
+const { pipeline } = require('node:stream/promises');
 const { setTimeout: sleep } = require('node:timers/promises');
 const { siteOrigin } = require('../config/site-origin.cjs');
 
@@ -7,7 +9,7 @@ const hash = (value, algorithm = 'sha256', encoding = 'hex') => createHash(algor
 const hmac = (key, value) => createHmac('sha256', key).update(value).digest();
 const encode = value => encodeURIComponent(value).replace(/[!'()*]/g, character => '%' + character.charCodeAt(0).toString(16).toUpperCase());
 const escape = value => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character]);
-const unescape = value => value.replace(/&(amp|lt|gt|quot|apos);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" })[entity]);
+const decodeXml = value => value.replace(/&(amp|lt|gt|quot|apos);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" })[entity]);
 const s3Codes = new Set(['AccessDenied', 'InvalidAccessKeyId', 'SignatureDoesNotMatch', 'InvalidToken', 'ExpiredToken',
   'AuthorizationHeaderMalformed', 'NoSuchBucket', 'NoSuchKey', 'InvalidBucketName', 'BucketAlreadyExists',
   'BucketAlreadyOwnedByYou', 'InvalidLocationConstraint', 'SlowDown', 'ServiceUnavailable']);
@@ -168,6 +170,47 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     if (!response.ok) throw new Error(`R2 object PUT failed (${response.status})`);
   }
 
+  async function putPrivateObject({ key, sha256, bytes }, file) {
+    const response = await call('PUT', config.stateBucket, key, { file, sha256, bytes, headers: {
+      'content-type': 'application/gzip', 'cache-control': 'no-store', 'if-none-match': '*',
+    } });
+    await response.body?.cancel();
+    if (!response.ok && response.status !== 412) throw new Error(`R2 private bundle PUT failed (${response.status})`);
+  }
+
+  async function getPrivateObject({ key, sha256, bytes }, file) {
+    const response = await call('GET', config.stateBucket, key);
+    if (!response.ok || !response.body) {
+      await response.body?.cancel();
+      throw new Error(`R2 private bundle GET failed (${response.status})`);
+    }
+    const digest = createHash('sha256');
+    let length = 0;
+    const verify = new Transform({ transform(chunk, _, callback) {
+      length += chunk.length;
+      if (length > bytes) return callback(new Error('R2 private bundle size mismatch'));
+      digest.update(chunk);
+      callback(null, chunk);
+    } });
+    await pipeline(response.body, verify, createWriteStream(file, { flags: 'wx', mode: 0o600 }));
+    if (length !== bytes || digest.digest('hex') !== sha256) throw new Error('R2 private bundle digest mismatch');
+  }
+
+  async function* listPortableKeys() {
+    let continuation;
+    do {
+      const response = await call('GET', config.stateBucket, '', { query: { 'list-type': '2', 'encoding-type': 'url',
+        prefix: 'cd-release/portable/', ...(continuation ? { 'continuation-token': continuation } : {}) } });
+      if (!response.ok) throw new Error('R2 private bundle listing failed');
+      const xml = await response.text();
+      if (!/<(?:\w+:)?ListBucketResult(?:\s|>)/.test(xml)) throw new Error('Invalid R2 private bundle listing');
+      for (const match of xml.matchAll(/<Key>([^<]*)<\/Key>/g)) yield decodeURIComponent(decodeXml(match[1]));
+      const token = xml.match(/<NextContinuationToken>([^<]*)<\/NextContinuationToken>/)?.[1];
+      if (/<IsTruncated>true<\/IsTruncated>/.test(xml) && !token) throw new Error('Missing R2 private listing continuation');
+      continuation = token && decodeXml(token);
+    } while (continuation);
+  }
+
   async function deleteKeys(bucket, keys) {
     if (!keys.length || keys.length > 1000) throw new Error('R2 DELETE batch requires 1–1000 keys');
     const body = '<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">' +
@@ -177,21 +220,8 @@ function createR2Client(config, { request = fetch, now = () => new Date(), pause
     if (!response.ok || /<(?:\w+:)?Error(?:\s|>)/.test(await response.text())) throw new Error('R2 rejected a managed-key deletion batch');
   }
 
-  async function* listKeys(bucket, prefix) {
-    let continuation;
-    do {
-      const response = await call('GET', bucket, '', { query: { 'list-type': '2', 'encoding-type': 'url', prefix,
-        ...(continuation ? { 'continuation-token': continuation } : {}) } });
-      if (!response.ok) throw new Error('R2 managed-prefix list failed');
-      const xml = await response.text();
-      for (const match of xml.matchAll(/<Key>([^<]*)<\/Key>/g)) yield decodeURIComponent(unescape(match[1]));
-      const next = xml.match(/<NextContinuationToken>([^<]*)<\/NextContinuationToken>/)?.[1];
-      if (/<IsTruncated>true<\/IsTruncated>/.test(xml) && !next) throw new Error('Missing R2 listing continuation');
-      continuation = next && unescape(next);
-    } while (continuation);
-  }
-
-  return { checkBucket, probeBucket, prepareBucket, getJson, verifyObject, putJson, putObject, deleteKeys, listKeys };
+  return { checkBucket, probeBucket, prepareBucket, getJson, verifyObject, putJson, putObject,
+    putPrivateObject, getPrivateObject, listPortableKeys, deleteKeys };
 }
 
 module.exports = { createR2Client, r2Config, compareObjectResponse };

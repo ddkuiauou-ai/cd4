@@ -98,10 +98,16 @@ function filesBelow(root) {
   return files.sort();
 }
 
+const hashBuffer = Buffer.alloc(64 * 1024);
 function sha256(filename) {
-  const digest = crypto.createHash('sha256'), buffer = Buffer.alloc(64 * 1024);
+  const digest = crypto.createHash('sha256');
   const descriptor = fs.openSync(filename, 'r');
-  try { let size; while ((size = fs.readSync(descriptor, buffer, 0, buffer.length, null))) digest.update(buffer.subarray(0, size)); }
+  try {
+    let size;
+    while ((size = fs.readSync(descriptor, hashBuffer, 0, hashBuffer.length, null))) {
+      digest.update(hashBuffer.subarray(0, size));
+    }
+  }
   finally { fs.closeSync(descriptor); }
   return digest.digest('hex');
 }

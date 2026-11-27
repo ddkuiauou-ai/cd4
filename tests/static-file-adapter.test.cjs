@@ -42,24 +42,39 @@ test('static alias inventory mirrors live dotted syntax, combined ambiguity, and
 
 test('static JSON cache follows manifest replacement and input directory changes rather than serving old revisions', t => {
   const { directory, manifest, server } = input(t);
+  const identities = { ...manifest, securityAliases: { 'KOSPI.000001': 'security' }, companyAliases: { company: 'company' } };
+  const writeIdentities = (root, snapshotId, name) => {
+    write(root, 'identities.json', [{ securityId: 'security', companyId: 'company', name }]);
+    write(root, 'companies.json', [{ companyId: 'company', name }]);
+    write(root, 'manifest.json', { ...identities, snapshotId });
+  };
+  const assertIdentities = name => {
+    assert.equal(server.resolveStaticSecurity('KOSPI.000001').name, name);
+    assert.equal(server.resolveStaticCompany('company').name, name);
+  };
   const ranking = revision => ({ version: 1, metric: 'per', scope: 'security', scopes: { 'krx-all': {
     state: 'published', publication: { revision }, totalCount: 0, totalPages: 1, pages: { 1: '/ranking.json' }, csv: null } } });
   write(directory, 'rankings/security-per.json', ranking('1'));
   write(directory, 'assets/ranking.json', { items: [], revision: '1' });
+  writeIdentities(directory, 'one', 'first');
   assert.equal(server.getStaticManifest().snapshotId, 'one');
   assert.equal(server.getStaticRankingPage('per', 'security', 1).revision, '1');
+  assertIdentities('first');
   write(directory, 'rankings/security-per.json', ranking('9007199254740993'));
   write(directory, 'assets/ranking.json', { items: [], revision: '9007199254740993' });
-  write(directory, 'manifest.json', { ...manifest, snapshotId: 'two' });
+  writeIdentities(directory, 'two', 'replacement');
   assert.equal(server.getStaticManifest().snapshotId, 'two');
   assert.equal(server.getStaticRankingPage('per', 'security', 1).revision, '9007199254740993');
+  assertIdentities('replacement');
   const second = fs.mkdtempSync(path.join(os.tmpdir(), 'cd4-static-adapter-next-'));
   t.after(() => fs.rmSync(second, { recursive: true, force: true }));
-  write(second, 'manifest.json', { ...manifest, snapshotId: 'other-directory' });
+  writeIdentities(second, 'other-directory', 'other directory');
   process.env.STATIC_SNAPSHOT_DIR = second;
   assert.equal(server.getStaticManifest().snapshotId, 'other-directory');
+  assertIdentities('other directory');
   process.env.STATIC_SNAPSHOT_DIR = directory;
   assert.equal(server.getStaticManifest().snapshotId, 'two');
+  assertIdentities('replacement');
 });
 
 test('static scope and identity lookups reject inherited keys but allow an actual stable prototype-named ID', t => {

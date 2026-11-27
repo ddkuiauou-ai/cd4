@@ -131,20 +131,26 @@ function retainRollbackDependencies(target, interrupted) {
   return { inventory, objects, releaseId: jsonHash(inventory) };
 }
 
-function planRelease({ candidate, root, previous = readRelease(root) }) {
+function planRelease({ candidate, root, previous = readRelease(root), retained = new Map(), compressedHtml }) {
   const input = fs.realpathSync(candidate);
   const objects = new Map();
   const sources = new Map();
   const dependencies = new Set();
+  const documents = Object.create(null);
+  function rememberDependencies(key, assets) {
+    documents[key] = [...new Set(assets)].sort(order);
+    for (const asset of documents[key]) dependencies.add(relativeFile(asset));
+  }
   for (const key of filesBelow(input)) {
     relativeFile(key);
     if (!classifyKey(key)) continue;
     const file = path.join(input, key);
-    const hash = sha256(file);
+    const html = key.endsWith('.html') ? fs.readFileSync(file) : null;
+    const hash = html ? createHash('sha256').update(html).digest('hex') : sha256(file);
     if (hashedData.test(key) && !hash.startsWith(path.basename(key, path.extname(key)))) {
       throw new Error(`Content-addressed filename does not match its bytes: ${key}`);
     }
-    const object = { key, sha256: hash, bytes: fs.statSync(file).size, headers: objectHeaders(file, key) };
+    const object = { key, sha256: hash, bytes: html?.length ?? fs.statSync(file).size, headers: objectHeaders(file, key) };
     const old = previous?.objects.get(key);
     if (old && immutable(key) && old.sha256 !== hash) {
       throw Object.assign(new Error(`Immutable object key collision: ${key}`), {
@@ -153,17 +159,27 @@ function planRelease({ candidate, root, previous = readRelease(root) }) {
     }
     objects.set(key, object);
     sources.set(hash, file);
-    if (key.endsWith('.html')) {
-      for (const match of fs.readFileSync(file, 'utf8').matchAll(documentAssets)) {
-        dependencies.add(decodeURIComponent(match[0].slice(1)));
-      }
+    if (html) rememberDependencies(key, documentAssetKeys(html.toString('utf8')));
+  }
+  for (const [key, entry] of compressedHtml ?? []) {
+    if (!relativeFile(key).endsWith('.html') || !classifyKey(key) || objects.has(key)
+      || !digestSyntax.test(entry.sha256) || !Number.isSafeInteger(entry.bytes) || entry.bytes < 0) {
+      throw new Error(`Invalid compressed candidate document: ${key}`);
     }
+    objects.set(key, { key, sha256: entry.sha256, bytes: entry.bytes, headers: objectHeaders(entry.file, key) });
+    rememberDependencies(key, entry.dependencies);
+  }
+  for (const [key, assets] of retained) {
+    const object = previous?.objects.get(relativeFile(key));
+    if (!object || objects.has(key) || !classifyKey(key)) throw new Error(`Invalid retained candidate object: ${key}`);
+    objects.set(key, object);
+    if (key.endsWith('.html')) rememberDependencies(key, assets);
   }
   if (!objects.has('index.html')) throw new Error('Candidate output is missing index.html');
   const activeKeys = [...objects.keys()].sort(order);
   const activeDigest = jsonHash(activeKeys.map(key => objects.get(key)));
   if (previous?.activeDigest === activeDigest) {
-    return { inventory: previous.inventory, releaseId: previous.releaseId, sources, operations: [], rollbackOperations: [] };
+    return { inventory: previous.inventory, releaseId: previous.releaseId, sources, documents, operations: [], rollbackOperations: [] };
   }
   for (const [key, object] of previous?.objects ?? []) {
     if (!objects.has(key) && preserve(key) && (marketDate(key) || previous.active.has(key) || dependencies.has(key))) {
@@ -173,7 +189,7 @@ function planRelease({ candidate, root, previous = readRelease(root) }) {
   for (const key of dependencies) if (!objects.has(key)) throw new Error(`Candidate document refers to a missing object: ${key}`);
   const inventory = { version: 1, activeKeys, objects: [...objects.values()].sort((a, b) => order(a.key, b.key)) };
   const current = { objects, active: new Set(activeKeys) };
-  return { inventory, releaseId: jsonHash(inventory), sources,
+  return { inventory, releaseId: jsonHash(inventory), sources, documents,
     operations: keyOperations(previous, current), rollbackOperations: keyOperations(current, retainRollbackDependencies(previous, current)) };
 }
 
@@ -351,4 +367,4 @@ function documentAssetKeys(html) {
 }
 
 module.exports = { blob, jsonHash, operationPhase, keyOperations, readRelease, releaseBuildState, writeReleaseBuildState,
-  planRelease, publishRelease, rollbackRelease, acquireStoreLock, documentAssetKeys, isRsc };
+  planRelease, publishRelease, rollbackRelease, acquireStoreLock, documentAssetKeys, operationReport, isRsc };

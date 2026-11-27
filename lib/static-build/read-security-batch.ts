@@ -83,11 +83,21 @@ export async function readMetricSources(tx: ReadDatabase, ids: string[], start?:
 
 type HistorySources = Awaited<ReturnType<typeof readDailyHistorySources>>;
 
+export async function readBatchLifecycles(tx: ReadDatabase, ids: string[]) {
+  const { periods, events } = await readSecurityLifecycles(tx, ids);
+  return {
+    periods: Map.groupBy(periods, row => row.securityId),
+    events: Map.groupBy(events, row => row.securityId),
+  };
+}
+
 /** Extract bounded source histories once per batch, using the live providers' casts and cutoffs. */
 export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], companies: Map<string, Company>,
   publication: PublicationRow | null, companyPublication: PublicationRow | null, routeCodes: Map<string, string | null>,
   sourceOverride?: () => Promise<HistorySources>,
-  { officialOnly = false, pricesThrough }: { officialOnly?: boolean; pricesThrough?: string } = {}) {
+  { officialOnly = false, pricesThrough, lifecycle }: {
+    officialOnly?: boolean; pricesThrough?: string; lifecycle?: Awaited<ReturnType<typeof readBatchLifecycles>>;
+  } = {}) {
   const ids = rows.map(row => row.securityId);
   if (!ids.length) return { items: [], historyRows: 0 };
   const asOf = publication ? businessDate(publication.asOf)! : undefined;
@@ -101,17 +111,11 @@ export async function readSecurityBatch(tx: ReadDatabase, rows: Security[], comp
       readStaticMetricRows(tx, ids, undefined, asOf)])
     : await Promise.all([readPriceHistory(tx, ids, undefined, priceEnd, null), readMarketcapHistory(tx, ids, undefined, marketcapEnd, null),
       readMetricSources(tx, ids)]);
-  const group = <Row extends { securityId: string | null }>(source: Row[]) => {
-    const grouped = new Map<string, Row[]>();
-    for (const row of source) if (row.securityId) {
-      const values = grouped.get(row.securityId) ?? []; values.push(row); grouped.set(row.securityId, values);
-    }
-    return grouped;
-  };
-  const lifecycle=await readSecurityLifecycles(tx,ids);
-  const membership = listedSecurityPeriods(rows, lifecycle.periods, companyAsOf ?? null);
-  const byPrice = group(prices), byMarketcap = group(allCaps), byMetric = group(metrics);
-  const byPeriod = group(lifecycle.periods), byEvent = group(lifecycle.events);
+  const { periods: byPeriod, events: byEvent } = lifecycle ?? await readBatchLifecycles(tx, ids);
+  const membership = listedSecurityPeriods(rows, ids.flatMap(id => byPeriod.get(id) ?? []), companyAsOf ?? null);
+  const byPrice = Map.groupBy(prices, row => row.securityId);
+  const byMarketcap = Map.groupBy(allCaps, row => row.securityId);
+  const byMetric = Map.groupBy(metrics, row => row.securityId);
   return { historyRows: prices.length + allCaps.length + metrics.length,
     items: rows.map(row => {
       const current = isCurrentResult(row, publication);

@@ -93,7 +93,7 @@ async function runNodeStage(name, args, { env, reportDirectory, reserveBytes, cw
   return report;
 }
 
-function syncWorkspace({ projectRoot = ROOT, workspace = WORKSPACE } = {}) {
+function syncWorkspace({ projectRoot = ROOT, workspace = WORKSPACE, mirrorDependencies = false } = {}) {
   const started = performance.now();
   const releaseCompiler = process.env.STATIC_RELEASE_HOME && workspace === path.join(STAGE, 'release-compiler-workspace')
     && !workspace.startsWith(projectRoot + path.sep);
@@ -108,9 +108,21 @@ function syncWorkspace({ projectRoot = ROOT, workspace = WORKSPACE } = {}) {
   if (result.status !== 0) throw new Error(`Could not copy the static build workspace: ${result.stderr || result.error?.message || result.status}`);
   const dependencyLink = path.join(workspace, 'node_modules');
   const dependencies = fs.realpathSync(path.join(projectRoot, 'node_modules'));
-  if (fs.existsSync(dependencyLink) || fs.lstatSync(dependencyLink, { throwIfNoEntry: false })) {
-    if (!fs.lstatSync(dependencyLink).isSymbolicLink() || fs.realpathSync(dependencyLink) !== dependencies) throw new Error('Static workspace has an unexpected node_modules path');
-  } else fs.symlinkSync(path.join(projectRoot, 'node_modules'), dependencyLink, 'dir');
+  const existing = fs.lstatSync(dependencyLink, { throwIfNoEntry: false });
+  if (existing?.isSymbolicLink() && fs.realpathSync(dependencyLink) !== dependencies) {
+    throw new Error('Static workspace has an unexpected node_modules path');
+  }
+  if (mirrorDependencies) {
+    // Relative pnpm paths keep Webpack module IDs independent of the checkout
+    // and release directory's relationship. Link regular files when possible.
+    if (existing?.isSymbolicLink()) fs.unlinkSync(dependencyLink);
+    else if (existing && !existing.isDirectory()) throw new Error('Static workspace has an unexpected node_modules path');
+    fs.mkdirSync(dependencyLink, { recursive: true });
+    const mirror = spawnSync('rsync', ['-a', '--delete', `--link-dest=${dependencies}`, `${dependencies}/`, `${dependencyLink}/`],
+      { encoding: 'utf8' });
+    if (mirror.status !== 0) throw new Error(`Could not mirror static build dependencies: ${mirror.stderr || mirror.error?.message || mirror.status}`);
+  } else if (!existing) fs.symlinkSync(path.join(projectRoot, 'node_modules'), dependencyLink, 'dir');
+  else if (!existing.isSymbolicLink()) throw new Error('Static workspace has an unexpected node_modules path');
   return { name: 'workspace-copy', seconds: (performance.now() - started) / 1000, directory: workspace,
     compilerDirectory: path.join(workspace, '.next'), exportDirectory: path.join(workspace, 'out') };
 }

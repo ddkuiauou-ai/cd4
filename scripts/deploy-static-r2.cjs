@@ -2,11 +2,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { execFileSync } = require('node:child_process');
-const { ROOT, STAGE, readJson, readManifest, relativeFile, sha256 } = require('./static-tools.cjs');
+const { ROOT, STAGE, readJson, readManifest, relativeFile, sha256, writeJson } = require('./static-tools.cjs');
 const { acquireStoreLock, jsonHash, operationPhase, planRelease, publishRelease, readRelease, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
 const { createR2Client, r2Config, compareObjectResponse } = require('./static-r2-client.cjs');
 const { buildRelease } = require('./build-static-release.cjs');
+const { archiveSource, restoreSource, archiveOutput, restoreOutput, registerPortableReferences,
+  cleanPortable } = require('./static-portable-r2.cjs');
 
 const CURRENT = 'cd-release/current.json';
 const digest = /^[a-f0-9]{64}$/;
@@ -14,13 +16,6 @@ const commitHash = /^[a-f0-9]{40}$/;
 const daySyntax = /^\d{4}-\d{2}-\d{2}$/;
 const runName = /^release-[A-Za-z0-9]+$/;
 const reviewKey = id => `cd-release/candidates/${id}.json`;
-
-function seoulCalendar(now = new Date()) {
-  const fields = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Seoul', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(now).map(part => [part.type, part.value]));
-  return { date: `${fields.year}-${fields.month}-${fields.day}`, firstSaturday: fields.weekday === 'Sat' && Number(fields.day) <= 7 };
-}
 
 function compareActive(left, right) {
   const active = inventory => {
@@ -87,13 +82,16 @@ async function checkActiveInventory(client, config, active) {
   if (descriptor.releaseId !== active.releaseId || descriptor.commit !== active.commit || descriptor.day !== active.day) {
     throw new Error('R2 active inventory differs from its success pointer');
   }
-  return descriptor.inventory;
+  if (JSON.stringify(descriptor.portable?.head) !== JSON.stringify(active.portable)) {
+    throw new Error('R2 portable publication head differs from its success pointer');
+  }
+  return descriptor;
 }
 
 async function smokeRelease(client, config, request = fetch) {
   const { value: { current } } = await getState(client, config);
   if (!current) throw new Error('No completed release to verify');
-  const inventory = await checkActiveInventory(client, config, current);
+  const { inventory } = await checkActiveInventory(client, config, current);
   const active = new Set(inventory.activeKeys ?? inventory.objects.map(object => object.key));
   const objects = new Map(inventory.objects.map(object => [object.key, object]));
   const paths = {
@@ -144,7 +142,7 @@ function plannedCounts(operations) {
     deleteKeys: operations.length - puts.length };
 }
 
-async function executePending({ client, config, entry, descriptor, candidate, concurrency = 24 }) {
+async function executePending({ client, config, entry, descriptor, candidate, temporary, concurrency = 24 }) {
   let { value, etag } = entry;
   const pending = value.pending;
   if (!pending || pending.id !== jsonHash(descriptor) || pending.base !== (value.current?.releaseId ?? null)
@@ -153,6 +151,8 @@ async function executePending({ client, config, entry, descriptor, candidate, co
   }
   const ordered = batches(descriptor.operations);
   if (pending.next > ordered.length) throw new Error('Invalid R2 checkpoint');
+  const remoteOutput = descriptor.portable?.output;
+  if (remoteOutput && remoteOutput.length !== ordered.length) throw new Error('Invalid portable R2 checkpoint');
   for (const operation of descriptor.operations) {
     relativeFile(operation.key);
     if (operation.action !== 'retire' && (operation.action !== 'put' || !digest.test(operation.sha256))) throw new Error('Invalid R2 key operation');
@@ -160,20 +160,38 @@ async function executePending({ client, config, entry, descriptor, candidate, co
   for (let index = pending.next; index < ordered.length; index++) {
     const group = ordered[index];
     if (group.phase === 4) await client.deleteKeys(config.publicBucket, group.operations.map(operation => operation.key));
-    else await bounded(group.operations, concurrency, async operation => {
-      const file = path.join(candidate, ...operation.key.split('/'));
-      if (fs.statSync(file).size !== operation.bytes || sha256(file) !== operation.sha256) {
-        throw new Error(`Candidate object changed: ${operation.key}`);
-      }
-      await client.putObject(config.publicBucket, operation, file);
-    });
+    else {
+      const restored = !candidate && fs.mkdtempSync(path.join(temporary, 'batch-'));
+      try {
+        if (restored) await restoreOutput({ client, parts: remoteOutput[index], operations: group.operations,
+          root: restored, run: descriptor.run, temporary });
+        await bounded(group.operations, concurrency, async operation => {
+          const file = path.join(candidate || restored, ...operation.key.split('/'));
+          if (fs.statSync(file).size !== operation.bytes || sha256(file) !== operation.sha256) {
+            throw new Error(`Candidate object changed: ${operation.key}`);
+          }
+          await client.putObject(config.publicBucket, operation, file);
+        });
+      } finally { if (restored) fs.rmSync(restored, { recursive: true, force: true }); }
+    }
     value = { ...value, pending: { ...pending, next: index + 1 } };
     etag = await client.putJson(config.stateBucket, CURRENT, value, etag);
   }
-  const current = { releaseId: descriptor.releaseId, candidateId: pending.id, commit: descriptor.commit, day: descriptor.day };
+  const current = { releaseId: descriptor.releaseId, candidateId: pending.id, commit: descriptor.commit, day: descriptor.day,
+    ...(descriptor.portable && { portable: descriptor.portable.head }) };
   const completed = { version: 1, current, previous: value.current, pending: null };
   await client.putJson(config.stateBucket, CURRENT, completed, etag);
   return completed;
+}
+
+function previousRelease(current, descriptor) {
+  if (!current) return null;
+  const { inventory } = descriptor;
+  const objects = new Map(inventory.objects.map(object => [object.key, object]));
+  const keys = inventory.activeKeys ?? [...objects.keys()];
+  const active = new Set(keys);
+  return { releaseId: current.releaseId, inventory, objects, active,
+    activeDigest: jsonHash(keys.map(key => objects.get(key))) };
 }
 
 function adoptLocal(store, descriptor) {
@@ -191,7 +209,7 @@ function adoptLocal(store, descriptor) {
   return result;
 }
 
-async function deploy(options, { client, config, build = buildRelease } = {}) {
+async function deploy(options, { client, config, build = buildRelease, now = Date.now } = {}) {
   const { mode, store, candidateId, commit, concurrency = 24, day, input, inputCommit } = options;
   if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
@@ -202,7 +220,9 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
     if (probes.some(result => result.status !== 'fulfilled' || !result.value.readable)) return { mode, buckets, readable: false };
     const entry = await getState(client, config);
     await checkActiveInventory(client, config, entry.value.current);
-    return { mode, ...entry.value, buckets, readable: true };
+    const pendingMode = entry.value.pending && (entry.value.pending.mode
+      ?? (await getDescriptor(client, config, entry.value.pending.id)).mode);
+    return { mode, ...entry.value, pendingMode, buckets, readable: true };
   }
   if (mode === 'provision') {
     const unlock = acquireStoreLock(store, 'r2-operation');
@@ -216,35 +236,39 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
   const faults = checks.flatMap((result, index) => result.status === 'rejected' ? [roles[index] + ': ' + result.reason.message] : []);
   if (faults.length) throw new Error('R2 bucket preflight failed (' + faults.join(', ') + ')');
   const unlock = acquireStoreLock(store, 'r2-operation');
+  let temporary;
+  function scratch() { return temporary ??= fs.mkdtempSync(path.join(store, 'portable-')); }
   try {
     let entry = await getState(client, config);
-    if (entry.value.pending && !['resume', 'promote'].includes(mode)) throw new Error('Resume the interrupted R2 release before starting another');
-    if (mode === 'resume' && !entry.value.pending) {
-      if (!entry.value.current) return { mode, ...plannedCounts([]) };
-      const local = readRelease(store);
-      if (local?.releaseId !== entry.value.current.releaseId) adoptLocal(store, await getDescriptor(client, config, entry.value.current.candidateId));
-      return { mode, releaseId: entry.value.current.releaseId, ...plannedCounts([]) };
+    const current = entry.value.current;
+    const retryDaily = mode === 'daily' && entry.value.pending?.mode === 'daily';
+    if (entry.value.pending && !retryDaily && !['resume', 'promote'].includes(mode)) {
+      throw new Error('Resume the interrupted R2 release before starting another');
     }
-    const base = entry.value.current?.releaseId ?? null;
+    if (mode === 'resume' && !entry.value.pending) {
+      if (!current) return { mode, ...plannedCounts([]) };
+      if (!current.portable && readRelease(store)?.releaseId !== current.releaseId) {
+        adoptLocal(store, await checkActiveInventory(client, config, current));
+      }
+      return { mode, releaseId: current.releaseId, ...plannedCounts([]) };
+    }
+    const base = current?.releaseId ?? null;
     if (input && (mode !== 'full' || base || inputCommit !== commit || !daySyntax.test(day))) {
       throw new Error('Frozen input requires first full publication, the verified checkout commit and an explicit business day');
     }
-    const local = readRelease(store);
-    if ((local?.releaseId ?? null) !== base) throw new Error('Runner baseline differs from R2; run resume on the persistent runner');
-    await checkActiveInventory(client, config, entry.value.current);
     let descriptor, id;
-    if (mode === 'resume' || mode === 'promote') {
-      id = mode === 'resume' ? entry.value.pending?.id : candidateId;
+    if (retryDaily || mode === 'resume' || mode === 'promote') {
+      id = retryDaily || mode === 'resume' ? entry.value.pending?.id : candidateId;
       if (entry.value.pending && entry.value.pending.id !== id) throw new Error('A different R2 candidate is pending');
       descriptor = await getDescriptor(client, config, id);
       if (mode === 'promote' && descriptor.mode !== 'verify') throw new Error('Only an independent review candidate can be promoted');
     } else {
       if (['daily', 'verify'].includes(mode) && !base) throw new Error('Publish a full R2 baseline first');
-      if (mode === 'verify' && commit !== entry.value.current.commit) throw new Error('Independent verification requires the last successful commit');
-      if (mode === 'daily' && commit !== entry.value.current.commit) {
+      if (mode === 'verify' && commit !== current.commit) throw new Error('Independent verification requires the last successful commit');
+      if (mode === 'daily' && commit !== current.commit) {
         return { mode, requiresFull: true, reason: 'The checked-out commit differs from the last successful release.', ...plannedCounts([]) };
       }
-      const targetDay = mode === 'verify' ? entry.value.current.day : day;
+      const targetDay = mode === 'verify' ? current.day : day;
       if (input) {
         const manifest = readManifest({ filename: path.join(input, 'manifest.json') });
         if (!manifest.separatedCompanyAssets || !manifest.historyPacks || !digest.test(manifest.sourceIndexDigest)
@@ -255,45 +279,79 @@ async function deploy(options, { client, config, build = buildRelease } = {}) {
           throw new Error('Frozen input source index does not match its manifest');
         }
       }
+      let baselineDescriptor, baseline, buildOptions = {};
+      if (mode === 'daily' && current.portable) {
+        const source = path.join(scratch(), 'source');
+        writeJson(path.join(source, 'manifest.json'), current.portable);
+        buildOptions = { previousRelease: { releaseId: base }, previousState: { source }, portable: {
+          async restoreSource() {
+            baselineDescriptor = await checkActiveInventory(client, config, current);
+            baseline = previousRelease(current, baselineDescriptor);
+            const previousState = await restoreSource({ client, checkpoint: baselineDescriptor.portable,
+              source, temporary, parallel: bounded });
+            return { previousRelease: baseline, previousState };
+          },
+        } };
+      } else {
+        const local = readRelease(store);
+        if (mode === 'daily' && local?.releaseId !== base) return { mode, requiresFull: true,
+          reason: 'Publish a full R2 release to create the portable daily baseline.', ...plannedCounts([]) };
+        baselineDescriptor = await checkActiveInventory(client, config, current);
+        baseline = local?.releaseId === base && !current?.portable ? local : previousRelease(current, baselineDescriptor);
+        if (mode !== 'daily') buildOptions = { previousRelease: baseline, previousState: null };
+      }
       const report = await build({ store, input, daily: mode === 'daily', candidateOnly: true, clean: mode === 'verify',
-        independent: mode === 'verify', day: targetDay });
+        independent: mode === 'verify', day: targetDay, ...buildOptions });
       if (report.requiresFull) return { mode, requiresFull: true, reason: report.reason, ...plannedCounts([]) };
       if (report.unchanged) return { mode, releaseId: base, ...plannedCounts([]) };
       if (!daySyntax.test(report.day)) throw new Error('R2 publication requires a valid frozen business day');
-      const plan = planRelease({ candidate: report.output, root: store, previous: local });
-      const diff = compareActive(local?.inventory, plan.inventory);
+      const plan = report.plan ?? planRelease({ candidate: report.output, root: store, previous: baseline });
+      const diff = compareActive(baseline?.inventory, plan.inventory);
       if (mode === 'verify' && !diff.changed.length && !diff.removed.length) {
         markReleaseRun(report.run, store, 'unchanged');
         try { cleanReleaseRuns({ store }); } catch (error) { console.warn('Local release cleanup deferred:', error.code ?? error.name); }
         return { mode, equal: true, releaseId: base, ...plannedCounts([]) };
       }
       const operations = mode === 'daily' ? plan.operations : fullOperations(plan);
-      let unmanagedIndex = false;
-      if (!base) for await (const key of client.listKeys(config.publicBucket, 'index.html')) {
-        if (key === 'index.html') { unmanagedIndex = true; break; }
-      }
       descriptor = { version: 1, mode, run: path.basename(report.run), base, baseCandidateId: entry.value.current?.candidateId ?? null,
         releaseId: plan.releaseId, commit,
-        day: report.day, inventory: plan.inventory, operations, unmanagedIndex };
+        day: report.day, inventory: plan.inventory, operations };
+      if (mode === 'daily' && !operations.length) return { mode, releaseId: base, ...plannedCounts([]) };
+      if (report.state) {
+        descriptor.portable = await archiveSource({ client, state: report.state, run: descriptor.run, temporary: scratch(),
+          previous: baselineDescriptor?.portable, parallel: bounded });
+        if (mode === 'daily') descriptor.portable.output = await archiveOutput({ client, ordered: batches(operations),
+          root: report.output, run: descriptor.run, temporary, parallel: bounded, compressedHtml: report.compressedHtml });
+      } else if (current?.portable) throw new Error('Candidate has no portable daily baseline');
       id = await register(client, config, descriptor);
+      if (descriptor.portable) await registerPortableReferences(client, config.stateBucket, id, descriptor);
       if (mode === 'verify') return { mode, equal: false, candidateId: id, releaseId: plan.releaseId,
         changedKeys: diff.changed.length, removedKeys: diff.removed.length, ...plannedCounts([]), promotion: plannedCounts(operations) };
-      if (!operations.length) return { mode, releaseId: base, ...plannedCounts([]) };
     }
     if (descriptor.base !== base || descriptor.baseCandidateId !== (entry.value.current?.candidateId ?? null)) {
       throw new Error('Review candidate base is stale; build another candidate');
     }
-    const candidate = path.join(RUNS, descriptor.run, 'out');
-    if (!fs.existsSync(candidate)) throw new Error('Candidate unavailable on this runner; restore its dedicated release storage');
+    const localCandidate = path.join(RUNS, descriptor.run, 'out');
+    const candidate = fs.existsSync(path.join(localCandidate, 'index.html')) ? localCandidate : null;
+    if (!candidate && !descriptor.portable?.output) throw new Error('Candidate unavailable on this runner; restore its dedicated release storage');
     if (!entry.value.pending) {
-      const value = { ...entry.value, pending: { id, base, next: 0 } };
+      const value = { ...entry.value, pending: { id, base, next: 0, mode: descriptor.mode,
+        ...(descriptor.portable && { portable: true }) } };
       entry = { value, etag: await client.putJson(config.stateBucket, CURRENT, value, entry.etag) };
     }
-    await executePending({ client, config, entry, descriptor, candidate, concurrency });
-    adoptLocal(store, descriptor);
+    await executePending({ client, config, entry, descriptor, candidate, temporary: candidate ? undefined : scratch(), concurrency });
+    if (!descriptor.portable) adoptLocal(store, descriptor);
+    else if (fs.existsSync(localCandidate)) markReleaseRun(path.dirname(localCandidate), store, 'published');
+    if (descriptor.portable) {
+      try { await cleanPortable({ client, bucket: config.stateBucket, readPointer: () => getState(client, config), parallel: bounded, now: now() }); }
+      catch (error) { console.warn('Portable R2 cleanup deferred:', error.code ?? error.name); }
+    }
     try { cleanReleaseRuns({ store }); } catch (error) { console.warn('Local release cleanup deferred:', error.code ?? error.name); }
     return { mode, candidateId: id, releaseId: descriptor.releaseId, day: descriptor.day, ...plannedCounts(descriptor.operations) };
-  } finally { unlock(); }
+  } finally {
+    try { if (temporary) fs.rmSync(temporary, { recursive: true, force: true }); }
+    finally { unlock(); }
+  }
 }
 
 function githubSummary(report) {
@@ -311,14 +369,13 @@ if (require.main === module) {
   Promise.resolve().then(async () => {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
       input: { type: 'string' }, 'input-commit': { type: 'string' },
-      'candidate-id': { type: 'string' }, 'first-saturday': { type: 'boolean' } } });
+      'candidate-id': { type: 'string' } } });
     if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision', 'smoke'].includes(values.mode)) {
       throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
     }
     if (values.input && (values.mode !== 'full' || !path.isAbsolute(values.input) || !values['input-commit'] || !values.day)) {
       throw new Error('--input requires an absolute path, --mode full, --input-commit and --day');
     }
-    if (values['first-saturday'] && !seoulCalendar().firstSaturday) return;
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
     if (!commitHash.test(commit)) throw new Error('Cannot resolve the checked-out commit');
@@ -330,7 +387,9 @@ if (require.main === module) {
       commit, concurrency, candidateId: values['candidate-id'],
       day: values.day, input: values.input, inputCommit: values['input-commit'] }, { client, config });
     if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n`);
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n` +
+        `pending_mode=${['daily', 'full', 'verify'].includes(result.pendingMode) ? result.pendingMode : ''}\n` +
+        `active_portable=${Boolean(result.current?.portable)}\n`);
     }
     if (values.mode === 'status') {
       console.log(JSON.stringify({ mode: 'status', buckets: result.buckets,
@@ -350,4 +409,4 @@ if (require.main === module) {
   }).catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { seoulCalendar, compareActive, batches, plannedCounts, executePending, deploy, smokeRelease };
+module.exports = { compareActive, batches, plannedCounts, executePending, deploy, smokeRelease };

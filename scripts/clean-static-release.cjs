@@ -5,7 +5,7 @@ const { acquireStoreLock, readRelease, releaseBuildState } = require('./static-r
 
 const RUNS = path.join(STAGE, 'release-builds');
 const OWNER = 'release-owner.json';
-const heavy = ['source', 'market-input', 'packed-input', 'out', 'incompatible-out'];
+const heavy = ['source', 'market-input', 'packed-input', 'out', 'compressed-html', 'incompatible-out'];
 
 function markReleaseRun(run, store, status, references = []) {
   const marker = path.join(run, OWNER);

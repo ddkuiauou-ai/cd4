@@ -29,22 +29,102 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: cd-r2-production
-  cancel-in-progress: false
-
 jobs:
-  release:
+  route:
     if: github.ref == 'refs/heads/main'
-    # 일일 배포는 직전 기준본을 보관한 Mac에서 실행한다.
-    runs-on: ${{ fromJSON(inputs.mode == 'status' && '"ubuntu-latest"' || '["self-hosted","macOS","X64"]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      mode: ${{ steps.task.outputs.mode }}
+      runner: ${{ steps.runner.outputs.labels }}
+    steps:
+      - name: Choose release operation
+        id: task
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          OPERATION: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT" = schedule ]]; then
+            case "$CRON" in
+              '0 0 * * 6')
+                [[ "$(TZ=Asia/Seoul date +%u)" = 6 ]] && (( 10#$(TZ=Asia/Seoul date +%d) <= 7 )) || exit 0
+                OPERATION=verify ;;
+              '30 8 * * 1-5')
+                OPERATION=daily ;;
+              *)
+                exit 1 ;;
+            esac
+          fi
+          printf 'mode=%s\n' "$OPERATION" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout trusted branch for resume
+        if: steps.task.outputs.mode == 'resume'
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm for resume
+        if: steps.task.outputs.mode == 'resume'
+        uses: pnpm/action-setup@v6.1.1
+
+      - name: Setup Node.js for resume
+        if: steps.task.outputs.mode == 'resume'
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install pinned dependencies for resume
+        if: steps.task.outputs.mode == 'resume'
+        run: pnpm install --prod=false --frozen-lockfile
+
+      - name: Resolve interrupted operation
+        if: steps.task.outputs.mode == 'resume'
+        id: state
+        shell: bash
+        env:
+          R2_BUCKET_NAME: cd-static
+          R2_STATE_BUCKET_NAME: cd-static-state
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: STATIC_RELEASE_HOME="$RUNNER_TEMP/cd4-status" node scripts/deploy-static-r2.cjs --mode status
+
+      - name: Choose runner
+        if: steps.task.outputs.mode != ''
+        id: runner
+        shell: bash
+        env:
+          MODE: ${{ steps.task.outputs.mode }}
+          PENDING_MODE: ${{ steps.state.outputs.pending_mode }}
+          ACTIVE_PORTABLE: ${{ steps.state.outputs.active_portable }}
+        run: |
+          set -euo pipefail
+          labels='["self-hosted","macOS","X64"]'
+          if [[ "$MODE" = daily || "$MODE" = status || "$MODE" = smoke || ( "$MODE" = resume && ( "$PENDING_MODE" = daily || ( -z "$PENDING_MODE" && "$ACTIVE_PORTABLE" = true ) ) ) ]]; then
+            labels='"ubuntu-latest"'
+          fi
+          printf 'labels=%s\n' "$labels" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: route
+    if: needs.route.outputs.mode != ''
+    runs-on: ${{ fromJSON(needs.route.outputs.runner) }}
+    concurrency:
+      # Mac runner availability must not queue the hosted jobs. R2's
+      # conditional current.json update still chooses a single pending writer.
+      group: ${{ needs.route.outputs.mode == 'status' && 'cd-r2-status' || needs.route.outputs.mode == 'smoke' && 'cd-r2-smoke' || needs.route.outputs.runner == '"ubuntu-latest"' && 'cd-r2-hosted' || 'cd-r2-mac' }}
+      cancel-in-progress: false
     timeout-minutes: 300
     env:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
-      NODE_OPTIONS: "--max-old-space-size=12288"
+      NODE_OPTIONS: ${{ needs.route.outputs.runner == '"ubuntu-latest"' && '--max-old-space-size=3072' || '--max-old-space-size=12288' }}
 
-      # 러너 계정의 홈 아래 .local/state/cd4-r2를 사용한다. 전용 디스크를 쓸 때만 절대 경로를 적는다.
+      # Mac 기본값은 ~/.local/state/cd4-r2다. 호스팅 러너는 RUNNER_TEMP를 사용한다.
       STATIC_RELEASE_HOME: ""
 
       # 사이트 파일과 비공개 배포 기록을 저장할 R2 버킷
@@ -58,60 +138,40 @@ jobs:
       R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
 
-      # 업무 DB 접속용 GitHub Secrets
-      POSTGRES_HOST: ${{ inputs.mode == 'status' && secrets.POSTGRES_TLS_HOST || secrets.POSTGRES_HOST }}
-      POSTGRES_PORT: ${{ inputs.mode == 'status' && secrets.POSTGRES_TLS_PORT || secrets.POSTGRES_PORT }}
-      POSTGRES_TLS_CA: ${{ inputs.mode == 'status' && vars.POSTGRES_TLS_CA || '' }}
+      # 검증된 TLS의 별도 호스트/포트를 지정할 수 있다. Mac은 기존 접속 설정을 사용한다.
+      POSTGRES_HOST: ${{ (needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'status') && secrets.POSTGRES_TLS_HOST || secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ (needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'status') && secrets.POSTGRES_TLS_PORT || secrets.POSTGRES_PORT }}
+      POSTGRES_TLS_CA: ${{ (needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'status') && vars.POSTGRES_TLS_CA || '' }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
 
     steps:
-      - name: Choose release operation
-        id: task
-        shell: bash
-        env:
-          EVENT: ${{ github.event_name }}
-          CRON: ${{ github.event.schedule }}
-          OPERATION: ${{ inputs.mode }}
-        run: |
-          set -euo pipefail
-          if [[ "$EVENT" = schedule ]]; then
-            if [[ "$CRON" = '0 0 * * 6' ]]; then
-              [[ "$(TZ=Asia/Seoul date +%u)" = 6 ]] && (( 10#$(TZ=Asia/Seoul date +%d) <= 7 )) || exit 0
-              OPERATION=verify
-            else
-              OPERATION=daily
-            fi
-          fi
-          printf 'mode=%s\n' "$OPERATION" >> "$GITHUB_OUTPUT"
-
       - name: Checkout trusted branch
-        if: steps.task.outputs.mode != ''
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup pnpm
-        if: steps.task.outputs.mode != ''
         uses: pnpm/action-setup@v6.1.1
 
       - name: Setup Node.js
-        if: steps.task.outputs.mode != ''
         uses: actions/setup-node@v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - name: Set persistent runner directory
-        if: steps.task.outputs.mode != ''
+      - name: Set dedicated release directory
         shell: node {0}
         run: |
           const fs = require('node:fs');
           const os = require('node:os');
           const path = require('node:path');
-          const dir = process.env.STATIC_RELEASE_HOME || path.join(os.homedir(), '.local', 'state', 'cd4-r2');
+          const hostDirectory = process.env.RUNNER_ENVIRONMENT === 'github-hosted'
+            ? path.join(process.env.RUNNER_TEMP, 'cd4-r2')
+            : path.join(os.homedir(), '.local', 'state', 'cd4-r2');
+          const dir = process.env.STATIC_RELEASE_HOME || hostDirectory;
           if (!path.isAbsolute(dir)) throw new Error('STATIC_RELEASE_HOME must be an absolute path');
           fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
           const home = fs.realpathSync(dir);
@@ -123,20 +183,19 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_ENV, `STATIC_RELEASE_HOME=${home}${os.EOL}`);
 
       - name: Install pinned dependencies
-        if: steps.task.outputs.mode != ''
         run: pnpm install --prod=false --frozen-lockfile
 
       - name: Check hosted PostgreSQL access
-        if: steps.task.outputs.mode == 'status'
+        if: needs.route.outputs.mode == 'status'
         run: node scripts/check-static-db-access.cjs --authenticated --report-only
 
       - name: Resolve last successful release
-        if: steps.task.outputs.mode == 'verify'
+        if: needs.route.outputs.mode == 'verify'
         id: state
         run: node scripts/deploy-static-r2.cjs --mode status
 
       - name: Pin independent verification to published code
-        if: steps.task.outputs.mode == 'verify'
+        if: needs.route.outputs.mode == 'verify'
         shell: bash
         env:
           RELEASE_COMMIT: ${{ steps.state.outputs.release_commit }}
@@ -148,10 +207,10 @@ jobs:
           pnpm install --prod=false --frozen-lockfile
 
       - name: Build, verify or promote the release
-        if: steps.task.outputs.mode != ''
         shell: bash
         env:
-          MODE: ${{ steps.task.outputs.mode }}
+          MODE: ${{ needs.route.outputs.mode }}
+          STATIC_RELEASE_POSTGRES_TLS: ${{ needs.route.outputs.mode == 'daily' && 'verify-full' || '' }}
           CANDIDATE_ID: ${{ inputs.candidate_id }}
           FROZEN_INPUT: ${{ inputs.frozen_input }}
           FROZEN_DAY: ${{ inputs.frozen_day }}

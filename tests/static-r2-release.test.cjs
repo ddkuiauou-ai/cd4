@@ -9,7 +9,7 @@ const home = fs.mkdtempSync(path.join(os.tmpdir(), 'cd-r2-test-'));
 process.env.STATIC_RELEASE_HOME = home;
 test.after(() => fs.rmSync(home, { recursive: true, force: true }));
 const { RUNS, markReleaseRun } = require('../scripts/clean-static-release.cjs');
-const { deploy, compareActive, seoulCalendar, smokeRelease } = require('../scripts/deploy-static-r2.cjs');
+const { deploy, compareActive, smokeRelease } = require('../scripts/deploy-static-r2.cjs');
 const { r2Config, createR2Client } = require('../scripts/static-r2-client.cjs');
 
 const commit = '1'.repeat(40);
@@ -41,10 +41,6 @@ function memoryR2() {
       assert.equal(bucket, config.publicBucket);
       deletes.push(keys);
       for (const key of keys) publicKeys.delete(key);
-    },
-    async *listKeys(bucket, prefix) {
-      assert.equal(bucket, config.publicBucket);
-      for (const key of publicKeys.keys()) if (key.startsWith(prefix)) yield key;
     },
   };
   return { client, publicKeys, puts, deletes, values, outage(key) { failKey = key; } };
@@ -128,9 +124,7 @@ test('durable R2 full, delta, resumable batch and independent verify/promotion w
   await assert.rejects(run('promote', null, { candidateId: stale.candidateId }), /base is stale/);
 });
 
-test('KST first Saturday, active comparison and R2 S3 transport without network', async () => {
-  assert.deepEqual(seoulCalendar(new Date('2026-09-04T16:00:00Z')), { date: '2026-09-05', firstSaturday: true });
-  assert.equal(seoulCalendar(new Date('2026-09-12T00:00:00Z')).firstSaturday, false);
+test('active comparison and R2 S3 transport without network', async () => {
   const index = { key: 'index.html', sha256: 'hash', bytes: 1, headers: { 'content-type': 'text/html' } };
   assert.deepEqual(compareActive({ activeKeys: [index.key], objects: [index, { key: 'old.csv' }] },
     { activeKeys: [index.key], objects: [index] }), { changed: [], removed: [] });
@@ -154,18 +148,11 @@ test('KST first Saturday, active comparison and R2 S3 transport without network'
       assert.equal(options.headers['if-match'], '"current"');
       return new Response('', { headers: { etag: '"next"' } });
     }
-    assert.equal(url.searchParams.get('prefix'), 'security/');
-    if (!url.searchParams.has('continuation-token')) return new Response(
-      '<ListBucketResult><Contents><Key>security%2F%ED%95%9C</Key></Contents><IsTruncated>true</IsTruncated><NextContinuationToken>x&amp;y</NextContinuationToken></ListBucketResult>');
-    assert.equal(url.searchParams.get('continuation-token'), 'x&y');
-    return new Response('<ListBucketResult><Contents><Key>security%2Ftwo</Key></Contents><IsTruncated>false</IsTruncated></ListBucketResult>');
+    assert.fail('Unexpected S3 request');
   };
   const api = createR2Client(cfg, { request, now: () => new Date('2026-10-08T05:00:00Z'), pause: async () => {} });
   await api.checkBucket(cfg.stateBucket);
   assert.equal(await api.putJson(cfg.stateBucket, stateFile, { fixture: true }, '"current"'), '"next"');
-  const listed = [];
-  for await (const key of api.listKeys(cfg.publicBucket, 'security/')) listed.push(key);
-  assert.deepEqual(listed, ['security/한', 'security/two']);
 });
 
 test('read-only status distinguishes HEAD and List and provisioning creates only confirmed missing buckets', async () => {

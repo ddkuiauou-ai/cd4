@@ -22,6 +22,7 @@ export type StaticIdentity = {
   ticker: string; exchange: string; type: string | null; delistingDate: string | null;
   routeCode: string | null; companyRouteCode: string | null;
 };
+type StaticCompanyIdentity = { companyId: string; name: string; korName: string | null };
 export type StaticManifest = {
   historyPacks?: boolean;
   separatedCompanyAssets?: boolean;
@@ -59,6 +60,8 @@ const memberCache = new Map<string, { period: Period; state: 'published' | 'unpu
 const dividendCache = new Map<string, ReturnType<typeof monthlyDividendHistory>>();
 let cachedBytes = 0;
 let manifestMemo: StaticManifest | undefined;
+let securitiesById: Map<string, StaticIdentity> | undefined;
+let companiesById: Map<string, StaticCompanyIdentity> | undefined;
 let historyPackMemo: Record<string, YearlyHistory> | undefined;
 let companyAssetsMemo: Record<string, StaticDetailAssets> | undefined;
 const pairedMetric: Partial<Record<DetailMetric, DetailMetric>> = { per: 'eps', eps: 'per', pbr: 'bps', bps: 'pbr', div: 'dps', dps: 'div' };
@@ -72,6 +75,8 @@ function refreshStaticCache() {
   const generation = `${directory}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
   if (generation !== cachedGeneration) {
     cache.clear(); cachedBytes = 0; manifestMemo = undefined; historyPackMemo = undefined; companyAssetsMemo = undefined; cachedGeneration = generation;
+    securitiesById = undefined;
+    companiesById = undefined;
     detailAssetCache.clear(); memberCache.clear(); dividendCache.clear(); neighborValueCache.clear();
   }
 }
@@ -128,14 +133,17 @@ export function resolveStaticSecurity(code: string) {
   let decoded: string; try { decoded = decodeURIComponent(code); } catch { return null; }
   const aliases = getStaticManifest().securityAliases;
   const id = Object.hasOwn(aliases, decoded) ? aliases[decoded] : undefined;
-  return id ? getStaticIdentities().find(row => row.securityId === id) ?? null : null;
+  if (!id) return null;
+  securitiesById ??= new Map(getStaticIdentities().map(row => [row.securityId, row]));
+  return securitiesById.get(id) ?? null;
 }
 export function resolveStaticCompany(code: string) {
   let decoded: string; try { decoded = decodeURIComponent(code); } catch { return null; }
   const aliases = getStaticManifest().companyAliases;
   const id = Object.hasOwn(aliases, decoded) ? aliases[decoded] : undefined;
-  return id ? readStaticJson<{ companyId: string; name: string; korName: string | null }[]>(
-    'companies.json').find(row => row.companyId === id) ?? null : null;
+  if (!id) return null;
+  companiesById ??= new Map(readStaticJson<StaticCompanyIdentity[]>('companies.json').map(row => [row.companyId, row]));
+  return companiesById.get(id) ?? null;
 }
 let releaseSelection: Set<string> | undefined;
 function selectReleaseParams<Parameter>(all: Parameter[], address: (parameter: Parameter) => string) {

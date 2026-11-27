@@ -32,8 +32,14 @@ export function encodePrivateHistory(history: PrivateHistory) {
 export function readPrivateHistoryPart(root: string, relative: string): PrivateHistory {
   if (!/^data\/security-history\/[0-9a-f-]+\.(archive|current)\.json$/.test(relative)) throw new Error('Invalid private history path');
   const tables: Record<string, StoredTable> = JSON.parse(readPrivateJsonText(path.join(root, relative)));
-  return Object.fromEntries(Object.entries(tables).map(([key, table]) => [key,
-    table.rows.map(values => Object.fromEntries(table.columns.map((column, index) => [column, values[index]])))])) as PrivateHistory;
+  return Object.fromEntries(Object.entries(tables).map(([key, { columns, rows }]) => {
+    const template = Object.fromEntries(columns.map(column => [column, null]));
+    return [key, rows.map(values => {
+      const row: Record<string, unknown> = { ...template };
+      for (let i = 0; i < columns.length; i++) row[columns[i]] = values[i];
+      return row;
+    })];
+  })) as PrivateHistory;
 }
 
 export function readPrivateHistory(root: string, parts: PrivateHistoryParts): PrivateHistory {
