@@ -1,4 +1,6 @@
-const { createR2Client, r2Config } = require('../../scripts/static-r2-client.cjs');
+import r2 from '../../scripts/static-r2-client.cjs';
+
+const { createR2Client, r2Config } = r2;
 
 async function inspect() {
   const config = r2Config();

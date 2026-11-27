@@ -238,4 +238,4 @@ jobs:
 
       - name: Inspect registered full candidates
         if: needs.route.outputs.mode == 'status'
-        run: node .github/scripts/inspect-r2-candidates.cjs
+        run: node .github/scripts/inspect-r2-candidates.mjs
