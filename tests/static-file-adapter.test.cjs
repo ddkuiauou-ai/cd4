@@ -77,6 +77,23 @@ test('static JSON cache follows manifest replacement and input directory changes
   assertIdentities('replacement');
 });
 
+test('closed release inputs cache manifest lookups until the compiler selects a new snapshot', t => {
+  const { directory, manifest, server } = input(t);
+  const previous = process.env.STATIC_RELEASE_FROZEN_SNAPSHOT;
+  t.after(() => {
+    if (previous === undefined) delete process.env.STATIC_RELEASE_FROZEN_SNAPSHOT;
+    else process.env.STATIC_RELEASE_FROZEN_SNAPSHOT = previous;
+  });
+  const stat = t.mock.method(fs, 'statSync');
+  process.env.STATIC_RELEASE_FROZEN_SNAPSHOT = 'one';
+  assert.equal(server.getStaticManifest().snapshotId, 'one');
+  assert.equal(server.getStaticManifest().snapshotId, 'one');
+  write(directory, 'manifest.json', { ...manifest, snapshotId: 'two' });
+  process.env.STATIC_RELEASE_FROZEN_SNAPSHOT = 'two';
+  assert.equal(server.getStaticManifest().snapshotId, 'two');
+  assert.equal(stat.mock.calls.filter(call => call.arguments[0] === path.join(directory, 'manifest.json')).length, 0);
+});
+
 test('static scope and identity lookups reject inherited keys but allow an actual stable prototype-named ID', t => {
   const { directory, manifest, server } = input(t);
   const aliases = createStaticAliases([{ securityId: '__proto__', companyId: 'constructor', exchange: 'KOSPI', ticker: '1' }], [{ companyId: 'constructor' }]);

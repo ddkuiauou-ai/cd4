@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { execFileSync } = require('node:child_process');
-const { ROOT, STAGE, readJson, readManifest, relativeFile, sha256, writeJson } = require('./static-tools.cjs');
+const { ROOT, STAGE, readJson, relativeFile, sha256, writeJson } = require('./static-tools.cjs');
 const { acquireStoreLock, jsonHash, operationPhase, planRelease, publishRelease, readRelease, writeReleaseBuildState } = require('./static-release-store.cjs');
 const { RUNS, markReleaseRun, cleanReleaseRuns } = require('./clean-static-release.cjs');
 const { createR2Client, r2Config, compareObjectResponse } = require('./static-r2-client.cjs');
@@ -210,7 +210,7 @@ function adoptLocal(store, descriptor) {
 }
 
 async function deploy(options, { client, config, build = buildRelease, now = Date.now } = {}) {
-  const { mode, store, candidateId, commit, concurrency = 24, day, input, inputCommit } = options;
+  const { mode, store, candidateId, commit, concurrency = 24, day } = options;
   if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
   if (mode === 'status') {
@@ -253,9 +253,6 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
       return { mode, releaseId: current.releaseId, ...plannedCounts([]) };
     }
     const base = current?.releaseId ?? null;
-    if (input && (mode !== 'full' || base || inputCommit !== commit || !daySyntax.test(day))) {
-      throw new Error('Frozen input requires first full publication, the verified checkout commit and an explicit business day');
-    }
     let descriptor, id;
     if (retryDaily || mode === 'resume' || mode === 'promote') {
       id = retryDaily || mode === 'resume' ? entry.value.pending?.id : candidateId;
@@ -269,16 +266,6 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
         return { mode, requiresFull: true, reason: 'The checked-out commit differs from the last successful release.', ...plannedCounts([]) };
       }
       const targetDay = mode === 'verify' ? current.day : day;
-      if (input) {
-        const manifest = readManifest({ filename: path.join(input, 'manifest.json') });
-        if (!manifest.separatedCompanyAssets || !manifest.historyPacks || !digest.test(manifest.sourceIndexDigest)
-          || manifest.referenceDate !== targetDay || manifest.marketCsv?.date !== targetDay
-          || manifest.sample.selection !== 'full') throw new Error('Frozen input is not a complete canonical release for the requested day');
-        const { digest: sourceDigest, ...index } = readJson(path.join(input, 'source-index.json'));
-        if (sourceDigest !== manifest.sourceIndexDigest || jsonHash(index) !== sourceDigest) {
-          throw new Error('Frozen input source index does not match its manifest');
-        }
-      }
       let baselineDescriptor, baseline, buildOptions = {};
       if (mode === 'daily' && current.portable) {
         const source = path.join(scratch(), 'source');
@@ -300,10 +287,11 @@ async function deploy(options, { client, config, build = buildRelease, now = Dat
         baseline = local?.releaseId === base && !current?.portable ? local : previousRelease(current, baselineDescriptor);
         if (mode !== 'daily') buildOptions = { previousRelease: baseline, previousState: null };
       }
-      const report = await build({ store, input, daily: mode === 'daily', candidateOnly: true, clean: mode === 'verify',
+      const report = await build({ store, daily: mode === 'daily', candidateOnly: true, clean: mode === 'verify',
         independent: mode === 'verify', day: targetDay, ...buildOptions });
       if (report.requiresFull) return { mode, requiresFull: true, reason: report.reason, ...plannedCounts([]) };
-      if (report.unchanged) return { mode, releaseId: base, ...plannedCounts([]) };
+      if (report.unchanged) return { mode, releaseId: base, day: current?.day,
+        reason: report.reason, ...(report.key && { publicationKey: report.key }), ...plannedCounts([]) };
       if (!daySyntax.test(report.day)) throw new Error('R2 publication requires a valid frozen business day');
       const plan = report.plan ?? planRelease({ candidate: report.output, root: store, previous: baseline });
       const diff = compareActive(baseline?.inventory, plan.inventory);
@@ -360,6 +348,8 @@ function githubSummary(report) {
     '### R2 ' + report.mode, '', `- 릴리스: ${report.releaseId ?? '—'}`,
     `- 후보: ${report.candidateId ?? '—'}`, `- PUT 키: ${report.putKeys ?? 0} (${report.putBytes ?? 0} bytes)`,
     `- 철회: ${report.deleteKeys ?? 0}`,
+    ...(report.mode === 'daily' && report.reason && !report.requiresFull
+      ? [`- 유지한 공개일: ${report.day} (${report.reason}${report.publicationKey ? ', ' + report.publicationKey : ''})`] : []),
     ...(report.equal === false ? [`- 변경 ${report.changedKeys}, 제거 ${report.removedKeys}. 후보 ID로 promote를 실행해 검수본을 게시합니다.`] : []),
     ...(report.requiresFull ? [`- 전체 빌드 필요: ${String(report.reason).replace(/[\r\n]/g, ' ')}`] : []), '',
   ].join('\n') + '\n');
@@ -368,13 +358,9 @@ function githubSummary(report) {
 if (require.main === module) {
   Promise.resolve().then(async () => {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
-      input: { type: 'string' }, 'input-commit': { type: 'string' },
       'candidate-id': { type: 'string' } } });
     if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision', 'smoke'].includes(values.mode)) {
       throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
-    }
-    if (values.input && (values.mode !== 'full' || !path.isAbsolute(values.input) || !values['input-commit'] || !values.day)) {
-      throw new Error('--input requires an absolute path, --mode full, --input-commit and --day');
     }
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
@@ -385,7 +371,7 @@ if (require.main === module) {
     if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64) throw new Error('R2_PUT_CONCURRENCY must be between 1 and 64');
     const result = await deploy({ mode: values.mode, store: path.resolve(values.store ?? path.join(STAGE, 'r2-local-release')),
       commit, concurrency, candidateId: values['candidate-id'],
-      day: values.day, input: values.input, inputCommit: values['input-commit'] }, { client, config });
+      day: values.day }, { client, config });
     if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n` +
         `pending_mode=${['daily', 'full', 'verify'].includes(result.pendingMode) ? result.pendingMode : ''}\n` +

@@ -134,9 +134,11 @@ test('a full seeds portable input, no-op reads only heads, and a clean runner re
     const manifest = readJson(path.join(options.previousState.source, 'manifest.json'));
     assert.equal(manifest.sourcePublications[sourcePublication].asOf, firstDay);
     assert.deepEqual(fs.readdirSync(options.previousState.source), ['manifest.json']);
-    return { unchanged: true };
+    return { unchanged: true, reason: 'same-publication', day: firstDay };
   });
   assert.equal(noOp.putKeys, 0);
+  assert.equal(noOp.day, firstDay);
+  assert.equal(noOp.reason, 'same-publication');
   assert.deepEqual(mock.metadataReads, [CURRENT]);
   assert.deepEqual(mock.privateReads, []);
 

@@ -71,12 +71,20 @@ export function staticInputDirectory() {
 }
 function refreshStaticCache() {
   const directory = staticInputDirectory();
-  const stat = fs.statSync(path.join(directory, 'manifest.json'), { bigint: true });
-  const generation = `${directory}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+  // The release compiler is given a closed snapshot in a dedicated build directory.
+  const snapshot = process.env.STATIC_RELEASE_FROZEN_SNAPSHOT;
+  let generation: string;
+  if (snapshot) {
+    generation = directory + '\0' + snapshot;
+  } else {
+    const stat = fs.statSync(path.join(directory, 'manifest.json'), { bigint: true });
+    generation = `${directory}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+  }
   if (generation !== cachedGeneration) {
     cache.clear(); cachedBytes = 0; manifestMemo = undefined; historyPackMemo = undefined; companyAssetsMemo = undefined; cachedGeneration = generation;
     securitiesById = undefined;
     companiesById = undefined;
+    releaseSelection = undefined;
     detailAssetCache.clear(); memberCache.clear(); dividendCache.clear(); neighborValueCache.clear();
   }
 }

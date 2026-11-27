@@ -50,13 +50,39 @@ async function readStaticMetricRows(tx: ReadDatabase, ids: string[], start?: str
   }).from(metric).where(staticHistoryPopulation(ids, from, to)(metric)).orderBy(asc(metric.date), asc(metric.exchange), asc(metric.ticker));
 }
 
+type HistorySources = {
+  prices: Awaited<ReturnType<typeof readStaticPriceRows>>;
+  marketcaps: Awaited<ReturnType<typeof readStaticMarketcapRows>>;
+  metrics: Awaited<ReturnType<typeof readStaticMetricRows>>;
+};
+
+/** Fetch only the new day's observations independently of the history decode batch size. */
 export async function readDailyHistorySources(tx: ReadDatabase, ids: string[], day: string) {
-  const [prices, marketcaps, metrics] = await Promise.all([
-    readStaticPriceRows(tx, ids, day, day),
-    readStaticMarketcapRows(tx, ids, day, day),
-    readStaticMetricRows(tx, ids, day, day),
-  ]);
-  return { prices, marketcaps, metrics };
+  const grouped = {
+    prices: new Map<string, HistorySources['prices']>(),
+    marketcaps: new Map<string, HistorySources['marketcaps']>(),
+    metrics: new Map<string, HistorySources['metrics']>(),
+  };
+  const uniqueIds = [...new Set(ids)];
+  // Each query also binds the two date boundaries.
+  const queryBatchSize = 10_000;
+  function group<Row extends { securityId: string | null }>(records: Row[], destination: Map<string, Row[]>) {
+    for (const [id, rows] of Map.groupBy(records, row => row.securityId)) {
+      if (id !== null) destination.set(id, rows);
+    }
+  }
+  for (let offset = 0; offset < uniqueIds.length; offset += queryBatchSize) {
+    const batch = uniqueIds.slice(offset, offset + queryBatchSize);
+    const [prices, marketcaps, metrics] = await Promise.all([
+      readStaticPriceRows(tx, batch, day, day),
+      readStaticMarketcapRows(tx, batch, day, day),
+      readStaticMetricRows(tx, batch, day, day),
+    ]);
+    group(prices, grouped.prices);
+    group(marketcaps, grouped.marketcaps);
+    group(metrics, grouped.metrics);
+  }
+  return grouped;
 }
 
 export async function readObservedMarketDays(tx: ReadDatabase, from: string, through: string) {
@@ -80,8 +106,6 @@ export async function readMetricSources(tx: ReadDatabase, ids: string[], start?:
   }).from(metric).where(and(inArray(metric.securityId, ids), from ? gte(metric.date, from) : undefined,
     to ? lte(metric.date, to) : undefined)).orderBy(asc(metric.date), asc(metric.exchange), asc(metric.ticker)));
 }
-
-type HistorySources = Awaited<ReturnType<typeof readDailyHistorySources>>;
 
 export async function readBatchLifecycles(tx: ReadDatabase, ids: string[]) {
   const { periods, events } = await readSecurityLifecycles(tx, ids);

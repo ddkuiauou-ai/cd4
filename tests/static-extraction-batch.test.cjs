@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fixture, day } = require('./helpers/business-data.cjs');
 const { installQueryCounter } = require('../scripts/static-query-counter.cjs');
+const { getTableName } = require('drizzle-orm');
+const { PgDialect } = require('drizzle-orm/pg-core');
 
 test('SQL-free counter counts sent statements, transaction control and zero-query phases without retaining secrets', () => {
   const client = { options: { debug: false } };
@@ -17,6 +19,48 @@ test('SQL-free counter counts sent statements, transaction control and zero-quer
   assert.deepEqual(result.commands, { BEGIN: 1, SELECT: 1, COMMIT: 1 });
   assert.doesNotMatch(JSON.stringify(result), /private_table|password|private-host|postgres:\/\/|user:secret/);
   counter.restore(); assert.equal(client.options.debug, false);
+});
+
+test('daily observations use three date-bounded reads for the existing market size, with bounded SQL parameters', async () => {
+  const dialect = new PgDialect();
+  const date = '2026-10-05';
+  const ids = Array.from({ length: 10_001 }, (_, index) => `security-${index}`);
+  const queries = [];
+  const accurate = { securityId: ids[0], date, exchange: 'KOSPI', ticker: '000001', close: '9007199254740993.125' };
+  const secondListing = { ...accurate, exchange: 'KOSDAQ', ticker: '000002', close: '0' };
+  const observations = {
+    price: [secondListing, accurate, { ...accurate, securityId: ids.at(-1), ticker: '000003' }],
+    marketcap: [{ securityId: ids[0], date, marketcap: '9007199254740993', shares: '0' }],
+    bppedd: [{ securityId: ids[0], date, per: '0', eps: null }],
+  };
+  const tx = {
+    select: () => ({ from: table => ({ where: where => ({ orderBy: (...order) => {
+      const tableName = getTableName(table);
+      const { params } = dialect.sqlToQuery(where);
+      assert.deepEqual(params.slice(-2), Array(2).fill(day(date).toISOString()));
+      assert.deepEqual(order.map(term => dialect.sqlToQuery(term).sql),
+        ['date', 'exchange', 'ticker'].map(column => `"${tableName}"."${column}" asc`));
+      queries.push({ tableName, parameters: params.length });
+      const selected = new Set(params.slice(0, -2));
+      return Promise.resolve(observations[tableName].filter(row => selected.has(row.securityId)));
+    } }) }) }),
+  };
+  const { readDailyHistorySources } = fixture().load('lib/static-build/read-security-batch.ts');
+  const market = await readDailyHistorySources(tx, ids.slice(0, 5_496), date);
+  assert.deepEqual(queries.splice(0), ['price', 'marketcap', 'bppedd'].map(tableName => ({ tableName, parameters: 5_498 })));
+  assert.deepEqual(market.prices.get(ids[0]), [secondListing, accurate]);
+  assert.deepEqual(market.marketcaps.get(ids[0]), observations.marketcap);
+  assert.deepEqual(market.metrics.get(ids[0]), observations.bppedd);
+  assert.equal(market.prices.has(ids[1]), false);
+  assert.equal(market.prices.has(ids.at(-1)), false);
+
+  const extended = await readDailyHistorySources(tx, [...ids, ids[0]], date);
+  assert.deepEqual(queries.splice(0).map(row => row.parameters), [10_002, 10_002, 10_002, 3, 3, 3]);
+  assert.deepEqual(extended.prices.get(ids.at(-1)), [observations.price.at(-1)]);
+  assert.deepEqual(extended.prices.get(ids[0]), market.prices.get(ids[0]));
+  const empty = await readDailyHistorySources(tx, [], date);
+  assert.deepEqual(empty, { prices: new Map(), marketcaps: new Map(), metrics: new Map() });
+  assert.equal(queries.length, 0);
 });
 
 test('batched histories equal live providers for current/stale masters and older/newer/missing publications', async t => {

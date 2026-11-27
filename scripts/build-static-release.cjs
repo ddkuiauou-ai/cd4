@@ -222,7 +222,7 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
     const manifest = readManifest({ allowSample, filename: path.join(packInput, 'manifest.json') });
     const routes = routeFingerprints(packInput, manifest);
     let selection = planRender(routes, state?.routes, Boolean(prior));
-    const envNext = { ...env, STATIC_SNAPSHOT_DIR: packInput };
+    const envNext = { ...env, STATIC_SNAPSHOT_DIR: packInput, STATIC_RELEASE_FROZEN_SNAPSHOT: manifest.snapshotId };
     if (prior) {
       envNext.STATIC_RELEASE_PARAMS = path.join(run, 'render-params.json');
       writeJson(envNext.STATIC_RELEASE_PARAMS, selection.changed);
@@ -265,6 +265,8 @@ async function buildLocked({ input, previousInput, root, daily = false, candidat
       } else {
         report.stages.push(await runNodeStage(name, buildArgs, { cwd: workspace, env: envNext, reportDirectory: run, reserveBytes }));
         fs.renameSync(exported, output);
+        // The export is self-contained. Keep the compiler cache for subsequent builds.
+        fs.rmSync(path.join(workspace, '.next', 'server'), { recursive: true, force: true });
       }
       ({ assets, retained } = assembleCandidate({ output, input: packInput, manifest, changed: selection.changed,
         previous: reusePreview ? previous : null, store: root, previousDocuments: portable ? state.documents : undefined, compressedHtml }));

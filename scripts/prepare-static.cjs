@@ -300,21 +300,12 @@ async function extract(tx, started, generatedAt) {
   let completed = 0;
   const ids = [...neededSecurities];
   const lifecycle = await readBatchLifecycles(tx, ids);
+  const dailyRows = dayPlan ? await readDailyHistorySources(tx, ids, dayPlan.day) : undefined;
   for (let offset = 0; offset < ids.length; offset += batchMemory.batchSize) {
     const batchIds = ids.slice(offset, offset + batchMemory.batchSize);
     const oldFiles = new Map();
     const batch = await readSecurityBatch(tx, batchIds.map(id => secById.get(id)), coById, secPub, coPub, secRoutes,
       dayPlan ? async () => {
-        const today = await readDailyHistorySources(tx, batchIds, dayPlan.day);
-        const grouped = Object.fromEntries(Object.entries(today).map(([key, rows]) => {
-          const map = new Map();
-          for (const row of rows) {
-            const list = map.get(row.securityId) ?? [];
-            list.push(row);
-            map.set(row.securityId, list);
-          }
-          return [key, map];
-        }));
         const output = { prices: [], marketcaps: [], metrics: [] };
         for (const id of batchIds) {
           const old = JSON.parse(readPrivateJsonText(path.join(previous, `data/security/${id}.json`)));
@@ -326,7 +317,7 @@ async function extract(tx, started, generatedAt) {
           for (const key of Object.keys(output)) {
             const companyCaps = history.companyMarketcaps?.length ? history.companyMarketcaps : old.rawCompanyMarketcaps;
             const rows = key === 'marketcaps' && companyCaps ? companyCaps : history[key];
-            for (const row of mergeBusinessDay(rows, grouped[key].get(id) ?? [], dayPlan.from, dayPlan.day)) output[key].push(row);
+            for (const row of mergeBusinessDay(rows, dailyRows[key].get(id) ?? [], dayPlan.from, dayPlan.day)) output[key].push(row);
           }
         }
         return output;
@@ -351,7 +342,8 @@ async function extract(tx, started, generatedAt) {
       }
       if (indexed) for (const date of rankCutoffs) {
         const keyed = rankingPrices.get(date) ?? new Map();
-        keyed.set(id, rankingPriceSources.filter(row => row.date <= date).slice(-30)
+        const end = rankingPriceSources.findLastIndex(row => row.date <= date) + 1;
+        keyed.set(id, rankingPriceSources.slice(Math.max(0, end - 30), end)
           .map(({ date, open, close, rate, volume }) => ({ date, open, close, rate, volume })));
         rankingPrices.set(date, keyed);
       }
