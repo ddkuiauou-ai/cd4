@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Standalone benchmark entry point. */
+const fs = require('node:fs');
 const path = require('node:path');
 const { Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
@@ -36,13 +37,17 @@ function scratchUrl(value, role) {
 
 async function copy(from, to, table, columns, select) {
   const writer = await to.unsafe(`COPY ${table} (${columns}) FROM STDIN`).writable();
-  let bytes = 0;
+  let bytes = 0, rows = 0;
   try {
     const reader = await from.unsafe(`COPY (${select}) TO STDOUT`).readable();
     await pipeline(reader, new Transform({
-      transform(chunk, _encoding, done) { bytes += chunk.length; done(null, chunk); },
+      transform(chunk, _encoding, done) {
+        bytes += chunk.length;
+        for (let newline = chunk.indexOf(10); newline !== -1; newline = chunk.indexOf(10, newline + 1)) rows++;
+        done(null, chunk);
+      },
     }), writer);
-    return bytes;
+    return { bytes, rows };
   } catch (error) {
     writer.destroy();
     throw error;
@@ -65,7 +70,7 @@ async function copySource(source, target, stage, { verifyTls, revision }) {
         COALESCE((SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()), false) AS tls
     `;
     requireCondition(session.readonly && session.repeatable && (!verifyTls || session.tls), 'invalid-source-session');
-    await from.unsafe("SET LOCAL statement_timeout = '20min'; SET LOCAL lock_timeout = '5s'; SET LOCAL idle_in_transaction_session_timeout = '1min'");
+    await from.unsafe("SET LOCAL statement_timeout = '20min'; SET LOCAL lock_timeout = '5s'; SET LOCAL idle_in_transaction_session_timeout = '5min'");
     const heads = await from`
       SELECT publication_key, revision::text, to_char(as_of AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day
       FROM public.result_publication
@@ -75,7 +80,9 @@ async function copySource(source, target, stage, { verifyTls, revision }) {
     const result = {};
     const transfer = async (table, columns, select, label = table) => {
       stage(`copy-${label}`);
-      result[label] = await copy(from, target, table, columns, select);
+      const copied = await copy(from, target, table, columns, select);
+      stage(`copy-${label}`, copied);
+      result[label] = copied.bytes;
     };
     const relation = (table, columns, where = '') => transfer(table, columns, `SELECT ${columns} FROM public.${table} ${where}`);
     await transfer('result_publication',
@@ -104,10 +111,30 @@ async function copySource(source, target, stage, { verifyTls, revision }) {
         r.ranking_state, r.exclusion_reason, r.publication_key ${current('security_rank')}
         WHERE r.scope_key = p.scope_key AND r.metric_type = p.metric_type AND r.rank_date = p.as_of`, 'security-rank');
     const observations = `WHERE security_id IS NOT NULL AND date <= ${boundary}`;
-    await relation('price', 'security_id, date, ticker, exchange, source_ref, open, high, low, close, volume, fvolume, transaction, rate, year, month', observations);
-    await relation('marketcap', 'security_id, date, ticker, exchange, source_ref, name, kor_name, marketcap, volume, shares, year, month', observations);
-    await relation('bppedd', `security_id, date, ticker, exchange, source_ref, name, kor_name, year, month,
-      ${metrics.slice(1).flatMap(metric => [metric, metric + '_state']).join(', ')}`, observations);
+    // Bound each wire transfer using the source table's primary-key ranges.
+    // All ranges still come from the same read-only repeatable-read snapshot.
+    async function history(table, columns) {
+      stage(`copy-${table}-bounds`);
+      const [range] = await from.unsafe(
+        `SELECT (SELECT id FROM public.${table} ORDER BY id LIMIT 1) AS first,
+          (SELECT id FROM public.${table} ORDER BY id DESC LIMIT 1) AS last`
+      );
+      result[table] = 0;
+      const batchSize = 500_000;
+      for (let first = range.first; first != null && first <= range.last; first += batchSize) {
+        const label = `copy-${table}-${Math.floor((first - range.first) / batchSize) + 1}`;
+        stage(label);
+        const copied = await copy(from, target, table, columns,
+          `SELECT ${columns} FROM public.${table} ${observations}
+           AND id >= ${first} AND id <= ${Math.min(first + batchSize - 1, range.last)}`);
+        stage(label, copied);
+        result[table] += copied.bytes;
+      }
+    }
+    await history('price', 'security_id, date, ticker, exchange, source_ref, open, high, low, close, volume, fvolume, transaction, rate, year, month');
+    await history('marketcap', 'security_id, date, ticker, exchange, source_ref, name, kor_name, marketcap, volume, shares, year, month');
+    await history('bppedd', `security_id, date, ticker, exchange, source_ref, name, kor_name, year, month,
+      ${metrics.slice(1).flatMap(metric => [metric, metric + '_state']).join(', ')}`);
     return result;
   });
 }
@@ -301,13 +328,22 @@ async function main() {
     const options = { max: 1, connect_timeout: 12, prepare: false, onnotice: () => {}, connection: { timezone: 'Asia/Seoul' } };
     source = postgres({ ...connection, ...options });
     target = postgres(seed.href, { ...options, ssl: false });
-    const report = await seedBaseline(source, target, value => { stage = value; }, { readerPassword: decodeURIComponent(reader.password) });
+    const report = await seedBaseline(source, target, (value, copied) => {
+      stage = value;
+      if (process.env.CD_QA_SEED_PROGRESS === '1') {
+        const { bavail, bsize } = fs.statfsSync(process.env.CD_REHEARSAL_HOME);
+        fs.writeSync(3, JSON.stringify({ phase: stage, diskFreeBytes: bavail * bsize, ...copied }) + '\n');
+      }
+    }, { readerPassword: decodeURIComponent(reader.password) });
     stage = 'check-market-coverage';
     requireCondition(report.counts.securities === 5496 && report.counts.companies === 4227 && report.listed === 2872,
       'unexpected-full-market-inventory');
     console.log(JSON.stringify(report));
   } catch (error) {
-    const code = ['25006', '28P01', '42501', '42P01', '42703', '23503', '23514', '57014', '55P03'].includes(error.code) ? error.code : undefined;
+    const transportCodes = ['ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'CONNECTION_CLOSED', 'CONNECTION_DESTROYED',
+      'ERR_STREAM_PREMATURE_CLOSE', 'ERR_SOCKET_TIMEOUT', 'ENOSPC'];
+    const code = (error.severity && /^[A-Z0-9]{5}$/.test(error.code)) || transportCodes.includes(error.code)
+      ? error.code : undefined;
     console.error(JSON.stringify({ stage, reason: error[refusal] ?? 'benchmark-baseline-failed', ...(code ? { code } : {}) }));
     process.exitCode = 1;
   } finally { await Promise.allSettled([source?.end({ timeout: 2 }), target?.end({ timeout: 2 })]); }
