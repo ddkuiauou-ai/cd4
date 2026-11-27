@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), 'cd-r2-test-'));
 process.env.STATIC_RELEASE_HOME = home;
@@ -253,6 +254,57 @@ test('read-only status distinguishes HEAD and List and provisioning creates only
   assert.deepEqual((await deploy({ mode: 'provision', store }, { client, config: cfg })).buckets, { public: 'existing', state: 'created' });
   assert.deepEqual((await deploy({ mode: 'provision', store }, { client, config: cfg })).buckets, { public: 'existing', state: 'existing' });
   assert.deepEqual(puts, ['/site-state']);
+});
+
+test('pointer-only status gets the validated head without any public or candidate request', async () => {
+  const cfg = { ...config, endpoint: new URL('https://example.test'), accessKey: 'fixture', secret: 'fixture' };
+  const requests = [];
+  let document;
+  let missingCode = 'NoSuchKey';
+  const client = createR2Client(cfg, { pause: async () => {}, async request(url, options) {
+    requests.push([options.method, url.pathname, url.search, options.headers['accept-encoding']]);
+    if (document === undefined) return new Response(`<Error><Code>${missingCode}</Code></Error>`, { status: 404 });
+    return Response.json(document, { headers: { etag: '"state"' } });
+  } });
+  const check = () => deploy({ mode: 'status', pointerOnly: true }, { client, config: cfg });
+  assert.equal((await check()).current, null);
+  missingCode = 'NoSuchBucket';
+  await assert.rejects(check(), /unconfirmed absence/);
+  const current = { releaseId: 'a'.repeat(64), candidateId: 'b'.repeat(64), day: '2026-10-08', commit };
+  document = { version: 1, current, previous: null, pending: { id: 'c'.repeat(64), next: 1 } };
+  assert.deepEqual((await check()).current, current);
+  assert.equal((await check()).pendingMode, null);
+  const portable = { referenceDate: current.day, sample: { enabled: false }, sourcePublications: {} };
+  document.current = { ...current, portable };
+  const result = await check();
+  assert.equal(result.readable, true);
+  assert.equal(result.current.commit, commit);
+  assert.deepEqual(result.current.portable, portable);
+  assert.equal(result.buckets, undefined);
+  for (const malformed of [
+    null, { version: 1 }, { ...document, current: false }, { ...document, current: { ...current, commit: 'bad-sha' } },
+    { ...document, current: { ...current, portable: true } },
+    { ...document, current: { ...current, portable: { ...portable, referenceDate: '2026-10-07' } } },
+    { ...document, current: { ...current, portable: { ...portable, sourcePublications: null } } },
+  ]) {
+    document = malformed;
+    await assert.rejects(check(), /Invalid durable R2 release pointer/);
+  }
+  assert.deepEqual(requests, Array.from({ length: 12 }, () => ['GET', '/private-test/' + stateFile, '', 'identity']));
+});
+
+test('pointer-only CLI rejects incompatible modes, targets and assigned flag values before R2 setup', () => {
+  const script = path.join(__dirname, '../scripts/deploy-static-r2.cjs');
+  for (const args of [
+    ['--mode', 'full', '--pointer-only'],
+    ['--mode', 'status', '--pointer-only', '--candidate-id', 'fixture'],
+    ['--mode', 'status', '--pointer-only', '--day', '2026-10-08'],
+    ['--mode', 'status', '--pointer-only=false'],
+  ]) {
+    const result = spawnSync(process.execPath, [script, ...args], { env: { PATH: process.env.PATH }, encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /--pointer-only/);
+  }
 });
 
 test('smoke compares only active Samsung and dated CSV, keeping anonymous confirmation separate', async () => {

@@ -198,7 +198,7 @@ jobs:
       - name: Resolve last successful release
         if: needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'verify'
         id: state
-        run: node scripts/deploy-static-r2.cjs --mode status
+        run: node scripts/deploy-static-r2.cjs --mode status --pointer-only
 
       - name: Select the app version used by the published release
         if: needs.route.outputs.mode == 'daily' || needs.route.outputs.mode == 'verify'

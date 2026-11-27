@@ -59,9 +59,9 @@ async function getState(client, config) {
   const entry = await client.getJson(config.stateBucket, CURRENT);
   if (!entry) return { value: { version: 1, current: null, previous: null, pending: null }, etag: null };
   const { value } = entry;
-  if (value.version !== 1 || [value.current, value.previous].filter(Boolean).some(row => !valid(digest, row.releaseId) || !valid(digest, row.candidateId)
+  if (value?.version !== 1 || [value.current, value.previous].filter(row => row != null).some(row => !valid(digest, row.releaseId) || !valid(digest, row.candidateId)
     || !valid(commitHash, row.commit) || !valid(daySyntax, row.day))
-    || (value.pending && (!valid(digest, value.pending.id) || !Number.isSafeInteger(value.pending.next) || value.pending.next < 0))) {
+    || (value.pending != null && (!valid(digest, value.pending.id) || !Number.isSafeInteger(value.pending.next) || value.pending.next < 0))) {
     throw new Error('Invalid durable R2 release pointer');
   }
   return entry;
@@ -334,7 +334,19 @@ function adoptLocal(store, descriptor) {
 
 async function deploy(options, { client, config, build = buildRelease, now = Date.now,
   platform = process.platform, fingerprint = committedFingerprint } = {}) {
-  const { mode, store, candidateId, commit, concurrency = 24, day } = options;
+  const { mode, store, candidateId, commit, concurrency = 24, day, pointerOnly } = options;
+  if (pointerOnly) {
+    if (mode !== 'status') throw new Error('--pointer-only requires --mode status');
+    const { value } = await getState(client, config);
+    const { current, pending } = value;
+    const head = current?.portable;
+    if (!Object.hasOwn(value, 'current') || (head !== undefined && (head?.referenceDate !== current.day
+      || head.sample?.enabled !== false || !head.sourcePublications || typeof head.sourcePublications !== 'object'
+      || Array.isArray(head.sourcePublications)))) {
+      throw new Error('Invalid durable R2 release pointer');
+    }
+    return { mode, current, pending, pendingMode: pending?.mode ?? null, readable: true };
+  }
   if (mode === 'smoke') return smokeRelease(client, config);
   const roles = ['public', 'state'];
   if (mode === 'status') {
@@ -522,9 +534,12 @@ function githubSummary(report) {
 if (require.main === module) {
   Promise.resolve().then(async () => {
     const { values } = parseArgs({ options: { mode: { type: 'string' }, store: { type: 'string' }, day: { type: 'string' },
-      'candidate-id': { type: 'string' } } });
+      'candidate-id': { type: 'string' }, 'pointer-only': { type: 'boolean' } } });
     if (!['full', 'daily', 'verify', 'promote', 'resume', 'status', 'provision', 'smoke'].includes(values.mode)) {
       throw new Error('Choose --mode full, daily, verify, promote, resume, status, provision or smoke');
+    }
+    if (values['pointer-only'] && (values.mode !== 'status' || values.day !== undefined || values['candidate-id'] !== undefined)) {
+      throw new Error('--pointer-only is only for release status without a day or candidate');
     }
     if (!process.env.STATIC_RELEASE_HOME) throw new Error('Set STATIC_RELEASE_HOME to the dedicated persistent runner directory');
     const { commit, build } = resolveAppBuild(values.mode);
@@ -535,7 +550,7 @@ if (require.main === module) {
     if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64) throw new Error('R2_PUT_CONCURRENCY must be between 1 and 64');
     const result = await deploy({ mode: values.mode, store: path.resolve(values.store ?? path.join(STAGE, 'r2-local-release')),
       commit, concurrency, candidateId: values['candidate-id'],
-      day: values.day }, { client, config, build });
+      day: values.day, pointerOnly: values['pointer-only'] }, { client, config, build });
     if (values.mode === 'status' && result.readable && process.env.GITHUB_OUTPUT) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_commit=${result.current?.commit ?? ''}\nrelease_day=${result.current?.day ?? ''}\n` +
         `release_id=${result.current?.releaseId ?? ''}\npending_mode=${modes.includes(result.pendingMode) ? result.pendingMode : ''}\n` +
@@ -543,7 +558,7 @@ if (require.main === module) {
         `active_portable=${Boolean(result.current?.portable)}\n`);
     }
     if (values.mode === 'status') {
-      console.log(JSON.stringify({ mode: 'status', buckets: result.buckets,
+      console.log(JSON.stringify({ mode: 'status', ...(values['pointer-only'] && { pointerOnly: true }), buckets: result.buckets,
         ...(result.readable ? { activeRelease: Boolean(result.current), releaseId: result.current?.releaseId ?? null,
           releaseCommit: result.current?.commit ?? null, activePortable: Boolean(result.current?.portable),
           interruptedRelease: Boolean(result.pending), pendingMode: modes.includes(result.pendingMode) ? result.pendingMode : null,
