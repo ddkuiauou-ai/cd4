@@ -37,7 +37,7 @@ jobs:
   release:
     if: github.ref == 'refs/heads/main'
     # 일일 배포는 직전 기준본을 보관한 Mac에서 실행한다.
-    runs-on: [self-hosted, macOS, X64]
+    runs-on: ${{ fromJSON(inputs.mode == 'status' && '"ubuntu-latest"' || '["self-hosted","macOS","X64"]') }}
     timeout-minutes: 300
     env:
       NODE_ENV: production
@@ -124,6 +124,10 @@ jobs:
       - name: Install pinned dependencies
         if: steps.task.outputs.mode != ''
         run: pnpm install --prod=false --frozen-lockfile
+
+      - name: Check hosted PostgreSQL access
+        if: steps.task.outputs.mode == 'status'
+        run: node scripts/check-static-db-access.cjs --report-only
 
       - name: Resolve last successful release
         if: steps.task.outputs.mode == 'verify'
