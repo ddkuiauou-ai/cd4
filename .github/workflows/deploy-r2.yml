@@ -6,7 +6,8 @@ on:
       mode:
         description: Release operation
         type: choice
-        options: [status, provision, full, daily, verify, promote, resume, smoke]
+        options:
+          [status, provision, full, daily, verify, promote, resume, smoke]
         default: status
       candidate_id:
         description: Reviewed candidate ID for promote
@@ -22,8 +23,8 @@ on:
         type: string
   schedule:
     # 17:30 Asia/Seoul on weekdays and 09:00 Asia/Seoul on Saturday.
-    - cron: '30 8 * * 1-5'
-    - cron: '0 0 * * 6'
+    - cron: "30 8 * * 1-5"
+    - cron: "0 0 * * 6"
 
 permissions:
   contents: read
@@ -40,11 +41,11 @@ jobs:
     timeout-minutes: 300
     env:
       NODE_ENV: production
-      NEXT_TELEMETRY_DISABLED: '1'
-      NODE_OPTIONS: '--max-old-space-size=12288'
+      NEXT_TELEMETRY_DISABLED: "1"
+      NODE_OPTIONS: "--max-old-space-size=12288"
 
       # 러너 계정의 홈 아래 .local/state/cd4-r2를 사용한다. 전용 디스크를 쓸 때만 절대 경로를 적는다.
-      STATIC_RELEASE_HOME: ''
+      STATIC_RELEASE_HOME: ""
 
       # 사이트 파일과 비공개 배포 기록을 저장할 R2 버킷
       R2_BUCKET_NAME: cd-static
