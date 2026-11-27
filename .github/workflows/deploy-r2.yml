@@ -39,39 +39,45 @@ concurrency:
 jobs:
   release:
     if: github.ref == 'refs/heads/main'
+    # 일일 배포는 직전 기준본을 보관한 Mac에서 실행한다.
     runs-on: [self-hosted, macOS, X64]
     timeout-minutes: 300
     env:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: '--max-old-space-size=12288'
-      STATIC_RELEASE_HOME: ${{ vars.CD_R2_RELEASE_HOME }}
+
+      # 러너 계정의 홈 아래 .local/state/cd4-r2를 사용한다. 전용 디스크를 쓸 때만 절대 경로를 적는다.
+      STATIC_RELEASE_HOME: ''
+
+      # 사이트 파일과 비공개 배포 기록을 저장할 R2 버킷
+      R2_BUCKET_NAME: cd-static
+      R2_STATE_BUCKET_NAME: cd-static-state
+      # 선택 사항. 공개 후 GitHub Variables에 주소를 넣으면 smoke가 방문자 URL도 검사한다.
+      R2_PUBLIC_ORIGIN: ${{ vars.R2_PUBLIC_ORIGIN }}
+
+      # R2 인증용 GitHub Secrets. S3 접속 주소는 계정 ID로 결정된다.
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+
+      # 업무 DB 접속용 GitHub Secrets
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
       POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-      R2_BUCKET_NAME: ${{ vars.R2_PUBLIC_BUCKET_NAME || secrets.R2_BUCKET_NAME }}
-      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      R2_STATE_BUCKET_NAME: ${{ vars.R2_STATE_BUCKET_NAME }}
-      R2_ENDPOINT_URL: ${{ vars.R2_ENDPOINT_URL }}
-      R2_PUBLIC_ORIGIN: ${{ vars.R2_PUBLIC_ORIGIN }}
 
     steps:
-      - name: Choose operation and persistent runner directory
+      - name: Choose release operation
         id: task
         shell: bash
         env:
           EVENT: ${{ github.event_name }}
           CRON: ${{ github.event.schedule }}
           OPERATION: ${{ inputs.mode }}
-          CANDIDATE_ID: ${{ inputs.candidate_id }}
-          RETIRE_LEGACY: ${{ inputs.retire_legacy }}
         run: |
           set -euo pipefail
-          umask 077
           if [[ "$EVENT" = schedule ]]; then
             if [[ "$CRON" = '0 0 * * 6' ]]; then
               [[ "$(TZ=Asia/Seoul date +%u)" = 6 ]] && (( 10#$(TZ=Asia/Seoul date +%d) <= 7 )) || exit 0
@@ -80,20 +86,7 @@ jobs:
               OPERATION=daily
             fi
           fi
-          release_home="${STATIC_RELEASE_HOME:-$HOME/.local/state/cd4-r2}"
-          [[ "$release_home" = /* && "$release_home" != / ]] || exit 1
-          mkdir -p -- "$release_home"
-          release_home="$(cd "$release_home" && pwd -P)"
-          case "$release_home/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
-          printf 'STATIC_RELEASE_HOME=%s\n' "$release_home" >> "$GITHUB_ENV"
           printf 'mode=%s\n' "$OPERATION" >> "$GITHUB_OUTPUT"
-          if [[ "$OPERATION" = promote ]]; then
-            [[ "$CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]] || exit 1
-            printf 'candidate=%s\n' "$CANDIDATE_ID" >> "$GITHUB_OUTPUT"
-          fi
-          if [[ "$OPERATION" = full && "$RETIRE_LEGACY" = true ]]; then
-            printf 'retire=true\n' >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Checkout trusted branch
         if: steps.task.outputs.mode != ''
@@ -112,6 +105,24 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+
+      - name: Set persistent runner directory
+        if: steps.task.outputs.mode != ''
+        shell: node {0}
+        run: |
+          const fs = require('node:fs');
+          const os = require('node:os');
+          const path = require('node:path');
+          const dir = process.env.STATIC_RELEASE_HOME || path.join(os.homedir(), '.local', 'state', 'cd4-r2');
+          if (!path.isAbsolute(dir)) throw new Error('STATIC_RELEASE_HOME must be an absolute path');
+          fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+          const home = fs.realpathSync(dir);
+          const relative = path.relative(fs.realpathSync(process.env.GITHUB_WORKSPACE), home);
+          const outsideCheckout = path.isAbsolute(relative) || relative.split(path.sep)[0] === '..';
+          if (!outsideCheckout || home === path.parse(home).root || /[\r\n]/.test(home)) {
+            throw new Error('Choose a dedicated release directory outside the checkout');
+          }
+          fs.appendFileSync(process.env.GITHUB_ENV, `STATIC_RELEASE_HOME=${home}${os.EOL}`);
 
       - name: Install pinned dependencies
         if: steps.task.outputs.mode != ''
@@ -139,18 +150,21 @@ jobs:
         shell: bash
         env:
           MODE: ${{ steps.task.outputs.mode }}
-          CANDIDATE_ID: ${{ steps.task.outputs.candidate }}
-          RETIRE_LEGACY: ${{ steps.task.outputs.retire }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          RETIRE_LEGACY: ${{ inputs.retire_legacy }}
           FROZEN_INPUT: ${{ inputs.frozen_input }}
           FROZEN_DAY: ${{ inputs.frozen_day }}
           FROZEN_COMMIT: ${{ inputs.frozen_commit }}
         run: |
           set -euo pipefail
           args=(--mode "$MODE")
-          if [[ -n "$CANDIDATE_ID" ]]; then args+=(--candidate-id "$CANDIDATE_ID"); fi
-          if [[ "$RETIRE_LEGACY" = true ]]; then args+=(--retire-legacy); fi
+          if [[ "$MODE" = promote ]]; then
+            [[ "$CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]] || exit 1
+            args+=(--candidate-id "$CANDIDATE_ID")
+          fi
+          if [[ "$MODE" = full && "$RETIRE_LEGACY" = true ]]; then args+=(--retire-legacy); fi
           if [[ -n "$FROZEN_INPUT" ]]; then
-            [[ "$MODE" = full && "$FROZEN_INPUT" = /* && "$FROZEN_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$FROZEN_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            [[ "$MODE" = full && "$FROZEN_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$FROZEN_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
             args+=(--input "$FROZEN_INPUT" --day "$FROZEN_DAY" --input-commit "$FROZEN_COMMIT")
           fi
           node scripts/deploy-static-r2.cjs "${args[@]}"
