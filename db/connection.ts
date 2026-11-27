@@ -1,3 +1,5 @@
+import { checkServerIdentity, type ConnectionOptions } from "node:tls";
+
 type PostgresEnvironment = Readonly<Record<string, string | undefined>>;
 
 type PostgresConnection = { url: string } | {
@@ -6,11 +8,22 @@ type PostgresConnection = { url: string } | {
   user: string;
   password: string;
   database: string;
-  ssl: false;
+  ssl: false | ConnectionOptions;
 };
 
+export function postgresTlsOptions(host: string, ca?: string): ConnectionOptions {
+  return {
+    rejectUnauthorized: true,
+    ...(ca ? { ca } : {}),
+    checkServerIdentity: (_, certificate) => checkServerIdentity(host, certificate),
+  };
+}
+
 export function getPostgresConnection(env: PostgresEnvironment): PostgresConnection {
+  const sslMode = env.STATIC_RELEASE_POSTGRES_TLS;
+  if (sslMode && sslMode !== "verify-full") throw new Error("STATIC_RELEASE_POSTGRES_TLS must be verify-full.");
   if (env.DATABASE_URL) {
+    if (sslMode) throw new Error("Hosted release TLS requires the PostgreSQL host and port fields.");
     // The PostgreSQL driver also supports multi-host URLs, which URL rejects.
     if (!/^postgres(?:ql)?:\/\//.test(env.DATABASE_URL)) {
       throw new Error("DATABASE_URL은 postgres:// 또는 postgresql:// 형식이어야 합니다.");
@@ -36,6 +49,6 @@ export function getPostgresConnection(env: PostgresEnvironment): PostgresConnect
     user: env.POSTGRES_USER!,
     password: env.POSTGRES_PASSWORD!,
     database: env.POSTGRES_DB!,
-    ssl: false,
+    ssl: sslMode ? postgresTlsOptions(env.POSTGRES_HOST!, env.POSTGRES_TLS_CA) : false,
   };
 }

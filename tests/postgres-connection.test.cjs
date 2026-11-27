@@ -40,6 +40,23 @@ test("DATABASE_URL takes precedence and retains TLS parameters", async () => {
 test("separate PostgreSQL fields default to port 5432 and support an explicit port", () => {
   assert.equal(getPostgresConnection(fields).port, 5432);
   assert.equal(getPostgresConnection({ ...fields, POSTGRES_PORT: "5433" }).port, 5433);
+  assert.equal(getPostgresConnection(fields).ssl, false);
+});
+
+test("hosted release TLS verifies the configured hostname or IP with the configured CA", () => {
+  const config = { ...fields, STATIC_RELEASE_POSTGRES_TLS: "verify-full", POSTGRES_TLS_CA: "test public CA" };
+  const { ssl } = getPostgresConnection({ ...config, POSTGRES_HOST: "postgres.example.com" });
+  assert.equal(ssl.rejectUnauthorized, true);
+  assert.equal(ssl.ca, config.POSTGRES_TLS_CA);
+  assert.equal(ssl.checkServerIdentity("ignored", { subjectaltname: "DNS:postgres.example.com" }), undefined);
+  assert.equal(ssl.checkServerIdentity("ignored", { subjectaltname: "DNS:other.example.com" }).code,
+    "ERR_TLS_CERT_ALTNAME_INVALID");
+  const ip = getPostgresConnection({ ...config, POSTGRES_HOST: "192.0.2.20" }).ssl;
+  assert.equal(ip.checkServerIdentity("ignored", { subjectaltname: "IP Address:192.0.2.20" }), undefined);
+  assert.equal(ip.checkServerIdentity("ignored", { subjectaltname: "DNS:192.0.2.20" }).code,
+    "ERR_TLS_CERT_ALTNAME_INVALID");
+  assert.throws(() => getPostgresConnection({ ...config, STATIC_RELEASE_POSTGRES_TLS: "require" }), /verify-full/);
+  assert.throws(() => getPostgresConnection({ ...config, DATABASE_URL: "postgres://sensitive" }), /host and port fields/);
 });
 
 test("reserved characters in credentials and database names reach the driver unchanged", async () => {
