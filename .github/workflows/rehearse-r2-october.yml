@@ -1,53 +1,61 @@
-name: Rehearse October R2 daily release
+name: Rehearse October R2 archive HTML reuse
 
 on:
   push:
-    branches: [codex/r2-october-rehearsal]
+    branches: [codex/r2-october-archive-rehearsal]
 
 permissions:
   contents: read
 
 concurrency:
-  group: cd4-october-release-rehearsal
+  group: cd4-october-archive-rehearsal
   cancel-in-progress: false
 
 jobs:
   rehearse:
-    if: github.repository == 'ddkuiauou-ai/cd4' && github.ref == 'refs/heads/codex/r2-october-rehearsal'
+    if: github.repository == 'ddkuiauou-ai/cd4' && github.ref == 'refs/heads/codex/r2-october-archive-rehearsal'
     runs-on: ubuntu-latest
     timeout-minutes: 300
     defaults:
       run:
         shell: bash
     steps:
-      - name: Check out rehearsal controller and published app
+      - &checkout
+        name: Check out rehearsal controller
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up pnpm
+      - &pnpm
+        name: Set up pnpm
         uses: pnpm/action-setup@v6.1.1
-      - name: Set up Node
+      - &node
+        name: Set up Node
         uses: actions/setup-node@v7.1.0
         with:
           node-version-file: .nvmrc
-      - name: Install the published app
+      - &install
+        name: Install the pinned app
         run: |
           umask 077
           start=$SECONDS
           directory=$(mktemp -d "$RUNNER_TEMP/cd4-october.XXXXXXXX")
           app="$directory/app"
-          git worktree add --quiet --detach "$app" 92bc2ba4d918fc04f57d837749d577844398db79
-          mkdir "$directory/full" "$directory/daily"
+          app_commit=$(cat .github/benchmarks/october-app-commit.txt)
+          if [[ ! "$app_commit" =~ ^[0-9a-f]{40}$ ]]; then echo 'A reviewed product SHA is required'; exit 1; fi
+          git merge-base --is-ancestor "$app_commit" HEAD
+          git worktree add --quiet --detach "$app" "$app_commit"
+          mkdir "$directory/full" "$directory/daily" "$directory/reference"
           if ! pnpm --dir "$app" install --prod=false --frozen-lockfile >"$directory/install.log" 2>&1; then
-            echo 'Published app installation failed'
+            echo 'Pinned app installation failed'
             exit 1
           fi
           {
             printf 'CD_REHEARSAL_HOME=%s\n' "$directory"
+            printf 'CD_REHEARSAL_APP_COMMIT=%s\n' "$app_commit"
             printf 'CD_REHEARSAL_APP_ROOT=%s\n' "$app"
           } >> "$GITHUB_ENV"
-          printf 'Published app install and checkout seconds: %d\n' "$((SECONDS-start))"
+          printf 'Pinned app install and checkout seconds: %d\n' "$((SECONDS-start))"
           printf 'Available bytes after install: %s\n' "$(df -B1 --output=avail "$directory" | tail -1 | tr -d ' ')"
       - name: Start isolated PostgreSQL
         run: |
@@ -119,7 +127,8 @@ jobs:
           docker rm --force --volumes cd4-october-postgres > /dev/null
           rm -rf -- "${CD_REHEARSAL_HOME:?}/full"
       - name: Run October 8 production daily against the local rehearsal store
-        env:
+        id: daily
+        env: &oct8
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: "1"
           NODE_OPTIONS: --max-old-space-size=3072
@@ -139,9 +148,75 @@ jobs:
             node "$app_controller" daily 3>&1 > "$CD_REHEARSAL_HOME/daily.log" 2>&1 || status=$?
           if [[ -f "$CD_REHEARSAL_HOME/daily-metrics.json" ]]; then
             tee -a "$GITHUB_STEP_SUMMARY" < "$CD_REHEARSAL_HOME/daily-metrics.json"
+            node "$GITHUB_WORKSPACE/.github/benchmarks/compare-october-release.cjs" receipt "$CD_REHEARSAL_HOME/daily-metrics.json" "$CD_REHEARSAL_HOME/full-metrics.json" > "$CD_REHEARSAL_HOME/daily-receipt.json"
           elif [[ -f "$CD_REHEARSAL_HOME/daily-failure.json" ]]; then
             cat "$CD_REHEARSAL_HOME/daily-failure.json"
           fi
-          if [[ "$status" == 2 ]]; then echo 'October 8 inventory or retained CSV differs from the reference'; fi
+          if [[ "$status" == 2 ]]; then echo 'October 8 daily row count or retained CSV differs'; fi
           if [[ "$status" == 1 ]]; then echo 'October 8 daily rehearsal failed'; fi
           exit "$status"
+      - name: Upload daily aggregate inventory receipt
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: october-daily-inventory-receipt
+          path: ${{ env.CD_REHEARSAL_HOME }}/daily-receipt.json
+          if-no-files-found: error
+          retention-days: 5
+
+  reference:
+    if: github.repository == 'ddkuiauou-ai/cd4' && github.ref == 'refs/heads/codex/r2-october-archive-rehearsal'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *checkout
+      - *pnpm
+      - *node
+      - *install
+      - name: Build October 8 independently from the verified production DB
+        id: reference
+        env: *oct8
+        run: |
+          umask 077
+          app_controller="$GITHUB_WORKSPACE/.github/benchmarks/october-release.cjs"
+          cd "$CD_REHEARSAL_APP_ROOT"
+          status=0
+          STATIC_RELEASE_HOME="$CD_REHEARSAL_HOME/reference" \
+            node "$app_controller" reference 3>&1 > "$CD_REHEARSAL_HOME/reference.log" 2>&1 || status=$?
+          if [[ -f "$CD_REHEARSAL_HOME/reference-metrics.json" ]]; then
+            tee -a "$GITHUB_STEP_SUMMARY" < "$CD_REHEARSAL_HOME/reference-metrics.json"
+            node "$GITHUB_WORKSPACE/.github/benchmarks/compare-october-release.cjs" receipt "$CD_REHEARSAL_HOME/reference-metrics.json" > "$CD_REHEARSAL_HOME/reference-receipt.json"
+          elif [[ -f "$CD_REHEARSAL_HOME/reference-failure.json" ]]; then
+            cat "$CD_REHEARSAL_HOME/reference-failure.json"
+          fi
+          if [[ "$status" != 0 ]]; then echo 'October 8 independent full build failed'; fi
+          exit "$status"
+      - name: Upload independent aggregate inventory receipt
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: october-reference-inventory-receipt
+          path: ${{ env.CD_REHEARSAL_HOME }}/reference-receipt.json
+          if-no-files-found: error
+          retention-days: 5
+
+  compare:
+    needs: [rehearse, reference]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - *checkout
+      - *node
+      - name: Download daily aggregate inventory receipt
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: october-daily-inventory-receipt
+          path: receipts/daily
+      - name: Download independent aggregate inventory receipt
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: october-reference-inventory-receipt
+          path: receipts/reference
+      - name: Verify the complete active object inventories
+        run: node .github/benchmarks/compare-october-release.cjs compare receipts/daily/daily-receipt.json receipts/reference/reference-receipt.json

@@ -13,18 +13,26 @@ if (process.env.RUNNER_OS !== 'Linux' || !home.startsWith(fs.realpathSync(proces
 
 const { buildRelease } = load('build-static-release');
 const { deploy } = load('deploy-static-r2');
-const { archiveSource } = load('static-portable-r2');
-const { readJson, writeJson, relativeFile, sha256, sourceFingerprint } = load('static-tools');
+const { archiveSource, registerPortableReferences } = load('static-portable-r2');
+const { readJson, writeJson, relativeFile, outputFileForRoute, sha256, sourceFingerprint } = load('static-tools');
 const { jsonHash } = load('static-release-store');
 const { execFileSync } = require('node:child_process');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
-const expected = readJson(path.resolve(__dirname, '../scripts/verify-october-benchmark-expectation.json'));
 const appFingerprint = sourceFingerprint();
-if (commit !== expected.appCommit || appFingerprint !== '4e7b25a62aa3361d58828db7cff07ef1c1e74828455ba37694c5ba79d47e4d10') {
-  throw new Error('Rehearsal application does not match the published source');
+if (!/^[a-f0-9]{40}$/.test(commit) || commit !== process.env.CD_REHEARSAL_APP_COMMIT) {
+  throw new Error('Rehearsal application does not match the pinned commit');
+}
+if (['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'].some(name => process.env[name])) {
+  throw new Error('Rehearsal environment includes production object-store credentials');
 }
 const local = path.join(home, 'mock-object-store');
 const stateFile = 'cd-release/current.json';
+const sampledDetails = [
+  'security/KOSPI.005930/per/index.html',
+  'security/KOSDAQ.084180/marketcap/index.html',
+  'security/KOSDAQ.084180/per/index.html',
+  'security/KOSPI.000885/marketcap/index.html',
+];
 const day7 = '2026-10-07', day8 = '2026-10-08';
 const config = { publicBucket: 'rehearsal-public', stateBucket: 'rehearsal-private', origin: new URL('https://local.invalid') };
 
@@ -34,8 +42,14 @@ function fileFor(bucket, key) {
 }
 
 const timings = {};
+const observedPublicFamilies = {};
 let privateArchiveStarted;
-const stats = { publicPuts: 0, publicBytes: 0, deletes: 0, privatePutObjects: 0, privatePutBytes: 0 };
+const stats = {
+  publicPuts: 0, publicBytes: 0, deletes: 0, privatePutObjects: 0, privatePutBytes: 0,
+  privateSourcePuts: 0, privateSourceBytes: 0, privateOutputPuts: 0, privateOutputBytes: 0,
+  privateJsonPuts: 0, privatePointerPuts: 0, privateListPasses: 0, privateListPages: 0,
+  privateGets: 0, privateGetBytes: 0, privateJsonGets: 0, privateDeletes: 0, bucketPreflightLists: 0,
+};
 let sampleMin = Infinity;
 function sample() {
   const { bavail, bsize } = fs.statfsSync(home);
@@ -74,9 +88,13 @@ async function parallel(items, count, work) {
 }
 
 const client = {
-  async checkBucket(bucket) { if (!Object.values(config).includes(bucket)) throw new Error('Unexpected local bucket'); },
+  async checkBucket(bucket) {
+    if (![config.publicBucket, config.stateBucket].includes(bucket)) throw new Error('Unexpected local bucket');
+    stats.bucketPreflightLists++;
+  },
   async getJson(bucket, key) {
     const file = fileFor(bucket, key);
+    stats.privateJsonGets++;
     return fs.existsSync(file) ? { value: readJson(file), etag: sha256(file) } : null;
   },
   async putJson(bucket, key, value, etag = null) {
@@ -90,6 +108,8 @@ const client = {
         throw Object.assign(new Error('Local object changed'), { code: 'R2_CONFLICT' });
       }
       writeJson(file, value);
+      if (key === stateFile) stats.privatePointerPuts++;
+      else stats.privateJsonPuts++;
       return sha256(file);
     });
   },
@@ -98,7 +118,12 @@ const client = {
       const destination = fileFor(config.stateBucket, key);
       if (sha256(file) !== hash) throw new Error('Local bundle digest mismatch');
       fs.mkdirSync(path.dirname(destination), { recursive: true });
-      try { fs.linkSync(file, destination); stats.privatePutObjects++; stats.privatePutBytes += bytes; }
+      const kind = key.startsWith('cd-release/portable/source/') ? 'Source' : 'Output';
+      stats.privatePutObjects++;
+      stats.privatePutBytes += bytes;
+      stats['private' + kind + 'Puts']++;
+      stats['private' + kind + 'Bytes'] += bytes;
+      try { fs.linkSync(file, destination); }
       catch (error) { if (error.code !== 'EEXIST' || sha256(destination) !== hash) throw error; }
     });
   },
@@ -107,6 +132,8 @@ const client = {
       const source = fileFor(config.stateBucket, key);
       if (fs.statSync(source).size !== bytes || sha256(source) !== hash) throw new Error('Local bundle verification failed');
       fs.linkSync(source, file);
+      stats.privateGets++;
+      stats.privateGetBytes += bytes;
     });
   },
   async putObject(bucket, operation, file) {
@@ -114,18 +141,34 @@ const client = {
       if (bucket !== config.publicBucket || fs.statSync(file).size !== operation.bytes) throw new Error('Unexpected public operation');
       stats.publicPuts++;
       stats.publicBytes += operation.bytes;
+    recordOperation(observedPublicFamilies, operation.key, operation.bytes);
       // The durable local inventory holds the simulated public objects. The
       // production publisher verifies each payload from the private bundle.
     });
   },
   async deleteKeys(bucket, keys) {
-    if (bucket === config.publicBucket) stats.deletes += keys.length;
-    else for (const key of keys) fs.rmSync(fileFor(bucket, key), { force: true });
+    if (bucket === config.publicBucket) {
+      stats.deletes += keys.length;
+      for (const key of keys) recordOperation(observedPublicFamilies, key);
+    } else {
+      stats.privateDeletes += keys.length;
+      for (const key of keys) fs.rmSync(fileFor(bucket, key), { force: true });
+    }
   },
   async *listPortableKeys() {
-    // Retain all local verification inputs until the ephemeral runner exits.
+    stats.privateListPasses++;
+    const prefix = 'cd-release/portable';
+    const root = fileFor(config.stateBucket, prefix);
+    const keys = fs.readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter(entry => entry.isFile()).map(entry => prefix + '/' + path.relative(root, path.join(entry.parentPath, entry.name)));
+    stats.privateListPages += Math.max(1, Math.ceil(keys.length / 1000));
+    yield* keys;
   },
 };
+
+function readRehearsalJson(key) {
+  return readJson(fileFor(config.stateBucket, key));
+}
 
 const safeName = key => key.startsWith('_next/static/') ? 'compiler'
   : key.endsWith('.html') ? 'html'
@@ -153,13 +196,16 @@ function aggregate(inventory) {
       bodySha256: digest(list.map(row => [row.key, row.bytes, row.sha256])),
       headerSha256: digest(list.map(row => [row.key, headerEntries(row)])) };
   }
-  const categories = Object.fromEntries(Object.keys(expected.categories).map(kind => [kind,
+  const categories = Object.fromEntries(['html', 'nextStatic', 'businessAssets', 'sitemapSearch', 'other'].map(kind => [kind,
     summarize(rows.filter(row => referenceKind(row.key) === kind))]));
   return { active: summarize(rows), categories, retainedKeys: inventory.objects.length - rows.length,
     retainedDatedCsv: inventory.objects.filter(row => active && !active.has(row.key) && safeName(row.key) === 'marketCsv').length };
 }
-function compareFields(reference, actual) {
-  return Object.fromEntries(Object.keys(reference).map(key => [key, reference[key] === actual[key]]));
+function sampleDigests(inventory, day) {
+  return [...sampledDetails, 'per/index.html', 'downloads/market/' + day + '.csv'].map(key => {
+    const object = inventory.objects.find(row => row.key === key);
+    return { key, recordSha256: object ? digest(publicRecord(object)) : null };
+  });
 }
 function metricsFile(mode, metrics) {
   writeJson(path.join(home, mode + '-metrics.json'), { appCommit: commit, appFingerprint, ...metrics });
@@ -168,7 +214,7 @@ function buildMetrics(report) {
   const manifest = readJson(path.join(report.source, 'manifest.json'));
   const stages = report.stages.map(stage => {
     let phaseTimings = stage.phaseTimings;
-    if (!phaseTimings && /^next-build-\d+$/.test(stage.name) && stage.logPath) {
+    if (!phaseTimings && /^next-build(?:-\d+)?$/.test(stage.name) && stage.logPath) {
       const output = fs.readFileSync(stage.logPath, 'utf8').replace(/\u001b\[[0-9;]*m/g, '');
       const labels = { compile: /Compiled successfully in ([\d.]+)(ms|s|min)/,
         typecheck: /Finished TypeScript in ([\d.]+)(ms|s|min)/,
@@ -182,15 +228,87 @@ function buildMetrics(report) {
       peakRssBytes: stage.resources?.sampledPeakRssBytes, phaseTimings };
   });
   const queries = manifest.extraction?.databaseQueries;
+  const source = {
+    publicationsSha256: digest(Object.entries(manifest.sourcePublications).sort(([a], [b]) => lexical(a, b))),
+    sourceIndexDigest: manifest.sourceIndexDigest,
+    revisions: [...new Set(Object.values(manifest.sourceRevisions))].sort(lexical),
+  };
   return { day: manifest.referenceDate, rows: manifest.marketCsv?.rowCount, affectedDocuments: report.selection?.changed.length,
-    stages, databaseReads: queries && { statements: queries.total, phases: queries.phases, secondsByPhase: queries.phaseSeconds } };
+    source, stages, databaseReads: queries && { statements: queries.total, phases: queries.phases, secondsByPhase: queries.phaseSeconds } };
+}
+function archiveAudit(report, previous) {
+  const manifest = readJson(path.join(report.source, 'manifest.json'));
+  const listed = new Set(readJson(path.join(report.source, 'search-security-ids.json')));
+  const identities = readJson(path.join(report.source, 'identities.json'));
+  const byId = new Map(identities.map(row => [row.securityId, row]));
+  const operators = new Set(identities.filter(row => listed.has(row.securityId)).map(row => row.companyId).filter(Boolean));
+  const changed = new Set(report.selection.changed);
+  const htmlPuts = new Set(report.plan.operations.filter(row => row.action === 'put' && row.key.endsWith('.html')).map(row => row.key));
+  const inventory = report.plan.inventory;
+  const active = new Set(inventory.activeKeys);
+  const objects = new Map(inventory.objects.map(row => [row.key, row]));
+  const oldObjects = new Map(previous?.inventory.objects.map(row => [row.key, row]));
+  const documents = report.state.documents;
+  const oldDocuments = previous?.portable.state.documents;
+  const cohorts = {};
+  const evidence = [];
+  const controls = [];
+  for (const { path: address } of manifest.routes) {
+    const [, kind, code] = decodeURIComponent(address).split('/');
+    let cohort = 'other';
+    if (kind === 'security') {
+      const row = byId.get(manifest.securityAliases[code]);
+      cohort = listed.has(row.securityId) ? 'listedSecurity'
+        : row.companyId && operators.has(row.companyId) ? 'closedSecurityWithListedSibling' : 'closedSecurity';
+    } else if (kind === 'company') {
+      cohort = operators.has(manifest.companyAliases[code]) ? 'companyWithListedMember' : 'companyWithoutListedMember';
+    }
+    const key = outputFileForRoute(address);
+    const object = objects.get(key);
+    const dependencies = documents[key];
+    const rendered = changed.has(address);
+    const exported = fs.existsSync(path.join(report.output, key)) || report.compressedHtml?.has(key) === true;
+    const put = htmlPuts.has(key);
+    const prior = oldObjects.get(key);
+    const sameBytesAndHeaders = Boolean(prior && object && digest(publicRecord(prior)) === digest(publicRecord(object)));
+    const sameDependencies = Boolean(dependencies && oldDocuments?.[key] && digest(dependencies) === digest(oldDocuments[key]));
+    const valid = Boolean(object && active.has(key) && dependencies?.every(dep => active.has(dep) && objects.has(dep)));
+    const row = cohorts[cohort] ??= { routes: 0, plannedRender: 0, exported: 0, put: 0,
+      skipped: 0, retainedExact: 0, invalidDependencies: 0 };
+    row.routes++;
+    if (rendered) row.plannedRender++;
+    if (exported) row.exported++;
+    if (put) row.put++;
+    if (!rendered && !exported) {
+      row.skipped++;
+      if (sameBytesAndHeaders && sameDependencies && !put) row.retainedExact++;
+    }
+    if (!valid) row.invalidDependencies++;
+    const recordsDigest = (dependencies, inventory) => dependencies?.every(dep => inventory.has(dep))
+      ? digest(dependencies.map(dep => publicRecord(inventory.get(dep)))) : null;
+    if (sampledDetails.includes(key)) controls.push({ cohort, key, plannedRender: rendered, exported, put,
+      previousSha256: prior?.sha256 ?? null, currentSha256: object?.sha256 ?? null, sameBytesAndHeaders, sameDependencies,
+      dependencyCount: dependencies?.length ?? 0, dependencySha256: recordsDigest(dependencies, objects),
+      previousDependencySha256: recordsDigest(oldDocuments?.[key], oldObjects) });
+    const meaningfulChart = dependencies?.some(dep => dep.startsWith('static-data/') && dep.endsWith('.json'));
+    if (!rendered && !exported && sameBytesAndHeaders && sameDependencies && !put && meaningfulChart
+      && !evidence.some(sample => sample.cohort === cohort)) {
+      evidence.push({ cohort, key, previousSha256: prior.sha256, currentSha256: object.sha256,
+        dependencyCount: dependencies.length, dependencySha256: recordsDigest(dependencies, objects),
+        previousDependencySha256: recordsDigest(oldDocuments[key], oldObjects) });
+    }
+  }
+  return { fallback: Boolean(report.fallback), cohorts, evidence, controls };
+}
+
+function recordOperation(families, key, bytes) {
+  const family = families[safeName(key)] ??= { puts: 0, bytes: 0, deletes: 0 };
+  if (bytes === undefined) family.deletes++;
+  else { family.puts++; family.bytes += bytes; }
 }
 function operationMetrics(ops) {
   const result = {};
-  for (const { key, action, bytes } of ops) {
-    const family = result[safeName(key)] ??= { puts: 0, bytes: 0, deletes: 0 };
-    if (action === 'put') { family.puts++; family.bytes += bytes; } else family.deletes++;
-  }
+  for (const { key, action, bytes } of ops) recordOperation(result, key, action === 'put' ? bytes : undefined);
   return result;
 }
 async function full() {
@@ -201,19 +319,35 @@ async function full() {
     day: day7, candidateOnly: true, previousRelease: null, previousState: null, clean: true }));
   if (!report.success || report.day !== day7 || !report.plan || !report.state) throw new Error('October 7 full rehearsal did not complete');
   const descriptor = { version: 1, mode: 'full', run: path.basename(report.run), releaseId: report.releaseId, commit,
-    day: day7, inventory: report.plan.inventory };
+    day: day7, baseCandidateId: null, inventory: report.plan.inventory };
   descriptor.portable = await measure('fullPrivateArchiveSeconds', () => archiveSource({ client, state: report.state,
     run: descriptor.run, temporary: stage, parallel }));
   const candidateId = jsonHash(descriptor);
   await client.putJson(config.stateBucket, 'cd-release/candidates/' + candidateId + '.json', descriptor);
+  await registerPortableReferences(client, config.stateBucket, candidateId, descriptor);
   await client.putJson(config.stateBucket, stateFile, { version: 1, current: { releaseId: descriptor.releaseId,
     candidateId, commit, day: day7, portable: descriptor.portable.head }, previous: null, pending: null });
-  metricsFile('full', { ...buildMetrics(report), timings, ...aggregate(descriptor.inventory), minFreeBytes: sampleMin,
+  metricsFile('full', { ...buildMetrics(report), timings, ...aggregate(descriptor.inventory),
+    samples: sampleDigests(descriptor.inventory, day7), minFreeBytes: sampleMin,
     localPortableBundleWrites: stats.privatePutObjects, localPortableBundleBytes: stats.privatePutBytes });
+}
+async function reference() {
+  if (process.env.DATABASE_URL || process.env.STATIC_RELEASE_POSTGRES_TLS !== 'verify-full') {
+    throw new Error('October 8 reference requires explicit TLS production read fields');
+  }
+  const report = await measure('independentFullBuildSeconds', () => buildRelease({ store: path.join(stage, 'store'),
+    independent: true, day: day8, candidateOnly: true, previousRelease: null, previousState: null, clean: true }));
+  if (!report.success || report.day !== day8 || !report.plan) throw new Error('October 8 independent full rehearsal did not complete');
+  const inventory = report.plan.inventory;
+  const metrics = buildMetrics(report);
+  metricsFile('reference', { ...metrics, timings, actual: aggregate(inventory), archiveAudit: await measure('archiveEvidenceSeconds', () => archiveAudit(report)),
+    samples: sampleDigests(inventory, day8), minFreeBytes: sampleMin, remoteR2Reads: 0, remoteR2Writes: 0, productionDbWrites: 0 });
+  if (metrics.rows !== 2872) process.exitCode = 2;
 }
 async function daily() {
   if (process.env.DATABASE_URL || process.env.STATIC_RELEASE_POSTGRES_TLS !== 'verify-full') throw new Error('Daily rehearsal requires explicit TLS production read fields');
-  let metrics;
+  let metrics, audit;
+  const previous = readRehearsalJson('cd-release/candidates/' + readRehearsalJson(stateFile).current.candidateId + '.json');
   const result = await measure('dailyTotalLocalReplaySeconds', () => deploy({ mode: 'daily', store: path.join(stage, 'store'), commit, day: day8 },
     { client, config, async build(options) {
       const restore = options.portable.restoreSource;
@@ -224,44 +358,58 @@ async function daily() {
         throw new Error('October 8 daily did not build: ' + reason);
       }
       metrics = buildMetrics(report);
+      audit = await measure('archiveEvidenceSeconds', () => archiveAudit(report, previous));
       privateArchiveStarted = performance.now();
       return report;
     } }));
   if (!result.putKeys || stats.publicPuts !== result.putKeys || stats.publicBytes !== result.putBytes || stats.deletes !== result.deleteKeys) {
     throw new Error('Daily replay operation totals did not match the production plan');
   }
-  const { value: { current } } = await client.getJson(config.stateBucket, stateFile);
-  const { value: descriptor } = await client.getJson(config.stateBucket, 'cd-release/candidates/' + current.candidateId + '.json');
+  const pointer = readRehearsalJson(stateFile);
+  const descriptor = readRehearsalJson('cd-release/candidates/' + pointer.current.candidateId + '.json');
+  const plannedFamilies = operationMetrics(descriptor.operations);
+  if (digest(Object.entries(plannedFamilies).sort(([a], [b]) => lexical(a, b)))
+    !== digest(Object.entries(observedPublicFamilies).sort(([a], [b]) => lexical(a, b)))) {
+    throw new Error('Daily replay observed family totals differ from the production plan');
+  }
   timings.dailyBuildUnattributedSeconds = Math.max(0, timings.dailyBuildSeconds - (timings.localPortableRestoreSeconds ?? 0)
     - metrics.stages.reduce((total, row) => total + (row.seconds ?? 0), 0));
   timings.dailyLocalPublicationAndCleanupSeconds = Math.max(0, timings.dailyTotalLocalReplaySeconds
-    - timings.dailyBuildSeconds - (timings.dailyPrivateArchiveSeconds ?? 0));
+    - timings.dailyBuildSeconds - (timings.archiveEvidenceSeconds ?? 0) - (timings.dailyPrivateArchiveSeconds ?? 0));
   const actual = aggregate(descriptor.inventory);
-  const { value: pointer } = await client.getJson(config.stateBucket, stateFile);
-  const { value: baseline } = await client.getJson(config.stateBucket, 'cd-release/candidates/' + pointer.previous.candidateId + '.json');
+  const baseline = readRehearsalJson('cd-release/candidates/' + pointer.previous.candidateId + '.json');
   const oct7Csv = 'downloads/market/' + day7 + '.csv';
   const priorCsv = baseline.inventory.objects.find(row => row.key === oct7Csv);
   const retainedCsv = descriptor.inventory.objects.find(row => row.key === oct7Csv);
   const oct7DatedCsvRetained = Boolean(priorCsv && retainedCsv && !descriptor.inventory.activeKeys.includes(oct7Csv)
     && digest(publicRecord(priorCsv)) === digest(publicRecord(retainedCsv)));
-  const comparison = { exact: expected.active.recordSha256 === actual.active.recordSha256,
-    active: compareFields(expected.active, actual.active), oct7DatedCsvRetained,
-    categories: Object.fromEntries(Object.entries(actual.categories)
-      .map(([kind, fields]) => [kind, compareFields(expected.categories[kind], fields)])),
-    samples: expected.samples.map(row => {
-      const object = descriptor.inventory.objects.find(candidate => candidate.key === row.key);
-      return { key: row.key, matches: Boolean(object && digest(publicRecord(row)) === digest(publicRecord(object))) };
-    }) };
-  metricsFile('daily', { ...metrics, timings, putKeys: result.putKeys, putBytes: result.putBytes, deleteKeys: result.deleteKeys,
-    operations: operationMetrics(descriptor.operations), actual, comparison, minFreeBytes: sampleMin,
-    expectedRelease: expected.referenceReleaseId, remoteR2Writes: 0, productionDbWrites: 0, simulated: stats });
-  if (!comparison.exact || !oct7DatedCsvRetained || metrics.rows !== 2872) process.exitCode = 2;
+  timings.dailyTotalWithoutEvidenceSeconds = timings.dailyTotalLocalReplaySeconds - timings.archiveEvidenceSeconds;
+  const duplicateBefore = { ...stats };
+  const duplicate = await measure('samePublicationNoopSeconds', () => deploy({
+    mode: 'daily', store: path.join(stage, 'store'), commit, day: day8,
+  }, { client, config }));
+  const samePublication = {
+    reason: duplicate.reason === 'same-publication' ? duplicate.reason : 'unexpected',
+    publicPuts: stats.publicPuts - duplicateBefore.publicPuts,
+    privateObjectPuts: stats.privatePutObjects - duplicateBefore.privatePutObjects,
+    privateControlPuts: stats.privateJsonPuts - duplicateBefore.privateJsonPuts,
+    privatePointerPuts: stats.privatePointerPuts - duplicateBefore.privatePointerPuts,
+    privateObjectGets: stats.privateGets - duplicateBefore.privateGets,
+    publicDeletes: stats.deletes - duplicateBefore.deletes,
+  };
+  metricsFile('daily', { ...metrics, timings, samePublication, putKeys: result.putKeys, putBytes: result.putBytes, deleteKeys: result.deleteKeys,
+    operations: observedPublicFamilies, actual, oct7DatedCsvRetained, archiveAudit: audit,
+    samples: sampleDigests(descriptor.inventory, day8), minFreeBytes: sampleMin,
+    remoteR2Reads: 0, remoteR2Writes: 0, productionDbWrites: 0, simulated: duplicateBefore });
+  if (!oct7DatedCsvRetained || metrics.rows !== 2872 || samePublication.reason !== 'same-publication'
+    || Object.values(samePublication).some(value => typeof value === 'number' && value !== 0)) process.exitCode = 2;
 }
 (async () => {
   const mode = process.argv[2];
   if (mode === 'full') await full();
   else if (mode === 'daily') await daily();
-  else throw new Error('Expected rehearsal mode full or daily');
+  else if (mode === 'reference') await reference();
+  else throw new Error('Expected rehearsal mode full, daily or reference');
 })().catch(error => {
   const safe = /^(?:October [78] |Daily replay |Full rehearsal |Daily rehearsal )/.test(error.message) ? error.message : 'Rehearsal stage failed';
   const stages = fs.existsSync(path.join(stage, 'release-builds')) ? fs.readdirSync(path.join(stage, 'release-builds')).flatMap(run => {
@@ -270,7 +418,7 @@ async function daily() {
     return readJson(filename).stages.map(({ name, seconds, code, signal, disk }) => ({ name, seconds, code, signal,
       stoppedForDisk: disk?.stoppedForDisk }));
   }) : [];
-  if (process.argv[2] === 'full' || process.argv[2] === 'daily') {
+  if (['full', 'daily', 'reference'].includes(process.argv[2])) {
     writeJson(path.join(home, process.argv[2] + '-failure.json'), { failure: safe, stages, timings, minFreeBytes: sampleMin });
   }
   console.error(safe);
