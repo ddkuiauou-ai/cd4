@@ -19,7 +19,9 @@ const daily = releaseMode === 'daily';
 const portableDaily = daily && process.env.STATIC_RELEASE_PORTABLE === '1';
 const publicationCheck = process.argv.includes('--publication-check');
 const indexed = process.env.STATIC_BUILD_SOURCE_INDEX === '1' && !process.env.STATIC_BUILD_SAMPLE;
-const privateDigests = { security: {}, company: {}, archivedSecurities: [], companyMembers: {} };
+const privateDigests = {
+  security: Object.create(null), company: Object.create(null), archivedSecurities: [], companyMembers: Object.create(null),
+};
 const historySources = Object.create(null);
 const metrics = ['marketcap', 'per', 'pbr', 'bps', 'eps', 'div', 'dps'];
 const { db, closeDatabase } = require('../db/index.ts');
@@ -415,7 +417,7 @@ async function extract(tx, started, generatedAt) {
   queryCounter.phase('company-assembly');
   const rankedCompanies = raw.companies.filter(row => isCurrentResult(row, coPub) && row.rankingState === 'included')
     .sort((a,b) => a.marketcapRank-b.marketcapRank || a.companyId.localeCompare(b.companyId));
-  const companyAssetIndex = {};
+  const companyAssetIndex = Object.create(null);
   const priorCompanyAssets = dayPlan && oldManifest.separatedCompanyAssets
     ? JSON.parse(fs.readFileSync(path.join(previous, 'company-assets.json'), 'utf8')) : {};
   const adjacentCompanyRanks = rankNeighborsByValue(rankedCompanies, item => item.marketcapRank);
