@@ -30,7 +30,8 @@ function routeFingerprints(input, manifest) {
     return digests[kind][id] = sha256(source);
   }
   const companyMemo = new Map();
-  const companyMembers = id => digests.companyMembers?.[id] ?? members.get(id) ?? [];
+  const hasCompanyMembers = id => digests.companyMembers && Object.hasOwn(digests.companyMembers, id);
+  const companyMembers = id => hasCompanyMembers(id) ? digests.companyMembers[id] : members.get(id) ?? [];
   function company(id) {
     if (!id) return null;
     if (!companyMemo.has(id)) {
@@ -64,7 +65,7 @@ function routeFingerprints(input, manifest) {
     }
     if (kind === 'company') {
       const id = manifest.companyAliases[code];
-      const active = !digests.companyMembers || companyMembers(id).length > 0;
+      const active = !hasCompanyMembers(id) || companyMembers(id).length > 0;
       return [address, hash([company(id), manifest.companyRoutes?.[id], active ? publishedDay : null])];
     }
     if (address === '/') return [address, hash([rankPage('marketcaps', 1), manifest.marketCsv, publishedDay])];
