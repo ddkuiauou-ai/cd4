@@ -19,7 +19,7 @@ const daily = releaseMode === 'daily';
 const portableDaily = daily && process.env.STATIC_RELEASE_PORTABLE === '1';
 const publicationCheck = process.argv.includes('--publication-check');
 const indexed = process.env.STATIC_BUILD_SOURCE_INDEX === '1' && !process.env.STATIC_BUILD_SAMPLE;
-const privateDigests = { security: {}, company: {} };
+const privateDigests = { security: {}, company: {}, archivedSecurities: [], companyMembers: {} };
 const historySources = Object.create(null);
 const metrics = ['marketcap', 'per', 'pbr', 'bps', 'eps', 'div', 'dps'];
 const { db, closeDatabase } = require('../db/index.ts');
@@ -31,6 +31,7 @@ const { toDataDTO, businessDate } = require('../lib/data/dto.ts');
 const { readSnapshot, isCurrentResult, publicationState, SECURITY_PUBLICATION_KEY } = require('../lib/data/publication.ts');
 const { listedSecurityPeriods } = require('../lib/data/listed-security-periods.ts');
 const { STATIC_SEARCH_SECURITY_IDS_FILE } = require('../lib/static-build/server.ts');
+const { archivedSecurityThrough, archivedSecurityRenderSource, archivedCompanyRenderSource } = require('../lib/static-build/archived-detail.ts');
 const { readPrivateHistory, encodePrivateHistory, normalizeLegacyHistory } = require('../lib/static-build/private-history.ts');
 const { readPrivateJsonText } = require('../lib/static-build/read-private-json.ts');
 const { currentSecurity } = require('../lib/data/security.ts');
@@ -51,13 +52,13 @@ const { createFrozenArenaAccumulator } = require('../lib/static-build/frozen-are
 const { FILE: SOURCE_INDEX, buildSourceIndex, rankNeighborsByValue } = require('./static-source-index.cjs');
 const { checkStaticDatabaseAccess } = require('./check-static-db-access.cjs');
 
-function writeJson(relative, value) {
+function writeJson(relative, value, renderSource) {
   const compact = compactPrivate && /^data\/(security|company)\//.test(relative);
   const file = path.join(work, compact ? relative + '.gz' : relative);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const json = JSON.stringify(value);
   const entity = /^data\/(security|company)\/([^/]+)\.json$/.exec(relative);
-  if (entity && indexed) privateDigests[entity[1]][entity[2]] = digest(json);
+  if (entity && indexed) privateDigests[entity[1]][entity[2]] = digest(renderSource ? JSON.stringify(renderSource) : json);
   fs.writeFileSync(file, compact ? gzipSync(json, { level: 1 }) : json);
 }
 const digest = data => crypto.createHash('sha256').update(data).digest('hex');
@@ -238,9 +239,10 @@ async function extract(tx, started, generatedAt) {
     batchMemory.peakHeapUsedBytes = Math.max(batchMemory.peakHeapUsedBytes, memory.heapUsed);
   };
   const batchStarted = performance.now();
-  const year = businessDate(secPub?.asOf)?.slice(0, 4);
+  const publicationDay = businessDate(secPub?.asOf);
+  const year = publicationDay?.slice(0, 4);
   const companyYear = businessDate((coPub ?? secPub)?.asOf)?.slice(0, 4);
-  const packs = indexed && year ? createHistoryPackIndex({ cutoff: businessDate(secPub.asOf),
+  const packs = indexed && year ? createHistoryPackIndex({ cutoff: publicationDay,
     companyCutoff: businessDate(coPub?.asOf), writer: assetWriter }) : null;
   const priorAssets = new Map((oldManifest?.assets ?? []).map(entry => ['/' + entry.path, entry]));
   const inheritedAssets = new Map();
@@ -258,12 +260,19 @@ async function extract(tx, started, generatedAt) {
       else if (error.code !== 'EEXIST') throw error;
     }
   }
-  function nextPack(key, rows, columns, prior, { pair, splitYear = year } = {}) {
-    const reuse = dayPlan && prior && (prior.currentStart === splitYear + '-01-01' || (!prior.current && !prior.currentDates))
+  function nextPack(key, rows, columns, prior, { pair, through, splitYear = through?.slice(0, 4) ?? year } = {}) {
+    if (dayPlan && through && prior?.cutoff === through) {
+      inheritAsset(prior.archive);
+      inheritAsset(prior.current);
+      return prior;
+    }
+    const splitDay = splitYear + '-01-01';
+    const reuse = dayPlan && prior && (prior.currentStart === splitDay
+      || !prior.current && (!prior.archive || prior.archiveDates?.[1] < splitDay))
       ? prior : undefined;
     if (reuse) inheritAsset(reuse.archive);
     return packs.add(key, table(reuse ? rows.filter(row => row.date.startsWith(splitYear)) : rows, columns, Boolean(pair)),
-      { original: null, pair, previousArchive: reuse });
+      { original: null, pair, previousArchive: reuse, through });
   }
   function persistHistory(id, archive, companyCaps, priorParts) {
     const prefix = 'data/security-history/' + digest(id).slice(0, 32);
@@ -352,16 +361,20 @@ async function extract(tx, started, generatedAt) {
       const oldYearly = oldFiles.get(id)?.assets.yearly;
       const priceColumns = ['date','open','high','low','close','volume','fvolume','transaction','rate'];
       const capColumns = ['date','marketcap','shares'];
+      const through = packs && !listed.has(id) ? archivedSecurityThrough(security, publicationDay,
+        Object.values(archive).map(rows => rows.at(-1)?.date)) : undefined;
+      if (through) privateDigests.archivedSecurities.push(id);
       let refs;
       if (packs) {
         const paired = {};
         for (const [first, second] of PAIRS) {
           const columns = ['date', first, first + 'State', first + 'Present', second, second + 'State', second + 'Present'];
-          const pack = nextPack(id + '/' + first, archive.metrics, columns, oldYearly?.metrics?.[first], { pair: [first, second] });
+          const pack = nextPack(id + '/' + first, archive.metrics, columns, oldYearly?.metrics?.[first], { pair: [first, second], through });
           paired[first] = pack; paired[second] = pack;
         }
-        refs = { yearly: { prices: nextPack(id + '/price', archive.prices, priceColumns, oldYearly?.prices),
-          marketcap: nextPack(id + '/marketcap', archive.marketcaps, capColumns, oldYearly?.marketcap), metrics: paired } };
+        refs = { yearly: { prices: nextPack(id + '/price', archive.prices, priceColumns, oldYearly?.prices, { through }),
+          marketcap: nextPack(id + '/marketcap', archive.marketcaps, capColumns, oldYearly?.marketcap, { through }), metrics: paired },
+          historyCutoff: through };
       } else {
         refs = {
           prices: asset(`security/${id}/prices`, table(archive.prices, priceColumns)),
@@ -375,11 +388,13 @@ async function extract(tx, started, generatedAt) {
       for (const metric of metrics) {
         const publication = publications.get(`security_rank/krx-all/${metric}`);
         const index = byMetric.get(metric), row = index.byId.get(id), rank = row?.currentRank;
+        const rankDate = businessDate(publication?.asOf);
+        if (through && rankDate && rankDate > through && (security.selectedPeriod || !row)) continue;
         const [previousRow, next] = index.neighbors(rank);
         rankings[metric] = { ranking: { ...publicationState(publication ?? null), currentRank: row?.currentRank ?? null,
           priorRank: row?.priorRank ?? null, rankingState: row?.rankingState ?? null, exclusionReason: row?.exclusionReason ?? null,
           value: row?.value == null ? null : String(row.value), valueObservedAt: row?.valueObservedAt ? businessDate(row.valueObservedAt) : null,
-          rankDate: publication ? businessDate(publication.asOf) : null }, neighbors: [previousRow,next].filter(Boolean).map(neighbor) };
+          rankDate }, neighbors: [previousRow,next].filter(Boolean).map(neighbor) };
       }
       if (indexed && member.companyId && neededCompanies.has(member.companyId)) {
         companyInputs.set(id, { companyMember, assets: refs, prices: security.prices.slice(0, 1) });
@@ -389,7 +404,8 @@ async function extract(tx, started, generatedAt) {
         ? { security: { ...security, prices: [], marketcaps: [] }, metrics: [],
           historyParts: persistHistory(id, archive, rawCompanyMarketcaps, oldFiles.get(id)?.historyParts), assets: refs, rankings }
         : indexed ? { security: { ...security, prices: [], marketcaps: [] }, metrics: [], rawCompanyMarketcaps, archive, assets: refs, rankings }
-        : { security, metrics: history, companyMember, allMarketcaps, rawCompanyMarketcaps, archive, assets: refs, rankings });
+        : { security, metrics: history, companyMember, allMarketcaps, rawCompanyMarketcaps, archive, assets: refs, rankings },
+      through ? archivedSecurityRenderSource(security, refs, rankings) : undefined);
       completed++; if (completed % 50 === 0) console.log(`Prepared securities ${completed}/${neededSecurities.size}`);
     }
     recordBatchMemory();
@@ -407,6 +423,7 @@ async function extract(tx, started, generatedAt) {
     const row = coById.get(id), allMembers = members.get(id) || [];
     const sources = indexed ? companyInputs : new Map(allMembers.map(member => [member.securityId, readSecurity(member.securityId)]));
     const active = allMembers.filter(member => sources.get(member.securityId).companyMember);
+    if (indexed) privateDigests.companyMembers[id] = active.map(member => member.securityId);
     const historiesById = new Map(active.map(member => [member.securityId, indexed
       ? JSON.parse(fs.readFileSync(compactMemberHistory(member.securityId), 'utf8')).map(([date, marketcap]) => ({ securityId: member.securityId, date, marketcap }))
       : sources.get(member.securityId).allMarketcaps]));
@@ -447,8 +464,8 @@ async function extract(tx, started, generatedAt) {
     let refs;
     if (packs) {
       const priorCompanyIndex = dayPlan && oldManifest.separatedCompanyAssets ? priorCompanyAssets[id] : undefined;
-      refs = { yearly: { companyHistory: nextPack(id + '/company', registeredHistory,
-        companyColumns, priorCompanyIndex?.yearly?.companyHistory, { splitYear: companyYear }),
+      refs = { yearly: { companyHistory: active.length || registeredHistory.length ? nextPack(id + '/company', registeredHistory,
+        companyColumns, priorCompanyIndex?.yearly?.companyHistory, { splitYear: companyYear }) : {},
         prices: representativeAssets?.yearly?.prices } };
     } else {
       refs = { companyHistory: asset(`company/${id}/history`, table(registeredHistory, companyColumns)),
@@ -458,7 +475,8 @@ async function extract(tx, started, generatedAt) {
         refs.memberPrices[member.securityId] = sources.get(member.securityId).assets.prices;
       }
     }
-    writeJson(`data/company/${id}.json`, { company, companySecs, assets: refs, neighbors });
+    writeJson(`data/company/${id}.json`, { company, companySecs, assets: refs, neighbors },
+      indexed && !active.length ? archivedCompanyRenderSource(company, refs, neighbors) : undefined);
     if (indexed) companyAssetIndex[id] = refs;
     else for(const member of allMembers){ const source=sources.get(member.securityId);source.assets.companyHistory=refs.companyHistory;
       source.assets.memberMarketcaps=refs.memberMarketcaps;source.assets.memberPrices=refs.memberPrices;

@@ -42,12 +42,12 @@ function createHistoryPackIndex({ cutoff, companyCutoff, writer }) {
   const currentStart = cutoff.slice(0, 4) + '-01-01';
   const entries = Object.create(null);
 
-  function add(key, table, { original = key, pair, previousArchive } = {}) {
+  function add(key, table, { original = key, pair, previousArchive, through } = {}) {
     if (Object.hasOwn(entries, key)) return entries[key];
     if (table?.schemaVersion !== 1 || !Array.isArray(table.columns) || !Array.isArray(table.rows)) return;
     const dateColumn = table.columns.indexOf('date');
     if (dateColumn < 0) return;
-    const limit = table.columns.includes('totalMarketcap') ? companyCutoff ?? cutoff : cutoff;
+    const limit = through ?? (table.columns.includes('totalMarketcap') ? companyCutoff ?? cutoff : cutoff);
     const splitDay = limit.slice(0, 4) + '-01-01';
     const sorted = table.rows.every((row, index) => index === 0 || table.rows[index - 1][dateColumn] <= row[dateColumn])
       ? table.rows : [...table.rows].sort((left, right) => left[dateColumn].localeCompare(right[dateColumn]));

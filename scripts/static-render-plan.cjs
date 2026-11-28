@@ -21,6 +21,8 @@ function routeFingerprints(input, manifest) {
   }
   const cacheFile = path.join(input, 'entity-digests.json');
   const digests = fs.existsSync(cacheFile) ? readJson(cacheFile) : { security: {}, company: {} };
+  const archivedSecurities = new Set(digests.archivedSecurities);
+  const publishedDay = manifest.referenceDate;
   function entity(kind, id) {
     if (Object.hasOwn(digests[kind], id)) return digests[kind][id];
     const file = path.join(input, 'data', kind, id + '.json');
@@ -28,11 +30,16 @@ function routeFingerprints(input, manifest) {
     return digests[kind][id] = sha256(source);
   }
   const companyMemo = new Map();
+  const companyMembers = id => digests.companyMembers?.[id] ?? members.get(id) ?? [];
   function company(id) {
     if (!id) return null;
     if (!companyMemo.has(id)) {
       const companyId = String(id);
-      companyMemo.set(id, hash([entity('company', companyId), (members.get(companyId) ?? []).map(sid => entity('security', sid))]));
+      const companySecurities = companyMembers(companyId);
+      // A lagging company publication can still include an ended security in its
+      // rolling dividend comparison, whose window follows the security publication.
+      companyMemo.set(id, hash([entity('company', companyId), companySecurities.map(sid => entity('security', sid)),
+        companySecurities.some(sid => archivedSecurities.has(sid)) ? publishedDay : null]));
     }
     return companyMemo.get(id);
   }
@@ -47,23 +54,26 @@ function routeFingerprints(input, manifest) {
   };
   const arenaFile = path.join(input, 'data', 'dashboard-arena-history.json');
   const arena = fs.existsSync(arenaFile) ? sha256(arenaFile) : null;
-  const packYear = manifest.referenceDate?.slice(0, 4);
   return Object.fromEntries(manifest.routes.map(({ path: address }) => {
     const [kind, code] = routePath(address).split('/').slice(1);
     if (kind === 'security') {
       const id = manifest.securityAliases[code];
       const row = identityById.get(id);
       if (!row) throw new Error(`Unknown security route input: ${address}`);
-      return [address, hash([entity(kind, id), company(row.companyId), packYear])];
+      return [address, hash([row, entity(kind, id), company(row.companyId), archivedSecurities.has(id) ? null : publishedDay])];
     }
-    if (kind === 'company') return [address, hash([company(manifest.companyAliases[code]), packYear])];
-    if (address === '/') return [address, hash([rankPage('marketcaps', 1), manifest.marketCsv])];
+    if (kind === 'company') {
+      const id = manifest.companyAliases[code];
+      const active = !digests.companyMembers || companyMembers(id).length > 0;
+      return [address, hash([company(id), manifest.companyRoutes?.[id], active ? publishedDay : null])];
+    }
+    if (address === '/') return [address, hash([rankPage('marketcaps', 1), manifest.marketCsv, publishedDay])];
     if (kind === 'dashboard') return [address, hash([
       rankPage('marketcaps', 1), [...rankManifests].filter(([base]) => base !== 'marketcaps')
-        .map(([base, ranking]) => [base, ranking.scopes['krx-all']]), arena, manifest.marketCsv,
+        .map(([base, ranking]) => [base, ranking.scopes['krx-all']]), arena, manifest.marketCsv, publishedDay,
     ])];
     const page = code?.includes('~') ? Number(code.split('~').at(-1)) : Number(code || 1);
-    return [address, hash([address, rankPage(kind, page), manifest.marketCsv])];
+    return [address, hash([address, rankPage(kind, page), manifest.marketCsv, publishedDay])];
   }));
 }
 
