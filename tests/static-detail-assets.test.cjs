@@ -524,3 +524,39 @@ test('paired packs share fetches across financial siblings without adding dates 
     assert.deepEqual(eps.sourceHistory.map(({ date, eps }) => [date, eps]), [['2025-12-30', '9007199254740993'], ['2026-02-01', '0']]);
   } finally { restore(); }
 });
+
+test('ended listing keeps immutable chart and CSV history across publication years', async () => {
+  const { createHash } = require('node:crypto');
+  const { createHistoryPackIndex } = require('../scripts/prepare-static-detail-history-packs.cjs');
+  const { archivedSecurityThrough } = loader()('lib/static-build/archived-detail.ts');
+  const { loadYearlyHistory } = loader()('lib/static-data.ts');
+  const selectedPeriod = { periodId: 'final', listingDate: '2026-01-02', delistingDate: '2026-10-08' };
+  const tables = new Map();
+  const source = table(['date', 'div', 'divState'], [
+    ['2025-12-30', '2', 'provided'], ['2026-04-02', null, 'source_missing'],
+    ['2026-10-07', '0', 'provided'], ['2026-10-08', '9', 'provided'],
+  ]);
+  const writer = { write(value) {
+    const url = '/history/' + createHash('sha256').update(JSON.stringify(value)).digest('hex');
+    tables.set(url, value);
+    return url;
+  } };
+  const build = cutoff => {
+    const through = archivedSecurityThrough({ selectedPeriod }, cutoff, ['2026-10-08']);
+    return createHistoryPackIndex({ cutoff, writer }).add('div', source, { original: null, through });
+  };
+  const prior = build('2026-10-09');
+  const latest = build('2027-01-04');
+  assert.deepEqual(latest, prior);
+  assert.equal(latest.latestDate, '2026-10-07');
+  assert.equal(latest.currentStart, '2026-01-01');
+  assert.equal(archivedSecurityThrough({ selectedPeriod: { ...selectedPeriod, delistingDate: null }, delistingDate: '2026-10-08' }, '2027-01-04', []), undefined);
+  assert.equal(archivedSecurityThrough({ delistingDate: '2026-10-08' }, '2027-01-04', ['2026-10-08']), undefined);
+  const restore = replaceGlobals({ fetch: async url => ({ ok: true, json: async () => tables.get(url) }) });
+  try {
+    const rows = async window => (await loadYearlyHistory(latest, window)).map(({ date, div, divState }) => [date, div, divState]);
+    assert.deepEqual(await rows({ start: selectedPeriod.listingDate, end: '2026-10-07' }), source.rows.slice(1, 3));
+    assert.deepEqual(await rows({ end: '2025-12-31' }), source.rows.slice(0, 1));
+    assert.deepEqual(await rows({ start: '2026-10-08' }), []);
+  } finally { restore(); }
+});

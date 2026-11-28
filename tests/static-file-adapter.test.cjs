@@ -7,6 +7,7 @@ const { createBusinessPageLoader } = require('./helpers/business-page-loader.cjs
 const { fixture, day, publication } = require('./helpers/business-data.cjs');
 const { createStaticAliases } = require('../scripts/static-aliases.cjs');
 const { projectExpected, firstDifference, routeInventory, normalizeAuditTimestamps } = require('../scripts/verify-static-input.cjs');
+const { routeFingerprints, planRender } = require('../scripts/static-render-plan.cjs');
 
 function write(directory, filename, value) {
   const destination = path.join(directory, filename); fs.mkdirSync(path.dirname(destination), { recursive: true });
@@ -22,6 +23,40 @@ function input(t) {
   write(directory, 'manifest.json', manifest);
   return { directory, manifest, server: createBusinessPageLoader().load('lib/static-build/server.ts') };
 }
+
+test('release fingerprints refresh live routes while retaining stable ended details', t => {
+  const { directory } = input(t);
+  const definitions = [
+    ['active', 'current'], ['related', 'current'], ['ended', 'inactive'], ['former', 'inactive'],
+  ];
+  write(directory, 'identities.json', definitions.map(([securityId, companyId]) => ({ securityId, companyId, ticker: securityId })));
+  const securityAliases = Object.fromEntries(definitions.map(([id]) => [id, id]));
+  const companyAliases = { current: 'current', inactive: 'inactive' };
+  const routes = ['/', '/per/', '/dashboard/', '/company/current/', '/company/inactive/', '/company/inactive/marketcap/',
+    ...definitions.map(([id]) => '/security/' + id + '/per/')].map(path => ({ path }));
+  const build = (referenceDate, securityChanges = {}, companyChanges = {}, archivedSecurities = ['related', 'ended', 'former'], currentMembers = ['active']) => {
+    write(directory, 'entity-digests.json', {
+      archivedSecurities, companyMembers: { current: currentMembers, inactive: [] },
+      security: { active: 'active', related: 'related', ended: 'ended', former: 'former', ...securityChanges },
+      company: { current: 'current', inactive: 'inactive', ...companyChanges },
+    });
+    return routeFingerprints(directory, { referenceDate, routes, securityAliases, companyAliases });
+  };
+  const prior = build('2026-12-30');
+  const next = build('2027-01-04', { former: 'corrected' });
+  assert.deepEqual(planRender(next, prior, true), { removed: [], changed: [
+    '/', '/per/', '/dashboard/', '/company/current/', '/security/active/per/', '/security/former/per/',
+  ] });
+  const changedMember = build('2027-01-04', { active: 'member-content-changed', former: 'corrected' });
+  assert.deepEqual(planRender(changedMember, next, true).changed, ['/company/current/', '/security/active/per/', '/security/related/per/']);
+  const changedCompany = build('2027-01-04', { former: 'corrected' }, { inactive: 'renamed' });
+  assert.deepEqual(planRender(changedCompany, next, true).changed,
+    ['/company/inactive/', '/company/inactive/marketcap/', '/security/ended/per/', '/security/former/per/']);
+  const relisting = build('2027-01-04', { former: 'corrected' }, {}, ['related', 'former']);
+  assert.deepEqual(planRender(relisting, next, true).changed, ['/security/ended/per/']);
+  const mixedPublication = day => build(day, {}, {}, undefined, ['active', 'related']);
+  assert.ok(planRender(mixedPublication('2027-01-04'), mixedPublication('2026-12-30'), true).changed.includes('/security/related/per/'));
+});
 
 test('static alias inventory mirrors live dotted syntax, combined ambiguity, and stable ID precedence', () => {
   const securities = [
@@ -187,6 +222,41 @@ test('static dividend comparison reads the sibling at the exact anniversary obse
   const detail = server.getStaticSecurityDetail('common', 'dps');
   assert.deepEqual(detail.companySecs.find(member => member.securityId === 'preferred').dividendReference,
     { date, dps: '1447', div: '0', price: '70000' });
+});
+
+test('a lagging company publication keeps the rolling dividend window while ended detail uses its listing cutoff', t => {
+  const { directory, manifest, server } = input(t);
+  const archivedDay = '2026-10-07';
+  const publicationDay = '2027-01-04';
+  const common = { securityId: 'common', state: 'published', publication: { asOf: publicationDay }, prices: [], marketcaps: [],
+    listingPeriods: [{ periodId: 'open', listingDate: '2021-09-01', delistingDate: null }] };
+  const preferred = { ...common, securityId: 'preferred', state: 'unpublished', publication: null,
+    listingPeriods: [
+      { periodId: 'first', listingDate: '2019-01-01', delistingDate: '2020-01-01' },
+      { periodId: 'final', listingDate: '2021-09-01', delistingDate: '2026-10-08' },
+    ] };
+  const records = [
+    { date: '2019-12-30', dps: '10' }, { date: '2021-10-11', dps: '0' }, { date: archivedDay, dps: '9' },
+  ];
+  write(directory, 'manifest.json', { ...manifest, securityAliases: { common: 'common', preferred: 'preferred' },
+    sourcePublications: { 'security_latest/krx-all': { asOf: publicationDay }, 'company_marketcap/krx-all': { asOf: archivedDay } } });
+  write(directory, 'identities.json', ['common', 'preferred'].map(securityId => ({ securityId, companyId: 'company-1' })));
+  write(directory, 'data/company/company-1.json', { company: {}, companySecs: [common, preferred] });
+  write(directory, 'data/security/common.json', { security: common, assets: {}, rankings: {}, metrics: records });
+  write(directory, 'data/security/preferred.json', { security: preferred, assets: { historyCutoff: archivedDay }, rankings: {}, metrics: records });
+  const detail = server.getStaticSecurityDetail('common', 'dps');
+  assert.equal(detail.security.historyCutoff, publicationDay);
+  assert.deepEqual(detail.companySecs.map(member => member.dividendHistory.map(row => row.date)), [[archivedDay], [archivedDay]]);
+  const final = server.getStaticSecurityDetail('preferred', 'dps');
+  assert.equal(final.security.selectedPeriod.periodId, 'final');
+  assert.equal(final.security.historicalPeriod, false);
+  assert.equal(final.security.historyCutoff, archivedDay);
+  assert.equal(server.getStaticDetailAssets('security', 'preferred').historyCutoff, archivedDay);
+  assert.deepEqual(final.history, records.slice(1));
+  const historical = server.getStaticSecurityDetail('preferred', 'dps', undefined, undefined, 'first');
+  assert.equal(historical.security.historicalPeriod, true);
+  assert.equal(historical.security.historyCutoff, undefined);
+  assert.deepEqual(historical.history, records.slice(0, 1));
 });
 
 for (const metric of ['marketcap', 'dps']) test(`${metric} constituent ranks use the official publication and listing period`, async t => {

@@ -259,8 +259,12 @@ function securityDetailAssets(file: SecurityFile) {
   return assets;
 }
 
-function securityHistoryCutoff(file: SecurityFile) {
+function securityPublicationCutoff(file: SecurityFile) {
   return getStaticManifest().sourcePublications?.['security_latest/krx-all']?.asOf ?? file.security.publication?.asOf;
+}
+
+function securityHistoryCutoff(file: SecurityFile) {
+  return file.assets.historyCutoff ?? securityPublicationCutoff(file);
 }
 
 function staticAvailability(file: SecurityFile, period: Period, cutoff?: string, historical = false) {
@@ -307,7 +311,7 @@ function staticCompanyMembers(file: CompanyFile | null, metric: string, current?
     let dividendHistory = includeDividends ? dividendCache.get(id) : undefined;
     if (includeDividends && !dividendHistory) {
       const observations = getSource();
-      dividendHistory = monthlyDividendHistory(filterListingRows(observations.archive?.metrics ?? observations.metrics, period), securityHistoryCutoff(observations));
+      dividendHistory = monthlyDividendHistory(filterListingRows(observations.archive?.metrics ?? observations.metrics, period), securityPublicationCutoff(observations));
       dividendCache.set(id, dividendHistory);
       if (dividendCache.size > 256) dividendCache.delete(dividendCache.keys().next().value!);
     }
